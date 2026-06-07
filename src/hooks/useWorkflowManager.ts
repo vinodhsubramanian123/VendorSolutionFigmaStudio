@@ -8,32 +8,43 @@ export interface WorkflowStep {
   status: WorkflowStepStatus;
 }
 
+interface WorkflowManagerState {
+  currentStepIndex: number;
+  stepStatuses: Record<string, WorkflowStepStatus>;
+  auditLogs: Array<{ timestamp: string; fromStep?: string; toStep: string; action: string }>;
+}
+
 export function useWorkflowManager(workflowKey: string, initialSteps: string[]) {
-  const [currentStepIndex, setCurrentStepIndex] = useLocalStorageState<number>(`${workflowKey}_current_step`, 0);
-  const [stepStatuses, setStepStatuses] = useLocalStorageState<Record<string, WorkflowStepStatus>>(
-    `${workflowKey}_statuses`,
-    initialSteps.reduce((acc, step, index) => {
-      acc[step] = index === 0 ? 'in-progress' : 'idle';
-      return acc;
-    }, {} as Record<string, WorkflowStepStatus>)
-  );
-  const [auditLogs, setAuditLogs] = useLocalStorageState<Array<{ timestamp: string; fromStep?: string; toStep: string; action: string }>>(
-    `${workflowKey}_audit_logs`,
-    []
-  );
+  const defaultStatuses = initialSteps.reduce((acc, step, index) => {
+    acc[step] = index === 0 ? 'in-progress' : 'idle';
+    return acc;
+  }, {} as Record<string, WorkflowStepStatus>);
+
+  const [state, setState] = useLocalStorageState<WorkflowManagerState>(`${workflowKey}_state`, {
+    currentStepIndex: 0,
+    stepStatuses: defaultStatuses,
+    auditLogs: [],
+  });
+
+  const currentStepIndex = state.currentStepIndex;
+  const stepStatuses = state.stepStatuses;
+  const auditLogs = state.auditLogs;
 
   const getCurrentStep = () => initialSteps[currentStepIndex];
 
   const logTransition = (action: string, fromStep?: string, toStep?: string) => {
-    setAuditLogs((prev) => [
+    setState((prev) => ({
       ...prev,
-      {
-        timestamp: new Date().toISOString(),
-        action,
-        fromStep,
-        toStep: toStep || 'unknown',
-      }
-    ]);
+      auditLogs: [
+        ...prev.auditLogs,
+        {
+          timestamp: new Date().toISOString(),
+          action,
+          fromStep,
+          toStep: toStep || 'unknown',
+        }
+      ]
+    }));
   };
 
   const advanceStep = () => {
@@ -41,22 +52,27 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
       const currentStep = initialSteps[currentStepIndex];
       const nextStep = initialSteps[currentStepIndex + 1];
       
-      setStepStatuses((prev) => ({
+      setState((prev) => ({
         ...prev,
-        [currentStep]: 'completed',
-        [nextStep]: 'in-progress',
+        currentStepIndex: prev.currentStepIndex + 1,
+        stepStatuses: {
+          ...prev.stepStatuses,
+          [currentStep]: 'completed',
+          [nextStep]: 'in-progress',
+        }
       }));
-      
-      setCurrentStepIndex(currentStepIndex + 1);
       logTransition('advance_step', currentStep, nextStep);
       return nextStep;
     }
     
     // Complete the last step
     const currentStep = initialSteps[currentStepIndex];
-    setStepStatuses((prev) => ({
+    setState((prev) => ({
       ...prev,
-      [currentStep]: 'completed',
+      stepStatuses: {
+        ...prev.stepStatuses,
+        [currentStep]: 'completed',
+      }
     }));
     logTransition('complete_workflow', currentStep, currentStep);
     return null;
@@ -66,27 +82,34 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
     const index = initialSteps.indexOf(stepId);
     if (index !== -1) {
       const fromStep = initialSteps[currentStepIndex];
-      setCurrentStepIndex(index);
-      setStepStatuses((prev) => ({
+      setState((prev) => ({
         ...prev,
-        [stepId]: prev[stepId] === 'completed' ? 'completed' : 'in-progress',
+        currentStepIndex: index,
+        stepStatuses: {
+          ...prev.stepStatuses,
+          [stepId]: prev.stepStatuses[stepId] === 'completed' ? 'completed' : 'in-progress',
+        }
       }));
       logTransition('jump_to_step', fromStep, stepId);
     }
   };
 
   const setStepStatus = (stepId: string, status: WorkflowStepStatus) => {
-    setStepStatuses((prev) => ({ ...prev, [stepId]: status }));
+    setState((prev) => ({
+      ...prev,
+      stepStatuses: {
+        ...prev.stepStatuses,
+        [stepId]: status
+      }
+    }));
   };
 
   const resetWorkflow = () => {
-    setCurrentStepIndex(0);
-    setStepStatuses(
-      initialSteps.reduce((acc, step, index) => {
-        acc[step] = index === 0 ? 'in-progress' : 'idle';
-        return acc;
-      }, {} as Record<string, WorkflowStepStatus>)
-    );
+    setState({
+      currentStepIndex: 0,
+      stepStatuses: defaultStatuses,
+      auditLogs: []
+    });
     logTransition('reset_workflow');
   };
 

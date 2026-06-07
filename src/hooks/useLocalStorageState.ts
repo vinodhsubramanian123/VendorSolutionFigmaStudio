@@ -14,11 +14,15 @@ export function useLocalStorageState<T>(key: string, defaultValue: T): [T, (val:
   });
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(state));
-    } catch (e) {
-      console.warn(`Error writing localStorage for key "${key}"`, e);
-    }
+    const handler = setTimeout(() => {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(state));
+      } catch (e) {
+        console.warn(`Error writing localStorage for key "${key}"`, e);
+      }
+    }, 300);
+
+    return () => clearTimeout(handler);
   }, [key, state]);
 
   return [state, setState];

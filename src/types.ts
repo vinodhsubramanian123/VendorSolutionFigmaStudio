@@ -15,6 +15,8 @@ export type AppView =
   | 'solution-builder'
   | 'telemetry'
   | 'documentation'
+  | 'reconciliation'
+  | 'search'
   | 'premium';
 
 export type UCIDStep =

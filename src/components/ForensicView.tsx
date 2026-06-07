@@ -14,21 +14,47 @@ interface ForensicViewProps {
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   activeMissionId?: string;
   setActiveMissionId: React.Dispatch<React.SetStateAction<string | undefined>>;
+  onNavigate?: (view: any) => void;
 }
 
 export function ForensicView({
+  forensicIssues,
+  setForensicIssues,
   setVendors,
   setCatalogSkus,
   ucids,
   setUcids,
   activeMissionId,
   setActiveMissionId,
+  onNavigate,
 }: ForensicViewProps) {
   const [scanning, setScanning] = useState(false);
   const [scanStdout, setScanStdout] = useState<string[]>([]);
   const [lastScanCount, setLastScanCount] = useState<number | null>(null);
   const [completedFixes, setCompletedFixes] = useState<{ id: string; title: string; desc: string }[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warn' } | null>(null);
+
+  if (ucids.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-12 bg-[#0b1220] border border-white/5 rounded-xl gap-4 animate-fadeIn my-auto max-w-2xl mx-auto mt-12">
+        <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold text-white">No Active Sourcing Profiles (UCIDs) Found</h2>
+          <p className="text-xs text-gray-400 max-w-sm leading-normal">
+            Your workspace data cache is current empty. Please go to the Ingest Hub to upload a sourcing workbook or use the compile desk to build your first tracking context.
+          </p>
+        </div>
+        <button
+          onClick={() => onNavigate?.('ingestion-hub')}
+          className="px-5 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold cursor-pointer transition text-xs border-0 focus:outline-none shadow-lg shadow-indigo-500/15"
+        >
+          Go to Ingestion Hub
+        </button>
+      </div>
+    );
+  }
 
   // Get active selected profile or default to first
   const currUcid = ucids.find(u => u.id === activeMissionId) || ucids[0];
@@ -55,57 +81,44 @@ export function ForensicView({
     sol.vendor === 'Cisco' && sol.items.some(it => it.type === 'Memory' && it.quantity % 8 !== 0)
   ) || false;
 
-  // Build current open issues array based on active profile states
-  const openIssues: ForensicIssue[] = [];
-
-  if (hasEolSourcingRisk) {
-    openIssues.push({
-      id: 'iss-1',
-      title: 'Intel Xeon 6130 End-of-Life (EOL) Sourcing Risk',
-      description: `HPE Legacy CPU (SKU 815100-B21) was identified inside active sheet. Procuring this will result in grey-market sourcing, voided vendor warranty, and a 45+ day factory lead time.`,
-      vendor: 'HPE',
-      severity: 'critical',
-      status: 'open',
-      affectedItems: 1,
-      suggestedAction: 'Auto-Align local BOM model to replace with Intel Xeon Gold 6430 CPU (P40424-B21). Zeroes lead time and recovers full HPE coverage.'
+  // Build current open issues array derived directly from global forensicIssues prop and context-aware UCID constraints
+  const openIssues: ForensicIssue[] = forensicIssues
+    .filter((issue) => issue.status === 'open' || !issue.status)
+    .filter((issue) => {
+      if (issue.id === 'iss-1') return hasEolSourcingRisk;
+      if (issue.id === 'iss-2') return hasPriceVarianceRisk;
+      if (issue.id === 'iss-3') return hasCiscoMemorySymmetryRisk;
+      if (issue.id === 'iss-4') return true;
+      return true;
+    })
+    .map((issue) => {
+      // Dynamically enrich information from selected UCID configurations where appropriate
+      if (issue.id === 'iss-2' && hasPriceVarianceRisk) {
+        const matchingSol = currUcid?.solutions?.find(sol => sol.items.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190));
+        const matchingItem = matchingSol?.items?.find(it => it.partNumber === '400-BPSB');
+        const unitPrice = matchingItem?.unitPrice || 1590;
+        const overage = unitPrice - 1190;
+        const totalWaste = overage * (matchingItem?.quantity || 24);
+        return {
+          ...issue,
+          description: `Active quote for Dell 3.84TB drive (400-BPSB) is logged inside sheet as $${unitPrice.toLocaleString()}/ea. Direct API partner contract rate is $1,190. Overage mark-up: $${overage}/ea.`,
+          affectedItems: matchingItem?.quantity || 24,
+          suggestedAction: `Auto-Align local quote unit price to $1,190 negotiated rate. Saves $${totalWaste.toLocaleString()} instantly across lines.`
+        };
+      }
+      if (issue.id === 'iss-3' && hasCiscoMemorySymmetryRisk) {
+        const matchingSol = currUcid?.solutions?.find(sol => sol.vendor === 'Cisco');
+        const matchingItem = matchingSol?.items?.find(it => it.type === 'Memory');
+        const qty = matchingItem?.quantity || 5;
+        return {
+          ...issue,
+          description: `Cisco UCS standard C240 configuration requests ${qty} memory modules. Intel Xeon 4th-Gen memory controllers operate optimally on 8-channel layouts. Odd allocation modules cause layout bus bottlenecks.`,
+          affectedItems: qty,
+          suggestedAction: 'Upgrade configuration load to 8 units of 64GB DDR5 memory modules to satisfy full 8-channel Motherboard performance symmetry.'
+        };
+      }
+      return issue;
     });
-  }
-
-  if (hasPriceVarianceRisk) {
-    const matchingSol = currUcid?.solutions?.find(sol => sol.items.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190));
-    const matchingItem = matchingSol?.items?.find(it => it.partNumber === '400-BPSB');
-    const unitPrice = matchingItem?.unitPrice || 1590;
-    const overage = unitPrice - 1190;
-    const totalWaste = overage * (matchingItem?.quantity || 24);
-
-    openIssues.push({
-      id: 'iss-2',
-      title: 'Pricing Mismatch: Dell SFF Enterprise NVMe Quote Variance',
-      description: `Active quote for Dell 3.84TB drive (400-BPSB) is logged inside sheet as $${unitPrice.toLocaleString()}/ea. Direct API partner contract rate is $1,190. Overage mark-up: $${overage}/ea.`,
-      vendor: 'Dell',
-      severity: 'critical',
-      status: 'open',
-      affectedItems: matchingItem?.quantity || 24,
-      suggestedAction: `Auto-Align local quote unit price to $1,190 negotiated rate. Saves $${totalWaste.toLocaleString()} instantly across lines.`
-    });
-  }
-
-  if (hasCiscoMemorySymmetryRisk) {
-    const matchingSol = currUcid?.solutions?.find(sol => sol.vendor === 'Cisco');
-    const matchingItem = matchingSol?.items?.find(it => it.type === 'Memory');
-    const qty = matchingItem?.quantity || 5;
-
-    openIssues.push({
-      id: 'iss-3',
-      title: 'Cisco Memory Layout Configuration Symmetry Defect',
-      description: `Cisco UCS standard C240 configuration requests ${qty} memory modules. Intel Xeon 4th-Gen memory controllers operate optimally on 8-channel layouts. Odd allocation modules cause layout bus bottlenecks.`,
-      vendor: 'Cisco',
-      severity: 'warning',
-      status: 'open',
-      affectedItems: qty,
-      suggestedAction: 'Upgrade configuration load to 8 units of 64GB DDR5 memory modules to satisfy full 8-channel Motherboard performance symmetry.'
-    });
-  }
 
   // Auto sweep simulation
   function runAuditScanner() {
@@ -193,6 +206,9 @@ export function ForensicView({
           desc: 'Swapped obsolete CPU SKU 815100-B21 for active Intel Gold 6430 under workflow rules.',
         },
       ]);
+      setForensicIssues((prev) =>
+        prev.map((iss) => (iss.id === 'iss-1' ? { ...iss, status: 'resolved' as const } : iss))
+      );
       triggerToast('HPE EOL CPU replaced in profile BOM successfully!', 'success');
     }
 
@@ -250,6 +266,9 @@ export function ForensicView({
           desc: 'Quote overcharges eliminated. Unit pricing aligned with negotiated direct API.',
         },
       ]);
+      setForensicIssues((prev) =>
+        prev.map((iss) => (iss.id === 'iss-2' ? { ...iss, status: 'resolved' as const } : iss))
+      );
       triggerToast('Dell Quote pricing aligned to direct API contract rate!', 'success');
     }
 
@@ -309,7 +328,29 @@ export function ForensicView({
           desc: 'Motherboard layout balanced. RAM modules upgraded to satisfy 8-channel architecture specifications.',
         },
       ]);
+      setForensicIssues((prev) =>
+        prev.map((iss) => (iss.id === 'iss-3' ? { ...iss, status: 'resolved' as const } : iss))
+      );
       triggerToast('Cisco UCS memory configurations normalized to 8-channel layout!', 'success');
+    }
+
+    if (issueId === 'iss-4') {
+      // Auto-heal Juniper
+      setVendors((prev) =>
+        prev.map((v) => (v.shortName === 'Juniper' ? { ...v, status: 'connected', apiHealth: 100 } : v))
+      );
+      setCompletedFixes((prev) => [
+        ...prev,
+        {
+          id: 'iss-4',
+          title: 'Juniper API Telemetry Ingress Blocked',
+          desc: 'Re-authenticated partner credentials. Telemetry pipeline successfully authorized.',
+        },
+      ]);
+      setForensicIssues((prev) =>
+        prev.map((iss) => (iss.id === 'iss-4' ? { ...iss, status: 'resolved' as const } : iss))
+      );
+      triggerToast('Juniper Networks partner API connected and authorized!', 'success');
     }
   }
 
@@ -486,22 +527,44 @@ export function ForensicView({
 
           <div className="p-4 rounded-xl border flex flex-col min-h-0" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
             <span className="text-xs text-white font-bold flex items-center gap-1.5 shrink-0">
-              <ShieldCheck className="w-4 h-4 text-[#00d4a0]" /> Compliance Resolved List ({completedFixes.length})
+              <ShieldCheck className="w-4 h-4 text-[#00d4a0]" /> Compliance Resolved List ({
+                Array.from(new Set([
+                  ...forensicIssues.filter(i => i.status === 'resolved').map(i => i.id),
+                  ...completedFixes.map(f => f.id)
+                ])).length
+              })
             </span>
             <div className="divide-y divide-white/5 mt-3 p-1.5 bg-black/20 rounded-lg flex-1 min-h-0 overflow-y-auto space-y-2">
-              {completedFixes.map((issue, idx) => (
-                <div key={idx} className="py-2 text-[10px] text-gray-400 first:pt-1 last:pb-1">
-                  <p className="font-bold text-white flex items-center gap-1 line-clamp-1">
-                    <CheckCircle className="w-3 h-3 text-[#00d4a0] shrink-0" /> {issue.title}
+              {(() => {
+                const map = new Map<string, { id: string; title: string; desc: string }>();
+                
+                forensicIssues.forEach(i => {
+                  if (i.status === 'resolved') {
+                    map.set(i.id, { id: i.id, title: i.title, desc: i.suggestedAction || i.description });
+                  }
+                });
+
+                completedFixes.forEach(f => {
+                  map.set(f.id, { id: f.id, title: f.title, desc: f.desc });
+                });
+
+                const uniqueResolved = Array.from(map.values());
+
+                return uniqueResolved.length > 0 ? (
+                  uniqueResolved.map((issue, idx) => (
+                    <div key={issue.id || idx} className="py-2 text-[10px] text-gray-400 first:pt-1 last:pb-1">
+                      <p className="font-bold text-white flex items-center gap-1 line-clamp-1">
+                        <CheckCircle className="w-3 h-3 text-[#00d4a0] shrink-0" /> {issue.title}
+                      </p>
+                      <p className="text-gray-500 mt-1 pl-4 leading-normal">{issue.desc}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-[10px] text-gray-500 p-3 italic">
+                    No repairs executed in active profile's design scope yet.
                   </p>
-                  <p className="text-gray-500 mt-1 pl-4 leading-normal">{issue.desc}</p>
-                </div>
-              ))}
-              {completedFixes.length === 0 && (
-                <p className="text-center text-[10px] text-gray-650 p-3 italic">
-                  No repairs executed in active profile's design scope yet.
-                </p>
-              )}
+                );
+              })()}
             </div>
           </div>
         </div>

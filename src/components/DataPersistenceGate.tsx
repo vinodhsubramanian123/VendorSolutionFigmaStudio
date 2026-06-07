@@ -23,26 +23,11 @@ export function DataPersistenceGate({
   onConfirmNavigation,
   onCancelNavigation 
 }: DataPersistenceGateProps) {
-  const [dataHealth, setDataHealth] = useState<'healthy' | 'corrupted' | 'checking'>('checking');
-
-  useEffect(() => {
-    // Deep check on critical app state
-    const checkState = () => {
-      setDataHealth('checking');
-      
-      const isUcidsValid = Array.isArray(ucids);
-      const isVendorsValid = Array.isArray(vendors);
-      const isCatalogValid = Array.isArray(catalogSkus);
-
-      if (isUcidsValid && isVendorsValid && isCatalogValid) {
-        setDataHealth('healthy');
-      } else {
-        setDataHealth('corrupted');
-      }
-    };
-
-    checkState();
-  }, [ucids, vendors, catalogSkus]);
+  // Synchronously compute data health to avoid any intermediate layout flickers or loading screens on state changes
+  const isUcidsValid = Array.isArray(ucids);
+  const isVendorsValid = Array.isArray(vendors);
+  const isCatalogValid = Array.isArray(catalogSkus);
+  const isHealthy = isUcidsValid && isVendorsValid && isCatalogValid;
 
   const handleRestoreSession = () => {
     localStorage.removeItem('sys_ucids');
@@ -51,15 +36,7 @@ export function DataPersistenceGate({
     window.location.reload();
   };
 
-  if (dataHealth === 'checking') {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
-  if (dataHealth === 'corrupted') {
+  if (!isHealthy) {
     return (
       <div className="flex flex-col h-full bg-[#06080e] rounded-xl border border-white/5 items-center justify-center p-8 space-y-6">
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)]">

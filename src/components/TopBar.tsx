@@ -28,6 +28,8 @@ export function TopBar({ activeView, onSearch, onNavigate, apiProgress, isPendin
     reports: 'Comparative Audit & Performance Reports',
     premium: 'AI Procurement & Sourcing UI Lab',
     'ingestion-hub': 'Centralized BOQ & BOM Ingestion Hub',
+    'reconciliation': 'BOM Reconciliation Drift Analyzer',
+    'search': 'Cognitive Semantic NLP Query Search',
     telemetry: 'System Telemetry Pipeline',
     documentation: 'System Documentation & API Contracts',
   };

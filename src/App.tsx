@@ -15,6 +15,8 @@ import { TaxonomyGraphEditor } from './components/TaxonomyGraphEditor';
 import { SolutionBuilder } from './components/SolutionBuilder';
 import { IngestionHub } from './components/IngestionHub';
 import { SearchView } from './components/SearchView';
+import { ReconciliationView } from './components/ReconciliationView';
+import { NlpSearchView } from './components/NlpSearchView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { DataPersistenceGate } from './components/DataPersistenceGate';
 import { StateConsistencyMonitor } from './components/StateConsistencyMonitor';
@@ -164,6 +166,7 @@ export default function App() {
           <CatalogManager 
             catalogSkus={catalogSkus} 
             setCatalogSkus={setCatalogSkus} 
+            vendors={vendors}
           />
         );
       case 'vendor-portal':
@@ -186,6 +189,7 @@ export default function App() {
             setUcids={setUcids}
             activeMissionId={activeMissionId}
             setActiveMissionId={setActiveMissionId}
+            onNavigate={setView}
           />
         );
       case 'telemetry':
@@ -228,6 +232,10 @@ export default function App() {
         );
       case 'documentation':
         return <DocumentationView />;
+      case 'reconciliation':
+        return <ReconciliationView />;
+      case 'search':
+        return <NlpSearchView />;
       case 'premium':
         return <PremiumShowcase />;
       default:

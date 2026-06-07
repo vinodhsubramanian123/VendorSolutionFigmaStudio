@@ -48,10 +48,18 @@ interface TableGroup {
   rows: TableRow[];
 }
 
-export function PremiumShowcase() {
+interface PremiumShowcaseProps {
+  initialTab?: 'reconciliation' | 'mission' | 'search' | 'loading';
+}
+
+export function PremiumShowcase({ initialTab = 'reconciliation' }: PremiumShowcaseProps) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warn' | 'error' } | null>(null);
-  const [activeTab, setActiveTab] = useState<'reconciliation' | 'mission' | 'search' | 'loading'>('reconciliation');
+  const [activeTab, setActiveTab] = useState<'reconciliation' | 'mission' | 'search' | 'loading'>(initialTab);
   const [isCinematic, setIsCinematic] = useState(true);
+
+  React.useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   // BOM Reconciliation state
   const [selectedConfigSheet, setSelectedConfigSheet] = useState<string | null>(null);

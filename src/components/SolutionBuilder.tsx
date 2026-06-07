@@ -331,7 +331,7 @@ export function SolutionBuilder({
         /* ================= STEP 1: BOQ INTAKE PANEL ================= */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
           
-          {/* Main Intake Canvas - Streamlined Pointer */}
+          {/* Main Intake Canvas */}
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-[#0b1220] border border-white/5 rounded-xl p-6 space-y-6">
               <div className="flex items-start gap-4">
@@ -339,27 +339,82 @@ export function SolutionBuilder({
                   <UploadCloud className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-[9px] bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Spreadsheet Management Upgrade</span>
-                  <h3 className="text-sm font-semibold text-white mt-1.5 font-sans">Ingestion & Reconciliations have shifted!</h3>
+                  <span className="text-[9px] bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Direct Solution Ingest</span>
+                  <h3 className="text-sm font-semibold text-white mt-1.5 font-sans">Bill of Quantities (BOQ) Ingestion</h3>
                   <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                    To prevent search-time confusion, we have established a single, dedicated **BOQ & BOM Ingest Hub** tab. All raw excel sheets, multi-tab sourcing configs, and supplier-signed BOM files are processed centrally using direct API spinners.
+                    Upload your customer hardware requirements sheet, cross-vendor BOM workbook, or raw equipment PARTS spec file. The system will dynamically resolve nomenclature, run rules validators, and seed dual-sourcing mapping cards.
                   </p>
                 </div>
               </div>
 
-              {/* Ingestion Hub Direct Referral Banner */}
-              <div className="p-5 rounded-lg bg-indigo-500/[0.02] border border-indigo-500/10 flex flex-col items-center text-center space-y-4">
-                <p className="text-gray-400 text-[11px] max-w-md">
-                  Please open the central hub to ingest your spreadsheets and splits. Once uploaded, the platform instantly maps them to the central state cache.
-                </p>
-                <button
-                  onClick={() => onNavigate('ingestion-hub')}
-                  className="px-5 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold cursor-pointer transition flex items-center gap-2 shadow-lg shadow-indigo-500/15 text-[11px] font-sans border-0 focus:outline-none"
+              {/* Ingestion Hub Direct Referral & In-place Upload */}
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-indigo-500/[0.02] border border-indigo-500/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <p className="text-gray-400 text-[10.5px] max-w-sm text-center sm:text-left leading-normal">
+                    Don't have a spreadsheet handy? Click here to instantly parse a pre-scanned mock enterprise server &amp; storage workbook.
+                  </p>
+                  <button
+                    onClick={() => handleFileUpload("demographic_sourcing_specs_2026.xlsx")}
+                    className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold cursor-pointer text-[10px] font-sans flex items-center gap-2 shrink-0 transition"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                    <span>Load Demo BOQ</span>
+                  </button>
+                </div>
+
+                {/* Drag and Drop Intake Card */}
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 transition ${
+                    isDragging ? 'border-indigo-400 bg-indigo-500/10' : 'border-indigo-500/10 bg-black/25'
+                  }`}
                 >
-                  <UploadCloud className="w-4 h-4" />
-                  <span>📥 Open Central BOQ & BOM Ingestion Hub</span>
-                </button>
+                  {isIngesting ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
+                      <p className="font-semibold text-white font-sans text-xs">Parsing Complex BOQ Sheet...</p>
+                      <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 transition-all duration-200" style={{ width: `${ingestProgress}%` }} />
+                      </div>
+                    </div>
+                  ) : isIngested ? (
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <CheckCircle className="w-8 h-8 text-emerald-400" />
+                      <p className="font-semibold text-white">Successfully Analyzed "{uploadedFileName}"</p>
+                      <p className="text-[10px] text-gray-500">Extracted and normalized configuration options matched with active enterprise contracts.</p>
+                      <button
+                        onClick={() => setStep(2)}
+                        className="mt-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg cursor-pointer transition flex items-center gap-1 focus:outline-none"
+                      >
+                        <span>Configure UCID Assignment</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-center gap-2 cursor-pointer w-full" onClick={triggerPicker}>
+                      <UploadCloud className="w-10 h-10 text-indigo-400" />
+                      <p className="font-semibold text-gray-200">Drag &amp; Drop or Upload Customer BOQ Spreadsheet</p>
+                      <p className="text-[10px] text-gray-500">Supports multi-vendor, multi-tab equipment configuration sheets</p>
+                      <button
+                        type="button"
+                        className="mt-2 px-3 py-1.5 bg-[#0f172a] hover:bg-black/40 text-gray-300 font-medium rounded-lg text-[10px] border border-white/10"
+                      >
+                        Select File
+                      </button>
+                      <input 
+                        id="boq-file-picker" 
+                        type="file" 
+                        accept=".xlsx,.csv,.xls" 
+                        className="hidden" 
+                        onChange={handleFileChange} 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
+
 
               {/* Direct Bypass Option */}
               <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3">
@@ -380,6 +435,31 @@ export function SolutionBuilder({
 
           {/* Guide Checklist Side Card */}
           <div className="space-y-4">
+            {/* Pre-Condition Check */}
+            <div className="bg-[#0b1220] border border-white/5 rounded-xl p-5 space-y-3.5">
+              <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">Pre-Condition Verification</h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 pb-2">
+                  <span className="text-gray-400 font-sans font-medium">BOM Sheet Loaded</span>
+                  <span className={`px-2 py-0.5 rounded font-mono text-[9px] font-bold ${isIngested ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                    {isIngested ? 'ACCEPTED' : 'AWAITING'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 pb-2">
+                  <span className="text-gray-400 font-sans font-medium">Active UCID Context</span>
+                  <span className={`px-2 py-0.5 rounded font-mono text-[9px] font-bold ${ucids?.length > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500'}`}>
+                    {ucids?.length > 0 ? `${ucids.length} ACTIVE` : 'NONE'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] py-1">
+                  <span className="text-gray-400 font-sans font-medium">Vendor Handshakes</span>
+                  <span className={`px-2 py-0.5 rounded font-mono text-[9px] font-bold bg-emerald-500/10 text-emerald-400`}>
+                    CONNECTED
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Context Explainer */}
             <div className="bg-[#0b1220] border border-white/5 rounded-xl p-5 space-y-4">
               <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">What is Solution Sourcing?</h4>

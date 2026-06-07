@@ -16,7 +16,8 @@ import {
   FolderSync,
   UploadCloud,
   Activity,
-  Book
+  Book,
+  Search
 } from 'lucide-react';
 import { AppView } from '../types';
 import { UCID } from '../types';
@@ -57,6 +58,18 @@ export function Sidebar({
       iconColor: '#38bdf8'
     },
     { 
+      view: 'reconciliation' as AppView, 
+      label: 'BOM Reconciliation Diff', 
+      icon: FolderSync,
+      iconColor: '#a855f7'
+    },
+    { 
+      view: 'search' as AppView, 
+      label: 'Semantic NLP Search', 
+      icon: Search,
+      iconColor: '#10b981'
+    },
+    { 
       view: 'live-mission' as AppView, 
       label: 'Live Mission Control', 
       icon: Target,
@@ -87,7 +100,6 @@ export function Sidebar({
     { view: 'reports' as AppView, label: 'Reports & Auditing', icon: FileText },
     { view: 'telemetry' as AppView, label: 'System Telemetry', icon: Activity },
     { view: 'documentation' as AppView, label: 'API & Documentation', icon: Book },
-    { view: 'premium' as AppView, label: 'UI Lab', icon: Sparkles, iconColor: '#a855f7' },
   ];
 
   return (

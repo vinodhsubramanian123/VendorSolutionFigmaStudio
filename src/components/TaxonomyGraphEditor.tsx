@@ -29,6 +29,22 @@ export function TaxonomyGraphEditor({
   const [connectMode, setConnectMode] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string>('c9200-48');
 
+  if (ucids.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-12 bg-[#0b1220] border border-white/5 rounded-xl gap-4 animate-fadeIn my-auto max-w-2xl mx-auto mt-12">
+        <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400">
+          <Network className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold text-white">No Taxonomy Graph Data</h2>
+          <p className="text-xs text-gray-400 max-w-sm leading-normal">
+            Taxonomy mapping requires active hardware sourcing profiles (UCIDs). Please ingest a workbook to build structural mapping graphs.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Static schema mockup based on Figma
   const nodes: SchemaNode[] = [
     { id: 'cisco', type: 'vendor', label: 'Cisco', sublabel: 'Active Partner' },

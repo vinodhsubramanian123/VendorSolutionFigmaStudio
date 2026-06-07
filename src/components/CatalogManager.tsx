@@ -1,20 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Database, Search, Filter, Plus, Edit2, Check, X, 
-  RefreshCw, AlertTriangle, Folder, ChevronRight, ChevronDown, 
-  Upload, Sparkles, Server, Cpu, Layers, HardDrive, Network, 
+  RefreshCw, AlertTriangle, ChevronLeft, ChevronRight,
+  Server, Cpu, Layers, HardDrive, Network, 
   Sliders, Info
 } from 'lucide-react';
 import type { CatalogSKU } from '../types';
+import { TaxonomyTree } from './TaxonomyTree';
 
 interface CatalogManagerProps {
   catalogSkus: CatalogSKU[];
   setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
+  vendors?: any[];
 }
 
-export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerProps) {
+export function CatalogManager({ catalogSkus, setCatalogSkus, vendors }: CatalogManagerProps) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warn' | 'error' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const totalCatalogItems = useMemo(() => {
+    if (!vendors || vendors.length === 0) return 16625;
+    return vendors.reduce((acc, v) => acc + (v.catalogItems || 0), 0);
+  }, [vendors]);
+
+  const totalConnectedVendors = useMemo(() => {
+    return vendors?.length || 5;
+  }, [vendors]);
   const [vendorFilter, setVendorFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [editingSkuId, setEditingSkuId] = useState<string | null>(null);
@@ -59,23 +70,17 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
     setVendorFilter('all');
   };
 
-  const vendors = Array.from(new Set(catalogSkus.map(s => s.vendor)));
+  const uniqueVendorNames = Array.from(new Set(catalogSkus.map(s => s.vendor)));
 
-  // Master SKU counts that match screenshots & partner counts exactly
-  const masterCounts: Record<string, any> = {
-    HPE: {
-      total: 6254,
-      sub: {
-        Server: 3102,
-        Storage: 1847,
-        Networking: 1305
-      }
-    },
-    CISCO: { total: 3847 },
-    DELL: { total: 4203 },
-    JUNIPER: { total: 1429 },
-    PALO: { total: 892 }
-  };
+  // Memoized hardware type counts for high performance rendering without row by row parsing at render
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: catalogSkus.length };
+    catalogSkus.forEach((s) => {
+      const t = s.type.toLowerCase();
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    return counts;
+  }, [catalogSkus]);
 
   // Helper to retrieve category icon
   const getCategoryIcon = (type: string) => {
@@ -92,149 +97,167 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
   };
 
   // High fidelity manufacturer deep path catalog filter
-  const filteredSkus = catalogSkus.filter((sku) => {
-    const matchesSearch =
-      sku.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sku.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (searchTerm) {
-      return matchesSearch;
-    }
-
-    // Top horizontal chips quick filtering option
-    if (typeFilter !== 'all') {
-      if (sku.type.toLowerCase() !== typeFilter.toLowerCase()) {
-        return false;
-      }
-    }
-
-    // Direct tree node deep path filter
-    if (selectedPath.vendor !== 'all') {
-      if (sku.vendor.toLowerCase() !== selectedPath.vendor.toLowerCase()) {
-        return false;
+  const filteredSkus = useMemo(() => {
+    return catalogSkus.filter((sku) => {
+      const matchesSearch =
+        sku.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sku.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      if (searchTerm) {
+        return matchesSearch;
       }
 
-      if (selectedPath.solution !== 'all') {
-        const skuTypeLow = sku.type.toLowerCase();
+      // Top horizontal chips quick filtering option
+      if (typeFilter !== 'all') {
+        if (sku.type.toLowerCase() !== typeFilter.toLowerCase()) {
+          return false;
+        }
+      }
 
-        // 1. Solution Catalog Slicing
-        if (selectedPath.solution === 'Server') {
-          const isServerPart = ['chassis', 'processor', 'memory', 'power supply', 'riser card'].includes(skuTypeLow) && 
-            !sku.name.toLowerCase().includes('msa') && !sku.name.toLowerCase().includes('switch') && !sku.name.toLowerCase().includes('aruba');
-          if (!isServerPart) return false;
-        } else if (selectedPath.solution === 'Storage') {
-          const isStoragePart = ['drive', 'chassis'].includes(skuTypeLow) && 
-            (sku.name.toLowerCase().includes('msa') || sku.partNumber.toLowerCase().includes('r0q74a') || sku.partNumber.toLowerCase().includes('r0q37a') || sku.type === 'Drive');
-          if (!isStoragePart) return false;
-        } else if (selectedPath.solution === 'Networking') {
-          const isNetworkPart = ['network adapter', 'chassis'].includes(skuTypeLow) || 
-            sku.name.toLowerCase().includes('switch') || sku.name.toLowerCase().includes('aruba') || sku.name.toLowerCase().includes('nexus') || sku.name.toLowerCase().includes('juniper');
-          if (!isNetworkPart) return false;
+      // Direct tree node deep path filter
+      if (selectedPath.vendor !== 'all') {
+        if (sku.vendor.toLowerCase() !== selectedPath.vendor.toLowerCase()) {
+          return false;
         }
 
-        // 2. Product Family level
-        if (selectedPath.product !== 'all') {
-          const skuNameLow = sku.name.toLowerCase();
-          const p = selectedPath.product.toLowerCase();
+        if (selectedPath.solution !== 'all') {
+          const skuTypeLow = sku.type.toLowerCase();
 
-          if (p === 'dl380a') {
-            const isDl380a = skuNameLow.includes('dl380a') || sku.partNumber.includes('P58410') || sku.partNumber.includes('P58425') || sku.partNumber.includes('P58500');
-            if (!isDl380a) return false;
-          } else if (p === 'dl380') {
-            // Must NOT include DL380a
-            const isDl380 = (skuNameLow.includes('dl380') && !skuNameLow.includes('dl380a')) || sku.partNumber.includes('P40424') || sku.partNumber.includes('P38454') || sku.partNumber.includes('P40483') || sku.partNumber.includes('P40445') || sku.partNumber.includes('865414') || sku.partNumber.includes('P43019') || skuNameLow.includes('platinum 8562y') || sku.partNumber.includes('P50164') || sku.partNumber.includes('P50500') || skuNameLow.includes('broadcom 57414') || skuNameLow.includes('gen13 preview') || sku.partNumber.includes('P70100') || sku.partNumber.includes('P70125');
-            if (!isDl380) return false;
-          } else if (p === 'dl80') {
-            const isDl80 = skuNameLow.includes('dl80') || sku.partNumber.includes('847285') || sku.partNumber.includes('P60120');
-            if (!isDl80) return false;
-          } else if (p === 'msa') {
-            const isMsa = skuNameLow.includes('msa') || sku.partNumber.includes('r0q74a') || sku.partNumber.includes('r0q37a');
-            if (!isMsa) return false;
-          } else if (p === 'aruba') {
-            const isAruba = skuNameLow.includes('aruba') || sku.partNumber.includes('bf100a') || sku.partNumber.includes('1973a');
-            if (!isAruba) return false;
-          } else if (p === 'r760') {
-            const isR760 = skuNameLow.includes('r760') || skuNameLow.includes('poweredge') || sku.partNumber.includes('338-chyt') || sku.partNumber.includes('370-ahff') || sku.partNumber.includes('400-bpsb') || sku.partNumber.includes('540-bcoz') || sku.partNumber.includes('450-adwm');
-            if (!isR760) return false;
-          } else if (p === 'ucs') {
-            const isUcs = skuNameLow.includes('ucs') || sku.partNumber.includes('usc') || sku.partNumber.includes('n20-w6502');
-            if (!isUcs) return false;
-          } else if (p === 'qfx') {
-            const isQfx = skuNameLow.includes('qfx') || sku.partNumber.includes('ex3400') || skuNameLow.includes('juniper') || sku.partNumber.includes('srx300');
-            if (!isQfx) return false;
+          // 1. Solution Catalog Slicing
+          if (selectedPath.solution === 'Server') {
+            const isServerPart = ['chassis', 'processor', 'memory', 'power supply', 'riser card'].includes(skuTypeLow) && 
+              !sku.name.toLowerCase().includes('msa') && !sku.name.toLowerCase().includes('switch') && !sku.name.toLowerCase().includes('aruba');
+            if (!isServerPart) return false;
+          } else if (selectedPath.solution === 'Storage') {
+            const isStoragePart = ['drive', 'chassis'].includes(skuTypeLow) && 
+              (sku.name.toLowerCase().includes('msa') || sku.partNumber.toLowerCase().includes('r0q74a') || sku.partNumber.toLowerCase().includes('r0q37a') || sku.type === 'Drive');
+            if (!isStoragePart) return false;
+          } else if (selectedPath.solution === 'Networking') {
+            const isNetworkPart = ['network adapter', 'chassis'].includes(skuTypeLow) || 
+              sku.name.toLowerCase().includes('switch') || sku.name.toLowerCase().includes('aruba') || sku.name.toLowerCase().includes('nexus') || sku.name.toLowerCase().includes('juniper');
+            if (!isNetworkPart) return false;
           }
 
-          // 3. Generation Slicing: Gen11 vs Gen12 vs Gen13
-          if (selectedPath.generation !== 'all') {
-            const gen = selectedPath.generation.toLowerCase();
-            if (gen === 'gen11') {
-              if (skuNameLow.includes('gen12') || skuNameLow.includes('gen13') || skuNameLow.includes('g12') || skuNameLow.includes('g13') || sku.partNumber.includes('P50123') || sku.partNumber.includes('P50164') || sku.partNumber.includes('P50410') || sku.partNumber.includes('P60120') || sku.partNumber.includes('P70100') || sku.partNumber.includes('P70125')) return false;
-            } else if (gen === 'gen12') {
-              if (skuNameLow.includes('gen11') || skuNameLow.includes('gen13') || skuNameLow.includes('g11') || skuNameLow.includes('g13') || sku.partNumber.includes('P40424') || sku.partNumber.includes('P38454') || sku.partNumber.includes('P40411') || sku.partNumber.includes('P40412') || sku.partNumber.includes('847285')) return false;
-            } else if (gen === 'gen13') {
-              if (!skuNameLow.includes('gen13') && !sku.partNumber.includes('P70100') && !sku.partNumber.includes('P70125')) return false;
+          // 2. Product Family level
+          if (selectedPath.product !== 'all') {
+            const skuNameLow = sku.name.toLowerCase();
+            const p = selectedPath.product.toLowerCase();
+
+            if (p === 'dl380a') {
+              const isDl380a = skuNameLow.includes('dl380a') || sku.partNumber.includes('P58410') || sku.partNumber.includes('P58425') || sku.partNumber.includes('P58500');
+              if (!isDl380a) return false;
+            } else if (p === 'dl380') {
+              // Must NOT include DL380a
+              const isDl380 = (skuNameLow.includes('dl380') && !skuNameLow.includes('dl380a')) || sku.partNumber.includes('P40424') || sku.partNumber.includes('P38454') || sku.partNumber.includes('P40483') || sku.partNumber.includes('P40445') || sku.partNumber.includes('865414') || sku.partNumber.includes('P43019') || skuNameLow.includes('platinum 8562y') || sku.partNumber.includes('P50164') || sku.partNumber.includes('P50500') || skuNameLow.includes('broadcom 57414') || skuNameLow.includes('gen13 preview') || sku.partNumber.includes('P70100') || sku.partNumber.includes('P70125');
+              if (!isDl380) return false;
+            } else if (p === 'dl80') {
+              const isDl80 = skuNameLow.includes('dl80') || sku.partNumber.includes('847285') || sku.partNumber.includes('P60120');
+              if (!isDl80) return false;
+            } else if (p === 'msa') {
+              const isMsa = skuNameLow.includes('msa') || sku.partNumber.includes('r0q74a') || sku.partNumber.includes('r0q37a');
+              if (!isMsa) return false;
+            } else if (p === 'aruba') {
+              const isAruba = skuNameLow.includes('aruba') || sku.partNumber.includes('bf100a') || sku.partNumber.includes('1973a');
+              if (!isAruba) return false;
+            } else if (p === 'r760') {
+              const isR760 = skuNameLow.includes('r760') || skuNameLow.includes('poweredge') || sku.partNumber.includes('338-chyt') || sku.partNumber.includes('370-ahff') || sku.partNumber.includes('400-bpsb') || sku.partNumber.includes('540-bcoz') || sku.partNumber.includes('450-adwm');
+              if (!isR760) return false;
+            } else if (p === 'ucs') {
+              const isUcs = skuNameLow.includes('ucs') || sku.partNumber.includes('usc') || sku.partNumber.includes('n20-w6502');
+              if (!isUcs) return false;
+            } else if (p === 'qfx') {
+              const isQfx = skuNameLow.includes('qfx') || sku.partNumber.includes('ex3400') || skuNameLow.includes('juniper') || sku.partNumber.includes('srx300');
+              if (!isQfx) return false;
+            }
+
+            // 3. Generation Slicing: Gen11 vs Gen12 vs Gen13
+            if (selectedPath.generation !== 'all') {
+              const gen = selectedPath.generation.toLowerCase();
+              if (gen === 'gen11') {
+                if (skuNameLow.includes('gen12') || skuNameLow.includes('gen13') || skuNameLow.includes('g12') || skuNameLow.includes('g13') || sku.partNumber.includes('P50123') || sku.partNumber.includes('P50164') || sku.partNumber.includes('P50410') || sku.partNumber.includes('P60120') || sku.partNumber.includes('P70100') || sku.partNumber.includes('P70125')) return false;
+              } else if (gen === 'gen12') {
+                if (skuNameLow.includes('gen11') || skuNameLow.includes('gen13') || skuNameLow.includes('g11') || skuNameLow.includes('g13') || sku.partNumber.includes('P40424') || sku.partNumber.includes('P38454') || sku.partNumber.includes('P40411') || sku.partNumber.includes('P40412') || sku.partNumber.includes('847285')) return false;
+              } else if (gen === 'gen13') {
+                if (!skuNameLow.includes('gen13') && !sku.partNumber.includes('P70100') && !sku.partNumber.includes('P70125')) return false;
+              }
+            }
+          }
+
+          // 4. Hierarchical Level Isolation: Main lists only show Chassis vs click-on-chassis shows detailed components
+          if (selectedPath.chassis === 'all') {
+            // If we are at a high-level catalog sweep, look ONLY for main Chassis/Switch choices
+            if (sku.type !== 'Chassis') {
+              return false;
+            }
+          } else {
+            // A specific chassis has been selected (e.g., 'sku-4'). Render only the chassis itself + compatible sub-components!
+            const activeChassisId = selectedPath.chassis;
+            let allowedIds: string[] = [];
+
+            if (activeChassisId === 'sku-4' || activeChassisId === 'sku-4-24sff') {
+              // HPE DL380 Gen11 Main or High-Density variants
+              allowedIds = ['sku-4', 'sku-4-24sff', 'sku-1', 'sku-2', 'sku-3', 'sku-5', 'sku-hpe-psu1', 'sku-hpe-riser1'];
+            } else if (activeChassisId === 'sku-hpe-dl380-gen12-8sff') {
+              // HPE DL380 Gen12 Series
+              allowedIds = ['sku-hpe-dl380-gen12-8sff', 'sku-hpe-g12-cpu', 'sku-hpe-g12-ram', 'sku-hpe-psu2', 'sku-3'];
+            } else if (activeChassisId === 'sku-hpe-dl380a-g11-4dw') {
+              // HPE DL380a Accelerator GPU Base
+              allowedIds = ['sku-hpe-dl380a-g11-4dw', 'sku-hpe-dl380a-gpu', 'sku-hpe-dl380a-psu', 'sku-1', 'sku-2', 'sku-3'];
+            } else if (activeChassisId === 'sku-hpe-dl380-gen13-pref') {
+              // HPE DL380 Gen13 Preview
+              allowedIds = ['sku-hpe-dl380-gen13-pref', 'sku-hpe-gen13-cpu', 'sku-hpe-dl380a-psu'];
+            } else if (activeChassisId === 'sku-hpe-dl80-g11') {
+              // HPE DL80 Gen11 Base
+              allowedIds = ['sku-hpe-dl80-g11', 'sku-1', 'sku-2', 'sku-3'];
+            } else if (activeChassisId === 'sku-hpe-dl80-g12') {
+              // HPE DL80 Gen12 Base
+              allowedIds = ['sku-hpe-dl80-g12', 'sku-hpe-g12-cpu', 'sku-hpe-g12-ram', 'sku-3'];
+            } else if (activeChassisId === 'sku-hpe-msa-2060') {
+              // HPE MSA LFF Array Bay Storage
+              allowedIds = ['sku-hpe-msa-2060', 'sku-hpe-msa-ssd'];
+            } else if (activeChassisId === 'sku-hpe-aruba-10000') {
+              // HPE Aruba CX Distributed switch unit
+              allowedIds = ['sku-hpe-aruba-10000', 'sku-hpe-aruba-transceiver'];
+            } else if (activeChassisId === 'sku-9' || activeChassisId === 'sku-9-24sff') {
+              // Dell PowerEdge R760 variants
+              allowedIds = ['sku-9', 'sku-9-24sff', 'sku-6', 'sku-7', 'sku-8', 'sku-10', 'sku-dell-psu'];
+            } else if (activeChassisId === 'sku-14') {
+              // Cisco UCS C240 M7 SFF series
+              allowedIds = ['sku-14', 'sku-11', 'sku-12', 'sku-13'];
+            } else if (activeChassisId === 'sku-16') {
+              // Juniper high performance switch chassis
+              allowedIds = ['sku-16', 'sku-15', 'sku-17'];
+            } else {
+              // Fallback: only show the matched item itself
+              allowedIds = [activeChassisId];
+            }
+
+            if (!allowedIds.includes(sku.id)) {
+              return false;
             }
           }
         }
-
-        // 4. Hierarchical Level Isolation: Main lists only show Chassis vs click-on-chassis shows detailed components
-        if (selectedPath.chassis === 'all') {
-          // If we are at a high-level catalog sweep, look ONLY for main Chassis/Switch choices
-          if (sku.type !== 'Chassis') {
-            return false;
-          }
-        } else {
-          // A specific chassis has been selected (e.g., 'sku-4'). Render only the chassis itself + compatible sub-components!
-          const activeChassisId = selectedPath.chassis;
-          let allowedIds: string[] = [];
-
-          if (activeChassisId === 'sku-4' || activeChassisId === 'sku-4-24sff') {
-            // HPE DL380 Gen11 Main or High-Density variants
-            allowedIds = ['sku-4', 'sku-4-24sff', 'sku-1', 'sku-2', 'sku-3', 'sku-5', 'sku-hpe-psu1', 'sku-hpe-riser1'];
-          } else if (activeChassisId === 'sku-hpe-dl380-gen12-8sff') {
-            // HPE DL380 Gen12 Series
-            allowedIds = ['sku-hpe-dl380-gen12-8sff', 'sku-hpe-g12-cpu', 'sku-hpe-g12-ram', 'sku-hpe-psu2', 'sku-3'];
-          } else if (activeChassisId === 'sku-hpe-dl380a-g11-4dw') {
-            // HPE DL380a Accelerator GPU Base
-            allowedIds = ['sku-hpe-dl380a-g11-4dw', 'sku-hpe-dl380a-gpu', 'sku-hpe-dl380a-psu', 'sku-1', 'sku-2', 'sku-3'];
-          } else if (activeChassisId === 'sku-hpe-dl380-gen13-pref') {
-            // HPE DL380 Gen13 Preview
-            allowedIds = ['sku-hpe-dl380-gen13-pref', 'sku-hpe-gen13-cpu', 'sku-hpe-dl380a-psu'];
-          } else if (activeChassisId === 'sku-hpe-dl80-g11') {
-            // HPE DL80 Gen11 Base
-            allowedIds = ['sku-hpe-dl80-g11', 'sku-1', 'sku-2', 'sku-3'];
-          } else if (activeChassisId === 'sku-hpe-dl80-g12') {
-            // HPE DL80 Gen12 Base
-            allowedIds = ['sku-hpe-dl80-g12', 'sku-hpe-g12-cpu', 'sku-hpe-g12-ram', 'sku-3'];
-          } else if (activeChassisId === 'sku-hpe-msa-2060') {
-            // HPE MSA LFF Array Bay Storage
-            allowedIds = ['sku-hpe-msa-2060', 'sku-hpe-msa-ssd'];
-          } else if (activeChassisId === 'sku-hpe-aruba-10000') {
-            // HPE Aruba CX Distributed switch unit
-            allowedIds = ['sku-hpe-aruba-10000', 'sku-hpe-aruba-transceiver'];
-          } else if (activeChassisId === 'sku-9' || activeChassisId === 'sku-9-24sff') {
-            // Dell PowerEdge R760 variants
-            allowedIds = ['sku-9', 'sku-9-24sff', 'sku-6', 'sku-7', 'sku-8', 'sku-10', 'sku-dell-psu'];
-          } else if (activeChassisId === 'sku-14') {
-            // Cisco UCS C240 M7 SFF series
-            allowedIds = ['sku-14', 'sku-11', 'sku-12', 'sku-13'];
-          } else if (activeChassisId === 'sku-16') {
-            // Juniper high performance switch chassis
-            allowedIds = ['sku-16', 'sku-15', 'sku-17'];
-          } else {
-            // Fallback: only show the matched item itself
-            allowedIds = [activeChassisId];
-          }
-
-          if (!allowedIds.includes(sku.id)) {
-            return false;
-          }
-        }
       }
-    }
 
-    return matchesSearch;
-  });
+      return matchesSearch;
+    });
+  }, [catalogSkus, searchTerm, typeFilter, selectedPath]);
+
+  // Pagination State and Logic (Page Size = 24)
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 24;
+
+  // Reset page when filtering criteria or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, selectedPath]);
+
+  const paginatedSkus = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredSkus.slice(startIndex, startIndex + pageSize);
+  }, [filteredSkus, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredSkus.length / pageSize) || 1;
 
   // Unique types inside active project cards
   const projectTypes = ['all', 'Chassis', 'Processor', 'Memory', 'Drive', 'Network Adapter', 'Power Supply', 'Riser Card'];
@@ -310,7 +333,7 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
             <h2 className="text-sm font-semibold text-white tracking-tight">Central Sourcing Database & Inventory Rules</h2>
             <p className="text-[10.5px] text-gray-500 flex items-center gap-1.5 mt-0.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Sourcing Engine Database — 16,625 SKUs across 5 connected direct vendor APIs</span>
+              <span>Sourcing Engine Database — {totalCatalogItems.toLocaleString()} SKUs across {totalConnectedVendors} connected direct vendor APIs</span>
             </p>
           </div>
         </div>
@@ -338,7 +361,7 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
           <p className="font-bold text-white text-[11.5px]">Taxonomy & Sourcing Cardinality Clarity Tool</p>
           <p className="text-gray-400 leading-normal text-[10.5px]">
             Please note: The <strong>Vendor Taxonomy</strong> list represents our partner manufacturer global catalogs 
-            (totaling 16,625 available partner items). The right-side cards reflect the filtered active hardware components 
+            (totaling {totalCatalogItems.toLocaleString()} available partner items). The right-side cards reflect the filtered active hardware components 
             ({catalogSkus.length} indexed contract codes) assigned to your active procurement solutions.
           </p>
         </div>
@@ -346,475 +369,22 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
 
       {/* Main 2-Column Desktop Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1 min-h-0">
-        
-        {/* LEFT COLUMN: VENDOR TAXONOMY DRAWER */}
+               {/* LEFT COLUMN: VENDOR TAXONOMY DRAWER */}
         <div className="lg:col-span-3 bg-[#0b1220] border border-white/5 rounded-xl p-4 flex flex-col gap-4 min-h-0">
           <div className="pb-2 border-b border-white/5 flex flex-col shrink-0">
             <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider font-mono">Manufacturer Taxonomy</span>
             <span className="text-[11.5px] font-bold text-white mt-0.5">{catalogSkus.length} Contract SKUs Indexed</span>
           </div>
 
-          {/* Directory Tree Structure */}
-          <div className="flex-1 select-none scrollbar-thin overflow-y-auto pr-0.5 min-h-0 space-y-1 text-[11px]">
-            {/* All SKUs node */}
-            <button
-              onClick={() => selectPathFn({ vendor: 'all', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}
-              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition font-semibold ${
-                selectedPath.vendor === 'all'
-                  ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15'
-                  : 'text-gray-400 hover:bg-[#10192e] hover:text-white border border-transparent'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Folder className="w-4 h-4 shrink-0 text-indigo-400" />
-                <span>All Sourced SKUs</span>
-              </span>
-              <span className="font-mono text-[9px] bg-black/40 px-1.5 py-0.5 rounded text-indigo-400 font-bold border border-indigo-500/10">
-                {catalogSkus.length}
-              </span>
-            </button>
-
-            {/* Folder list of global partner database stats */}
-            <div className="pt-2 space-y-1">
-              <span className="text-[9px] text-gray-500 font-bold font-mono tracking-wider px-2 block uppercase mb-1">Global Sourcing Directory</span>
-              
-              {/* HPE Node (Nested Expandable) */}
-              <div className="space-y-0.5 border border-white/5 bg-black/10 rounded-lg p-1.5">
-                <div 
-                  className={`flex items-center justify-between px-2 py-1.5 rounded-lg transition text-left ${
-                    selectedPath.vendor === 'hpe' && selectedPath.solution === 'all' ? 'text-indigo-400 font-bold bg-indigo-500/5' : 'text-gray-300 hover:bg-white/1.5'
-                  }`}
-                >
-                  <button 
-                    onClick={() => selectPathFn({ vendor: 'hpe', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}
-                    className="flex-1 text-left flex items-center gap-1.5 font-semibold"
-                  >
-                    <Folder className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>HPE Global Portal</span>
-                  </button>
-                  <button 
-                    onClick={() => toggleNode('hpe')}
-                    className="p-1 hover:text-white text-gray-500 rounded hover:bg-white/5 dynamic-toggle transition"
-                  >
-                    {expandedNodes['hpe'] ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                {expandedNodes['hpe'] && (
-                  <div className="pl-3.5 border-l border-white/5 ml-3 pb-1 space-y-1">
-                    
-                    {/* Solution level: Server */}
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-white/1">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'all', generation: 'all', chassis: 'all' })}
-                          className={`flex-1 text-left flex items-center gap-1.5 ${selectedPath.vendor === 'hpe' && selectedPath.solution === 'Server' && selectedPath.product === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-400 hover:text-white'}`}
-                        >
-                          <span className="font-semibold">• Server Solutions</span>
-                        </button>
-                        <button onClick={() => toggleNode('hpe_Server')} className="text-gray-500 hover:text-white">
-                          {expandedNodes['hpe_Server'] ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                        </button>
-                      </div>
-
-                      {expandedNodes['hpe_Server'] && (
-                        <div className="pl-3 border-l border-white/5 ml-2 pb-1 space-y-1 text-[10.5px]">
-                          
-                          {/* DL380 Series */}
-                          <div className="space-y-0.5">
-                            <div className="flex items-center justify-between px-1.5 py-0.5 rounded hover:bg-white/1">
-                              <button
-                                onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'all', chassis: 'all' })}
-                                className={`flex-1 text-left ${selectedPath.product === 'DL380' && selectedPath.generation === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                              >
-                                <span>- DL380 Family</span>
-                              </button>
-                              <button 
-                                onClick={() => toggleNode('hpe_Server_DL380')} 
-                                className="text-gray-600 hover:text-white"
-                              >
-                                {expandedNodes['hpe_Server_DL380'] ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
-                              </button>
-                            </div>
-
-                            {expandedNodes['hpe_Server_DL380'] && (
-                              <div className="pl-3 border-l border-white/5 ml-2 space-y-1 text-[10px]">
-                                {/* Gen 11 */}
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between py-0.5 px-1 rounded hover:bg-white/1">
-                                    <button
-                                      onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'all' })}
-                                      className={`flex-1 text-left ${selectedPath.product === 'DL380' && selectedPath.generation === 'Gen11' && selectedPath.chassis === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                      <span>Gen 11 Range</span>
-                                    </button>
-                                    <button 
-                                      onClick={() => toggleNode('hpe_Server_DL380_Gen11')} 
-                                      className="text-gray-650 hover:text-white"
-                                    >
-                                      {expandedNodes['hpe_Server_DL380_Gen11'] ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
-                                    </button>
-                                  </div>
-
-                                  {expandedNodes['hpe_Server_DL380_Gen11'] && (
-                                    <div className="pl-3 space-y-0.5 text-[9.5px] text-gray-500">
-                                      <button 
-                                        onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'sku-4' })}
-                                        className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-4' ? 'bg-emerald-500/10 text-[#00d4a0] font-bold' : 'hover:text-white'}`}
-                                      >
-                                        8SFF Main Chassis
-                                      </button>
-                                      <button 
-                                        onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'sku-4-24sff' })}
-                                        className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-4-24sff' ? 'bg-emerald-500/10 text-[#00d4a0] font-bold' : 'hover:text-white'}`}
-                                      >
-                                        24SFF High Density
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Gen 11 - DL380a Accelerator */}
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between py-0.5 px-1 rounded hover:bg-white/1">
-                                    <button
-                                      onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380a', generation: 'Gen11', chassis: 'all' })}
-                                      className={`flex-1 text-left ${selectedPath.product === 'DL380a' && selectedPath.generation === 'Gen11' && selectedPath.chassis === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                      <span className="text-[#a855f7] font-semibold">DL380a Gen11 Accelerator</span>
-                                    </button>
-                                    <button 
-                                      onClick={() => toggleNode('hpe_Server_DL380a_Gen11')} 
-                                      className="text-gray-650 hover:text-white"
-                                    >
-                                      {expandedNodes['hpe_Server_DL380a_Gen11'] ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
-                                    </button>
-                                  </div>
-
-                                  {expandedNodes['hpe_Server_DL380a_Gen11'] && (
-                                    <div className="pl-3 space-y-0.5 text-[9.5px] text-gray-500">
-                                      <button 
-                                        onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380a', generation: 'Gen11', chassis: 'sku-hpe-dl380a-g11-4dw' })}
-                                        className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-hpe-dl380a-g11-4dw' ? 'bg-purple-500/10 text-[#a855f7] font-bold' : 'hover:text-white'}`}
-                                      >
-                                        4DW GPU CTO Chassis
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Gen 12 */}
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between py-0.5 px-1 rounded hover:bg-white/1">
-                                    <button
-                                      onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen12', chassis: 'all' })}
-                                      className={`flex-1 text-left ${selectedPath.product === 'DL380' && selectedPath.generation === 'Gen12' && selectedPath.chassis === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                      <span>Gen 12 Range</span>
-                                    </button>
-                                    <button 
-                                      onClick={() => toggleNode('hpe_Server_DL380_Gen12')} 
-                                      className="text-gray-655 hover:text-white"
-                                    >
-                                      {expandedNodes['hpe_Server_DL380_Gen12'] ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
-                                    </button>
-                                  </div>
-
-                                  {expandedNodes['hpe_Server_DL380_Gen12'] && (
-                                    <div className="pl-3 space-y-0.5 text-[9.5px] text-gray-500">
-                                      <button 
-                                        onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen12', chassis: 'sku-hpe-dl380-gen12-8sff' })}
-                                        className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-hpe-dl380-gen12-8sff' ? 'bg-emerald-500/10 text-[#00d4a0] font-bold' : 'hover:text-white'}`}
-                                      >
-                                        8SFF High Power
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Gen 13 Preview (Roadmap Future-Tech) */}
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between py-0.5 px-1 rounded hover:bg-white/1">
-                                    <button
-                                      onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen13', chassis: 'all' })}
-                                      className={`flex-1 text-left ${selectedPath.product === 'DL380' && selectedPath.generation === 'Gen13' && selectedPath.chassis === 'all' ? 'text-[#00d4a0] font-bold' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                      <span className="text-[#00d4a0] font-semibold">Gen 13 Range Preview</span>
-                                    </button>
-                                    <button 
-                                      onClick={() => toggleNode('hpe_Server_DL380_Gen13')} 
-                                      className="text-gray-650 hover:text-white"
-                                    >
-                                      {expandedNodes['hpe_Server_DL380_Gen13'] ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
-                                    </button>
-                                  </div>
-
-                                  {expandedNodes['hpe_Server_DL380_Gen13'] && (
-                                    <div className="pl-3 space-y-0.5 text-[9.5px] text-gray-500">
-                                      <button 
-                                        onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL380', generation: 'Gen13', chassis: 'sku-hpe-dl380-gen13-pref' })}
-                                        className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-hpe-dl380-gen13-pref' ? 'bg-emerald-500/10 text-[#00d4a0] font-bold' : 'hover:text-white'}`}
-                                      >
-                                        Enterprise Preview Chassis
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* DL80 Series */}
-                          <div className="space-y-0.5">
-                            <div className="flex items-center justify-between px-1.5 py-0.5 rounded hover:bg-white/1">
-                              <button
-                                onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL80', generation: 'all', chassis: 'all' })}
-                                className={`flex-1 text-left ${selectedPath.product === 'DL80' && selectedPath.generation === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                              >
-                                <span>- DL80 Family</span>
-                              </button>
-                              <button 
-                                onClick={() => toggleNode('hpe_Server_DL80')} 
-                                className="text-gray-600 hover:text-white"
-                              >
-                                {expandedNodes['hpe_Server_DL80'] ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
-                              </button>
-                            </div>
-
-                            {expandedNodes['hpe_Server_DL80'] && (
-                              <div className="pl-3 border-l border-white/5 ml-2 space-y-1 text-[9.5px]">
-                                <button 
-                                  onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL80', generation: 'Gen11', chassis: 'sku-hpe-dl80-g11' })}
-                                  className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-hpe-dl80-g11' ? 'bg-emerald-500/10 text-[#00d4a0] font-bold' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                  Gen 11 12LFF Chassis
-                                </button>
-                                <button 
-                                  onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Server', product: 'DL80', generation: 'Gen12', chassis: 'sku-hpe-dl80-g12' })}
-                                  className={`w-full text-left py-0.5 px-1 rounded block truncate ${selectedPath.chassis === 'sku-hpe-dl80-g12' ? 'bg-emerald-500/10 text-[#00d4a0] font-bold' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                  Gen 12 12LFF Chassis
-                                </button>
-                              </div>
-                            )}
-                          </div>
-
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Solution level: Storage */}
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-white/1">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Storage', product: 'all', generation: 'all', chassis: 'all' })}
-                          className={`flex-1 text-left flex items-center gap-1.5 ${selectedPath.vendor === 'hpe' && selectedPath.solution === 'Storage' && selectedPath.product === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-400 hover:text-white'}`}
-                        >
-                          <span className="font-semibold">• Storage Solutions</span>
-                        </button>
-                        <button onClick={() => toggleNode('hpe_Storage')} className="text-gray-500 hover:text-white">
-                          {expandedNodes['hpe_Storage'] ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                        </button>
-                      </div>
-
-                      {expandedNodes['hpe_Storage'] && (
-                        <div className="pl-3 border-l border-white/5 ml-2 pb-1 space-y-1 text-[10.5px]">
-                          <button
-                            onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Storage', product: 'MSA', generation: 'all', chassis: 'sku-hpe-msa-2060' })}
-                            className={`w-full text-left py-1 px-1.5 rounded hover:bg-white/1 block truncate ${selectedPath.product === 'MSA' ? 'bg-indigo-500/10 text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                          >
-                            - MSA 2060 Array Chassis
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Solution level: Networking */}
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-white/1">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Networking', product: 'all', generation: 'all', chassis: 'all' })}
-                          className={`flex-1 text-left flex items-center gap-1.5 ${selectedPath.vendor === 'hpe' && selectedPath.solution === 'Networking' && selectedPath.product === 'all' ? 'text-indigo-400 font-bold' : 'text-gray-400 hover:text-white'}`}
-                        >
-                          <span className="font-semibold">• Networking Solutions</span>
-                        </button>
-                        <button onClick={() => toggleNode('hpe_Networking')} className="text-gray-500 hover:text-white">
-                          {expandedNodes['hpe_Networking'] ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                        </button>
-                      </div>
-
-                      {expandedNodes['hpe_Networking'] && (
-                        <div className="pl-3 border-l border-white/5 ml-2 pb-1 space-y-1 text-[10.5px]">
-                          <button
-                            onClick={() => selectPathFn({ vendor: 'hpe', solution: 'Networking', product: 'Aruba', generation: 'all', chassis: 'sku-hpe-aruba-10000' })}
-                            className={`w-full text-left py-1 px-1.5 rounded hover:bg-white/1 block truncate ${selectedPath.product === 'Aruba' ? 'bg-indigo-500/10 text-indigo-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                          >
-                            - Aruba CX Dist. Services Switch
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                  </div>
-                )}
-              </div>
-
-              {/* Cisco Node (Nested Expandable) */}
-              <div className="space-y-0.5 border border-white/5 bg-black/10 rounded-lg p-1.5">
-                <div 
-                  className={`flex items-center justify-between px-2 py-1.5 rounded-lg transition text-left ${
-                    selectedPath.vendor === 'cisco' && selectedPath.solution === 'all' ? 'text-purple-400 font-bold bg-purple-500/5' : 'text-gray-300 hover:bg-white/1.5'
-                  }`}
-                >
-                  <button 
-                    onClick={() => selectPathFn({ vendor: 'cisco', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}
-                    className="flex-1 text-left flex items-center gap-1.5 font-semibold"
-                  >
-                    <Folder className="w-4 h-4 text-purple-400 shrink-0" />
-                    <span>CISCO Systems</span>
-                  </button>
-                  <button 
-                    onClick={() => toggleNode('cisco')}
-                    className="p-1 hover:text-white text-gray-500 rounded hover:bg-white/5 dynamic-toggle transition"
-                  >
-                    {expandedNodes['cisco'] ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                {expandedNodes['cisco'] && (
-                  <div className="pl-3.5 border-l border-white/5 ml-3 pb-1 space-y-1">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-white/1">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'cisco', solution: 'Server', product: 'UCS', generation: 'all', chassis: 'all' })}
-                          className={`flex-1 text-left flex items-center gap-1.5 ${selectedPath.vendor === 'cisco' && selectedPath.solution === 'Server' ? 'text-purple-400 font-bold' : 'text-gray-400 hover:text-white'}`}
-                        >
-                          <span className="font-semibold">• UCS Compute Series</span>
-                        </button>
-                      </div>
-                      
-                      <div className="pl-3 border-l border-white/5 ml-2 pb-0.5 space-y-1 text-[10.5px]">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'cisco', solution: 'Server', product: 'UCS', generation: 'all', chassis: 'sku-14' })}
-                          className={`w-full text-left py-0.5 px-1.5 rounded hover:bg-white/1 block truncate ${selectedPath.chassis === 'sku-14' ? 'bg-purple-500/10 text-purple-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                        >
-                          - UCS C240 M7 CTO Chassis
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Dell Node (Nested Expandable) */}
-              <div className="space-y-0.5 border border-white/5 bg-black/10 rounded-lg p-1.5">
-                <div 
-                  className={`flex items-center justify-between px-2 py-1.5 rounded-lg transition text-left ${
-                    selectedPath.vendor === 'dell' && selectedPath.solution === 'all' ? 'text-indigo-400 font-bold bg-indigo-500/5' : 'text-gray-300 hover:bg-white/1.5'
-                  }`}
-                >
-                  <button 
-                    onClick={() => selectPathFn({ vendor: 'dell', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}
-                    className="flex-1 text-left flex items-center gap-1.5 font-semibold"
-                  >
-                    <Folder className="w-4 h-4 text-sky-400 shrink-0" />
-                    <span>DELL EMC Solutions</span>
-                  </button>
-                  <button 
-                    onClick={() => toggleNode('dell')}
-                    className="p-1 hover:text-white text-gray-500 rounded hover:bg-white/5 dynamic-toggle transition"
-                  >
-                    {expandedNodes['dell'] ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                {expandedNodes['dell'] && (
-                  <div className="pl-3.5 border-l border-white/5 ml-3 pb-1 space-y-1">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-white/1">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'dell', solution: 'Server', product: 'R760', generation: 'all', chassis: 'all' })}
-                          className={`flex-1 text-left flex items-center gap-1.5 ${selectedPath.vendor === 'dell' && selectedPath.solution === 'Server' ? 'text-sky-400 font-bold' : 'text-gray-400 hover:text-white'}`}
-                        >
-                          <span className="font-semibold">• PowerEdge Clusters</span>
-                        </button>
-                      </div>
-
-                      <div className="pl-3 border-l border-white/5 ml-2 pb-0.5 space-y-1 text-[10.5px]">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'dell', solution: 'Server', product: 'R760', generation: 'all', chassis: 'sku-9' })}
-                          className={`w-full text-left py-0.5 px-1.5 rounded hover:bg-white/1 block truncate ${selectedPath.chassis === 'sku-9' ? 'bg-sky-500/10 text-sky-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                        >
-                          - PowerEdge R760 8SFF Chassis
-                        </button>
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'dell', solution: 'Server', product: 'R760', generation: 'all', chassis: 'sku-9-24sff' })}
-                          className={`w-full text-left py-0.5 px-1.5 rounded hover:bg-white/1 block truncate ${selectedPath.chassis === 'sku-9-24sff' ? 'bg-sky-500/10 text-sky-400 font-bold' : 'text-gray-500 hover:text-white'}`}
-                        >
-                          - PowerEdge 24SFF HighDensity
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Juniper Node (Nested Expandable) */}
-              <div className="space-y-0.5 border border-white/5 bg-black/10 rounded-lg p-1.5">
-                <div 
-                  className={`flex items-center justify-between px-2 py-1.5 rounded-lg transition text-left ${
-                    selectedPath.vendor === 'juniper' && selectedPath.solution === 'all' ? 'text-emerald-400 font-bold bg-emerald-500/5' : 'text-gray-350 hover:bg-white/1.5'
-                  }`}
-                >
-                  <button 
-                    onClick={() => selectPathFn({ vendor: 'juniper', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}
-                    className="flex-1 text-left flex items-center gap-1.5 font-semibold"
-                  >
-                    <Folder className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>JUNIPER Networks</span>
-                  </button>
-                  <button 
-                    onClick={() => toggleNode('juniper')}
-                    className="p-1 hover:text-white text-gray-500 rounded hover:bg-white/5 dynamic-toggle transition"
-                  >
-                    {expandedNodes['juniper'] ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                {expandedNodes['juniper'] && (
-                  <div className="pl-3.5 border-l border-white/5 ml-3 pb-1 space-y-1">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-white/1">
-                        <button
-                          onClick={() => selectPathFn({ vendor: 'juniper', solution: 'Networking', product: 'QFX', generation: 'all', chassis: 'sku-16' })}
-                          className={`flex-1 text-left flex items-center gap-1.5 ${selectedPath.vendor === 'juniper' && selectedPath.solution === 'Networking' ? 'text-emerald-400 font-bold' : 'text-gray-400 hover:text-white'}`}
-                        >
-                          <span className="font-semibold">• Switch Fabric Systems</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-            </div>
-          </div>
-
-          {/* Sourcing Ingest Excel/CSV block */}
-          <div className="p-3 bg-black/30 border border-white/5 rounded-lg space-y-2 pt-2.5">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Bulk Taxonomy Ingest</span>
-            <p className="text-[10px] text-gray-500 leading-normal">
-              Sync pricing schemas directly from partner Excel workbooks or CSV sweeps.
-            </p>
-            <button 
-              type="button" 
-              onClick={() => setToast({ message: "Ready. Drop your workbook files directly inside the Solution Architecture Builder's intake drawer.", type: "success" })}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 font-bold transition cursor-pointer text-[10.5px]"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>Ingest Sheets</span>
-            </button>
-          </div>
+          <TaxonomyTree
+            catalogSkus={catalogSkus}
+            selectedPath={selectedPath}
+            expandedNodes={expandedNodes}
+            onToggleNode={toggleNode}
+            onSelectPath={selectPathFn}
+            vendors={vendors}
+            onSetToast={setToast}
+          />
         </div>
 
         {/* RIGHT COLUMN: INTERACTIVE SKU CARDS GRID */}
@@ -870,10 +440,10 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
           <div className="flex gap-2 flex-wrap items-center">
             {projectTypes.map((type) => {
               const isActive = typeFilter === type.toLowerCase() || (type === 'all' && typeFilter === 'all');
-              // Count dynamic matched types in active local ledger
+              // Count dynamic matched types in active local ledger using memoized counts for maximum optimization
               const matchesCount = type === 'all' 
-                ? catalogSkus.length 
-                : catalogSkus.filter(s => s.type.toLowerCase() === type.toLowerCase()).length;
+                ? typeCounts.all 
+                : (typeCounts[type.toLowerCase()] || 0);
               
               return (
                 <button
@@ -900,8 +470,8 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
           {/* Hardware Sourcing Cards Grid */}
           <div className="flex-1 overflow-y-auto pr-1 min-h-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
-              {filteredSkus.length > 0 ? (
-              filteredSkus.map((sku) => {
+              {paginatedSkus.length > 0 ? (
+              paginatedSkus.map((sku) => {
                 const isEditing = editingSkuId === sku.id;
                 const isEol = sku.status === 'eol';
                 const IconComponent = getCategoryIcon(sku.type);
@@ -1019,6 +589,55 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
             )}
             </div>
           </div>
+
+          {/* Pagination Controls */}
+          {filteredSkus.length > pageSize && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-[#0b1220] border border-white/5 rounded-xl shrink-0 text-[10px] sm:text-xs">
+              <span className="text-gray-400 font-medium">
+                Showing <strong className="text-white font-bold">{Math.min(filteredSkus.length, (currentPage - 1) * pageSize + 1)}-{Math.min(filteredSkus.length, currentPage * pageSize)}</strong> of <strong className="text-white font-bold">{filteredSkus.length}</strong> catalog items
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="p-1.5 rounded-lg border border-white/5 bg-black/20 text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center cursor-pointer"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const pageNum = idx + 1;
+                  const isCurrent = pageNum === currentPage;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`min-w-8 h-8 px-2 rounded-lg text-xs font-bold font-mono transition flex items-center justify-center cursor-pointer ${
+                        isCurrent
+                          ? 'bg-indigo-500 text-white shadow shadow-indigo-500/25'
+                          : 'border border-white/5 bg-black/20 text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="p-1.5 rounded-lg border border-white/5 bg-black/20 text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition flex items-center justify-center cursor-pointer"
+                  title="Next Page"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

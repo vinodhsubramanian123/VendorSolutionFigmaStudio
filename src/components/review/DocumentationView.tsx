@@ -209,62 +209,68 @@ export function DocumentationView() {
             <div className="border border-white/5 rounded-lg p-4 bg-black/40">
               <h3 className="font-mono text-sm text-white mb-3">UCID (Unified Config ID)</h3>
               <p className="text-xs text-gray-400 mb-3">The master reference block holding the full lifecycle of a multi-vendor configuration.</p>
-              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5">
-                <li><span className="text-indigo-400">id:</span> string</li>
-                <li><span className="text-indigo-400">displayId:</span> string <span className="text-gray-500">{"// e.g. 'UCID-A'"}</span></li>
-                <li><span className="text-indigo-400">name:</span> string</li>
-                <li><span className="text-indigo-400">currentStep:</span> UCIDStep</li>
-                <li><span className="text-indigo-400">configurations:</span> Solution[] <span className="text-gray-500">{"// Bids/Alternatives"}</span></li>
-                <li><span className="text-indigo-400">originalBoqUrl:</span> string?</li>
-                <li><span className="text-indigo-400">budgetTarget:</span> number</li>
-                <li><span className="text-indigo-400">status:</span> 'draft'|'processing'|'completed'</li>
-                <li><span className="text-indigo-400">lastModified:</span> string</li>
+              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5 font-sans">
+                <li><span className="text-indigo-400 font-mono">id:</span> string <span className="text-gray-500 font-sans">{"// Master UUID"}</span></li>
+                <li><span className="text-indigo-400 font-mono">displayId:</span> string <span className="text-gray-500 font-sans">{"// Human indexing e.g. 'UCID-2026-1701'"}</span></li>
+                <li><span className="text-indigo-400 font-mono">name:</span> string <span className="text-gray-500 font-sans">{"// Customer-facing layout name"}</span></li>
+                <li><span className="text-indigo-400 font-mono">solutionName:</span> string? <span className="text-gray-500 font-sans">{"// Sourced group assignment"}</span></li>
+                <li><span className="text-indigo-400 font-mono">priority:</span> 'critical'|'high'|'medium'|'low'</li>
+                <li><span className="text-indigo-400 font-mono">projectRef:</span> string <span className="text-gray-500 font-sans">{"// Salesforce/SAP ID"}</span></li>
+                <li><span className="text-indigo-400 font-mono">createdAt:</span> string</li>
+                <li><span className="text-indigo-400 font-mono">currentStep:</span> 'boq-intake'|'pre-intelligence'|'solution-design'|'vendor-provisioning'|'post-intelligence'|'comparison'|'snapshot'</li>
+                <li><span className="text-indigo-400 font-mono">completedSteps:</span> string[]</li>
+                <li><span className="text-indigo-400 font-mono">rawBOM:</span> string <span className="text-gray-500 font-sans">{"// Unstructured text data"}</span></li>
+                <li><span className="text-indigo-400 font-mono">solutions:</span> Solution[]</li>
+                <li><span className="text-indigo-400 font-mono">events:</span> LogEvent[]</li>
+                <li><span className="text-indigo-400 font-mono">snapshots:</span> Snapshot[]</li>
+                <li><span className="text-indigo-400 font-mono">syncStatus:</span> 'Pending'|'Synced'|'Out-of-Sync'|'Error'</li>
               </ul>
             </div>
 
             <div className="border border-white/5 rounded-lg p-4 bg-black/40">
-              <h3 className="font-mono text-sm text-white mb-3">Vendor / Supplier</h3>
+               <h3 className="font-mono text-sm text-white mb-3">Vendor / Supplier</h3>
               <p className="text-xs text-gray-400 mb-3">Represents external manufacturers, distributors, or legacy pricing systems.</p>
-              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5">
-                <li><span className="text-[#00d4a0]">id:</span> string</li>
-                <li><span className="text-[#00d4a0]">name:</span> string</li>
-                <li><span className="text-[#00d4a0]">type:</span> 'manufacturer'|'distributor'|'broker'|'legacy-manual'</li>
-                <li><span className="text-[#00d4a0]">apiEndpoint:</span> string?</li>
-                <li><span className="text-[#00d4a0]">authType:</span> 'oauth'|'bearer'|'basic'|'playwright'</li>
-                <li><span className="text-[#00d4a0]">status:</span> 'connected'|'error'|'pending'|'syncing'</li>
-                <li><span className="text-[#00d4a0]">lastSync:</span> string</li>
-                <li><span className="text-[#00d4a0]">latencyMs:</span> number?</li>
+              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5 font-sans">
+                <li><span className="text-[#00d4a0] font-mono">id:</span> string</li>
+                <li><span className="text-[#00d4a0] font-mono">name:</span> string</li>
+                <li><span className="text-[#00d4a0] font-mono">shortName:</span> string <span className="text-gray-500 font-sans">{"// e.g. 'HPE', 'Dell'"}</span></li>
+                <li><span className="text-[#00d4a0] font-mono">status:</span> 'connected'|'disconnected'|'syncing'|'error'</li>
+                <li><span className="text-[#00d4a0] font-mono">color:</span> string <span className="text-gray-500 font-sans">{"// hexadecimal brand color"}</span></li>
+                <li><span className="text-[#00d4a0] font-mono">catalogItems:</span> number</li>
+                <li><span className="text-[#00d4a0] font-mono">apiHealth:</span> number</li>
+                <li><span className="text-[#00d4a0] font-mono">apiEndpoint:</span> string</li>
+                <li><span className="text-[#00d4a0] font-mono">syncInterval:</span> string <span className="text-gray-500 font-sans">{"// cron expression"}</span></li>
+                <li><span className="text-[#00d4a0] font-mono">lastSync:</span> string</li>
               </ul>
             </div>
 
             <div className="border border-white/5 rounded-lg p-4 bg-black/40">
               <h3 className="font-mono text-sm text-white mb-3">ForensicIssue</h3>
               <p className="text-xs text-gray-400 mb-3">Diagnostic report mapping pricing anomalies, lifecycle end-of-life (EOL), or missing/malformed SKUs.</p>
-              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5">
-                <li><span className="text-[#ff9b36]">id:</span> string</li>
-                <li><span className="text-[#ff9b36]">severity:</span> 'critical'|'warning'|'info'</li>
-                <li><span className="text-[#ff9b36]">type:</span> 'eol-hardware'|'margin-overage'|'corrupt-sku'|'missing-part'</li>
-                <li><span className="text-[#ff9b36]">description:</span> string</li>
-                <li><span className="text-[#ff9b36]">affectedUcid:</span> string?</li>
-                <li><span className="text-[#ff9b36]">affectedSku:</span> string?</li>
-                <li><span className="text-[#ff9b36]">suggestedRemediation:</span> string?</li>
-                <li><span className="text-[#ff9b36]">status:</span> 'open'|'resolved'|'ignored'</li>
+              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5 font-sans">
+                <li><span className="text-[#ff9b36] font-mono">id:</span> string</li>
+                <li><span className="text-[#ff9b36] font-mono">title:</span> string</li>
+                <li><span className="text-[#ff9b36] font-mono">description:</span> string</li>
+                <li><span className="text-[#ff9b36] font-mono">vendor:</span> string</li>
+                <li><span className="text-[#ff9b36] font-mono">severity:</span> 'critical'|'warning'|'info'</li>
+                <li><span className="text-[#ff9b36] font-mono">status:</span> 'open'|'fixing'|'resolved'</li>
+                <li><span className="text-[#ff9b36] font-mono">affectedItems:</span> number</li>
+                <li><span className="text-[#ff9b36] font-mono">suggestedAction:</span> string</li>
               </ul>
             </div>
 
             <div className="border border-white/5 rounded-lg p-4 bg-black/40">
               <h3 className="font-mono text-sm text-white mb-3">CatalogSKU</h3>
               <p className="text-xs text-gray-400 mb-3">Centralized, normalized source of truth for component configurations and cross-vendor mappings.</p>
-              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5">
-                <li><span className="text-indigo-400">id:</span> string</li>
-                <li><span className="text-indigo-400">partNumber:</span> string <span className="text-gray-500">{"// e.g. 'P17086-B21'"}</span></li>
-                <li><span className="text-indigo-400">description:</span> string</li>
-                <li><span className="text-indigo-400">category:</span> string</li>
-                <li><span className="text-indigo-400">baseUSD:</span> number</li>
-                <li><span className="text-indigo-400">vendorId:</span> string</li>
-                <li><span className="text-indigo-400">requiresLicense:</span> boolean</li>
-                <li><span className="text-indigo-400">eolDate:</span> string?</li>
-                <li><span className="text-indigo-400">relatedSkus:</span> string[] <span className="text-gray-500">{"// dependencies"}</span></li>
+              <ul className="text-[10px] font-mono text-gray-400 space-y-1.5 font-sans">
+                <li><span className="text-indigo-400 font-mono">id:</span> string</li>
+                <li><span className="text-indigo-400 font-mono">vendor:</span> string</li>
+                <li><span className="text-indigo-400 font-mono">partNumber:</span> string <span className="text-gray-500 font-sans">{"// e.g. 'P40424-B21'"}</span></li>
+                <li><span className="text-indigo-400 font-mono">name:</span> string</li>
+                <li><span className="text-indigo-400 font-mono">type:</span> string</li>
+                <li><span className="text-indigo-400 font-mono">price:</span> number</li>
+                <li><span className="text-indigo-400 font-mono">leadTimeDays:</span> number</li>
+                <li><span className="text-indigo-400 font-mono">status:</span> 'active'|'eol'|'restricted'</li>
               </ul>
             </div>
           </div>

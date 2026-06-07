@@ -220,39 +220,49 @@ export function Dashboard({ onNavigate, ucids, vendors, forensicIssues }: Dashbo
             </button>
           </div>
           <div className="divide-y" style={{ borderColor: 'rgba(74,133,253,0.06)' }}>
-            {ucids.map(u => {
-              const stepIdx = UCID_STEPS.findIndex(s => s.id === u.currentStep);
-              const pct = Math.round((stepIdx / (UCID_STEPS.length - 1)) * 100);
-              const PRIORITY_COLOR: Record<string, string> = { critical: '#ff3d5a', high: '#ff9b36', medium: '#4a85fd', low: '#5d7899' };
-              return (
-                <button key={u.id} onClick={() => onNavigate('live-mission')}
-                  className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: PRIORITY_COLOR[u.priority] }} />
-                      <span className="text-xs font-semibold" style={{ color: '#dde6ff' }}>{u.displayId}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full capitalize" style={{ background: 'rgba(74,133,253,0.1)', color: '#8ba4cc' }}>{u.priority}</span>
+            {ucids.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <Target className="w-8 h-8 text-indigo-500/40 m-auto mb-2" />
+                <p className="font-bold text-gray-400">No Active Mission Workflows</p>
+                <p className="text-[10px] text-gray-600 mt-1 max-w-xs m-auto">
+                  Upload a Bill of Quantities workbook inside Ingestion Hub or use Solution Builder to spin up dual-sourcing cards.
+                </p>
+              </div>
+            ) : (
+              ucids.map(u => {
+                const stepIdx = UCID_STEPS.findIndex(s => s.id === u.currentStep);
+                const pct = Math.round((stepIdx / (UCID_STEPS.length - 1)) * 100);
+                const PRIORITY_COLOR: Record<string, string> = { critical: '#ff3d5a', high: '#ff9b36', medium: '#4a85fd', low: '#5d7899' };
+                return (
+                  <button key={u.id} onClick={() => onNavigate('live-mission')}
+                    className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: PRIORITY_COLOR[u.priority] }} />
+                        <span className="text-xs font-semibold" style={{ color: '#dde6ff' }}>{u.displayId}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full capitalize" style={{ background: 'rgba(74,133,253,0.1)', color: '#8ba4cc' }}>{u.priority}</span>
+                      </div>
+                      <span className="text-[11px]" style={{ color: u.currentStep === 'snapshot' ? '#00d4a0' : '#ff9b36' }}>
+                        {UCID_STEPS.find(s => s.id === u.currentStep)?.label || u.currentStep}
+                      </span>
                     </div>
-                    <span className="text-[11px]" style={{ color: u.currentStep === 'snapshot' ? '#00d4a0' : '#ff9b36' }}>
-                      {UCID_STEPS.find(s => s.id === u.currentStep)?.label || u.currentStep}
-                    </span>
-                  </div>
-                  <p className="text-[11px] mb-2 text-left" style={{ color: '#5d7899' }}>{u.name}</p>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(74,133,253,0.1)' }}>
-                      <div className="h-full rounded-full transition-all duration-500" style={{
-                        width: `${pct}%`,
-                        background: u.currentStep === 'snapshot' ? '#00d4a0' : 'linear-gradient(90deg, #4a85fd, #00d4a0)'
-                      }} />
+                    <p className="text-[11px] mb-2 text-left" style={{ color: '#5d7899' }}>{u.name}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(74,133,253,0.1)' }}>
+                        <div className="h-full rounded-full transition-all duration-500" style={{
+                          width: `${pct}%`,
+                          background: u.currentStep === 'snapshot' ? '#00d4a0' : 'linear-gradient(90deg, #4a85fd, #00d4a0)'
+                        }} />
+                      </div>
+                      <span className="text-[10px] shrink-0" style={{ color: '#3a5070' }}>{pct}%</span>
                     </div>
-                    <span className="text-[10px] shrink-0" style={{ color: '#3a5070' }}>{pct}%</span>
-                  </div>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
-
+ 
         {/* Vendor API Status + Issues */}
         <div className="space-y-4">
           {/* Vendor Health */}
@@ -264,20 +274,24 @@ export function Dashboard({ onNavigate, ucids, vendors, forensicIssues }: Dashbo
               </button>
             </div>
             <div className="p-3 space-y-3">
-              {vendors.map(v => (
-                <div key={v.name} className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: v.color }} />
-                  <span className="text-[11px] flex-1 truncate" style={{ color: '#8ba4cc' }}>{v.name}</span>
-                  <div className="w-16 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(74,133,253,0.1)' }}>
-                    <div className="h-full rounded-full" style={{ width: `${v.apiHealth}%`, background: v.apiHealth > 97 ? '#00d4a0' : v.apiHealth > 90 ? '#ff9b36' : '#ff3d5a' }} />
+              {vendors.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 text-[10px]">No partners connected</div>
+              ) : (
+                vendors.map(v => (
+                  <div key={v.name} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: v.color }} />
+                    <span className="text-[11px] flex-1 truncate" style={{ color: '#8ba4cc' }}>{v.name}</span>
+                    <div className="w-16 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(74,133,253,0.1)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${v.apiHealth}%`, background: v.apiHealth > 97 ? '#00d4a0' : v.apiHealth > 90 ? '#ff9b36' : '#ff3d5a' }} />
+                    </div>
+                    <span className="text-[10px] w-8 text-right font-mono" style={{ color: v.apiHealth > 97 ? '#00d4a0' : '#ff9b36' }}>{v.apiHealth}%</span>
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: v.status === 'connected' ? '#00d4a0' : v.status === 'syncing' ? '#a855f7' : '#5d7899' }} />
                   </div>
-                  <span className="text-[10px] w-8 text-right font-mono" style={{ color: v.apiHealth > 97 ? '#00d4a0' : '#ff9b36' }}>{v.apiHealth}%</span>
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: v.status === 'connected' ? '#00d4a0' : v.status === 'syncing' ? '#a855f7' : '#5d7899' }} />
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
-
+ 
           {/* Open Issues */}
           <div className="rounded-xl overflow-hidden" style={{ background: '#0b1220', border: '1px solid rgba(74,133,253,0.1)' }}>
             <div className="flex items-center justify-between px-4 py-3 border-b animate-pulseFast" style={{ borderColor: 'rgba(74,133,253,0.08)' }}>
@@ -287,16 +301,22 @@ export function Dashboard({ onNavigate, ucids, vendors, forensicIssues }: Dashbo
               </button>
             </div>
             <div className="divide-y" style={{ borderColor: 'rgba(74,133,253,0.06)' }}>
-              {forensicIssues.filter(f => f.status !== 'resolved').slice(0, 3).map((issue) => (
-                <div key={issue.id} className="px-4 py-2.5 flex items-start gap-2">
-                  <div className="mt-1 w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ background: issue.severity === 'critical' ? '#ff3d5a' : issue.severity === 'warning' ? '#ff9b36' : '#4a85fd' }} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] leading-snug font-medium truncate" style={{ color: '#dde6ff' }}>{issue.title}</p>
-                    <p className="text-[10px] mt-0.5" style={{ color: '#5d7899' }}>{issue.vendor} · {issue.affectedItems} items</p>
-                  </div>
+              {forensicIssues.filter(f => f.status !== 'resolved').length === 0 ? (
+                <div className="p-8 text-center text-gray-500 text-xs italic">
+                  No pending active issues. Sourcing ecosystem healthy.
                 </div>
-              ))}
+              ) : (
+                forensicIssues.filter(f => f.status !== 'resolved').slice(0, 3).map((issue) => (
+                  <div key={issue.id} className="px-4 py-2.5 flex items-start gap-2">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: issue.severity === 'critical' ? '#ff3d5a' : issue.severity === 'warning' ? '#ff9b36' : '#4a85fd' }} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] leading-snug font-medium truncate" style={{ color: '#dde6ff' }}>{issue.title}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: '#5d7899' }}>{issue.vendor} · {issue.affectedItems} items</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             <div className="p-3 border-t" style={{ borderColor: 'rgba(74,133,253,0.08)' }}>
               <button onClick={() => onNavigate('forensic')}

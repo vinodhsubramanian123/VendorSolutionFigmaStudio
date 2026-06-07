@@ -24,6 +24,8 @@ export function BreadcrumbNav({ view, activeMissionId, ucids, onNavigate }: Brea
     'reports': 'Reports & Auditing',
     'telemetry': 'System Telemetry',
     'documentation': 'API & Documentation',
+    'reconciliation': 'BOM Reconciliation Diff',
+    'search': 'Semantic NLP Search',
     'premium': 'UI Lab'
   };
 

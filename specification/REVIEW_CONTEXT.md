@@ -31,8 +31,13 @@ The platform is compiled as a Single-Page Application (SPA) utilizing a high-per
 ### Clean Code Boundary Rule
 To preserve pristine UI/UX code hygiene:
 - Core UI structures and visual styling logic occupy the `/src/components/*` space.
+- Highly structural, sub-section logic is cleanly decomposed into self-contained files:
+  - **`TaxonomyTree.tsx`**: Isolated hierarchical catalog browser mapping category nodes.
+  - **`LaunchStep.tsx`**: Step component hosting deployment success and builder launches.
+  - **`PlaywrightConsole.tsx`**: Modularized visual crawling terminal for manufacturer scrapers.
 - All technical definitions, data structures, and contract definitions reside in `/src/types.ts`, `/src/types/data.ts`, and the `/specification/*` directory.
-- This decoupling allows AI tools can review business contracts without touching the visual presentation components unnecessarily.
+- This decoupling allows AI tools to review business contracts without touching the visual presentation components unnecessarily.
+- Memoization of data vectors (e.g. `typeCounts` mapping SKU counts to pills) is strictly required to dodge hydrate-locking performance penalties.
 
 ---
 

@@ -13,6 +13,23 @@ interface ReportsViewProps {
 
 export function ReportsView({ ucids, setUcids, vendors, setVendors, catalogSkus }: ReportsViewProps) {
   const [showValidator, setShowValidator] = useState(false);
+
+  if (ucids.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-12 bg-[#0b1220] border border-white/5 rounded-xl gap-4 animate-fadeIn my-auto max-w-2xl mx-auto mt-12">
+        <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400">
+          <FileText className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold text-white">No Reports Data Available</h2>
+          <p className="text-xs text-gray-400 max-w-sm leading-normal">
+            Awaiting active hardware sourcing configurations (UCIDs) to compile comprehensive portfolio reports and integrity audits.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const committedMissions = ucids.filter(u => u.currentStep === 'snapshot');
   const activeMissions = ucids.filter(u => u.currentStep !== 'snapshot');
 
@@ -55,7 +72,7 @@ export function ReportsView({ ucids, setUcids, vendors, setVendors, catalogSkus 
     const issues: { type: string; message: string; severity: string }[] = [];
 
     // Check UCIDs
-    const expectedUcidKeys = ['id', 'displayId', 'name', 'currentStep', 'configurations', 'budgetTarget', 'status', 'lastModified'];
+    const expectedUcidKeys = ['id', 'displayId', 'name', 'currentStep', 'completedSteps', 'priority', 'projectRef', 'createdAt'];
     ucids.forEach(u => {
       expectedUcidKeys.forEach(k => {
         if (!(k in u)) {
@@ -63,14 +80,14 @@ export function ReportsView({ ucids, setUcids, vendors, setVendors, catalogSkus 
           score -= 1;
         }
       });
-      if (u.currentStep && !['extract', 'identify', 'enrich', 'alternatives', 'snapshot', 'dispatched'].includes(u.currentStep)) {
+      if (u.currentStep && !['boq-intake', 'pre-intelligence', 'solution-design', 'vendor-provisioning', 'post-intelligence', 'comparison', 'snapshot'].includes(u.currentStep)) {
         issues.push({ type: 'UCID', message: `UCID ${(u as any).id} has invalid currentStep: ${u.currentStep}`, severity: 'error' });
         score -= 2;
       }
     });
 
     // Check Vendors
-    const expectedVendorKeys = ['id', 'name', 'shortName', 'type', 'authType', 'status', 'lastSync'];
+    const expectedVendorKeys = ['id', 'name', 'shortName', 'status', 'color', 'catalogItems', 'apiHealth', 'apiEndpoint', 'syncInterval', 'lastSync'];
     (vendors || []).forEach(v => {
       expectedVendorKeys.forEach(k => {
         if (!(k in v)) {
@@ -78,14 +95,14 @@ export function ReportsView({ ucids, setUcids, vendors, setVendors, catalogSkus 
           score -= 1;
         }
       });
-      if (v.status && !['connected', 'error', 'pending', 'syncing', 'disconnected'].includes(v.status)) {
+      if (v.status && !['connected', 'disconnected', 'syncing', 'error'].includes(v.status)) {
         issues.push({ type: 'Vendor', message: `Vendor ${(v as any).id} has invalid status: ${v.status}`, severity: 'error' });
         score -= 2;
       }
     });
 
     // Check SKUs
-    const expectedSkuKeys = ['id', 'partNumber', 'description', 'category', 'baseUSD', 'vendorId', 'requiresLicense'];
+    const expectedSkuKeys = ['id', 'vendor', 'partNumber', 'name', 'type', 'price', 'leadTimeDays', 'status'];
     catalogSkus.forEach(s => {
       expectedSkuKeys.forEach(k => {
         if (!(k in s)) {
@@ -93,8 +110,8 @@ export function ReportsView({ ucids, setUcids, vendors, setVendors, catalogSkus 
           score -= 0.5;
         }
       });
-      if (typeof (s as any).baseUSD !== 'number') {
-        issues.push({ type: 'SKU', message: `SKU ${(s as any).id} baseUSD is not a number`, severity: 'error' });
+      if (typeof s.price !== 'number') {
+        issues.push({ type: 'SKU', message: `SKU ${(s as any).id} price is not a number`, severity: 'error' });
         score -= 1;
       }
     });

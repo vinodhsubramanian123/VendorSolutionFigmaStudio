@@ -4,6 +4,7 @@ import {
   ChevronRight, Shield, Database, X, Tag, ArrowRight
 } from 'lucide-react';
 import { ForensicIssue } from '../types';
+import { useToast } from './ToastContext';
 
 interface DirtyLine {
   id: string;
@@ -18,6 +19,7 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
   forensicIssues: ForensicIssue[];
   setForensicIssues: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
 }) {
+  const { success } = useToast();
   const [dirtyLines, setDirtyLines] = useState<DirtyLine[]>([
     { id: '1', sku: 'C9200-24T-A', status: 'AMBIGUOUS', source: 'BOQ', vendor: 'Cisco', issue: 'Suffix variant not in catalog' },
     { id: '2', sku: 'DL380 Gen10 Plus', status: 'UNKNOWN', source: 'BOM', vendor: 'HPE', issue: 'Generation alias unresolved' },
@@ -30,7 +32,6 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
   const [filterType, setFilterType] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLineId, setSelectedLineId] = useState<string>('1');
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'warn' | 'error' } | null>(null);
   
   const selectedLine = dirtyLines.find(l => l.id === selectedLineId);
 
@@ -45,7 +46,7 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
 
   const handleMap = (id: string) => {
     setDirtyLines(prev => prev.filter(l => l.id !== id));
-    setToast({ message: 'SKU successfully mapped to catalog UCID.', type: 'success' });
+    success('SKU successfully mapped to catalog UCID.');
     if (selectedLineId === id) {
       const next = dirtyLines.find(l => l.id !== id);
       setSelectedLineId(next ? next.id : '');
@@ -71,10 +72,10 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+      <div className="flex flex-col lg:flex-row gap-6 min-h-[700px]">
         
         {/* Left Panel: Quarantine Queue */}
-        <div className="lg:w-1/3 flex flex-col bg-[#0b1220] rounded-xl border border-[rgba(74,133,253,0.15)] flex-1 min-h-0 shadow-lg">
+        <div className="lg:w-1/3 flex flex-col bg-[#0b1220] rounded-xl border border-[rgba(74,133,253,0.15)] min-h-[550px] lg:min-h-[700px] shadow-lg">
           <div className="p-4 border-b border-white/5 space-y-4 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[#ef4444] font-bold text-sm">
@@ -136,7 +137,7 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
         </div>
 
         {/* Right Panel: Resolution */}
-        <div className="lg:w-2/3 flex flex-col gap-4 flex-1 min-h-0">
+        <div className="lg:w-2/3 flex flex-col gap-4 min-h-[700px]">
           
           {selectedLine ? (
             <>
@@ -169,7 +170,7 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
               </div>
 
               {/* Suggestions Panel */}
-              <div className="bg-[#0b1220] rounded-xl border border-[rgba(74,133,253,0.15)] flex flex-col flex-1 min-h-0 shadow-lg">
+              <div className="bg-[#0b1220] rounded-xl border border-[rgba(74,133,253,0.15)] flex flex-col min-h-[500px] shadow-lg">
                 <div className="p-4 border-b border-white/5 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-3">
                     <Database className="w-5 h-5 text-indigo-400" />
@@ -181,16 +182,16 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
                   </div>
                 </div>
 
-                <div className="p-4 overflow-y-auto space-y-4 flex-1 scrollbar">
+                <div className="p-4 space-y-4 overflow-y-auto max-h-[500px] scrollbar">
                   {[
                     { id: '1', title: 'Catalyst 9200 24-Port PoE+', ucid: 'UCID-CSC-88241', vendor: 'Cisco', category: 'Switching / Campus', reason: 'SKU stem match + vendor confirmed', conf: 94, best: true },
                     { id: '2', title: 'Catalyst 9200 24-Port Non-PoE', ucid: 'UCID-CSC-88239', vendor: 'Cisco', category: 'Switching / Campus', reason: 'High phonetic similarity, no PoE tag', conf: 87, best: false },
                     { id: '3', title: 'Catalyst 9200L 24-Port', ucid: 'UCID-CSC-88300', vendor: 'Cisco', category: 'Switching / Campus', reason: 'Lite variant — port count matches', conf: 71, best: false }
                   ].map((sug, idx) => (
                     <div key={sug.id} className="p-4 rounded-xl border border-white/10 bg-black/40 hover:bg-black/60 transition group">
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div className="flex gap-4">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5 ${sug.best ? 'bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30' : 'bg-white/5 text-gray-400 border border-white/10'}`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5 shrink-0 ${sug.best ? 'bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30' : 'bg-white/5 text-gray-400 border border-white/10'}`}>
                             {idx + 1}
                           </div>
                           <div>
@@ -207,7 +208,7 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
                             </div>
                             
                             <div className="mt-4 flex items-center gap-4">
-                              <div className="flex-1 h-1.5 bg-black rounded-full overflow-hidden w-64 border border-white/5">
+                              <div className="flex-1 h-1.5 bg-black rounded-full overflow-hidden w-48 sm:w-64 border border-white/5">
                                 <div 
                                   className="h-full rounded-full transition-all"
                                   style={{ 
@@ -227,8 +228,11 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
                           </div>
                         </div>
                         
-                        <button onClick={() => handleMap(selectedLine.id)} className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg flex items-center gap-2 text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all opacity-0 group-hover:opacity-100">
-                          Map to Catalog <ArrowRight className="w-3.5 h-3.5" />
+                        <button 
+                          onClick={() => handleMap(selectedLine.id)} 
+                          className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg flex items-center gap-2 text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all shrink-0 self-end sm:self-center"
+                        >
+                          Map <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -265,14 +269,6 @@ export function CleansingView({ forensicIssues, setForensicIssues }: {
 
         </div>
       </div>
-
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl border shadow-2xl bg-[#0b1220] border-[#10b981] flex items-center gap-3 animate-fadeIn">
-          <CheckCircle className="w-5 h-5 text-[#10b981]" />
-          <span className="text-xs text-white font-medium">{toast.message}</span>
-          <button onClick={() => setToast(null)} className="ml-4 text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
-        </div>
-      )}
     </div>
   );
 }

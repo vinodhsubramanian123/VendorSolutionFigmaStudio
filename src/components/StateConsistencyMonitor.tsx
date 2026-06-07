@@ -61,7 +61,7 @@ export function StateConsistencyMonitor({ ucids, vendors, catalogSkus }: StateCo
     return (
       <div 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 bg-[#0b1220] border border-white/10 hover:border-indigo-500/50 p-2 rounded-lg shadow-2xl shadow-black/50 cursor-pointer flex items-center gap-2 text-white transition-all z-50 group"
+        className="fixed bottom-4 left-4 bg-[#0b1220] border border-white/10 hover:border-indigo-500/50 p-2 rounded-lg shadow-2xl shadow-black/50 cursor-pointer flex items-center gap-2 text-white transition-all z-50 group"
       >
         <Activity className="w-4 h-4 text-indigo-400 group-hover:text-indigo-300" />
         <span className="text-[10px] font-mono font-bold tracking-wider uppercase">State Mon</span>
@@ -70,7 +70,7 @@ export function StateConsistencyMonitor({ ucids, vendors, catalogSkus }: StateCo
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 bg-[#0b1220] border border-indigo-500/20 rounded-xl shadow-2xl shadow-indigo-900/20 z-50 flex flex-col overflow-hidden animate-fadeIn">
+    <div className="fixed bottom-4 left-4 w-80 bg-[#0b1220] border border-indigo-500/20 rounded-xl shadow-2xl shadow-indigo-900/20 z-50 flex flex-col overflow-hidden animate-fadeIn">
       <div 
         className="flex items-center justify-between p-3 bg-indigo-500/5 border-b border-indigo-500/20 cursor-pointer"
         onClick={() => setIsOpen(false)}

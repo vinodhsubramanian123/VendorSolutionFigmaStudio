@@ -14,7 +14,7 @@ export function SchemaValidator({ ucids, vendors, catalogSkus, onClose }: Schema
     const issues: { type: string; message: string; severity: 'error' | 'warning' }[] = [];
 
     // Check UCIDs
-    const expectedUcidKeys = ['id', 'displayId', 'name', 'currentStep', 'configurations', 'budgetTarget', 'status', 'lastModified'];
+    const expectedUcidKeys = ['id', 'displayId', 'name', 'currentStep', 'completedSteps', 'priority', 'projectRef', 'createdAt'];
     ucids.forEach(u => {
       expectedUcidKeys.forEach(k => {
         if (!(k in u)) {
@@ -22,14 +22,14 @@ export function SchemaValidator({ ucids, vendors, catalogSkus, onClose }: Schema
           score -= 1;
         }
       });
-      if (u.currentStep && !['extract', 'identify', 'enrich', 'alternatives', 'snapshot', 'dispatched'].includes(u.currentStep)) {
+      if (u.currentStep && !['boq-intake', 'pre-intelligence', 'solution-design', 'vendor-provisioning', 'post-intelligence', 'comparison', 'snapshot'].includes(u.currentStep)) {
         issues.push({ type: 'UCID', message: `UCID ${u.id} has invalid currentStep: ${u.currentStep}`, severity: 'error' });
         score -= 2;
       }
     });
 
     // Check Vendors
-    const expectedVendorKeys = ['id', 'name', 'shortName', 'type', 'authType', 'status', 'lastSync'];
+    const expectedVendorKeys = ['id', 'name', 'shortName', 'status', 'color', 'catalogItems', 'apiHealth', 'apiEndpoint', 'syncInterval', 'lastSync'];
     vendors.forEach(v => {
       expectedVendorKeys.forEach(k => {
         if (!(k in v)) {
@@ -37,14 +37,14 @@ export function SchemaValidator({ ucids, vendors, catalogSkus, onClose }: Schema
           score -= 1;
         }
       });
-      if (v.status && !['connected', 'error', 'pending', 'syncing', 'disconnected'].includes(v.status)) {
+      if (v.status && !['connected', 'disconnected', 'syncing', 'error'].includes(v.status)) {
         issues.push({ type: 'Vendor', message: `Vendor ${v.id} has invalid status: ${v.status}`, severity: 'error' });
         score -= 2;
       }
     });
 
     // Check SKUs
-    const expectedSkuKeys = ['id', 'partNumber', 'description', 'category', 'baseUSD', 'vendorId', 'requiresLicense'];
+    const expectedSkuKeys = ['id', 'vendor', 'partNumber', 'name', 'type', 'price', 'leadTimeDays', 'status'];
     catalogSkus.forEach(s => {
       expectedSkuKeys.forEach(k => {
         if (!(k in s)) {
@@ -52,8 +52,8 @@ export function SchemaValidator({ ucids, vendors, catalogSkus, onClose }: Schema
           score -= 0.5;
         }
       });
-      if (typeof s.baseUSD !== 'number') {
-        issues.push({ type: 'SKU', message: `SKU ${s.id} baseUSD is not a number`, severity: 'error' });
+      if (typeof s.price !== 'number') {
+        issues.push({ type: 'SKU', message: `SKU ${s.id} price is not a number`, severity: 'error' });
         score -= 1;
       }
     });

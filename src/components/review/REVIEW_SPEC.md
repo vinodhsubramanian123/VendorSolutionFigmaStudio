@@ -13,33 +13,45 @@ The system state is rigidly governed by key data abstractions. All views, filter
 A UCID represents a core procurement design package or bundle under active compilation or audit.
 *   **Fields**:
     *   `id`: unique string identifier.
-    *   `displayId`: string e.g., `UCID-2315`.
-    *   `name`: string e.g., `HPE Synergy Modular Bundle`.
-    *   `currentStep`: `'extract' | 'identify' | 'enrich' | 'alternatives' | 'snapshot' | 'dispatched'`.
-    *   `status`: `'in-progress' | 'warning' | 'clean' | 'completed'`.
-    *   `budgetTarget`: number (USD value).
-    *   `configurations`: array of child hardware line items.
-    *   `lastModified`: string (timestamp).
+    *   `displayId`: string e.g., `UCID-2026-1701`.
+    *   `name`: string e.g., `Sourced HPE Alignment Config`.
+    *   `solutionName`: optional string e.g. configuration group assignment / filename.
+    *   `priority`: `'critical' | 'high' | 'medium' | 'low'`.
+    *   `projectRef`: string e.g., Salesforce Opportunity or SAP ID.
+    *   `createdAt`: string timestamp.
+    *   `currentStep`: `'boq-intake' | 'pre-intelligence' | 'solution-design' | 'vendor-provisioning' | 'post-intelligence' | 'comparison' | 'snapshot'`.
+    *   `completedSteps`: array of completed steps.
+    *   `rawBOM`: raw text Bill of Materials from Excel parsing.
+    *   `solutions`: array of generated supplier alternative options (`Solution[]`).
+    *   `events`: tracking forensic log event logs.
+    *   `snapshots`: finalized contract snapshots.
+    *   `syncStatus`: optional sync badges `'Pending' | 'Synced' | 'Out-of-Sync' | 'Error'`.
 
 #### 1.2 CatalogSKU (Stock Keeping Unit)
 Represents standard, canonical parts verified within the master catalog database.
 *   **Fields**:
     *   `id`: string identifier.
-    *   `partNumber`: string e.g., `P40411-B21`.
-    *   `description`: string e.g., `Intel Xeon Gold 6430 CPU`.
-    *   `category`: string e.g., `Chassis`, `Processor`, `Memory`, `Networking`.
-    *   `baseUSD`: number.
-    *   `vendorId`: string e.g., `cisco`, `hpe`.
-    *   `requiresLicense`: boolean.
+    *   `vendor`: string manufacturer reference brand.
+    *   `partNumber`: string manufacturer SKU e.g., `P40411-B21`.
+    *   `name`: string description title e.g. `Intel Xeon Gold 6430 CPU`.
+    *   `type`: component classification e.g. `Chassis`, `Processor`, `Memory`, `Networking`.
+    *   `price`: number in USD.
+    *   `leadTimeDays`: estimated fulfillment wait time.
+    *   `status`: `'active' | 'eol' | 'restricted'`.
 
 #### 1.3 Vendor Partners
 Represents real or simulated direct-partner manufacturers and external suppliers integrated into the network.
 *   **Fields**:
-    *   `id`: unique string.
-    *   `name`: string e.g., `HPE Direct Supply`.
-    *   `authType`: `'oauth2' | 'apikey' | 'saml'`.
-    *   `status`: `'connected' | 'syncing' | 'error' | 'disconnected'`.
-    *   `lastSync`: string (timestamp).
+    *   `id`: unique string database key.
+    *   `name`: string e.g., `Hewlett Packard Enterprise`.
+    *   `shortName`: company shortcode e.g., `HPE`.
+    *   `status`: `'connected' | 'disconnected' | 'syncing' | 'error'`.
+    *   `color`: hexadecimal / brand color code.
+    *   `catalogItems`: total count of cached items.
+    *   `apiHealth`: rate metric (0-100%).
+    *   `apiEndpoint`: source REST endpoint URL.
+    *   `syncInterval`: synchronization CRON recurrence pattern string.
+    *   `lastSync`: timestamp.
 
 ---
 
