@@ -11,9 +11,10 @@ export type AppView =
   | 'forensic'
   | 'reports'
   | 'cleansing'
-  | 'integrations'
   | 'taxonomy'
   | 'solution-builder'
+  | 'telemetry'
+  | 'documentation'
   | 'premium';
 
 export type UCIDStep =

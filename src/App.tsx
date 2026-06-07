@@ -9,12 +9,18 @@ import { VendorPortal } from './components/VendorPortal';
 import { ForensicView } from './components/ForensicView';
 import { PremiumShowcase } from './components/PremiumShowcase';
 import { ReportsView } from './components/ReportsView';
+import { SystemTelemetry } from './components/SystemTelemetry';
 import { CleansingView } from './components/CleansingView';
-import { IntegrationsGateway } from './components/IntegrationsGateway';
 import { TaxonomyGraphEditor } from './components/TaxonomyGraphEditor';
 import { SolutionBuilder } from './components/SolutionBuilder';
 import { IngestionHub } from './components/IngestionHub';
 import { SearchView } from './components/SearchView';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { DataPersistenceGate } from './components/DataPersistenceGate';
+import { StateConsistencyMonitor } from './components/StateConsistencyMonitor';
+import { DocumentationView } from './components/review/DocumentationView';
+import { BreadcrumbNav } from './components/BreadcrumbNav';
+import { useLocalStorageState } from './hooks/useLocalStorageState';
 import type { AppView } from './types';
 
 // Import baseline mock data
@@ -26,19 +32,52 @@ import {
 } from './components/mockData';
 
 export default function App() {
-  const [view, setView] = useState<AppView>('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeMissionId, setActiveMissionId] = useState<string | undefined>('u1');
+  const [view, setView] = useLocalStorageState<AppView>('sys_active_view', 'dashboard');
+  const [collapsed, setCollapsed] = useLocalStorageState('sys_sidebar_collapsed', false);
+  const [activeMissionId, setActiveMissionId] = useLocalStorageState<string | undefined>('sys_active_mission', 'u1');
 
-  // Shared Global Reactive State Hub
-  const [ucids, setUcids] = useState(INITIAL_UCIDS);
-  const [vendors, setVendors] = useState(INITIAL_VENDORS);
-  const [catalogSkus, setCatalogSkus] = useState(INITIAL_SKUS);
-  const [forensicIssues, setForensicIssues] = useState(INITIAL_ISSUES);
+  // Shared Global Reactive State Hub (Persisted)
+  const [ucids, setUcids] = useLocalStorageState('sys_ucids', INITIAL_UCIDS);
+  const [vendors, setVendors] = useLocalStorageState('sys_vendors', INITIAL_VENDORS);
+  const [catalogSkus, setCatalogSkus] = useLocalStorageState('sys_catalog_skus', INITIAL_SKUS);
+  const [forensicIssues, setForensicIssues] = useLocalStorageState('sys_forensic_issues', INITIAL_ISSUES);
   
   // Central Application-Wide State for Pending API Calls
   const [isPendingAPI, setIsPendingAPI] = useState(false);
   const [pendingAPIMessage, setPendingAPIMessage] = useState('');
+  const [apiProgress, setApiProgress] = useState(0);
+  
+  // Tab Switch Navigation Interception
+  const [requestedView, setRequestedView] = useState<AppView | null>(null);
+
+  // Compute sync health across DB state mock logic
+  const ucidGaps = ucids.filter(u => !u.name || !u.projectRef).length;
+  const vendorGaps = vendors.filter(v => !v.apiEndpoint || !v.syncInterval).length;
+  const isHealthyState = ucidGaps === 0 && vendorGaps === 0;
+
+  const syncHealth: { status: 'healthy'|'warning'|'error', message: string } = isHealthyState 
+    ? { status: 'healthy', message: 'ALL SYSTEMS NOMINAL' }
+    : { status: 'warning', message: `DATA DEGRADED [GAPS: ${ucidGaps + vendorGaps}]` };
+
+  const handleNavigate = (newView: AppView) => {
+    if (isPendingAPI) {
+      setRequestedView(newView);
+    } else {
+      setView(newView);
+    }
+  };
+
+  const confirmNavigation = () => {
+    if (requestedView) {
+      setView(requestedView);
+      setRequestedView(null);
+      setIsPendingAPI(false);
+    }
+  };
+
+  const cancelNavigation = () => {
+    setRequestedView(null);
+  };
   
   // Track deployed solution context to reflect on LiveMission with specific banners/pill
   const [deployedSolution, setDeployedSolution] = useState<{
@@ -49,8 +88,6 @@ export default function App() {
 
   // High-level topbar search query strings
   const [searchQuery, setSearchQuery] = useState('');
-
-  const isFullHeight = ['cleansing', 'integrations', 'taxonomy', 'solution-builder'].includes(view);
 
   function handleSelectMission(missionId: string) {
     setActiveMissionId(missionId);
@@ -108,6 +145,7 @@ export default function App() {
             setIsPendingAPI={setIsPendingAPI}
             pendingAPIMessage={pendingAPIMessage}
             setPendingAPIMessage={setPendingAPIMessage}
+            setApiProgress={setApiProgress}
           />
         );
       case 'live-mission':
@@ -150,10 +188,15 @@ export default function App() {
             setActiveMissionId={setActiveMissionId}
           />
         );
+      case 'telemetry':
+        return <SystemTelemetry />;
       case 'reports':
         return (
           <ReportsView 
             ucids={ucids} 
+            setUcids={setUcids}
+            vendors={vendors}
+            setVendors={setVendors}
             catalogSkus={catalogSkus} 
           />
         );
@@ -164,8 +207,6 @@ export default function App() {
             setForensicIssues={setForensicIssues} 
           />
         );
-      case 'integrations':
-        return <IntegrationsGateway />;
       case 'taxonomy':
         return (
           <TaxonomyGraphEditor 
@@ -185,6 +226,8 @@ export default function App() {
             onSelectMission={handleSelectMission}
           />
         );
+      case 'documentation':
+        return <DocumentationView />;
       case 'premium':
         return <PremiumShowcase />;
       default:
@@ -200,35 +243,12 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden text-[#dde6ff] relative" style={{ backgroundColor: '#06080e' }}>
-      {/* Centralized Global Overlay Loader */}
-      {isPendingAPI && (
-        <div className="fixed inset-0 bg-[#02050dd0] z-[9999] flex flex-col items-center justify-center backdrop-blur-md select-none touch-none animate-fadeIn">
-          <div className="bg-[#0b1220] border border-indigo-500/20 p-8 rounded-2xl max-w-sm w-full text-center space-y-6 shadow-2xl relative">
-            <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-4 border-indigo-500/10 pointer-events-none" />
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-500 animate-spin" />
-              <RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" />
-            </div>
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-white tracking-tight">System Sync Pending</h3>
-              <p className="text-xs text-sky-400 font-mono font-bold animate-pulse uppercase">
-                {pendingAPIMessage || 'Processing requested action...'}
-              </p>
-              <p className="text-[10px] text-gray-500 leading-normal max-w-xs mx-auto">
-                Synchronizing direct pricing contracts and cross-validating telemetry scores. App navigation is restricted to prevent race conditions.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div className="flex h-screen overflow-hidden text-[#dde6ff] font-sans antialiased relative" style={{ backgroundColor: '#06080e' }}>
       <Sidebar
         activeView={view}
         onNavigate={(newView) => {
           setSearchQuery(''); // reset search when shifting tabs
-          setView(newView);
+          handleNavigate(newView);
         }}
         collapsed={collapsed}
         onToggle={() => setCollapsed(c => !c)}
@@ -238,10 +258,39 @@ export default function App() {
         vendors={vendors}
         forensicIssues={forensicIssues}
       />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <TopBar activeView={view} onSearch={setSearchQuery} onNavigate={setView} />
-        <main className={`flex-1 overflow-hidden ${isFullHeight ? '' : 'overflow-y-auto'} p-6`}>
-          {renderView()}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <TopBar 
+          activeView={view} 
+          onSearch={setSearchQuery} 
+          onNavigate={handleNavigate}
+          apiProgress={apiProgress}
+          isPendingAPI={isPendingAPI}
+          syncHealth={syncHealth}
+        />
+
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 shrink-0 min-h-0">
+          <div className="max-w-7xl mx-auto flex flex-col min-h-full h-full">
+            <BreadcrumbNav 
+              view={view}
+              activeMissionId={activeMissionId}
+              ucids={ucids}
+              onNavigate={handleNavigate}
+            />
+            <ErrorBoundary>
+              <StateConsistencyMonitor ucids={ucids} vendors={vendors} catalogSkus={catalogSkus} />
+              <DataPersistenceGate 
+                ucids={ucids} 
+                vendors={vendors} 
+                catalogSkus={catalogSkus}
+                isPendingAPI={isPendingAPI}
+                requestedView={requestedView}
+                onConfirmNavigation={confirmNavigation}
+                onCancelNavigation={cancelNavigation}
+              >
+                {renderView()}
+              </DataPersistenceGate>
+            </ErrorBoundary>
+          </div>
         </main>
       </div>
     </div>

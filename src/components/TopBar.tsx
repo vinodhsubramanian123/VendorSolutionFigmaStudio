@@ -6,9 +6,12 @@ interface TopBarProps {
   activeView: AppView;
   onSearch: (query: string) => void;
   onNavigate?: (newView: AppView) => void;
+  apiProgress?: number;
+  isPendingAPI?: boolean;
+  syncHealth?: { status: 'healthy' | 'warning' | 'error', message: string };
 }
 
-export function TopBar({ activeView, onSearch, onNavigate }: TopBarProps) {
+export function TopBar({ activeView, onSearch, onNavigate, apiProgress, isPendingAPI, syncHealth }: TopBarProps) {
   const [localQuery, setLocalQuery] = useState('');
   const [timeStr, setTimeStr] = useState('2026-06-06 13:40:10 UTC');
 
@@ -22,10 +25,11 @@ export function TopBar({ activeView, onSearch, onNavigate }: TopBarProps) {
     cleansing: 'Taxonomy Cleansing & Part Number Mapping',
     taxonomy: 'Procurement Taxonomy Knowledge Graph',
     'solution-builder': 'Visual Solution Architecture Configurator',
-    integrations: 'ERP / CRM Integrations & Webhook Sandbox',
     reports: 'Comparative Audit & Performance Reports',
     premium: 'AI Procurement & Sourcing UI Lab',
     'ingestion-hub': 'Centralized BOQ & BOM Ingestion Hub',
+    telemetry: 'System Telemetry Pipeline',
+    documentation: 'System Documentation & API Contracts',
   };
 
   useEffect(() => {
@@ -48,19 +52,32 @@ export function TopBar({ activeView, onSearch, onNavigate }: TopBarProps) {
 
   return (
     <header 
-      className="h-16 px-6 border-b flex items-center justify-between shrink-0 select-none"
+      className="relative h-16 px-6 border-b flex items-center justify-between shrink-0 select-none"
       style={{ backgroundColor: '#090d19', borderColor: 'rgba(74,133,253,0.1)' }}
     >
       {/* View Title */}
-      <div className="flex flex-col">
-        <h1 className="text-sm font-semibold text-white tracking-tight">
+      <div className="flex flex-col min-w-0 mr-4 flex-1">
+        <h1 className="text-sm font-semibold text-white tracking-tight truncate">
           {viewTitles[activeView] || 'Procurement Workspace'}
         </h1>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <ShieldCheck className="w-3 h-3 text-[#00d4a0]" />
-          <span className="text-[10px] text-gray-500 font-medium font-mono uppercase">
+          <ShieldCheck className="w-3 h-3 text-[#00d4a0] shrink-0" />
+          <span className="text-[10px] text-gray-500 font-medium font-mono uppercase truncate">
             Platform Gateway: Protected Mode
           </span>
+          {syncHealth && (
+            <>
+              <span className="text-gray-600 px-1">•</span>
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded border ${
+                syncHealth.status === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
+                syncHealth.status === 'warning' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
+                'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+                <span className="text-[8px] font-bold uppercase tracking-wider">{syncHealth.message}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -137,6 +154,19 @@ export function TopBar({ activeView, onSearch, onNavigate }: TopBarProps) {
           </div>
         </div>
       </div>
+      
+      {/* Global Persistent Progress Bar */}
+      {(isPendingAPI || (apiProgress !== undefined && apiProgress > 0 && apiProgress < 100)) && (
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-sky-900/30 overflow-hidden">
+          <div 
+            className="h-full bg-sky-400 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+            style={{ width: `${apiProgress || (isPendingAPI ? 100 : 0)}%`, opacity: apiProgress === 100 ? 0 : 1 }}
+          />
+          {isPendingAPI && !apiProgress && (
+            <div className="absolute inset-0 bg-sky-400/50 animate-pulse" />
+          )}
+        </div>
+      )}
     </header>
   );
 }

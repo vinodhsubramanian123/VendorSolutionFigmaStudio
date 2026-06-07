@@ -80,7 +80,7 @@ export interface UCID {
   solutions: Solution[];  // Collection of automatically generated vendor design alternatives
   events: LogEvent[];     // Forensic execution log trail
   snapshots: Snapshot[];  // Committed contract history
-  syncStatus?: 'Pending' | 'Synced' | 'Out-of-Sync'; // Badges requested for Live Mission & Solution Builder consistency tracking
+  syncStatus?: 'Pending' | 'Synced' | 'Out-of-Sync' | 'Error'; // Badges requested for Live Mission & Solution Builder consistency tracking
 }
 
 /**
@@ -91,7 +91,7 @@ export interface Vendor {
   id: string;             // Vendor database key
   name: string;           // Full corporate name (e.g., "Hewlett Packard Enterprise")
   shortName: string;      // Brand code (e.g. "HPE", "Dell")
-  status: 'connected' | 'disconnected' | 'syncing'; // API channel state
+  status: 'connected' | 'disconnected' | 'syncing' | 'error'; // API channel state including hard failures
   color: string;          // Branding color accent
   catalogItems: number;   // Total indexed catalog items in local cache
   apiHealth: number;      // API availability threshold (percentage rating 0-100)
@@ -279,4 +279,63 @@ export interface SearchQueryDescriptor {
     priceUrgency: number;
     leadTimeFavorability: number;
   };
+}
+
+/**
+ * Standardized generic wrapper for paginated API responses.
+ * Enforces strict boundaries when shifting from mock arrays to external robust database queries.
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  metadata: {
+    totalCount: number;
+    currentPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+  };
+}
+
+/**
+ * ============================================================================
+ * HYBRID PORTFOLIO ORCHESTRATION CONTRACTS
+ * ============================================================================
+ */
+
+export interface PortfolioUcidRef {
+  id: string;
+  channel: 'manual' | 'automated';
+  vendor: string;
+}
+
+export interface PortfolioOrchestrateRequest {
+  portfolioId: string;
+  ucids: PortfolioUcidRef[];
+}
+
+export interface PortfolioOrchestrateResponse {
+  success: boolean;
+  transactionId: string;
+  status: 'orchestrating' | 'failed';
+  timestamp: string;
+}
+
+export interface PortfolioManualUploadRequest {
+  portfolioId: string;
+  ucidRef: string;
+  filename: string;
+  configsMatchedCount: number;
+  configs?: Array<{
+    configId: string;
+    status: 'synced' | 'pending';
+    priceUSD: number;
+  }>;
+}
+
+export interface PortfolioManualUploadResponse {
+  success: boolean;
+  reconciliationStatus: 'partial' | 'complete';
+  reconciledPriceUSD: number;
+  missingSlots: string[];
+  integrityScore: number;
+  message: string;
 }

@@ -295,7 +295,7 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
   };
 
   return (
-    <div className="space-y-4 animate-fadeIn select-none text-xs">
+    <div className="h-full flex flex-col gap-4 animate-fadeIn select-none text-xs min-h-0">
       
       {/* Banner / Header */}
       <div 
@@ -345,15 +345,17 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
       </div>
 
       {/* Main 2-Column Desktop Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1 min-h-0">
         
         {/* LEFT COLUMN: VENDOR TAXONOMY DRAWER */}
-        <div className="lg:col-span-3 bg-[#0b1220] border border-white/5 rounded-xl p-4 space-y-4">
-          <div className="pb-2 border-b border-white/5 flex flex-col">
+        <div className="lg:col-span-3 bg-[#0b1220] border border-white/5 rounded-xl p-4 flex flex-col gap-4 min-h-0">
+          <div className="pb-2 border-b border-white/5 flex flex-col shrink-0">
             <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider font-mono">Manufacturer Taxonomy</span>
             <span className="text-[11.5px] font-bold text-white mt-0.5">{catalogSkus.length} Contract SKUs Indexed</span>
-          </div>          {/* Directory Tree Structure */}
-          <div className="space-y-1 text-[11px] select-none scrollbar-thin overflow-y-auto max-h-[calc(100vh-24rem)] pr-0.5">
+          </div>
+
+          {/* Directory Tree Structure */}
+          <div className="flex-1 select-none scrollbar-thin overflow-y-auto pr-0.5 min-h-0 space-y-1 text-[11px]">
             {/* All SKUs node */}
             <button
               onClick={() => selectPathFn({ vendor: 'all', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}
@@ -816,7 +818,7 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
         </div>
 
         {/* RIGHT COLUMN: INTERACTIVE SKU CARDS GRID */}
-        <div className="lg:col-span-9 space-y-4">
+        <div className="lg:col-span-9 flex flex-col gap-4 min-h-0">
           
           {/* Filters Control Toolbar */}
           <div className="p-3.5 bg-[#0b1220] border border-white/5 rounded-xl text-xs flex flex-col md:flex-row items-center justify-between gap-3">
@@ -896,8 +898,9 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
           </div>
 
           {/* Hardware Sourcing Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredSkus.length > 0 ? (
+          <div className="flex-1 overflow-y-auto pr-1 min-h-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
+              {filteredSkus.length > 0 ? (
               filteredSkus.map((sku) => {
                 const isEditing = editingSkuId === sku.id;
                 const isEol = sku.status === 'eol';
@@ -1014,6 +1017,7 @@ export function CatalogManager({ catalogSkus, setCatalogSkus }: CatalogManagerPr
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
 

@@ -290,7 +290,7 @@ export function SolutionBuilder({
   const activePromoConfig = configs.find(c => c.id === selectedConfigId) || configs[0];
 
   return (
-    <div className="space-y-4 text-xs select-none">
+    <div className="flex flex-col gap-4 text-xs select-none h-full min-h-0">
       {/* Upper Status Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#090d19] border border-indigo-500/10 p-5 rounded-xl">
         <div className="flex items-center gap-3">
@@ -478,7 +478,7 @@ export function SolutionBuilder({
         </div>
       ) : (
         /* ================= STEP 2: BUILDER ARCHITECTURE ================= */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn flex-1 min-h-0">
           
           {/* Top Control Ribbon */}
           <div className="col-span-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#0b1220] border border-white/5 p-4 rounded-xl">
@@ -527,14 +527,14 @@ export function SolutionBuilder({
           </div>
 
           {/* Left Config Library Card Selector */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="bg-[#0b1220] border border-white/5 p-4 rounded-xl space-y-3">
-              <div className="flex items-center justify-between">
+          <div className="lg:col-span-5 flex flex-col gap-4 min-h-0">
+            <div className="bg-[#0b1220] border border-white/5 p-4 rounded-xl flex flex-col gap-3 min-h-0 flex-1">
+              <div className="flex items-center justify-between shrink-0">
                 <span className="text-xs text-white font-bold uppercase tracking-wider">Config Library ({configs.length})</span>
                 <span className="font-mono text-[10px] text-gray-500 font-semibold">Sheets Extracted</span>
               </div>
 
-              <div className="space-y-3 max-h-[calc(100vh-23rem)] overflow-y-auto pr-1">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-3 min-h-0">
                 {configs.map((cfg) => {
                   const isSelected = selectedConfigId === cfg.id;
                   const currentUcid = ucidsList.find(u => u.id === cfg.targetUcidId);
@@ -585,9 +585,9 @@ export function SolutionBuilder({
 
             {/* Config Sub-items detail breakdown */}
             {activePromoConfig && (
-              <div className="bg-[#0b1220] border border-white/5 p-4 rounded-xl space-y-3">
-                <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Config BOM Breakdown: {activePromoConfig.name}</span>
-                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              <div className="bg-[#0b1220] border border-white/5 p-4 rounded-xl flex flex-col gap-3 shrink-0 max-h-[40%]">
+                <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider shrink-0">Config BOM Breakdown: {activePromoConfig.name}</span>
+                <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0">
                   {activePromoConfig.items.map((item) => {
                     const isEolSubstitute = item.partNumber === 'P40424-B21';
                     const isContractPriceAligned = item.partNumber === '400-BPSB';
@@ -635,9 +635,9 @@ export function SolutionBuilder({
           </div>
 
           {/* Right UCID Container Panels */}
-          <div className="lg:col-span-7 space-y-4">
-            <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-wider block">UCID Deployment Containers Grid</span>
-            <div className="space-y-4 max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
+          <div className="lg:col-span-7 flex flex-col gap-4 min-h-0">
+            <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-wider block shrink-0">UCID Deployment Containers Grid</span>
+            <div className="flex-1 overflow-y-auto pr-1 space-y-4 min-h-0">
               
               {/* Filter dynamic ucids */}
               {(isMultiUcid ? ucidsList : [ucidsList[0]]).map((container) => {

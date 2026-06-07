@@ -1,0 +1,128 @@
+import React, { useEffect, useState } from 'react';
+import { AlertCircle, Database, RefreshCw, AlertTriangle } from 'lucide-react';
+import type { UCID, Vendor, CatalogSKU } from '../types';
+
+interface DataPersistenceGateProps {
+  children: React.ReactNode;
+  ucids: UCID[];
+  vendors: Vendor[];
+  catalogSkus: CatalogSKU[];
+  isPendingAPI?: boolean;
+  requestedView?: string | null;
+  onConfirmNavigation?: () => void;
+  onCancelNavigation?: () => void;
+}
+
+export function DataPersistenceGate({ 
+  children, 
+  ucids, 
+  vendors, 
+  catalogSkus,
+  isPendingAPI,
+  requestedView,
+  onConfirmNavigation,
+  onCancelNavigation 
+}: DataPersistenceGateProps) {
+  const [dataHealth, setDataHealth] = useState<'healthy' | 'corrupted' | 'checking'>('checking');
+
+  useEffect(() => {
+    // Deep check on critical app state
+    const checkState = () => {
+      setDataHealth('checking');
+      
+      const isUcidsValid = Array.isArray(ucids);
+      const isVendorsValid = Array.isArray(vendors);
+      const isCatalogValid = Array.isArray(catalogSkus);
+
+      if (isUcidsValid && isVendorsValid && isCatalogValid) {
+        setDataHealth('healthy');
+      } else {
+        setDataHealth('corrupted');
+      }
+    };
+
+    checkState();
+  }, [ucids, vendors, catalogSkus]);
+
+  const handleRestoreSession = () => {
+    localStorage.removeItem('sys_ucids');
+    localStorage.removeItem('sys_vendors');
+    localStorage.removeItem('sys_catalog_skus');
+    window.location.reload();
+  };
+
+  if (dataHealth === 'checking') {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (dataHealth === 'corrupted') {
+    return (
+      <div className="flex flex-col h-full bg-[#06080e] rounded-xl border border-white/5 items-center justify-center p-8 space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+          <Database className="w-8 h-8 text-red-400 opacity-60 absolute" />
+          <AlertCircle className="w-5 h-5 text-red-500 relative mt-4 ml-4" />
+        </div>
+        
+        <div className="text-center space-y-2 max-w-sm">
+          <h2 className="text-lg font-bold text-white tracking-tight">Session Data Corrupted</h2>
+          <p className="text-sm text-gray-400">
+            We detected missing or corrupted critical application state (UCIDs, Vendors, or Catalog). 
+            Navigation to this tab is halted to prevent cascading errors.
+          </p>
+        </div>
+        
+        <button
+          onClick={handleRestoreSession}
+          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-white rounded-lg text-sm font-semibold transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Attempt Session Restore
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {children}
+      
+      {/* Navigation Confirmation Dialog */}
+      {isPendingAPI && requestedView && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0b1220] border border-white/10 p-6 rounded-xl shadow-2xl max-w-md w-full animate-fadeIn">
+            <div className="flex gap-4 items-start">
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0 mt-1">
+                <AlertTriangle className="w-5 h-5 text-orange-400" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-white tracking-tight">Critical Process Active</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  You have an active API process or ingestion task running. Navigating away to another view may disrupt the operation or result in lost progress.
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-end gap-3">
+              <button
+                onClick={onCancelNavigation}
+                className="px-4 py-2 bg-transparent text-gray-400 hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onConfirmNavigation}
+                className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 hover:text-orange-300 border border-orange-500/20 rounded-lg text-sm font-bold transition"
+              >
+                Navigate Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+

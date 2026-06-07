@@ -255,7 +255,7 @@ export function LiveMission({
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-fadeIn">
+    <div className="flex flex-col gap-4 animate-fadeIn h-full min-h-0">
       {/* Top solution banner */}
       <SolutionBanner 
         ucids={ucids} 
@@ -265,9 +265,9 @@ export function LiveMission({
         onClearDeployed={() => setDeployedSolution && setDeployedSolution(null)}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 flex-1 min-h-0">
         {/* Left column: parallel active tickets */}
-        <div className="xl:col-span-1 space-y-3">
+        <div className="xl:col-span-1 flex flex-col gap-3 min-h-0">
           {/* Mapping Hierarchy Clarity Panel */}
           <div className="p-3 bg-gradient-to-b from-[#0e1629] to-[#090e1b] border border-indigo-500/20 rounded-xl space-y-2.5 shadow-xl">
             <div className="flex items-center justify-between border-b border-indigo-500/10 pb-2">
@@ -387,7 +387,7 @@ export function LiveMission({
             </button>
           </div>
 
-          <div className="space-y-4 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
             {Object.entries(groupedUcids).map(([solutionGroup, groupItems]) => {
               return (
                 <div key={solutionGroup} className="space-y-2 border border-white/5/50 p-2 rounded-xl bg-black/10">
@@ -518,8 +518,11 @@ export function LiveMission({
                 </div>
               );
             })}
-               {/* Right column: detailed workflow tracker */}
-        <div className="xl:col-span-3 space-y-4">
+          </div>
+        </div>
+
+        {/* Right column: detailed workflow tracker */}
+        <div className="xl:col-span-3 flex flex-col gap-4 min-h-0 min-w-0">
           
           {/* Sourcing Workspace Mode Selector Toolbar */}
           <div className="flex bg-[#0b1220] p-1 rounded-xl border border-white/5">
@@ -547,6 +550,7 @@ export function LiveMission({
             </button>
           </div>
 
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           {workspaceMode === 'consolidation' ? (
             <CampaignConsolidationHub
               campaignName={getSolutionName(selected)}
@@ -704,10 +708,9 @@ export function LiveMission({
             </div>
           )}
 
-        </div>          </div>
-
         </div>
       </div>
+    </div>
 
       {showNewUCID && (
         <NewUCIDModal

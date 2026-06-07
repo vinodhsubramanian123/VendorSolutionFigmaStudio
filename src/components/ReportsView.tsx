@@ -1,12 +1,18 @@
-import { FileText, Download, CheckCircle, TrendingUp, DollarSign, Calendar } from 'lucide-react';
-import type { UCID, CatalogSKU } from '../types';
+import { useState } from 'react';
+import { FileText, Download, CheckCircle, TrendingUp, DollarSign, Calendar, AlertTriangle, Zap, Database } from 'lucide-react';
+import type { UCID, CatalogSKU, Vendor } from '../types';
+import { SchemaValidator } from './review/SchemaValidator';
 
 interface ReportsViewProps {
   ucids: UCID[];
+  setUcids?: (ucids: UCID[]) => void;
+  vendors?: Vendor[];
+  setVendors?: (vendors: Vendor[]) => void;
   catalogSkus: CatalogSKU[];
 }
 
-export function ReportsView({ ucids, catalogSkus }: ReportsViewProps) {
+export function ReportsView({ ucids, setUcids, vendors, setVendors, catalogSkus }: ReportsViewProps) {
+  const [showValidator, setShowValidator] = useState(false);
   const committedMissions = ucids.filter(u => u.currentStep === 'snapshot');
   const activeMissions = ucids.filter(u => u.currentStep !== 'snapshot');
 
@@ -19,8 +25,116 @@ export function ReportsView({ ucids, catalogSkus }: ReportsViewProps) {
     return total + (s1 > s2 ? s1 : s2);
   }, 0);
 
+  // Gap Audit logic
+  const ucidGaps = ucids.filter(u => !u.name || !u.projectRef);
+  const vendorGaps = vendors?.filter(v => !v.apiEndpoint || !v.syncInterval) || [];
+  const totalGaps = ucidGaps.length + vendorGaps.length;
+
+  const handleFixAllGaps = () => {
+    if (setUcids && ucidGaps.length > 0) {
+      const repairedUcids = ucids.map(u => ({
+        ...u,
+        name: u.name || 'Untitled Project Config',
+        projectRef: u.projectRef || `PRJ-${Math.floor(1000 + Math.random() * 9000)}`
+      }));
+      setUcids(repairedUcids);
+    }
+    if (setVendors && vendors && vendorGaps.length > 0) {
+      const repairedVendors = vendors.map(v => ({
+        ...v,
+        apiEndpoint: v.apiEndpoint || `https://api.${v.shortName.toLowerCase()}.com/v1`,
+        syncInterval: v.syncInterval || '0 0 * * *' // default daily cron
+      }));
+      setVendors(repairedVendors);
+    }
+  };
+
+  const handleExportIntegrityReport = () => {
+    // Generate audit logic on the fly for export
+    let score = 100;
+    const issues: { type: string; message: string; severity: string }[] = [];
+
+    // Check UCIDs
+    const expectedUcidKeys = ['id', 'displayId', 'name', 'currentStep', 'configurations', 'budgetTarget', 'status', 'lastModified'];
+    ucids.forEach(u => {
+      expectedUcidKeys.forEach(k => {
+        if (!(k in u)) {
+          issues.push({ type: 'UCID', message: `UCID ${(u as any).id || 'Unknown'} is missing key: ${k}`, severity: 'error' });
+          score -= 1;
+        }
+      });
+      if (u.currentStep && !['extract', 'identify', 'enrich', 'alternatives', 'snapshot', 'dispatched'].includes(u.currentStep)) {
+        issues.push({ type: 'UCID', message: `UCID ${(u as any).id} has invalid currentStep: ${u.currentStep}`, severity: 'error' });
+        score -= 2;
+      }
+    });
+
+    // Check Vendors
+    const expectedVendorKeys = ['id', 'name', 'shortName', 'type', 'authType', 'status', 'lastSync'];
+    (vendors || []).forEach(v => {
+      expectedVendorKeys.forEach(k => {
+        if (!(k in v)) {
+          issues.push({ type: 'Vendor', message: `Vendor ${(v as any).id || 'Unknown'} is missing key: ${k}`, severity: 'error' });
+          score -= 1;
+        }
+      });
+      if (v.status && !['connected', 'error', 'pending', 'syncing', 'disconnected'].includes(v.status)) {
+        issues.push({ type: 'Vendor', message: `Vendor ${(v as any).id} has invalid status: ${v.status}`, severity: 'error' });
+        score -= 2;
+      }
+    });
+
+    // Check SKUs
+    const expectedSkuKeys = ['id', 'partNumber', 'description', 'category', 'baseUSD', 'vendorId', 'requiresLicense'];
+    catalogSkus.forEach(s => {
+      expectedSkuKeys.forEach(k => {
+        if (!(k in s)) {
+          issues.push({ type: 'SKU', message: `SKU ${(s as any).id || 'Unknown'} is missing key: ${k}`, severity: 'error' });
+          score -= 0.5;
+        }
+      });
+      if (typeof (s as any).baseUSD !== 'number') {
+        issues.push({ type: 'SKU', message: `SKU ${(s as any).id} baseUSD is not a number`, severity: 'error' });
+        score -= 1;
+      }
+    });
+
+    const report = {
+      timestamp: new Date().toISOString(),
+      summary: {
+        complianceScore: Math.max(0, Math.floor(score)),
+        totalEntitiesChecked: ucids.length + (vendors || []).length + catalogSkus.length,
+        anomaliesDetected: issues.length
+      },
+      issues
+    };
+
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `integrity-audit-${new Date().getTime()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  if (showValidator) {
+    return (
+      <div className="h-full">
+        <SchemaValidator 
+          ucids={ucids} 
+          vendors={vendors || []} 
+          catalogSkus={catalogSkus} 
+          onClose={() => setShowValidator(false)} 
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 animate-fadeIn select-none leading-normal text-xs">
+    <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs h-full min-h-0">
       {/* Banner */}
       <div className="p-4 rounded-xl border flex items-center justify-between"
         style={{ background: 'rgba(74,133,253,0.03)', borderColor: 'rgba(74,133,253,0.1)' }}>
@@ -34,6 +148,22 @@ export function ReportsView({ ucids, catalogSkus }: ReportsViewProps) {
               Review transaction histories, aggregate contract budgets, and calculate direct procurement margins.
             </p>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowValidator(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/50 text-indigo-300 font-bold uppercase tracking-widest text-[10px] rounded transition-all"
+          >
+            <Database className="w-3.5 h-3.5" />
+            Data Integrity Audit
+          </button>
+          <button
+            onClick={handleExportIntegrityReport}
+            className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-white/10 border border-white/10 text-gray-400 font-bold uppercase tracking-widest text-[10px] rounded transition-all"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export Integrity Report
+          </button>
         </div>
       </div>
 
@@ -65,13 +195,37 @@ export function ReportsView({ ucids, catalogSkus }: ReportsViewProps) {
       </div>
 
       {/* Grid segments */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
         
+        {/* Gap Audit block */}
+        {totalGaps > 0 && (
+          <div className="lg:col-span-3 p-4 rounded-xl border border-[#ff9b36]/30 bg-[#ff9b36]/5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#ff9b36]/10 rounded border border-[#ff9b36]/20">
+                <AlertTriangle className="w-5 h-5 text-[#ff9b36]" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Data Integrity Gap Audit</h3>
+                <p className="text-[11px] text-[#ff9b36]">
+                  Detected {totalGaps} missing mandatory fields across active UCIDs and Vendor records. This can block automated pipeline dispatching.
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={handleFixAllGaps}
+              className="flex items-center gap-2 px-4 py-2 bg-[#ff9b36] hover:bg-[#ff8a1c] text-black font-bold uppercase tracking-widest text-[10px] rounded shadow-lg shadow-[#ff9b36]/20 transition-all active:scale-95"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              Fix All Gaps
+            </button>
+          </div>
+        )}
+
         {/* Sourcing History Table */}
-        <div className="lg:col-span-2 p-4 rounded-xl border space-y-3" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
-          <span className="text-xs text-white font-semibold block">Commit Sourcing Ledger</span>
+        <div className="lg:col-span-2 p-4 rounded-xl border flex flex-col gap-3 min-h-0" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
+          <span className="text-xs text-white font-semibold block shrink-0">Commit Sourcing Ledger</span>
           
-          <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15">
+          <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15 flex-1 min-h-0 overflow-y-auto">
             <table className="w-full text-left font-sans text-[11px] border-collapse">
               <thead>
                 <tr className="border-b text-gray-500" style={{ borderColor: 'rgba(74,133,253,0.05)', backgroundColor: 'rgba(74,133,253,0.01)' }}>
@@ -106,9 +260,9 @@ export function ReportsView({ ucids, catalogSkus }: ReportsViewProps) {
         </div>
 
         {/* Dynamic active pipeline summary block */}
-        <div className="p-4 rounded-xl border flex flex-col gap-3" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
-          <span className="text-xs text-white font-semibold">Active Parallel Pipeline Streams ({activeMissions.length})</span>
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <div className="p-4 rounded-xl border flex flex-col gap-3 min-h-0" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
+          <span className="text-xs text-white font-semibold shrink-0">Active Parallel Pipeline Streams ({activeMissions.length})</span>
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
             {activeMissions.map(m => (
               <div key={m.id} className="p-2.5 bg-black/25 rounded border border-white/2">
                 <div className="flex justify-between font-mono text-[10px]">

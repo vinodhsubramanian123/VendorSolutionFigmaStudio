@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
 import {
   Globe, Database, Activity, TrendingUp, Target, AlertTriangle, ChevronRight, Zap, RefreshCw, ArrowUpRight, ArrowDownRight
@@ -15,6 +15,39 @@ const TOOLTIP_STYLE = {
   labelStyle: { color: '#dde6ff', fontWeight: 600 },
 };
 
+export function useChartDimensions() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          // Use requestAnimationFrame to avoid "ResizeObserver loop limit exceeded" warning
+          window.requestAnimationFrame(() => {
+            setDimensions({ width, height });
+          });
+        }
+      }
+    });
+
+    observer.observe(ref.current);
+    
+    // Initial measure
+    const rect = ref.current.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      setDimensions({ width: rect.width, height: rect.height });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, dimensions };
+}
+
 interface DashboardProps {
   onNavigate: (v: AppView) => void;
   ucids: UCID[];
@@ -24,11 +57,9 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate, ucids, vendors, forensicIssues }: DashboardProps) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  
+  const areaChart = useChartDimensions();
+  const pieChart = useChartDimensions();
 
   const activeUCIDs = ucids.filter(u => u.currentStep !== 'snapshot');
   const criticalIssues = forensicIssues.filter(f => f.severity === 'critical' && f.status !== 'resolved').length;
@@ -119,9 +150,9 @@ export function Dashboard({ onNavigate, ucids, vendors, forensicIssues }: Dashbo
               <TrendingUp className="w-3 h-3" /> +59%
             </span>
           </div>
-          {isMounted ? (
-            <ResponsiveContainer width="100%" height={160} minWidth={0}>
-              <AreaChart data={CATALOG_TREND} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <div ref={areaChart.ref} className="h-[160px] w-full min-w-0 flex items-center justify-center">
+            {areaChart.dimensions.width > 0 ? (
+              <AreaChart width={areaChart.dimensions.width} height={areaChart.dimensions.height} data={CATALOG_TREND} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs key="defs">
                   <linearGradient id="catGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop key="stop-1" offset="5%" stopColor="#4a85fd" stopOpacity={0.3} />
@@ -136,28 +167,32 @@ export function Dashboard({ onNavigate, ucids, vendors, forensicIssues }: Dashbo
                 <Area key="area" type="monotone" dataKey="items" stroke="#4a85fd" strokeWidth={2} fill="url(#catGrad)"
                   dot={{ fill: '#4a85fd', r: 3 }} />
               </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[160px] w-full" />
-          )}
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-[11px] text-gray-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                <Activity className="w-4 h-4 text-gray-600 mb-1" />
+                <span>Mounting visualizer...</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Vendor SKU Distribution */}
         <div className="p-4 rounded-xl min-w-0" style={{ background: '#0b1220', border: '1px solid rgba(74,133,253,0.1)' }}>
           <p className="text-sm font-semibold mb-0.5" style={{ color: '#dde6ff' }}>Catalog by Vendor</p>
           <p className="text-xs mb-3" style={{ color: '#5d7899' }}>{totalCatalog.toLocaleString()} total SKUs</p>
-          <div className="h-[120px] relative min-w-0">
-            {isMounted ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <PieChart>
-                  <Pie key="pie" data={VENDOR_PIE} dataKey="value" cx="50%" cy="50%" innerRadius={34} outerRadius={54} strokeWidth={0}>
-                    {VENDOR_PIE.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [v.toLocaleString(), 'SKUs']} />
-                </PieChart>
-              </ResponsiveContainer>
+          <div ref={pieChart.ref} className="h-[120px] relative w-full min-w-0 flex items-center justify-center">
+            {pieChart.dimensions.width > 0 ? (
+              <PieChart width={pieChart.dimensions.width} height={pieChart.dimensions.height}>
+                <Pie key="pie" data={VENDOR_PIE} dataKey="value" cx="50%" cy="50%" innerRadius={34} outerRadius={54} strokeWidth={0}>
+                  {VENDOR_PIE.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
+                </Pie>
+                <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [v.toLocaleString(), 'SKUs']} />
+              </PieChart>
             ) : (
-              <div className="h-full w-full" />
+              <div className="w-full h-full flex flex-col items-center justify-center text-[11px] text-gray-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+                <Target className="w-4 h-4 text-gray-600 mb-1" />
+                <span>Reading data...</span>
+              </div>
             )}
           </div>
           <div className="space-y-1.5 mt-2">

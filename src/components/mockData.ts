@@ -207,7 +207,7 @@ export const FORENSIC_ISSUES: ForensicIssue[] = [
     severity: 'info',
     status: 'open',
     affectedItems: 0,
-    suggestedAction: 'Re-authenticate secure partner tokens in the Integrations Gateway panel.'
+    suggestedAction: 'Re-authenticate secure partner tokens in the Vendor Portal API Integrations panel.'
   }
 ];
 

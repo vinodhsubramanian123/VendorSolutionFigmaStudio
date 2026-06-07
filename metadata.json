@@ -1,6 +1,6 @@
 {
-  "name": "Vendor Solution Intelligence Platform",
-  "description": "A high-fidelity dashboard for vendor procurement, parallel UCID intake, catalog management, forensic auto-healing, and taxonomy cleansing.",
+  "name": "vendor-solution",
+  "description": "Vendor procurement dashboard.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

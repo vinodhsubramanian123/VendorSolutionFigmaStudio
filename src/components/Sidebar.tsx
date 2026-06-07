@@ -14,7 +14,9 @@ import {
   Wrench,
   Cable,
   FolderSync,
-  UploadCloud
+  UploadCloud,
+  Activity,
+  Book
 } from 'lucide-react';
 import { AppView } from '../types';
 import { UCID } from '../types';
@@ -82,8 +84,9 @@ export function Sidebar({
     { view: 'cleansing' as AppView, label: 'Taxonomy Cleansing', icon: Wrench },
     { view: 'taxonomy' as AppView, label: 'Taxonomy Graph', icon: Network },
     { view: 'solution-builder' as AppView, label: 'Solution Configurator', icon: Atom },
-    { view: 'integrations' as AppView, label: 'Integrations Gateway', icon: FolderSync },
     { view: 'reports' as AppView, label: 'Reports & Auditing', icon: FileText },
+    { view: 'telemetry' as AppView, label: 'System Telemetry', icon: Activity },
+    { view: 'documentation' as AppView, label: 'API & Documentation', icon: Book },
     { view: 'premium' as AppView, label: 'UI Lab', icon: Sparkles, iconColor: '#a855f7' },
   ];
 

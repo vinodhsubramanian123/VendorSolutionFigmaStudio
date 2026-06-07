@@ -314,7 +314,7 @@ export function ForensicView({
   }
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="flex flex-col gap-4 animate-fadeIn h-full min-h-0">
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 p-3.5 rounded-xl border shadow-2xl bg-[#091815] border-[#00d4a0] flex items-center gap-3 animate-slideIn">
@@ -391,11 +391,11 @@ export function ForensicView({
       )}
 
       {/* Warnings & Issues split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
         
         {/* Main List */}
-        <div className="lg:col-span-2 space-y-3.5">
-          <div className="flex items-center justify-between px-1">
+        <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
+          <div className="flex items-center justify-between px-1 shrink-0">
             <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
               Discovered Sourcing Anomalies ({openIssues.length})
             </span>
@@ -404,7 +404,7 @@ export function ForensicView({
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
             {openIssues.length > 0 ? (
               openIssues.map((issue) => (
                 <div
@@ -467,8 +467,8 @@ export function ForensicView({
         </div>
 
         {/* Audit reports sidebar */}
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl border flex flex-col gap-3" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
+        <div className="flex flex-col gap-4 min-h-0">
+          <div className="p-4 rounded-xl border flex flex-col gap-3 shrink-0" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
             <h3 className="text-xs text-white font-bold">Workspace Health Integrity Score</h3>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-white font-mono leading-none">
@@ -484,11 +484,11 @@ export function ForensicView({
             <p className="text-[10px] text-gray-500">Each unresolved open compliance exception reduces your aggregate score.</p>
           </div>
 
-          <div className="p-4 rounded-xl border" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
-            <span className="text-xs text-white font-bold flex items-center gap-1.5">
+          <div className="p-4 rounded-xl border flex flex-col min-h-0" style={{ backgroundColor: '#0b1220', borderColor: 'rgba(74,133,253,0.08)' }}>
+            <span className="text-xs text-white font-bold flex items-center gap-1.5 shrink-0">
               <ShieldCheck className="w-4 h-4 text-[#00d4a0]" /> Compliance Resolved List ({completedFixes.length})
             </span>
-            <div className="divide-y divide-white/5 mt-3 p-1.5 bg-black/20 rounded-lg max-h-56 overflow-y-auto space-y-2">
+            <div className="divide-y divide-white/5 mt-3 p-1.5 bg-black/20 rounded-lg flex-1 min-h-0 overflow-y-auto space-y-2">
               {completedFixes.map((issue, idx) => (
                 <div key={idx} className="py-2 text-[10px] text-gray-400 first:pt-1 last:pb-1">
                   <p className="font-bold text-white flex items-center gap-1 line-clamp-1">

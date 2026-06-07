@@ -44,7 +44,7 @@ export function SearchView({
   const totalMatches = matchedMissions.length + matchedVendors.length + matchedSkus.length;
 
   return (
-    <div className="space-y-4 animate-fadeIn select-none leading-normal text-xs">
+    <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs h-full min-h-0">
       {/* Search Header Banner */}
       <div 
         className="p-4 rounded-xl border flex items-center justify-between"
@@ -62,14 +62,14 @@ export function SearchView({
       </div>
 
       {totalMatches > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0">
           
           {/* Workflows Column */}
-          <div className="space-y-2.5">
-            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1">
+          <div className="flex flex-col gap-2.5 min-h-0">
+            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Target className="w-3.5 h-3.5 text-[#ff9b36]" /> Workflows ({matchedMissions.length})
             </span>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
               {matchedMissions.map((m) => (
                 <button
                   key={m.id}
@@ -92,11 +92,11 @@ export function SearchView({
           </div>
 
           {/* Vendors Column */}
-          <div className="space-y-2.5">
-            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1">
+          <div className="flex flex-col gap-2.5 min-h-0">
+            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Globe className="w-3.5 h-3.5 text-indigo-400" /> Connected APIs ({matchedVendors.length})
             </span>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
               {matchedVendors.map((v) => (
                 <button
                   key={v.id}
@@ -123,11 +123,11 @@ export function SearchView({
           </div>
 
           {/* Catalog SKUs Column */}
-          <div className="space-y-2.5">
-            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1">
+          <div className="flex flex-col gap-2.5 min-h-0">
+            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Database className="w-3.5 h-3.5 text-[#00d4a0]" /> Sourced Parts ({matchedSkus.length})
             </span>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
               {matchedSkus.map((s) => (
                 <button
                   key={s.id}
