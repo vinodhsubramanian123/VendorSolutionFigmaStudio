@@ -286,17 +286,32 @@ export function IngestionHub({
           },
           solutions: [
             {
-              id: `sol-fallback-base`,
-              vendor: preset === 'dell-overcharge' ? "Dell" : preset === 'cisco-asymmetry' ? "Cisco" : "HPE",
-              label: `${preset === 'dell-overcharge' ? "Dell" : preset === 'cisco-asymmetry' ? "Cisco" : "HPE"} Offline Simulated Base`,
-              totalPrice: 110000,
-              originalPrice: 125000,
-              savings: 15000,
-              complianceScore: 92,
-              items: [
-                { id: "fallback-c1", partNumber: "BASE-CHASSIS-01", name: "Simulated Chassis", type: "Chassis", quantity: 10, unitPrice: 3400 },
-                { id: "fallback-c2", partNumber: "BASE-CPU-01", name: "Simulated Processor Multi-Core", type: "Processor", quantity: 20, unitPrice: 1890 },
-                { id: "fallback-c3", partNumber: "BASE-MEM-01", name: "Simulated RDIMM Memory Kit", type: "Memory", quantity: 80, unitPrice: 580 }
+              id: `sol-fallback-primary`,
+              name: `${preset === 'dell-overcharge' ? "Dell" : preset === 'cisco-asymmetry' ? "Cisco" : "HPE"} Offline Simulated Base`,
+              vendorSubmissions: [
+                {
+                  id: `sol-fallback-base`,
+                  vendor: preset === 'dell-overcharge' ? "Dell" : preset === 'cisco-asymmetry' ? "Cisco" : "HPE",
+                  label: `${preset === 'dell-overcharge' ? "Dell" : preset === 'cisco-asymmetry' ? "Cisco" : "HPE"} Offline Simulated Base`,
+                  totalPrice: 110000,
+                  originalPrice: 125000,
+                  savings: 15000,
+                  complianceScore: 92,
+                  configs: [
+                    {
+                      id: "fallback-base-config",
+                      name: "Base Compute Config",
+                      totalPrice: 110000,
+                      originalPrice: 125000,
+                      savings: 15000,
+                      items: [
+                        { id: "fallback-c1", partNumber: "BASE-CHASSIS-01", name: "Simulated Chassis", type: "Chassis", quantity: 10, unitPrice: 3400 },
+                        { id: "fallback-c2", partNumber: "BASE-CPU-01", name: "Simulated Processor Multi-Core", type: "Processor", quantity: 20, unitPrice: 1890 },
+                        { id: "fallback-c3", partNumber: "BASE-MEM-01", name: "Simulated RDIMM Memory Kit", type: "Memory", quantity: 80, unitPrice: 580 }
+                      ]
+                    }
+                  ]
+                }
               ]
             }
           ]
@@ -313,29 +328,24 @@ export function IngestionHub({
     const prefix = 'UCID-2026-';
     const generatedUcids: UCID[] = boqResponse.solutions.map((sol: any, idx: number) => {
       const displayId = `${prefix}${1700 + ucids.length + idx}`;
-      const detailsText = sol.items.map((i: any) => ` - ${i.name} (QTY ${i.quantity} @ $${i.unitPrice})`).join('\n');
+      const detailsText = sol.vendorSubmissions?.[0]?.configs?.[0]?.items?.map((i: any) => ` - ${i.name} (QTY ${i.quantity} @ $${i.unitPrice})`).join('\n') || '';
 
       return {
         id: `dynamic-hub-${displayId}`,
         displayId: displayId,
-        name: `Sourced ${sol.vendor} Alignment Config`,
+        name: `Sourced ${sol.vendorSubmissions?.[0]?.vendor || sol.name} Alignment Config`,
         solutionName: boqResponse.sourceFile,
         priority: idx === 0 ? 'high' : 'medium',
         projectRef: 'PRJ-RECON-HUB',
         createdAt: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         currentStep: 'solution-design',
         completedSteps: ['boq-intake', 'pre-intelligence'],
-        rawBOM: `Workbook parsed via central Ingestion Hub.\n\nSource sheet: ${boqResponse.sourceFile}\nVendor Profile: ${sol.vendor}\n\nComponents Detail:\n${detailsText}`,
+        rawBOM: `Workbook parsed via central Ingestion Hub.\n\nSource sheet: ${boqResponse.sourceFile}\nVendor Profile: ${sol.vendorSubmissions?.[0]?.vendor || sol.name}\n\nComponents Detail:\n${detailsText}`,
         solutions: [
           {
             id: `sol-${displayId}-primary`,
-            vendor: sol.vendor,
-            label: sol.label,
-            totalPrice: sol.totalPrice,
-            originalPrice: sol.originalPrice,
-            savings: sol.savings,
-            complianceScore: sol.complianceScore,
-            items: sol.items.map((it: any) => ({ ...it }))
+            name: sol.name,
+            vendorSubmissions: sol.vendorSubmissions?.map((vs: any) => ({ ...vs })) || []
           }
         ],
         events: [
@@ -408,7 +418,7 @@ export function IngestionHub({
     }, 200);
 
     try {
-      const configItems = targetUcid.solutions[0]?.items || [];
+      const configItems = targetUcid.solutions[0]?.vendorSubmissions?.[0]?.configs?.flatMap(c => c.items) || [];
       const chassisSKU = configItems.find(i => i.type === 'Chassis')?.partNumber || 'P40411-B21';
       const cpuSKU = configItems.find(i => i.type === 'Processor')?.partNumber || '815100-B21';
       const ramQuantity = configItems.find(i => i.type === 'Memory')?.quantity || 5;
@@ -496,7 +506,7 @@ export function IngestionHub({
         };
         const mockRecon = {
           matrix: [
-            { solutionId: targetUcid?.solutions[0]?.id || 'unknown', vendor: targetUcid?.solutions[0]?.vendor || 'Unknown', baseCost: 125000, negotiatedContractCost: 110000, variancePercentage: 12, deliveryConfidenceRating: 98 }
+            { solutionId: targetUcid?.solutions[0]?.id || 'unknown', vendor: targetUcid?.solutions[0]?.vendorSubmissions?.[0]?.vendor || 'Unknown', baseCost: 125000, negotiatedContractCost: 110000, variancePercentage: 12, deliveryConfidenceRating: 98 }
           ],
           metrics: { totalSavingsUSD: 15000 },
           discrepancyCount: 1
@@ -570,39 +580,43 @@ export function IngestionHub({
           }
 
           const updatedSolutions = u.solutions.map(sol => {
-            const repairedItems = sol.items.map(it => {
-              if (it.partNumber === '815100-B21') {
-                return {
-                  ...it,
-                  partNumber: 'P40424-B21',
-                  name: 'Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [RECONCILED]',
-                  unitPrice: 2150
-                };
-              }
-              if (it.partNumber === '400-BPSB' && it.unitPrice > 1190) {
-                return {
-                  ...it,
-                  unitPrice: 1190,
-                  name: 'Dell 3.84TB SAS Read Intensive SSD [RECONCILED]'
-                };
-              }
-              if (sol.vendor === 'Cisco' && it.type === 'Memory' && it.quantity % 8 !== 0) {
-                return {
-                  ...it,
-                  quantity: 8,
-                  name: 'UCS 64GB DDR5 memory module RDIMM [RECONCILED]'
-                };
-              }
-              return it;
-            });
-            
-            const newSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
+            const repairedSubmissions = sol.vendorSubmissions?.map(vs => {
+              const repairedConfigs = vs.configs?.map(c => {
+                const repairedItems = c.items?.map(it => {
+                  if (it.partNumber === '815100-B21') {
+                    return {
+                      ...it,
+                      partNumber: 'P40424-B21',
+                      name: 'Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [RECONCILED]',
+                      unitPrice: 2150
+                    };
+                  }
+                  if (it.partNumber === '400-BPSB' && it.unitPrice > 1190) {
+                    return {
+                      ...it,
+                      unitPrice: 1190,
+                      name: 'Dell 3.84TB SAS Read Intensive SSD [RECONCILED]'
+                    };
+                  }
+                  if (vs.vendor === 'Cisco' && it.type === 'Memory' && it.quantity % 8 !== 0) {
+                    return {
+                      ...it,
+                      quantity: 8,
+                      name: 'UCS 64GB DDR5 memory module RDIMM [RECONCILED]'
+                    };
+                  }
+                  return it;
+                }) || [];
+                const newConfigSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
+                return {...c, items: repairedItems, totalPrice: newConfigSum, savings: Math.max(0, c.originalPrice - newConfigSum)};
+              }) || [];
+              const newVsSum = repairedConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
+              return {...vs, configs: repairedConfigs, totalPrice: newVsSum, savings: Math.max(0, vs.originalPrice - newVsSum), complianceScore: 100};
+            }) || [];
+
             return {
               ...sol,
-              items: repairedItems,
-              totalPrice: newSum,
-              savings: Math.max(0, sol.originalPrice - newSum),
-              complianceScore: 100
+              vendorSubmissions: repairedSubmissions,
             };
           });
           

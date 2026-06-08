@@ -68,17 +68,17 @@ export function ForensicView({
   // --- Dynamic Contract Rule Scans ---
   // Rule 1: Obsolete CPU model CPU '815100-B21'
   const hasEolSourcingRisk = currUcid?.solutions?.some(sol =>
-    sol.items.some(it => it.partNumber === '815100-B21')
+    sol.vendorSubmissions?.some(vs => vs.configs?.some(c => c.items?.some(it => it.partNumber === '815100-B21')))
   ) || false;
 
   // Rule 2: Overpriced Storage Drive '400-BPSB' (Dell SSD) quoting > 1190
   const hasPriceVarianceRisk = currUcid?.solutions?.some(sol =>
-    sol.items.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190)
+    sol.vendorSubmissions?.some(vs => vs.configs?.some(c => c.items?.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190)))
   ) || false;
 
   // Rule 3: Memory Symmetry Rule Qty % 8 !== 0 on Cisco Systems
   const hasCiscoMemorySymmetryRisk = currUcid?.solutions?.some(sol =>
-    sol.vendor === 'Cisco' && sol.items.some(it => it.type === 'Memory' && it.quantity % 8 !== 0)
+    sol.vendorSubmissions?.some(vs => vs.vendor === 'Cisco' && vs.configs?.some(c => c.items?.some(it => it.type === 'Memory' && it.quantity % 8 !== 0)))
   ) || false;
 
   // Build current open issues array derived directly from global forensicIssues prop and context-aware UCID constraints
@@ -94,8 +94,9 @@ export function ForensicView({
     .map((issue) => {
       // Dynamically enrich information from selected UCID configurations where appropriate
       if (issue.id === 'iss-2' && hasPriceVarianceRisk) {
-        const matchingSol = currUcid?.solutions?.find(sol => sol.items.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190));
-        const matchingItem = matchingSol?.items?.find(it => it.partNumber === '400-BPSB');
+        const matchingSol = currUcid?.solutions?.find(sol => sol.vendorSubmissions?.some(vs => vs.configs?.some(c => c.items?.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190))));
+        const matchingVs = matchingSol?.vendorSubmissions?.find(vs => vs.configs?.some(c => c.items?.some(it => it.partNumber === '400-BPSB')));
+        const matchingItem = matchingVs?.configs?.flatMap(c => c.items).find(it => it.partNumber === '400-BPSB');
         const unitPrice = matchingItem?.unitPrice || 1590;
         const overage = unitPrice - 1190;
         const totalWaste = overage * (matchingItem?.quantity || 24);
@@ -107,8 +108,9 @@ export function ForensicView({
         };
       }
       if (issue.id === 'iss-3' && hasCiscoMemorySymmetryRisk) {
-        const matchingSol = currUcid?.solutions?.find(sol => sol.vendor === 'Cisco');
-        const matchingItem = matchingSol?.items?.find(it => it.type === 'Memory');
+        const matchingSol = currUcid?.solutions?.find(sol => sol.vendorSubmissions?.some(vs => vs.vendor === 'Cisco'));
+        const matchingVs = matchingSol?.vendorSubmissions?.find(vs => vs.vendor === 'Cisco');
+        const matchingItem = matchingVs?.configs?.flatMap(c => c.items).find(it => it.type === 'Memory');
         const qty = matchingItem?.quantity || 5;
         return {
           ...issue,
@@ -156,28 +158,32 @@ export function ForensicView({
         prev.map((u) => {
           if (u.id === currUcid.id) {
             const nextSolutions = u.solutions.map((sol) => {
-              const matchedCPU = sol.items.some(it => it.partNumber === '815100-B21');
+              const matchedCPU = sol.vendorSubmissions?.some(vs => vs.configs?.some(c => c.items?.some(it => it.partNumber === '815100-B21')));
               if (!matchedCPU) return sol;
+              
+              const repairedSubmissions = sol.vendorSubmissions?.map(vs => {
+                const repairedConfigs = vs.configs?.map(c => {
+                  const repairedItems = c.items?.map(it => {
+                    if (it.partNumber === '815100-B21') {
+                      return {
+                        ...it,
+                        partNumber: 'P40424-B21',
+                        name: 'Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [REPLACED]',
+                        unitPrice: 2150,
+                      };
+                    }
+                    return it;
+                  }) || [];
+                  const newConfigSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
+                  return {...c, items: repairedItems, totalPrice: newConfigSum, savings: Math.max(0, c.originalPrice - newConfigSum)};
+                }) || [];
+                const newVsSum = repairedConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
+                return {...vs, configs: repairedConfigs, totalPrice: newVsSum, savings: Math.max(0, vs.originalPrice - newVsSum), complianceScore: 100};
+              }) || [];
 
-              const repairedItems = sol.items.map((it) => {
-                if (it.partNumber === '815100-B21') {
-                  return {
-                    ...it,
-                    partNumber: 'P40424-B21',
-                    name: 'Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [REPLACED]',
-                    unitPrice: 2150,
-                  };
-                }
-                return it;
-              });
-
-              const newSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
               return {
                 ...sol,
-                items: repairedItems,
-                totalPrice: newSum,
-                savings: Math.max(0, sol.originalPrice - newSum),
-                complianceScore: 100,
+                vendorSubmissions: repairedSubmissions,
               };
             });
 
@@ -218,26 +224,31 @@ export function ForensicView({
         prev.map((u) => {
           if (u.id === currUcid.id) {
             const nextSolutions = u.solutions.map((sol) => {
-              const hasOverage = sol.items.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190);
+              const hasOverage = sol.vendorSubmissions?.some(vs => vs.configs?.some(c => c.items?.some(it => it.partNumber === '400-BPSB' && it.unitPrice > 1190)));
               if (!hasOverage) return sol;
+              
+              const repairedSubmissions = sol.vendorSubmissions?.map(vs => {
+                const repairedConfigs = vs.configs?.map(c => {
+                  const repairedItems = c.items?.map(it => {
+                    if (it.partNumber === '400-BPSB') {
+                      return {
+                        ...it,
+                        unitPrice: 1190,
+                        name: 'Dell 3.84TB Enterprise NVMe SSD SFF [ALIGNED]',
+                      };
+                    }
+                    return it;
+                  }) || [];
+                  const newConfigSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
+                  return {...c, items: repairedItems, totalPrice: newConfigSum, savings: Math.max(0, c.originalPrice - newConfigSum)};
+                }) || [];
+                const newVsSum = repairedConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
+                return {...vs, configs: repairedConfigs, totalPrice: newVsSum, savings: Math.max(0, vs.originalPrice - newVsSum)};
+              }) || [];
 
-              const repairedItems = sol.items.map((it) => {
-                if (it.partNumber === '400-BPSB') {
-                  return {
-                    ...it,
-                    unitPrice: 1190,
-                    name: 'Dell 3.84TB Enterprise NVMe SSD SFF [ALIGNED]',
-                  };
-                }
-                return it;
-              });
-
-              const newSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
               return {
                 ...sol,
-                items: repairedItems,
-                totalPrice: newSum,
-                savings: Math.max(0, sol.originalPrice - newSum),
+                vendorSubmissions: repairedSubmissions,
               };
             });
 
@@ -278,28 +289,32 @@ export function ForensicView({
         prev.map((u) => {
           if (u.id === currUcid.id) {
             const nextSolutions = u.solutions.map((sol) => {
-              if (sol.vendor !== 'Cisco') return sol;
-
-              const hasAsymmetricMemory = sol.items.some(it => it.type === 'Memory' && it.quantity % 8 !== 0);
+              const hasAsymmetricMemory = sol.vendorSubmissions?.some(vs => vs.vendor === 'Cisco' && vs.configs?.some(c => c.items?.some(it => it.type === 'Memory' && it.quantity % 8 !== 0)));
               if (!hasAsymmetricMemory) return sol;
+              
+              const repairedSubmissions = sol.vendorSubmissions?.map(vs => {
+                if (vs.vendor !== 'Cisco') return vs;
+                const repairedConfigs = vs.configs?.map(c => {
+                  const repairedItems = c.items?.map(it => {
+                    if (it.type === 'Memory') {
+                      return {
+                        ...it,
+                        quantity: 8,
+                        name: 'Cisco 64GB DDR5 memory module [REBALANCED]',
+                      };
+                    }
+                    return it;
+                  }) || [];
+                  const newConfigSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
+                  return {...c, items: repairedItems, totalPrice: newConfigSum, savings: Math.max(0, c.originalPrice - newConfigSum)};
+                }) || [];
+                const newVsSum = repairedConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
+                return {...vs, configs: repairedConfigs, totalPrice: newVsSum, savings: Math.max(0, vs.originalPrice - newVsSum)};
+              }) || [];
 
-              const repairedItems = sol.items.map((it) => {
-                if (it.type === 'Memory') {
-                  return {
-                    ...it,
-                    quantity: 8,
-                    name: 'Cisco 64GB DDR5 memory module [REBALANCED]',
-                  };
-                }
-                return it;
-              });
-
-              const newSum = repairedItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
               return {
                 ...sol,
-                items: repairedItems,
-                totalPrice: newSum,
-                savings: Math.max(0, sol.originalPrice - newSum),
+                vendorSubmissions: repairedSubmissions,
               };
             });
 

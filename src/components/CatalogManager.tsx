@@ -125,61 +125,39 @@ export function CatalogManager({ catalogSkus, setCatalogSkus, vendors }: Catalog
 
           // 1. Solution Catalog Slicing
           if (selectedPath.solution === 'Server') {
-            const isServerPart = ['chassis', 'processor', 'memory', 'power supply', 'riser card'].includes(skuTypeLow) && 
-              !sku.name.toLowerCase().includes('msa') && !sku.name.toLowerCase().includes('switch') && !sku.name.toLowerCase().includes('aruba');
-            if (!isServerPart) return false;
+            if (sku.solution !== 'Server') return false;
           } else if (selectedPath.solution === 'Storage') {
-            const isStoragePart = ['drive', 'chassis'].includes(skuTypeLow) && 
-              (sku.name.toLowerCase().includes('msa') || sku.partNumber.toLowerCase().includes('r0q74a') || sku.partNumber.toLowerCase().includes('r0q37a') || sku.type === 'Drive');
-            if (!isStoragePart) return false;
+            if (sku.solution !== 'Storage') return false;
           } else if (selectedPath.solution === 'Networking') {
-            const isNetworkPart = ['network adapter', 'chassis'].includes(skuTypeLow) || 
-              sku.name.toLowerCase().includes('switch') || sku.name.toLowerCase().includes('aruba') || sku.name.toLowerCase().includes('nexus') || sku.name.toLowerCase().includes('juniper');
-            if (!isNetworkPart) return false;
+            if (sku.solution !== 'Networking') return false;
           }
 
           // 2. Product Family level
           if (selectedPath.product !== 'all') {
-            const skuNameLow = sku.name.toLowerCase();
             const p = selectedPath.product.toLowerCase();
 
             if (p === 'dl380a') {
-              const isDl380a = skuNameLow.includes('dl380a') || sku.partNumber.includes('P58410') || sku.partNumber.includes('P58425') || sku.partNumber.includes('P58500');
-              if (!isDl380a) return false;
+              if (sku.productFamily?.toLowerCase() !== 'dl380a') return false;
             } else if (p === 'dl380') {
-              // Must NOT include DL380a
-              const isDl380 = (skuNameLow.includes('dl380') && !skuNameLow.includes('dl380a')) || sku.partNumber.includes('P40424') || sku.partNumber.includes('P38454') || sku.partNumber.includes('P40483') || sku.partNumber.includes('P40445') || sku.partNumber.includes('865414') || sku.partNumber.includes('P43019') || skuNameLow.includes('platinum 8562y') || sku.partNumber.includes('P50164') || sku.partNumber.includes('P50500') || skuNameLow.includes('broadcom 57414') || skuNameLow.includes('gen13 preview') || sku.partNumber.includes('P70100') || sku.partNumber.includes('P70125');
-              if (!isDl380) return false;
+              if (sku.productFamily?.toLowerCase() !== 'dl380') return false;
             } else if (p === 'dl80') {
-              const isDl80 = skuNameLow.includes('dl80') || sku.partNumber.includes('847285') || sku.partNumber.includes('P60120');
-              if (!isDl80) return false;
+              if (sku.productFamily?.toLowerCase() !== 'dl80') return false;
             } else if (p === 'msa') {
-              const isMsa = skuNameLow.includes('msa') || sku.partNumber.includes('r0q74a') || sku.partNumber.includes('r0q37a');
-              if (!isMsa) return false;
+              if (sku.productFamily?.toLowerCase() !== 'msa') return false;
             } else if (p === 'aruba') {
-              const isAruba = skuNameLow.includes('aruba') || sku.partNumber.includes('bf100a') || sku.partNumber.includes('1973a');
-              if (!isAruba) return false;
+              if (sku.productFamily?.toLowerCase() !== 'aruba') return false;
             } else if (p === 'r760') {
-              const isR760 = skuNameLow.includes('r760') || skuNameLow.includes('poweredge') || sku.partNumber.includes('338-chyt') || sku.partNumber.includes('370-ahff') || sku.partNumber.includes('400-bpsb') || sku.partNumber.includes('540-bcoz') || sku.partNumber.includes('450-adwm');
-              if (!isR760) return false;
+              if (sku.productFamily?.toLowerCase() !== 'r760') return false;
             } else if (p === 'ucs') {
-              const isUcs = skuNameLow.includes('ucs') || sku.partNumber.includes('usc') || sku.partNumber.includes('n20-w6502');
-              if (!isUcs) return false;
+              if (sku.productFamily?.toLowerCase() !== 'ucs') return false;
             } else if (p === 'qfx') {
-              const isQfx = skuNameLow.includes('qfx') || sku.partNumber.includes('ex3400') || skuNameLow.includes('juniper') || sku.partNumber.includes('srx300');
-              if (!isQfx) return false;
+              if (sku.productFamily?.toLowerCase() !== 'qfx') return false;
             }
 
             // 3. Generation Slicing: Gen11 vs Gen12 vs Gen13
             if (selectedPath.generation !== 'all') {
               const gen = selectedPath.generation.toLowerCase();
-              if (gen === 'gen11') {
-                if (skuNameLow.includes('gen12') || skuNameLow.includes('gen13') || skuNameLow.includes('g12') || skuNameLow.includes('g13') || sku.partNumber.includes('P50123') || sku.partNumber.includes('P50164') || sku.partNumber.includes('P50410') || sku.partNumber.includes('P60120') || sku.partNumber.includes('P70100') || sku.partNumber.includes('P70125')) return false;
-              } else if (gen === 'gen12') {
-                if (skuNameLow.includes('gen11') || skuNameLow.includes('gen13') || skuNameLow.includes('g11') || skuNameLow.includes('g13') || sku.partNumber.includes('P40424') || sku.partNumber.includes('P38454') || sku.partNumber.includes('P40411') || sku.partNumber.includes('P40412') || sku.partNumber.includes('847285')) return false;
-              } else if (gen === 'gen13') {
-                if (!skuNameLow.includes('gen13') && !sku.partNumber.includes('P70100') && !sku.partNumber.includes('P70125')) return false;
-              }
+              if (sku.generation?.toLowerCase() !== gen) return false;
             }
           }
 
@@ -190,49 +168,9 @@ export function CatalogManager({ catalogSkus, setCatalogSkus, vendors }: Catalog
               return false;
             }
           } else {
-            // A specific chassis has been selected (e.g., 'sku-4'). Render only the chassis itself + compatible sub-components!
+            // A specific chassis has been selected (e.g., 'sku-4'). Render only components mapped via chassisRef!
             const activeChassisId = selectedPath.chassis;
-            let allowedIds: string[] = [];
-
-            if (activeChassisId === 'sku-4' || activeChassisId === 'sku-4-24sff') {
-              // HPE DL380 Gen11 Main or High-Density variants
-              allowedIds = ['sku-4', 'sku-4-24sff', 'sku-1', 'sku-2', 'sku-3', 'sku-5', 'sku-hpe-psu1', 'sku-hpe-riser1'];
-            } else if (activeChassisId === 'sku-hpe-dl380-gen12-8sff') {
-              // HPE DL380 Gen12 Series
-              allowedIds = ['sku-hpe-dl380-gen12-8sff', 'sku-hpe-g12-cpu', 'sku-hpe-g12-ram', 'sku-hpe-psu2', 'sku-3'];
-            } else if (activeChassisId === 'sku-hpe-dl380a-g11-4dw') {
-              // HPE DL380a Accelerator GPU Base
-              allowedIds = ['sku-hpe-dl380a-g11-4dw', 'sku-hpe-dl380a-gpu', 'sku-hpe-dl380a-psu', 'sku-1', 'sku-2', 'sku-3'];
-            } else if (activeChassisId === 'sku-hpe-dl380-gen13-pref') {
-              // HPE DL380 Gen13 Preview
-              allowedIds = ['sku-hpe-dl380-gen13-pref', 'sku-hpe-gen13-cpu', 'sku-hpe-dl380a-psu'];
-            } else if (activeChassisId === 'sku-hpe-dl80-g11') {
-              // HPE DL80 Gen11 Base
-              allowedIds = ['sku-hpe-dl80-g11', 'sku-1', 'sku-2', 'sku-3'];
-            } else if (activeChassisId === 'sku-hpe-dl80-g12') {
-              // HPE DL80 Gen12 Base
-              allowedIds = ['sku-hpe-dl80-g12', 'sku-hpe-g12-cpu', 'sku-hpe-g12-ram', 'sku-3'];
-            } else if (activeChassisId === 'sku-hpe-msa-2060') {
-              // HPE MSA LFF Array Bay Storage
-              allowedIds = ['sku-hpe-msa-2060', 'sku-hpe-msa-ssd'];
-            } else if (activeChassisId === 'sku-hpe-aruba-10000') {
-              // HPE Aruba CX Distributed switch unit
-              allowedIds = ['sku-hpe-aruba-10000', 'sku-hpe-aruba-transceiver'];
-            } else if (activeChassisId === 'sku-9' || activeChassisId === 'sku-9-24sff') {
-              // Dell PowerEdge R760 variants
-              allowedIds = ['sku-9', 'sku-9-24sff', 'sku-6', 'sku-7', 'sku-8', 'sku-10', 'sku-dell-psu'];
-            } else if (activeChassisId === 'sku-14') {
-              // Cisco UCS C240 M7 SFF series
-              allowedIds = ['sku-14', 'sku-11', 'sku-12', 'sku-13'];
-            } else if (activeChassisId === 'sku-16') {
-              // Juniper high performance switch chassis
-              allowedIds = ['sku-16', 'sku-15', 'sku-17'];
-            } else {
-              // Fallback: only show the matched item itself
-              allowedIds = [activeChassisId];
-            }
-
-            if (!allowedIds.includes(sku.id)) {
+            if (sku.chassisRef !== activeChassisId && sku.id !== activeChassisId) {
               return false;
             }
           }

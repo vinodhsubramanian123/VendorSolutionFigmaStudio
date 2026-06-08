@@ -92,7 +92,18 @@ To prevent repeating historical regressions, strictly observe the following guid
 
 ---
 
-## 4. Compilation Stability & Lint Checks
+## 4. Visual Regression Gate
+
+Before a feature Phase is considered "done", a visual freeze gate must be passed to prevent continuous UI churn by AI agents.
+
+*   **Requirement**: Screenshots of every view in its approved state must be verified against any changes.
+*   **Checklist**:
+    *   [ ] Do not modify any view that has an approved snapshot without explicit instruction.
+    *   [ ] Any approved changes structure should have corresponding snapshots updated in `/docs/ui-snapshots/`.
+
+---
+
+## 5. Compilation Stability & Lint Checks
 
 Before completing your turn, always execute:
 1.  `npm run lint` (or use `lint_applet` tool) to catch typescript warnings.

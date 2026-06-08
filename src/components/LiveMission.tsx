@@ -238,12 +238,12 @@ export function LiveMission({
         }
         return prev.map(u => {
           if (u.id !== ucidId) return u;
-          const prizeSol = u.solutions[0] ?? { label: 'Dual-sourced solution', totalPrice: 244000 };
+          const prizeSol = u.solutions[0]?.vendorSubmissions?.[0] ?? { label: 'Dual-sourced solution', totalPrice: 244000, vendor: 'Unknown', originalPrice: 244000, savings: 0, complianceScore: 100, configs: [] } as any;
           const snap: Snapshot = {
             id: `snap-${Date.now()}`,
             label: `Snapshot v${u.snapshots.length + 1}.0 — Committed`,
             committedAt: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
-            winnerSolution: prizeSol.label,
+            winnerSolution: prizeSol?.name || '',
             totalValue: prizeSol.totalPrice,
             notes: 'Contract locked & archived automatically in secure compliance ledger.',
           };
@@ -278,32 +278,62 @@ export function LiveMission({
     return [
       {
         id: 'sol-sub-hpe',
-        vendor: 'HPE',
-        label: 'HPE Premium Architected Solution DL380 Gen11',
-        totalPrice: 184500,
-        originalPrice: 198000,
-        savings: 13500,
-        complianceScore: 99,
-        items: [
-          { id: 'bi-s1', partNumber: 'P40411-B21', name: 'HPE ProLiant DL380 Gen11 Chassis', type: 'Chassis', quantity: 10, unitPrice: 3400 },
-          { id: 'bi-s2', partNumber: 'P40424-B21', name: 'Intel Xeon Gold 6430 32-Core CPU', type: 'Processor', quantity: 20, unitPrice: 2150 },
-          { id: 'bi-s3', partNumber: 'P38454-B21', name: 'HPE 64GB DDR5-4800 RAM Module', type: 'Memory', quantity: 80, unitPrice: 580 },
-          { id: 'bi-s4', partNumber: 'P40483-B21', name: 'HPE 3.84TB NVMe SSD SFF', type: 'Drive', quantity: 40, unitPrice: 1220 }
+        name: 'HPE Premium Architected Solution DL380 Gen11',
+        vendorSubmissions: [
+          {
+            id: 'vs-sub-hpe',
+            vendor: 'HPE',
+            label: 'HPE Premium Architected Solution DL380 Gen11',
+            totalPrice: 184500,
+            originalPrice: 198000,
+            savings: 13500,
+            complianceScore: 99,
+            configs: [
+              {
+                id: 'cfg-sub-hpe',
+                name: 'Compute Cluster',
+                totalPrice: 184500,
+                originalPrice: 198000,
+                savings: 13500,
+                items: [
+                  { id: 'bi-s1', partNumber: 'P40411-B21', name: 'HPE ProLiant DL380 Gen11 Chassis', type: 'Chassis', quantity: 10, unitPrice: 3400 },
+                  { id: 'bi-s2', partNumber: 'P40424-B21', name: 'Intel Xeon Gold 6430 32-Core CPU', type: 'Processor', quantity: 20, unitPrice: 2150 },
+                  { id: 'bi-s3', partNumber: 'P38454-B21', name: 'HPE 64GB DDR5-4800 RAM Module', type: 'Memory', quantity: 80, unitPrice: 580 },
+                  { id: 'bi-s4', partNumber: 'P40483-B21', name: 'HPE 3.84TB NVMe SSD SFF', type: 'Drive', quantity: 40, unitPrice: 1220 }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
         id: 'sol-sub-dell',
-        vendor: 'Dell',
-        label: 'Dell PowerEdge Economical Solution R760',
-        totalPrice: 179450,
-        originalPrice: 192000,
-        savings: 12550,
-        complianceScore: 95,
-        items: [
-          { id: 'bi-s5', partNumber: '210-BFXS', name: 'Dell PowerEdge R760 8SFF Chassis', type: 'Chassis', quantity: 10, unitPrice: 3250 },
-          { id: 'bi-s6', partNumber: '338-CHYT', name: 'Intel Xeon Gold 6430 CPU Dell Equivalent', type: 'Processor', quantity: 20, unitPrice: 2190 },
-          { id: 'bi-s7', partNumber: '370-AHFF', name: 'Dell 64GB DDR5 RDIMM Memory', type: 'Memory', quantity: 80, unitPrice: 595 },
-          { id: 'bi-s8', partNumber: '400-BPSB', name: 'Dell 3.84TB NVMe SSD Carrier', type: 'Drive', quantity: 40, unitPrice: 1195 }
+        name: 'Dell PowerEdge Economical Solution R760',
+        vendorSubmissions: [
+          {
+            id: 'vs-sub-dell',
+            vendor: 'Dell',
+            label: 'Dell PowerEdge Economical Solution R760',
+            totalPrice: 179450,
+            originalPrice: 192000,
+            savings: 12550,
+            complianceScore: 95,
+            configs: [
+              {
+                id: 'cfg-sub-dell',
+                name: 'Compute Cluster',
+                totalPrice: 179450,
+                originalPrice: 192000,
+                savings: 12550,
+                items: [
+                  { id: 'bi-s5', partNumber: '210-BFXS', name: 'Dell PowerEdge R760 8SFF Chassis', type: 'Chassis', quantity: 10, unitPrice: 3250 },
+                  { id: 'bi-s6', partNumber: '338-CHYT', name: 'Intel Xeon Gold 6430 CPU Dell Equivalent', type: 'Processor', quantity: 20, unitPrice: 2190 },
+                  { id: 'bi-s7', partNumber: '370-AHFF', name: 'Dell 64GB DDR5 RDIMM Memory', type: 'Memory', quantity: 80, unitPrice: 595 },
+                  { id: 'bi-s8', partNumber: '400-BPSB', name: 'Dell 3.84TB NVMe SSD Carrier', type: 'Drive', quantity: 40, unitPrice: 1195 }
+                ]
+              }
+            ]
+          }
         ]
       }
     ];
@@ -543,7 +573,7 @@ export function LiveMission({
                                         isActive ? 'bg-indigo-500 shadow-[0_0_8px_rgba(74,133,253,0.6)] animate-pulse' : 
                                         isCompleted ? 'bg-[#00d4a0]' : 'bg-gray-800'
                                       }`}
-                                      title={`${sol.label} (Value: $${sol.totalPrice.toLocaleString()})`}
+                                      title={`${sol.name} (Value: $${sol.vendorSubmissions?.[0]?.totalPrice?.toLocaleString()})`}
                                     >
                                       {isActive && (
                                         <span className="absolute -inset-0.5 rounded bg-indigo-400/50 animate-ping opacity-75" />
@@ -560,7 +590,7 @@ export function LiveMission({
                                 </span>
                                 {u.solutions.length > 0 && (
                                   <span className="font-mono text-[8px] px-1 py-0.5 rounded bg-black/45 border border-white/5 text-[#00d4a0] font-bold">
-                                    ${(u.solutions.reduce((sum, s) => sum + s.totalPrice, 0) / 1000).toFixed(0)}k Val
+                                    ${(u.solutions.reduce((sum, s) => sum + s.vendorSubmissions?.[0]?.totalPrice, 0) / 1000).toFixed(0)}k Val
                                   </span>
                                 )}
                                 <span className="font-mono text-[8px] text-amber-400 font-semibold flex items-center gap-0.5">

@@ -5,4 +5,21 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* VSIP Cosmic Slate Theme Tokens */
+  --color-surface-canvas: #03050a;
+  --color-surface-card: #070a13;
+  --color-surface-elevated: #0b1220;
+  --color-surface-header: #090d19;
+  
+  --color-brand-indigo: #4a85fd;
+  --color-brand-violet: #a855f7;
+  
+  --color-status-success: #00d4a0;
+  --color-status-warning: #ff9b36;
+  --color-status-error: #ff3d5a;
+  
+  --color-content-primary: #dde6ff;
+  --color-content-secondary: #8ba4cc;
+  --color-content-muted: #5d7899;
 }

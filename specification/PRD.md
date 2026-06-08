@@ -211,7 +211,7 @@ export interface IngestResponse {
     itemsCount: number;
     initialConfidenceScore: number;
   };
-  solutions: any[]; // List of structured parallel alternative designs generated
+  solutions: import('../src/types/data').Solution[]; // List of structured parallel alternative designs generated
 }
 
 // 2. Playwright Automation Scraper Web Crawl
@@ -270,14 +270,16 @@ export interface PortfolioManualUploadResponse {
 
 // 4. Reconciliation & Intelligence
 export interface ReconciliationRequest {
-  solutions: Array<{
+  submissions: Array<{
     id: string;
     vendor: string;
-    items: Array<{
-      partNumber: string;
-      quantity: number;
-      unitPrice: number;
-      type: string;
+    configs: Array<{
+      items: Array<{
+        partNumber: string;
+        quantity: number;
+        unitPrice: number;
+        type: string;
+      }>;
     }>;
   }>;
 }

@@ -19,7 +19,7 @@ import {
   RefreshCw,
   UploadCloud
 } from 'lucide-react';
-import type { UCID, Solution, BOMItem } from '../types';
+import type { UCID, Solution, BOMItem, VendorSubmission } from '../types';
 
 interface SolutionBuilderProps {
   ucids: UCID[];
@@ -236,16 +236,46 @@ export function SolutionBuilder({
       const containerOriginalPrice = assignedConfigs.reduce((s, c) => s + c.originalPrice, 0);
 
       // Structure a consolidated list of alternative vendor config solutions inside this UCID block
-      const consolidatedSolutions: Solution[] = assignedConfigs.map((cfg, cfgIdx) => ({
-        id: `sol-${container.id}-${cfg.id}`,
-        vendor: cfg.vendor,
-        label: `${cfg.name} (Imported Sheet)`,
-        totalPrice: cfg.totalPrice,
-        originalPrice: cfg.originalPrice,
-        savings: cfg.originalPrice - cfg.totalPrice,
-        complianceScore: 98,
-        items: cfg.items.map(item => ({ ...item }))
-      }));
+      // To honor the exact architecture map: UCID.solutions[].vendorSubmissions[].configs[].items[]
+      
+      // Right now the user assigns sheets. Let's group assigned sheets by Vendor.
+      const vendorGroups: Record<string, typeof assignedConfigs> = {};
+      assignedConfigs.forEach(cfg => {
+        if (!vendorGroups[cfg.vendor]) {
+          vendorGroups[cfg.vendor] = [];
+        }
+        vendorGroups[cfg.vendor].push(cfg);
+      });
+
+      const vendorSubmissions: VendorSubmission[] = Object.keys(vendorGroups).map(vendorKey => {
+        const vendorCfgs = vendorGroups[vendorKey];
+        const vTotalPrice = vendorCfgs.reduce((sum, c) => sum + c.totalPrice, 0);
+        const vOrgPrice = vendorCfgs.reduce((sum, c) => sum + c.originalPrice, 0);
+        return {
+          id: `vs-${container.id}-${vendorKey}`,
+          vendor: vendorKey,
+          label: `${vendorKey} Integrated Sourcing`,
+          totalPrice: vTotalPrice,
+          originalPrice: vOrgPrice,
+          savings: vOrgPrice - vTotalPrice,
+          complianceScore: 98,
+          configs: vendorCfgs.map(cfg => ({
+            id: cfg.id,
+            name: cfg.name,
+            totalPrice: cfg.totalPrice,
+            originalPrice: cfg.originalPrice,
+            savings: cfg.originalPrice - cfg.totalPrice,
+            items: cfg.items.map(item => ({ ...item }))
+          }))
+        };
+      });
+
+      const masterSolution: Solution = {
+        id: `sol-master-${container.id}`,
+        name: 'Master Architectural Solution',
+        targetUcidId: container.id,
+        vendorSubmissions: vendorSubmissions
+      };
 
       return {
         id: `dynamic-${container.id}`,
@@ -258,7 +288,7 @@ export function SolutionBuilder({
         currentStep: 'solution-design', // Incepted straight at the architecture phase
         completedSteps: ['boq-intake', 'pre-intelligence'],
         rawBOM: `Assigned Equipment configurations:\n` + assignedConfigs.map(c => ` - ${c.name} (${c.vendor} equipment)`).join('\n') + `\n\nReasoning: ${container.reasoning}`,
-        solutions: consolidatedSolutions,
+        solutions: [masterSolution],
         events: [
           { ts: '13:59:32', level: 'info', msg: `Ingested Raw Sheet configurations into Sourcing platform` },
           { ts: '13:59:45', level: 'ok', msg: `Auto-assigned container: ${container.name} (${container.id})` },

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Play, RefreshCw } from 'lucide-react';
+import React from "react";
+import { Play, RefreshCw } from "lucide-react";
 
 interface PlaywrightConsoleProps {
   isCrawling: boolean;
@@ -12,7 +12,7 @@ export function PlaywrightConsole({
   isCrawling,
   crawlLogs,
   onSpawnPlaywright,
-  selectedVendorChannel
+  selectedVendorChannel,
 }: PlaywrightConsoleProps) {
   return (
     <div className="border-t border-white/5 pt-3.5 space-y-2.5 text-left select-none">
@@ -29,10 +29,13 @@ export function PlaywrightConsole({
         <div className="space-y-2 font-mono text-[9px]">
           <div className="p-2.5 bg-black/60 rounded border border-purple-500/20 text-purple-300 leading-normal max-h-32 overflow-y-auto space-y-1">
             {crawlLogs.map((log, lIdx) => (
-              <p key={lIdx} className="text-gray-300">{log}</p>
+              <p key={lIdx} className="text-gray-300">
+                {log}
+              </p>
             ))}
             <div className="flex items-center gap-1.5 text-purple-400 font-bold pt-1">
-              <RefreshCw className="w-3 h-3 animate-spin" /> Extruding pricing components in browser...
+              <RefreshCw className="w-3 h-3 animate-spin" /> Extruding pricing
+              components in browser...
             </div>
           </div>
         </div>

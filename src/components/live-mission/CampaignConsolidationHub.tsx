@@ -1,6 +1,13 @@
-import React from 'react';
-import { CheckCircle, Layers, Sparkles, Radio, FileSpreadsheet } from 'lucide-react';
-import { UCID, Snapshot } from '../../types';
+import React from "react";
+import {
+  CheckCircle,
+  Layers,
+  Sparkles,
+  Radio,
+  FileSpreadsheet,
+} from "lucide-react";
+import { UCID, Snapshot } from "../../types";
+import { StatusBadge } from "../shared/StatusBadge";
 
 interface CampaignConsolidationHubProps {
   campaignName: string;
@@ -10,7 +17,9 @@ interface CampaignConsolidationHubProps {
   campaignSigner: string;
   setCampaignSigner: React.Dispatch<React.SetStateAction<string>>;
   campaignLocked: Record<string, boolean>;
-  setCampaignLocked: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setCampaignLocked: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
 }
 
 export function CampaignConsolidationHub({
@@ -21,128 +30,206 @@ export function CampaignConsolidationHub({
   campaignSigner,
   setCampaignSigner,
   campaignLocked,
-  setCampaignLocked
+  setCampaignLocked,
 }: CampaignConsolidationHubProps) {
-  
   const isLocked = !!campaignLocked[campaignName];
 
   // Calculations
   const totalOriginalBudget = campaignUcids.reduce((sum, u) => {
-    return sum + (u.solutions[0]?.originalPrice ?? 0);
+    return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.originalPrice ?? 0);
   }, 0);
 
   const totalSourcedBudget = campaignUcids.reduce((sum, u) => {
-    return sum + (u.solutions[0]?.totalPrice ?? 0);
+    return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
   }, 0);
 
   const totalSavings = totalOriginalBudget - totalSourcedBudget;
 
-  const totalCommittedValue = campaignUcids.flatMap(u => u.snapshots).reduce((sum, sn) => sum + sn.totalValue, 0);
+  const totalCommittedValue = campaignUcids
+    .flatMap((u) => u.snapshots)
+    .reduce((sum, sn) => sum + sn.totalValue, 0);
 
   // Status metrics
-  const completedPipes = campaignUcids.filter(u => u.currentStep === 'snapshot').length;
+  const completedPipes = campaignUcids.filter(
+    (u) => u.currentStep === "snapshot",
+  ).length;
 
   // Sourcing strategies
   function handleApplyBestOfBreed() {
     if (isLocked) return;
-    setUcids(prev => prev.map(u => {
-      const matchName = u.solutionName || (u.name.includes(' — ') ? u.name.split(' — ')[0] : null);
-      if (matchName !== campaignName) return u;
-      
-      const sorted = [...u.solutions].sort((a, b) => a.totalPrice - b.totalPrice);
-      return {
-        ...u,
-        solutions: sorted,
-        events: [
-          ...u.events,
-          { ts: new Date().toLocaleTimeString(), level: 'ok' as const, msg: 'Group Sourcing Optimisation: Applied Best-of-Breed strategy. Winner alternative set to absolute cheapest proposal.' }
-        ]
-      };
-    }));
+    setUcids((prev) =>
+      prev.map((u) => {
+        const matchName =
+          u.solutionName ||
+          (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
+        if (matchName !== campaignName) return u;
+
+        const sorted = [...u.solutions].sort(
+          (a, b) =>
+            (a.vendorSubmissions[0]?.totalPrice ?? 0) -
+            (b.vendorSubmissions[0]?.totalPrice ?? 0),
+        );
+        return {
+          ...u,
+          solutions: sorted,
+          events: [
+            ...u.events,
+            {
+              ts: new Date().toLocaleTimeString(),
+              level: "ok" as const,
+              msg: "Group Sourcing Optimisation: Applied Best-of-Breed strategy. Winner alternative set to absolute cheapest proposal.",
+            },
+          ],
+        };
+      }),
+    );
   }
 
   function handleApplySingleVendor(vendor: string) {
     if (isLocked) return;
-    setUcids(prev => prev.map(u => {
-      const matchName = u.solutionName || (u.name.includes(' — ') ? u.name.split(' — ')[0] : null);
-      if (matchName !== campaignName) return u;
-      
-      const targetIdx = u.solutions.findIndex(s => s.vendor.toLowerCase() === vendor.toLowerCase());
-      if (targetIdx !== -1) {
-        const next = [...u.solutions];
-        const primary = next[targetIdx];
-        next.splice(targetIdx, 1);
-        next.unshift(primary);
-        return {
-          ...u,
-          solutions: next,
-          events: [
-            ...u.events,
-            { ts: new Date().toLocaleTimeString(), level: 'ok' as const, msg: `Group Sourcing Homogeneity: Linked active design choice to single-source vendor ${vendor}.` }
-          ]
-        };
-      }
-      return u;
-    }));
+    setUcids((prev) =>
+      prev.map((u) => {
+        const matchName =
+          u.solutionName ||
+          (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
+        if (matchName !== campaignName) return u;
+
+        const targetIdx = u.solutions.findIndex((s) =>
+          s?.vendorSubmissions?.some(
+            (v) => v.vendor.toLowerCase() === vendor.toLowerCase(),
+          ),
+        );
+        if (targetIdx !== -1) {
+          const next = [...u.solutions];
+          const primary = next[targetIdx];
+
+          // Re-order vendorSubmissions within the solution so the target vendor is first
+          const vIdx = primary.vendorSubmissions.findIndex(
+            (v) => v.vendor.toLowerCase() === vendor.toLowerCase(),
+          );
+          if (vIdx !== -1) {
+            const vNext = [...primary.vendorSubmissions];
+            const vPrimary = vNext[vIdx];
+            vNext.splice(vIdx, 1);
+            vNext.unshift(vPrimary);
+            primary.vendorSubmissions = vNext;
+          }
+
+          next.splice(targetIdx, 1);
+          next.unshift(primary);
+          return {
+            ...u,
+            solutions: next,
+            events: [
+              ...u.events,
+              {
+                ts: new Date().toLocaleTimeString(),
+                level: "ok" as const,
+                msg: `Group Sourcing Homogeneity: Linked active design choice to single-source vendor ${vendor}.`,
+              },
+            ],
+          };
+        }
+        return u;
+      }),
+    );
   }
 
   // Freeze whole campaign snapshot
   function handleCertifyCampaign() {
     if (!campaignSigner.trim()) return;
-    
-    setCampaignLocked(prev => ({ ...prev, [campaignName]: true }));
-    
-    // Set all child UCIDs to snapshot step and commit snapshots
-    setUcids(prev => prev.map(u => {
-      const matchName = u.solutionName || (u.name.includes(' — ') ? u.name.split(' — ')[0] : null);
-      if (matchName !== campaignName) return u;
-      
-      const winningSol = u.solutions[0] ?? { vendor: 'Multi-vendor', label: 'Consolidated solution', totalPrice: 240000 };
-      const hasSnapshot = u.snapshots.length > 0;
-      
-      const newSnapshot: Snapshot = {
-        id: 'snap-' + Math.random().toString(36).substring(2, 9),
-        label: `Campaign Master Covenant Lock - Sourced via ${winningSol.vendor}`,
-        committedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        winnerSolution: winningSol.vendor,
-        totalValue: winningSol.totalPrice,
-        notes: `Master digital covenant locked by ${campaignSigner}. Cryptographic compliance checksum generated successfully.`
-      };
 
-      return {
-        ...u,
-        currentStep: 'snapshot' as const,
-        completedSteps: Array.from(new Set([...u.completedSteps, 'snapshot' as const])),
-        snapshots: hasSnapshot ? u.snapshots : [newSnapshot],
-        events: [
-          ...u.events,
-          { ts: new Date().toLocaleTimeString(), level: 'ok' as const, msg: `Covenant Lock: Master Snapshot sealed by ${campaignSigner}. SECURE SHA-256 generated.` }
-        ]
-      };
-    }));
+    setCampaignLocked((prev) => ({ ...prev, [campaignName]: true }));
+
+    // Set all child UCIDs to snapshot step and commit snapshots
+    setUcids((prev) =>
+      prev.map((u) => {
+        const matchName =
+          u.solutionName ||
+          (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
+        if (matchName !== campaignName) return u;
+
+        const winningSol = u.solutions[0]?.vendorSubmissions?.[0] ?? {
+          vendor: "Multi-vendor",
+          label: "Consolidated solution",
+          totalPrice: 240000,
+        };
+        const hasSnapshot = u.snapshots.length > 0;
+
+        const newSnapshot: Snapshot = {
+          id: "snap-" + Math.random().toString(36).substring(2, 9),
+          label: `Campaign Master Covenant Lock - Sourced via ${winningSol.vendor}`,
+          committedAt: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+          winnerSolution: winningSol.vendor,
+          totalValue: winningSol.totalPrice,
+          notes: `Master digital covenant locked by ${campaignSigner}. Cryptographic compliance checksum generated successfully.`,
+        };
+
+        return {
+          ...u,
+          currentStep: "snapshot" as const,
+          completedSteps: Array.from(
+            new Set([...u.completedSteps, "snapshot" as const]),
+          ),
+          snapshots: hasSnapshot ? u.snapshots : [newSnapshot],
+          events: [
+            ...u.events,
+            {
+              ts: new Date().toLocaleTimeString(),
+              level: "ok" as const,
+              msg: `Covenant Lock: Master Snapshot sealed by ${campaignSigner}. SECURE SHA-256 generated.`,
+            },
+          ],
+        };
+      }),
+    );
   }
 
   // Calculate homogenous totals of campaign portfolio
   const hpeTotal = campaignUcids.reduce((sum, u) => {
-    const s = u.solutions.find(x => x.vendor === 'HPE') ?? u.solutions[0];
-    return sum + (s?.totalPrice ?? 0);
+    const s =
+      u.solutions.find((x) =>
+        x?.vendorSubmissions?.some((v) => v.vendor === "HPE"),
+      ) ?? u.solutions[0];
+    const sub =
+      s?.vendorSubmissions?.find((v) => v.vendor === "HPE") ??
+      s?.vendorSubmissions?.[0];
+    return sum + (sub?.totalPrice ?? 0);
   }, 0);
 
   const dellTotal = campaignUcids.reduce((sum, u) => {
-    const s = u.solutions.find(x => x.vendor === 'Dell') ?? u.solutions[0];
-    return sum + (s?.totalPrice ?? 0);
+    const s =
+      u.solutions.find((x) =>
+        x?.vendorSubmissions?.some((v) => v.vendor === "Dell"),
+      ) ?? u.solutions[0];
+    const sub =
+      s?.vendorSubmissions?.find((v) => v.vendor === "Dell") ??
+      s?.vendorSubmissions?.[0];
+    return sum + (sub?.totalPrice ?? 0);
   }, 0);
 
   const bestBreedTotal = campaignUcids.reduce((sum, u) => {
-    const cheaps = [...u.solutions].sort((a,b) => a.totalPrice - b.totalPrice);
-    return sum + (cheaps[0]?.totalPrice ?? 0);
+    const cheaps = [...u.solutions].sort((a, b) => {
+      const ap = a?.vendorSubmissions?.[0]?.totalPrice ?? 0;
+      const bp = b?.vendorSubmissions?.[0]?.totalPrice ?? 0;
+      return ap - bp;
+    });
+    return sum + (cheaps[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
   }, 0);
 
   return (
     <div className="space-y-6">
       {/* Title block */}
-      <div className="p-4 rounded-xl border border-indigo-500/10 bg-[#0b1220]/90 space-y-3 shadow-2xl relative overflow-hidden" 
-           style={{ background: 'linear-gradient(135deg, rgba(93,120,153,0.04) 0%, rgba(11,18,32,0.98) 100%)' }}>
+      <div
+        className="p-4 rounded-xl border border-indigo-500/10 bg-surface-elevated/90 space-y-3 shadow-2xl relative overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(93,120,153,0.04) 0%, rgba(11,18,32,0.98) 100%)",
+        }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
           <div>
             <div className="flex items-center gap-2">
@@ -155,36 +242,48 @@ export function CampaignConsolidationHub({
             </div>
             <h3 className="text-base font-bold text-white mt-1.5 tracking-tight flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-indigo-400" />
-              Campaign Sourcing Hub: <span className="text-indigo-400">{campaignName}</span>
+              Campaign Sourcing Hub:{" "}
+              <span className="text-indigo-400">{campaignName}</span>
             </h3>
-            <p className="text-[11px] text-gray-400 mt-1">Macro-level group auditing, single-source rebate scaling & portfolio homogenization.</p>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Macro-level group auditing, single-source rebate scaling &
+              portfolio homogenization.
+            </p>
           </div>
-          
+
           {/* Status badge */}
           {isLocked ? (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-[#00d4a0] bg-[#00d4a0]/10 border border-[#00d4a0]/20 px-3 py-1 rounded-full shrink-0">
-              <CheckCircle className="w-3.5 h-3.5" /> COVENANT LOCKED
-            </span>
+            <StatusBadge status="COVENANT LOCKED" variant="success" />
           ) : (
-            <span className="flex items-center gap-1.5 text-[10px] font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/25 px-3 py-1 rounded-full shrink-0">
-              <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" /> MODELLING ACTIVE
-            </span>
+            <StatusBadge status="MODELLING ACTIVE" variant="warning" />
           )}
         </div>
 
         {/* Global Financial metrics card row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 relative z-10">
           <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-            <p className="text-[9px] text-gray-500 font-bold uppercase font-mono">Original Baseline sum</p>
-            <p className="text-sm font-bold text-gray-300 mt-1">${totalOriginalBudget.toLocaleString()}</p>
+            <p className="text-[9px] text-gray-500 font-bold uppercase font-mono">
+              Original Baseline sum
+            </p>
+            <p className="text-sm font-bold text-gray-300 mt-1">
+              ${totalOriginalBudget.toLocaleString()}
+            </p>
           </div>
           <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10">
-            <p className="text-[9px] text-indigo-400 font-bold uppercase font-mono">Consolidated Modeled Cost</p>
-            <p className="text-sm font-bold text-white mt-1">${totalSourcedBudget.toLocaleString()}</p>
+            <p className="text-[9px] text-indigo-400 font-bold uppercase font-mono">
+              Consolidated Modeled Cost
+            </p>
+            <p className="text-sm font-bold text-white mt-1">
+              ${totalSourcedBudget.toLocaleString()}
+            </p>
           </div>
           <div className="p-3 rounded-lg bg-[#00d4a0]/5 border border-[#00d4a0]/10">
-            <p className="text-[9px] text-[#00d4a0] font-bold uppercase font-mono">Consolidation Delta Savings</p>
-            <p className="text-sm font-extrabold text-[#00d4a0] mt-1">${totalSavings.toLocaleString()}</p>
+            <p className="text-[9px] text-status-success font-bold uppercase font-mono">
+              Consolidation Delta Savings
+            </p>
+            <p className="text-sm font-extrabold text-status-success mt-1">
+              ${totalSavings.toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
@@ -192,26 +291,34 @@ export function CampaignConsolidationHub({
       {/* Sourcing strategies simulation section */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 text-gray-400">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" /> Sourcing Simulation & Portfolio Optimization
+          <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />{" "}
+          Sourcing Simulation & Portfolio Optimization
         </h4>
         <p className="text-[11px] text-gray-500 leading-relaxed">
-          Reconcile commercial margins by toggling collective sourcing profiles. Choose **Best-of-Breed Blend** for pure bottom-dollar optimization, or force single-vendor homogeneity to model volume concessions.
+          Reconcile commercial margins by toggling collective sourcing profiles.
+          Choose **Best-of-Breed Blend** for pure bottom-dollar optimization, or
+          force single-vendor homogeneity to model volume concessions.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Best of Breed Strategy */}
           <div className="p-3.5 rounded-xl border border-indigo-500/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
             <div className="space-y-1">
-              <span className="text-[8px] uppercase font-black tracking-widest text-[#00d4a0] bg-[#00d4a0]/5 px-2 py-0.5 rounded">
-                Dynamic Blending
-              </span>
-              <h5 className="text-xs font-bold text-white mt-1">Best-of-Breed Hybrid</h5>
-              <p className="text-[10px] text-gray-400 leading-normal">Select the absolute cheapest bid independently for each worksheet pipeline to minimize absolute ledger spending.</p>
+              <StatusBadge status="Dynamic Blending" variant="success" />
+              <h5 className="text-xs font-bold text-white mt-1">
+                Best-of-Breed Hybrid
+              </h5>
+              <p className="text-[10px] text-gray-400 leading-normal">
+                Select the absolute cheapest bid independently for each
+                worksheet pipeline to minimize absolute ledger spending.
+              </p>
             </div>
             <div className="pt-2 border-t border-white/5 space-y-2">
               <div className="flex justify-between items-center text-[10.5px]">
                 <span className="text-gray-500">Projected Sum:</span>
-                <span className="font-mono font-bold text-[#00d4a0]">${bestBreedTotal.toLocaleString()}</span>
+                <span className="font-mono font-bold text-status-success">
+                  ${bestBreedTotal.toLocaleString()}
+                </span>
               </div>
               <button
                 disabled={isLocked}
@@ -226,20 +333,26 @@ export function CampaignConsolidationHub({
           {/* HPE Homogenous Sourcing */}
           <div className="p-3.5 rounded-xl border border-[#00d4a0]/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
             <div className="space-y-1">
-              <span className="text-[8px] uppercase font-black tracking-wide text-emerald-400 bg-emerald-400/5 px-2 py-0.5 rounded">
-                Single Sponsor (HPE)
-              </span>
-              <h5 className="text-xs font-bold text-white mt-1">HPE Single Sourced Stack</h5>
-              <p className="text-[10px] text-gray-400 leading-normal">Consolidate all parallel hardware designs into HPE. Lock in uniform service response, chassis parity, and unified corporate care.</p>
+              <StatusBadge status="Single Sponsor (HPE)" variant="success" />
+              <h5 className="text-xs font-bold text-white mt-1">
+                HPE Single Sourced Stack
+              </h5>
+              <p className="text-[10px] text-gray-400 leading-normal">
+                Consolidate all parallel hardware designs into HPE. Lock in
+                uniform service response, chassis parity, and unified corporate
+                care.
+              </p>
             </div>
             <div className="pt-2 border-t border-white/5 space-y-2">
               <div className="flex justify-between items-center text-[10.5px]">
                 <span className="text-gray-500">Projected Sum:</span>
-                <span className="font-mono font-bold text-white">${hpeTotal.toLocaleString()}</span>
+                <span className="font-mono font-bold text-white">
+                  ${hpeTotal.toLocaleString()}
+                </span>
               </div>
               <button
                 disabled={isLocked}
-                onClick={() => handleApplySingleVendor('HPE')}
+                onClick={() => handleApplySingleVendor("HPE")}
                 className="w-full py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer"
               >
                 Force All HPE proposals
@@ -250,20 +363,25 @@ export function CampaignConsolidationHub({
           {/* Dell Homogenous Sourcing */}
           <div className="p-3.5 rounded-xl border border-blue-500/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
             <div className="space-y-1">
-              <span className="text-[8px] uppercase font-black tracking-wide text-blue-400 bg-blue-400/5 px-2 py-0.5 rounded">
-                Single Sponsor (dell)
-              </span>
-              <h5 className="text-xs font-bold text-white mt-1">Dell Single Sourced Stack</h5>
-              <p className="text-[10px] text-gray-400 leading-normal">Consolidate all designs under Dell Technologies to maximize volume corporate tier rebates (extra volume discounts applied).</p>
+              <StatusBadge status="Single Sponsor (dell)" variant="info" />
+              <h5 className="text-xs font-bold text-white mt-1">
+                Dell Single Sourced Stack
+              </h5>
+              <p className="text-[10px] text-gray-400 leading-normal">
+                Consolidate all designs under Dell Technologies to maximize
+                volume corporate tier rebates (extra volume discounts applied).
+              </p>
             </div>
             <div className="pt-2 border-t border-white/5 space-y-2">
               <div className="flex justify-between items-center text-[10.5px]">
                 <span className="text-gray-500">Projected Sum:</span>
-                <span className="font-mono font-bold text-white">${dellTotal.toLocaleString()}</span>
+                <span className="font-mono font-bold text-white">
+                  ${dellTotal.toLocaleString()}
+                </span>
               </div>
               <button
                 disabled={isLocked}
-                onClick={() => handleApplySingleVendor('Dell')}
+                onClick={() => handleApplySingleVendor("Dell")}
                 className="w-full py-1.5 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer"
               >
                 Force All Dell proposals
@@ -277,63 +395,90 @@ export function CampaignConsolidationHub({
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 text-gray-400">
-            <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-400" /> Sourcing Agreement Portfolio Reconciliation Matrix
+            <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-400" /> Sourcing
+            Agreement Portfolio Reconciliation Matrix
           </h4>
-          <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono font-semibold uppercase">{completedPipes} / {campaignUcids.length} Sheets Frozen</span>
+          <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono font-semibold uppercase">
+            {completedPipes} / {campaignUcids.length} Sheets Frozen
+          </span>
         </div>
 
-        <div className="bg-[#070a13] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+        <div className="bg-surface-card border border-white/5 rounded-xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-[10px] border-collapse min-w-[620px]">
               <thead>
                 <tr className="border-b border-white/5 bg-white/5 font-mono text-[8.5px] text-gray-500 uppercase tracking-widest">
                   <th className="p-3 font-semibold">Sheet / Workspace Ref</th>
                   <th className="p-3 font-semibold">Winner Vendor</th>
-                  <th className="p-3 font-semibold text-right">Selected Cost</th>
-                  <th className="p-3 font-semibold text-right text-emerald-400">HPE Option Quote</th>
-                  <th className="p-3 font-semibold text-right text-blue-400 font-bold">Dell Option Quote</th>
+                  <th className="p-3 font-semibold text-right">
+                    Selected Cost
+                  </th>
+                  <th className="p-3 font-semibold text-right text-emerald-400">
+                    HPE Option Quote
+                  </th>
+                  <th className="p-3 font-semibold text-right text-blue-400 font-bold">
+                    Dell Option Quote
+                  </th>
                   <th className="p-3 font-semibold text-center">Step State</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {campaignUcids.map((u) => {
-                  const currentSelected = u.solutions[0];
-                  const hpeS = u.solutions.find(x => x.vendor === 'HPE') ?? u.solutions[0];
-                  const dellS = u.solutions.find(x => x.vendor === 'Dell') ?? u.solutions[0];
-                  
-                  const stateColors = {
-                    'boq-intake': 'text-gray-400 bg-gray-500/10 border-gray-500/15',
-                    'pre-intelligence': 'text-yellow-400 bg-yellow-500/10 border-yellow-500/15',
-                    'solution-design': 'text-indigo-400 bg-indigo-500/10 border-indigo-500/15',
-                    'vendor-provisioning': 'text-indigo-400 bg-indigo-500/10 border-indigo-500/15',
-                    'post-intelligence': 'text-purple-400 bg-purple-500/10 border-purple-500/15',
-                    'comparison': 'text-[#4a85fd] bg-[#4a85fd]/10 border-[#4a85fd]/15',
-                    'snapshot': 'text-[#00d4a0] bg-[#00d4a0]/10 border-[#00d4a0]/15'
-                  }[u.currentStep] ?? 'text-gray-500 bg-gray-500/10 border-gray-500/15';
+                  const masterSolution = u.solutions[0];
+                  const currentSelected =
+                    masterSolution?.vendorSubmissions?.[0];
+                  const hpeS =
+                    masterSolution?.vendorSubmissions?.find(
+                      (x) => x.vendor === "HPE",
+                    ) ?? masterSolution?.vendorSubmissions?.[0];
+                  const dellS =
+                    masterSolution?.vendorSubmissions?.find(
+                      (x) => x.vendor === "Dell",
+                    ) ?? masterSolution?.vendorSubmissions?.[0];
+
+                  const getVariant = (step: string): "success" | "warning" | "error" | "info" | "default" => {
+                    if (step === "snapshot") return "success";
+                    if (step === "pre-intelligence") return "warning";
+                    if (step === "solution-design" || step === "vendor-provisioning" || step === "comparison") return "info";
+                    return "default";
+                  };
 
                   return (
-                    <tr key={u.id} className="hover:bg-white/5 transition duration-150">
+                    <tr
+                      key={u.id}
+                      className="hover:bg-white/5 transition duration-150"
+                    >
                       {/* WS Column */}
                       <td className="p-3">
                         <div className="space-y-0.5">
                           <p className="font-bold text-white leading-none flex items-center gap-1.5">
-                            <span className="text-[8.5px] text-gray-500 font-mono tracking-wider">{u.displayId}</span>
-                            <span className="truncate max-w-[150px] font-sans text-[10px]">{u.name.includes(' — ') ? u.name.split(' — ').slice(1).join(' — ') : u.name}</span>
+                            <span className="text-[8.5px] text-gray-500 font-mono tracking-wider">
+                              {u.displayId}
+                            </span>
+                            <span className="truncate max-w-[150px] font-sans text-[10px]">
+                              {u.name.includes(" — ")
+                                ? u.name.split(" — ").slice(1).join(" — ")
+                                : u.name}
+                            </span>
                           </p>
-                          <p className="text-[8.5px] text-gray-500 font-mono">Ref: {u.projectRef}</p>
+                          <p className="text-[8.5px] text-gray-500 font-mono">
+                            Ref: {u.projectRef}
+                          </p>
                         </div>
                       </td>
 
                       {/* Chosen choice */}
                       <td className="p-3 font-semibold">
                         {currentSelected ? (
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold uppercase ${
-                            currentSelected.vendor === 'HPE' ? 'text-[#00d4a0] bg-[#00d4a0]/5 border border-[#00d4a0]/15' : 'text-[#4a85fd] bg-[#4a85fd]/5 border border-[#4a85fd]/15'
-                          }`}>
-                            {currentSelected.vendor}
-                          </span>
+                          <StatusBadge 
+                            status={currentSelected.vendor} 
+                            variant={currentSelected.vendor === "HPE" ? "success" : "info"}
+                            size="sm"
+                          />
                         ) : (
-                          <span className="text-gray-500 italic">Unassigned</span>
+                          <span className="text-gray-500 italic">
+                            Unassigned
+                          </span>
                         )}
                       </td>
 
@@ -354,9 +499,11 @@ export function CampaignConsolidationHub({
 
                       {/* State column */}
                       <td className="p-3 text-center">
-                        <span className={`inline-block text-[8px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded border ${stateColors}`}>
-                          {u.currentStep.replace('-', ' ')}
-                        </span>
+                        <StatusBadge 
+                          status={u.currentStep.replace("-", " ")} 
+                          variant={getVariant(u.currentStep)} 
+                          size="sm" 
+                        />
                       </td>
                     </tr>
                   );
@@ -375,39 +522,71 @@ export function CampaignConsolidationHub({
             Master Sourcing Covenant Certification & Sync Lock
           </h4>
         </div>
-        
+
         {isLocked ? (
           <div className="space-y-3">
             <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
               <div>
-                <p className="text-xs text-white font-bold leading-normal">Covenant Sync Agreement Frozen & Finalized</p>
+                <p className="text-xs text-white font-bold leading-normal">
+                  Covenant Sync Agreement Frozen & Finalized
+                </p>
                 <p className="text-[10px] text-gray-400 leading-normal mt-0.5">
-                  The Master Covenant was validated and digitally frozen by <span className="text-emerald-400 font-bold font-mono">{campaignSigner}</span>. Cryptographic compliance checksum PO reports have been written onto all child pipelines.
+                  The Master Covenant was validated and digitally frozen by{" "}
+                  <span className="text-emerald-400 font-bold font-mono">
+                    {campaignSigner}
+                  </span>
+                  . Cryptographic compliance checksum PO reports have been
+                  written onto all child pipelines.
                 </p>
               </div>
             </div>
-            
+
             {/* Cryptographic metadata stamp */}
             <div className="p-3 rounded-lg bg-black/35 font-mono text-[8px] text-gray-500 leading-relaxed border border-white/5 space-y-1">
               <p className="text-gray-400 uppercase font-black text-[8.5px] tracking-wider mb-1 flex items-center gap-1">
                 <Radio className="w-3.5 h-3.5 text-indigo-400 shrink-0 animate-pulse" />
                 SECURE TRANSACTION AGREEMENT SIGN-OFF PROTOCOL
               </p>
-              <p>• COVENANT ID: <span className="text-indigo-400 select-all font-bold">COV-{campaignName.replace(/\s+/g, '-').toUpperCase()}</span></p>
-              <p>• IMMUTABLE CRYPTO STAMP: <span className="text-gray-400">sha256-4b901aef33b00ca6e987f2d783aa8bfdd410a8ef11b305e6123bb45cdac1132</span></p>
-              <p>• LOCKED BUDGET AGGREGATION: <span className="text-[#00d4a0] font-bold">${totalSourcedBudget.toLocaleString()}</span> (Sourced total across sheets)</p>
-              <p>• DIGITAL COMPLIANCE MARK: <span className="text-[#00d4a0]">APPROVED & COMMITTED (SNAPSHOTS SEALED)</span></p>
+              <p>
+                • COVENANT ID:{" "}
+                <span className="text-indigo-400 select-all font-bold">
+                  COV-{campaignName.replace(/\s+/g, "-").toUpperCase()}
+                </span>
+              </p>
+              <p>
+                • IMMUTABLE CRYPTO STAMP:{" "}
+                <span className="text-gray-400">
+                  sha256-4b901aef33b00ca6e987f2d783aa8bfdd410a8ef11b305e6123bb45cdac1132
+                </span>
+              </p>
+              <p>
+                • LOCKED BUDGET AGGREGATION:{" "}
+                <span className="text-status-success font-bold">
+                  ${totalSourcedBudget.toLocaleString()}
+                </span>{" "}
+                (Sourced total across sheets)
+              </p>
+              <p>
+                • DIGITAL COMPLIANCE MARK:{" "}
+                <span className="text-status-success">
+                  APPROVED & COMMITTED (SNAPSHOTS SEALED)
+                </span>
+              </p>
             </div>
           </div>
         ) : (
           <div className="space-y-3.5">
             <p className="text-[10.5px] text-gray-400 leading-relaxed">
-              Freeze the entire campaign Solution Group collection simultaneously! Certifying the master covenant automatically transitions all worksheet pipelines in this solution group to their completed <strong>'Snapshot' (Commit)</strong> state, seals details, and deposits formal immutability audit stamps.
+              Freeze the entire campaign Solution Group collection
+              simultaneously! Certifying the master covenant automatically
+              transitions all worksheet pipelines in this solution group to
+              their completed <strong>'Snapshot' (Commit)</strong> state, seals
+              details, and deposits formal immutability audit stamps.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <input 
+              <input
                 type="text"
                 placeholder="Type Procurement Officer Initials / Name to authorize..."
                 value={campaignSigner}
@@ -420,12 +599,14 @@ export function CampaignConsolidationHub({
                 disabled={!campaignSigner.trim()}
                 className="py-2 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-extrabold text-xs font-mono uppercase tracking-wider text-gray-950 disabled:opacity-20 disabled:cursor-not-allowed transition cursor-pointer shrink-0 flex items-center gap-1.5 hover:shadow-lg hover:shadow-emerald-500/15"
               >
-                <CheckCircle className="w-4 h-4 text-gray-950" /> Authorize Certification
+                <CheckCircle className="w-4 h-4 text-gray-950" /> Authorize
+                Certification
               </button>
             </div>
-            
+
             <p className="text-[8.5px] text-gray-500 italic leading-none">
-              * Note: Signing seals the campaign structures in the active session and freezes equivalent hardware selections.
+              * Note: Signing seals the campaign structures in the active
+              session and freezes equivalent hardware selections.
             </p>
           </div>
         )}

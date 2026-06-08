@@ -1,29 +1,25 @@
-import { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { Sidebar } from './components/Sidebar';
-import { TopBar } from './components/TopBar';
-import { Dashboard } from './components/Dashboard';
-import { LiveMission } from './components/LiveMission';
-import { CatalogManager } from './components/CatalogManager';
-import { VendorPortal } from './components/VendorPortal';
-import { ForensicView } from './components/ForensicView';
-import { PremiumShowcase } from './components/PremiumShowcase';
-import { ReportsView } from './components/ReportsView';
-import { SystemTelemetry } from './components/SystemTelemetry';
-import { CleansingView } from './components/CleansingView';
-import { TaxonomyGraphEditor } from './components/TaxonomyGraphEditor';
-import { SolutionBuilder } from './components/SolutionBuilder';
-import { IngestionHub } from './components/IngestionHub';
-import { SearchView } from './components/SearchView';
-import { ReconciliationView } from './components/ReconciliationView';
-import { NlpSearchView } from './components/NlpSearchView';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { DataPersistenceGate } from './components/DataPersistenceGate';
-import { StateConsistencyMonitor } from './components/StateConsistencyMonitor';
-import { DocumentationView } from './components/review/DocumentationView';
-import { BreadcrumbNav } from './components/BreadcrumbNav';
-import { useLocalStorageState } from './hooks/useLocalStorageState';
-import type { AppView } from './types';
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { Sidebar } from "./components/layout/Sidebar";
+import { TopBar } from "./components/layout/TopBar";
+import { Dashboard } from "./components/dashboard/Dashboard";
+import { LiveMission } from "./components/live-mission/LiveMission";
+import { CatalogManager } from "./components/catalog/CatalogManager";
+import { VendorPortal } from "./components/vendor-portal/VendorPortal";
+import { ForensicView } from "./components/forensics/ForensicView";
+import { ReportsView } from "./components/reports/ReportsView";
+import { CleansingView } from "./components/cleansing/CleansingView";
+import { TaxonomyGraphEditor } from "./components/taxonomy/TaxonomyGraphEditor";
+import { SolutionBuilder } from "./components/solution-builder/SolutionBuilder";
+import { IngestionHub } from "./components/ingestion/IngestionHub";
+import { SearchView } from "./components/search/SearchView";
+import { ReconciliationView } from "./components/reconciliation/ReconciliationView";
+import { ErrorBoundary } from "./components/shared/ErrorBoundary";
+import { DataPersistenceGate } from "./components/shared/DataPersistenceGate";
+import { StateConsistencyMonitor } from "./components/shared/StateConsistencyMonitor";
+import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
+import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import type { AppView } from "./types";
 
 // Import baseline mock data
 import {
@@ -31,35 +27,43 @@ import {
   VENDORS as INITIAL_VENDORS,
   CATALOG_SKUS as INITIAL_SKUS,
   FORENSIC_ISSUES as INITIAL_ISSUES,
-} from './components/mockData';
+} from "./lib/mockData";
 
 export default function App() {
-  const [view, setView] = useLocalStorageState<AppView>('sys_active_view', 'dashboard');
-  const [collapsed, setCollapsed] = useLocalStorageState('sys_sidebar_collapsed', false);
-  const [activeMissionId, setActiveMissionId] = useLocalStorageState<string | undefined>('sys_active_mission', 'u1');
+  const [view, setView] = useLocalStorageState<AppView>(
+    "sys_active_view",
+    "dashboard",
+  );
+  const [collapsed, setCollapsed] = useLocalStorageState(
+    "sys_sidebar_collapsed",
+    false,
+  );
+  const [activeMissionId, setActiveMissionId] = useLocalStorageState<
+    string | undefined
+  >("sys_active_mission", "u1");
 
   // Shared Global Reactive State Hub (Persisted)
-  const [ucids, setUcids] = useLocalStorageState('sys_ucids', INITIAL_UCIDS);
-  const [vendors, setVendors] = useLocalStorageState('sys_vendors', INITIAL_VENDORS);
-  const [catalogSkus, setCatalogSkus] = useLocalStorageState('sys_catalog_skus', INITIAL_SKUS);
-  const [forensicIssues, setForensicIssues] = useLocalStorageState('sys_forensic_issues', INITIAL_ISSUES);
-  
+  const [ucids, setUcids] = useLocalStorageState("sys_ucids", INITIAL_UCIDS);
+  const [vendors, setVendors] = useLocalStorageState(
+    "sys_vendors",
+    INITIAL_VENDORS,
+  );
+  const [catalogSkus, setCatalogSkus] = useLocalStorageState(
+    "sys_catalog_skus",
+    INITIAL_SKUS,
+  );
+  const [forensicIssues, setForensicIssues] = useLocalStorageState(
+    "sys_forensic_issues",
+    INITIAL_ISSUES,
+  );
+
   // Central Application-Wide State for Pending API Calls
   const [isPendingAPI, setIsPendingAPI] = useState(false);
-  const [pendingAPIMessage, setPendingAPIMessage] = useState('');
+  const [pendingAPIMessage, setPendingAPIMessage] = useState("");
   const [apiProgress, setApiProgress] = useState(0);
-  
+
   // Tab Switch Navigation Interception
   const [requestedView, setRequestedView] = useState<AppView | null>(null);
-
-  // Compute sync health across DB state mock logic
-  const ucidGaps = ucids.filter(u => !u.name || !u.projectRef).length;
-  const vendorGaps = vendors.filter(v => !v.apiEndpoint || !v.syncInterval).length;
-  const isHealthyState = ucidGaps === 0 && vendorGaps === 0;
-
-  const syncHealth: { status: 'healthy'|'warning'|'error', message: string } = isHealthyState 
-    ? { status: 'healthy', message: 'ALL SYSTEMS NOMINAL' }
-    : { status: 'warning', message: `DATA DEGRADED [GAPS: ${ucidGaps + vendorGaps}]` };
 
   const handleNavigate = (newView: AppView) => {
     if (isPendingAPI) {
@@ -80,7 +84,7 @@ export default function App() {
   const cancelNavigation = () => {
     setRequestedView(null);
   };
-  
+
   // Track deployed solution context to reflect on LiveMission with specific banners/pill
   const [deployedSolution, setDeployedSolution] = useState<{
     name: string;
@@ -89,12 +93,12 @@ export default function App() {
   } | null>(null);
 
   // High-level topbar search query strings
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   function handleSelectMission(missionId: string) {
     setActiveMissionId(missionId);
-    setSearchQuery('');
-    setView('live-mission');
+    setSearchQuery("");
+    setView("live-mission");
   }
 
   function renderView() {
@@ -103,10 +107,12 @@ export default function App() {
       return (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 font-mono">Centralized matching result indices for pattern: "{searchQuery}"</span>
-            <button 
-              onClick={() => setSearchQuery('')}
-              className="text-xs px-2.5 py-1 rounded bg-[#0b1220] border border-white/5 text-gray-400 hover:text-white cursor-pointer"
+            <span className="text-xs text-gray-500 font-mono">
+              Centralized matching result indices for pattern: "{searchQuery}"
+            </span>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-xs px-2.5 py-1 rounded bg-surface-elevated border border-white/5 text-gray-400 hover:text-white cursor-pointer"
             >
               Clear Central Search
             </button>
@@ -117,7 +123,7 @@ export default function App() {
             vendors={vendors}
             catalogSkus={catalogSkus}
             onNavigate={(newView) => {
-              setSearchQuery('');
+              setSearchQuery("");
               setView(newView);
             }}
             onSelectMission={handleSelectMission}
@@ -127,16 +133,16 @@ export default function App() {
     }
 
     switch (view) {
-      case 'dashboard':
+      case "dashboard":
         return (
-          <Dashboard 
-            onNavigate={setView} 
-            ucids={ucids} 
-            vendors={vendors} 
-            forensicIssues={forensicIssues} 
+          <Dashboard
+            onNavigate={setView}
+            ucids={ucids}
+            vendors={vendors}
+            forensicIssues={forensicIssues}
           />
         );
-      case 'ingestion-hub':
+      case "ingestion-hub":
         return (
           <IngestionHub
             ucids={ucids}
@@ -150,39 +156,39 @@ export default function App() {
             setApiProgress={setApiProgress}
           />
         );
-      case 'live-mission':
+      case "live-mission":
         return (
-          <LiveMission 
-            selectedId={activeMissionId} 
-            onSelectId={setActiveMissionId} 
+          <LiveMission
+            selectedId={activeMissionId}
+            onSelectId={setActiveMissionId}
             ucids={ucids}
             setUcids={setUcids}
             deployedSolution={deployedSolution}
             setDeployedSolution={setDeployedSolution}
           />
         );
-      case 'catalog':
+      case "catalog":
         return (
-          <CatalogManager 
-            catalogSkus={catalogSkus} 
-            setCatalogSkus={setCatalogSkus} 
+          <CatalogManager
+            catalogSkus={catalogSkus}
+            setCatalogSkus={setCatalogSkus}
             vendors={vendors}
           />
         );
-      case 'vendor-portal':
+      case "vendor-portal":
         return (
-          <VendorPortal 
-            vendors={vendors} 
-            setVendors={setVendors} 
+          <VendorPortal
+            vendors={vendors}
+            setVendors={setVendors}
             ucids={ucids}
             setUcids={setUcids}
           />
         );
-      case 'forensic':
+      case "forensic":
         return (
-          <ForensicView 
-            forensicIssues={forensicIssues} 
-            setForensicIssues={setForensicIssues} 
+          <ForensicView
+            forensicIssues={forensicIssues}
+            setForensicIssues={setForensicIssues}
             setVendors={setVendors}
             setCatalogSkus={setCatalogSkus}
             ucids={ucids}
@@ -192,37 +198,35 @@ export default function App() {
             onNavigate={setView}
           />
         );
-      case 'telemetry':
-        return <SystemTelemetry />;
-      case 'reports':
+      case "reports":
         return (
-          <ReportsView 
-            ucids={ucids} 
+          <ReportsView
+            ucids={ucids}
             setUcids={setUcids}
             vendors={vendors}
             setVendors={setVendors}
-            catalogSkus={catalogSkus} 
+            catalogSkus={catalogSkus}
           />
         );
-      case 'cleansing':
+      case "cleansing":
         return (
-          <CleansingView 
-            forensicIssues={forensicIssues} 
-            setForensicIssues={setForensicIssues} 
+          <CleansingView
+            forensicIssues={forensicIssues}
+            setForensicIssues={setForensicIssues}
           />
         );
-      case 'taxonomy':
+      case "taxonomy":
         return (
-          <TaxonomyGraphEditor 
+          <TaxonomyGraphEditor
             ucids={ucids}
             setUcids={setUcids}
             activeMissionId={activeMissionId}
             setActiveMissionId={setActiveMissionId}
           />
         );
-      case 'solution-builder':
+      case "solution-builder":
         return (
-          <SolutionBuilder 
+          <SolutionBuilder
             ucids={ucids}
             setUcids={setUcids}
             onNavigate={setView}
@@ -230,36 +234,44 @@ export default function App() {
             onSelectMission={handleSelectMission}
           />
         );
-      case 'documentation':
-        return <DocumentationView />;
-      case 'reconciliation':
+      case "reconciliation":
         return <ReconciliationView />;
-      case 'search':
-        return <NlpSearchView />;
-      case 'premium':
-        return <PremiumShowcase />;
+      case "search":
+        return (
+          <SearchView
+            query=""
+            ucids={ucids}
+            vendors={vendors}
+            catalogSkus={catalogSkus}
+            onNavigate={handleNavigate}
+            onSelectMission={handleSelectMission}
+          />
+        );
       default:
         return (
-          <Dashboard 
-            onNavigate={setView} 
-            ucids={ucids} 
-            vendors={vendors} 
-            forensicIssues={forensicIssues} 
+          <Dashboard
+            onNavigate={setView}
+            ucids={ucids}
+            vendors={vendors}
+            forensicIssues={forensicIssues}
           />
         );
     }
   }
 
   return (
-    <div className="flex h-screen overflow-hidden text-[#dde6ff] font-sans antialiased relative" style={{ backgroundColor: '#06080e' }}>
+    <div
+      className="flex h-screen overflow-hidden text-content-primary font-sans antialiased relative"
+      style={{ backgroundColor: "#06080e" }}
+    >
       <Sidebar
         activeView={view}
         onNavigate={(newView) => {
-          setSearchQuery(''); // reset search when shifting tabs
+          setSearchQuery(""); // reset search when shifting tabs
           handleNavigate(newView);
         }}
         collapsed={collapsed}
-        onToggle={() => setCollapsed(c => !c)}
+        onToggle={() => setCollapsed((c) => !c)}
         activeMissionId={activeMissionId}
         onSelectMission={handleSelectMission}
         ucids={ucids}
@@ -267,28 +279,31 @@ export default function App() {
         forensicIssues={forensicIssues}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <TopBar 
-          activeView={view} 
-          onSearch={setSearchQuery} 
+        <TopBar
+          activeView={view}
+          onSearch={setSearchQuery}
           onNavigate={handleNavigate}
           apiProgress={apiProgress}
           isPendingAPI={isPendingAPI}
-          syncHealth={syncHealth}
         />
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 shrink-0 min-h-0">
           <div className="max-w-7xl mx-auto flex flex-col min-h-full h-full">
-            <BreadcrumbNav 
+            <BreadcrumbNav
               view={view}
               activeMissionId={activeMissionId}
               ucids={ucids}
               onNavigate={handleNavigate}
             />
             <ErrorBoundary>
-              <StateConsistencyMonitor ucids={ucids} vendors={vendors} catalogSkus={catalogSkus} />
-              <DataPersistenceGate 
-                ucids={ucids} 
-                vendors={vendors} 
+              <StateConsistencyMonitor
+                ucids={ucids}
+                vendors={vendors}
+                catalogSkus={catalogSkus}
+              />
+              <DataPersistenceGate
+                ucids={ucids}
+                vendors={vendors}
                 catalogSkus={catalogSkus}
                 isPendingAPI={isPendingAPI}
                 requestedView={requestedView}

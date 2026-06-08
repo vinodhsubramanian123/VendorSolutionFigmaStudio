@@ -1,6 +1,6 @@
-import { useLocalStorageState } from './useLocalStorageState';
+import { useLocalStorageState } from "./useLocalStorageState";
 
-export type WorkflowStepStatus = 'idle' | 'in-progress' | 'completed' | 'error';
+export type WorkflowStepStatus = "idle" | "in-progress" | "completed" | "error";
 
 export interface WorkflowStep {
   id: string;
@@ -11,20 +11,34 @@ export interface WorkflowStep {
 interface WorkflowManagerState {
   currentStepIndex: number;
   stepStatuses: Record<string, WorkflowStepStatus>;
-  auditLogs: Array<{ timestamp: string; fromStep?: string; toStep: string; action: string }>;
+  auditLogs: Array<{
+    timestamp: string;
+    fromStep?: string;
+    toStep: string;
+    action: string;
+  }>;
 }
 
-export function useWorkflowManager(workflowKey: string, initialSteps: string[]) {
-  const defaultStatuses = initialSteps.reduce((acc, step, index) => {
-    acc[step] = index === 0 ? 'in-progress' : 'idle';
-    return acc;
-  }, {} as Record<string, WorkflowStepStatus>);
+export function useWorkflowManager(
+  workflowKey: string,
+  initialSteps: string[],
+) {
+  const defaultStatuses = initialSteps.reduce(
+    (acc, step, index) => {
+      acc[step] = index === 0 ? "in-progress" : "idle";
+      return acc;
+    },
+    {} as Record<string, WorkflowStepStatus>,
+  );
 
-  const [state, setState] = useLocalStorageState<WorkflowManagerState>(`${workflowKey}_state`, {
-    currentStepIndex: 0,
-    stepStatuses: defaultStatuses,
-    auditLogs: [],
-  });
+  const [state, setState] = useLocalStorageState<WorkflowManagerState>(
+    `${workflowKey}_state`,
+    {
+      currentStepIndex: 0,
+      stepStatuses: defaultStatuses,
+      auditLogs: [],
+    },
+  );
 
   const currentStepIndex = state.currentStepIndex;
   const stepStatuses = state.stepStatuses;
@@ -32,7 +46,11 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
 
   const getCurrentStep = () => initialSteps[currentStepIndex];
 
-  const logTransition = (action: string, fromStep?: string, toStep?: string) => {
+  const logTransition = (
+    action: string,
+    fromStep?: string,
+    toStep?: string,
+  ) => {
     setState((prev) => ({
       ...prev,
       auditLogs: [
@@ -41,9 +59,9 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
           timestamp: new Date().toISOString(),
           action,
           fromStep,
-          toStep: toStep || 'unknown',
-        }
-      ]
+          toStep: toStep || "unknown",
+        },
+      ],
     }));
   };
 
@@ -51,30 +69,30 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
     if (currentStepIndex < initialSteps.length - 1) {
       const currentStep = initialSteps[currentStepIndex];
       const nextStep = initialSteps[currentStepIndex + 1];
-      
+
       setState((prev) => ({
         ...prev,
         currentStepIndex: prev.currentStepIndex + 1,
         stepStatuses: {
           ...prev.stepStatuses,
-          [currentStep]: 'completed',
-          [nextStep]: 'in-progress',
-        }
+          [currentStep]: "completed",
+          [nextStep]: "in-progress",
+        },
       }));
-      logTransition('advance_step', currentStep, nextStep);
+      logTransition("advance_step", currentStep, nextStep);
       return nextStep;
     }
-    
+
     // Complete the last step
     const currentStep = initialSteps[currentStepIndex];
     setState((prev) => ({
       ...prev,
       stepStatuses: {
         ...prev.stepStatuses,
-        [currentStep]: 'completed',
-      }
+        [currentStep]: "completed",
+      },
     }));
-    logTransition('complete_workflow', currentStep, currentStep);
+    logTransition("complete_workflow", currentStep, currentStep);
     return null;
   };
 
@@ -87,10 +105,13 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
         currentStepIndex: index,
         stepStatuses: {
           ...prev.stepStatuses,
-          [stepId]: prev.stepStatuses[stepId] === 'completed' ? 'completed' : 'in-progress',
-        }
+          [stepId]:
+            prev.stepStatuses[stepId] === "completed"
+              ? "completed"
+              : "in-progress",
+        },
       }));
-      logTransition('jump_to_step', fromStep, stepId);
+      logTransition("jump_to_step", fromStep, stepId);
     }
   };
 
@@ -99,8 +120,8 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
       ...prev,
       stepStatuses: {
         ...prev.stepStatuses,
-        [stepId]: status
-      }
+        [stepId]: status,
+      },
     }));
   };
 
@@ -108,9 +129,9 @@ export function useWorkflowManager(workflowKey: string, initialSteps: string[]) 
     setState({
       currentStepIndex: 0,
       stepStatuses: defaultStatuses,
-      auditLogs: []
+      auditLogs: [],
     });
-    logTransition('reset_workflow');
+    logTransition("reset_workflow");
   };
 
   return {
