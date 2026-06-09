@@ -139,7 +139,7 @@ export function StepComparison({
         {committingSnapshot ? (
           <button
             type="button"
-            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-[#00d4a0]/20 text-status-success border border-[#00d4a0]/30 cursor-not-allowed"
+            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-status-success/20 text-status-success border border-status-success/30 cursor-not-allowed"
           >
             <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Locking
             snapshot...
@@ -148,7 +148,7 @@ export function StepComparison({
           <button
             type="button"
             onClick={onCommitSnapshot}
-            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-[#00d4a0] text-gray-950 font-extrabold hover:opacity-90 transition-all cursor-pointer shadow-lg shadow-[#00d4a0]/10"
+            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-status-success text-gray-950 font-extrabold hover:opacity-90 transition-all cursor-pointer shadow-lg shadow-[#00d4a0]/10"
           >
             <CheckCircle className="w-4 h-4 text-gray-950" /> Freeze & Commit
             Design Snapshot

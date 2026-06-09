@@ -243,14 +243,16 @@ export interface TaxonomyNode {
   id: string; // Material tag
   label: string; // Human identification tag
   type:
+    | "vendor"
+    | "solution_type"
+    | "product_family"
+    | "generation"
     | "chassis"
-    | "processor"
-    | "memory"
-    | "storage"
-    | "network"
-    | "power_supply";
+    | "category"
+    | "subcategory"
+    | "sku";
   vendor: string;
-  constraints: PhysicalConstraint;
+  constraints?: PhysicalConstraint;
 }
 
 export interface TaxonomyEdge {

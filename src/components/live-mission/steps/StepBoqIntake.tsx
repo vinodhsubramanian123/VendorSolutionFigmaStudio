@@ -412,7 +412,7 @@ export function StepBoqIntake({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left side: Central Ingestion Hub Pointer Referral Block */}
         <div className="space-y-3">
-          <div className="border border-indigo-500/10 rounded-xl p-5 text-center flex flex-col items-center justify-center gap-3 bg-[#0d1527]/30">
+          <div className="border border-indigo-500/10 rounded-xl p-5 text-center flex flex-col items-center justify-center gap-3 bg-surface-elevated/30">
             <UploadCloud className="w-8 h-8 text-sky-400" />
             <div className="space-y-1">
               <p className="text-xs text-white font-semibold">

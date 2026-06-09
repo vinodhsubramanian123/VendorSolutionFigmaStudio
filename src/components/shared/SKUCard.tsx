@@ -20,7 +20,7 @@ export const SKUCard: React.FC<SKUCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-[#0f172a] border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${onClick ? "cursor-pointer hover:border-brand-indigo/50 hover:bg-[#141e33] transition-all" : ""} ${className}`}
+      className={`bg-surface-elevated border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${onClick ? "cursor-pointer hover:border-brand-indigo/50 hover:bg-[#141e33] transition-all" : ""} ${className}`}
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">

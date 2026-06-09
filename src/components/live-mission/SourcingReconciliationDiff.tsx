@@ -14,8 +14,8 @@ export function SourcingReconciliationDiff({
   const solB = submissions[1];
 
   // Group items by type for comparison
-  const itemsA = solA.configs.flatMap((c) => c.items);
-  const itemsB = solB.configs.flatMap((c) => c.items);
+  const itemsA = (solA.configs || []).flatMap((c) => c.items);
+  const itemsB = (solB.configs || []).flatMap((c) => c.items);
 
   const types = Array.from(
     new Set([...itemsA.map((i) => i.type), ...itemsB.map((i) => i.type)]),
@@ -124,11 +124,11 @@ export function SourcingReconciliationDiff({
                           PARITY
                         </span>
                       ) : diff < 0 ? (
-                        <span className="text-status-success bg-[#00d4a0]/10 border border-[#00d4a0]/15 px-1.5 py-0.5 rounded text-[8.5px]">
+                        <span className="text-status-success bg-status-success/10 border border-status-success/15 px-1.5 py-0.5 rounded text-[8.5px]">
                           -{Math.abs(diff).toLocaleString()} [{solA.vendor}]
                         </span>
                       ) : (
-                        <span className="text-brand-indigo bg-[#4a85fd]/10 border border-[#4a85fd]/15 px-1.5 py-0.5 rounded text-[8.5px]">
+                        <span className="text-brand-indigo bg-brand-indigo/10 border border-brand-indigo/15 px-1.5 py-0.5 rounded text-[8.5px]">
                           -{Math.abs(diff).toLocaleString()} [{solB.vendor}]
                         </span>
                       )

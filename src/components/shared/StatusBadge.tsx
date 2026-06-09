@@ -12,10 +12,10 @@ export interface StatusBadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  success: "border-[#00d4a0]/30 bg-[#00d4a0]/10 text-status-success",
+  success: "border-status-success/30 bg-status-success/10 text-status-success",
   warning: "border-[#f59e0b]/30 bg-[#f59e0b]/10 text-amber-500",
-  error: "border-[#ff3d5a]/30 bg-[#ff3d5a]/10 text-status-error",
-  info: "border-[#4a85fd]/30 bg-[#4a85fd]/10 text-[#4a85fd]",
+  error: "border-status-error/30 bg-status-error/10 text-status-error",
+  info: "border-brand-indigo/30 bg-brand-indigo/10 text-brand-indigo",
   default: "border-gray-500/30 bg-gray-500/10 text-gray-400",
 };
 

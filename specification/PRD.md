@@ -79,7 +79,7 @@ The platform is structured into twelve unified navigation views, preserving a co
 *   **Objective**: Resolve bad or corrupted supplier quote entries natively within the interface (handling spelling mistakes, incomplete tags).
 
 #### 3.7 Taxonomic Procurement Knowledge Graph (Taxonomy Graph Editor)
-*   **Objective**: Interact with physically-binding server configurations to prevent installing incompatible parts (e.g., non-LGA4677 CPUs inside an LGA1700 chassis) using SVG/node visual validation.
+*   **Objective**: Interact with physically-binding server configurations to prevent installing incompatible parts (e.g., non-LGA4677 CPUs inside an LGA1700 chassis) using SVG/node visual validation. Provides a graphical interface and an automated diagnostic side-panel to resolve unmapped/orphaned hierarchical BOQ components utilizing user-guided Drag & Drop or Auto-Fix resolution paths. Also supports drag-and-drop reassignment of existing mapped elements to correct faulty topological branches manually.
 
 #### 3.8 Central SKU Library (Catalog Manager)
 *   **Objective**: Manage standard canonical Stock Keeping Units, maintaining a verified internal item database matched dynamically against the cleansing workshop.
@@ -165,7 +165,7 @@ When an enterprise deal spans multiple system platforms (e.g., 3 separate UCIDs 
 
 ---
 
-### 7. The Two Critical Forensic Compliance Core Rules
+### 7. The Four Critical Forensic Compliance Core Rules
 
 To maximize gross margin protection, the Sourcing Integrity Diagnostic Sandbox enforces:
 
@@ -175,7 +175,15 @@ To maximize gross margin protection, the Sourcing Integrity Diagnostic Sandbox e
 
 #### 7.2 Custom Contract Manufacturer Pricing
 *   **The Issue**: Manual quotes containing arbitrary overhead. 
-*   **Resolution Flow**: Platform detects explicit divergence traversing direct manufacturer base pricing arrays versus the provided workbook figure. Automates line-item price correction and aggregates variance into massive portfolio volume savings. 
+*   **Resolution Flow**: Platform detects explicit divergence traversing direct manufacturer base pricing arrays versus the provided workbook figure. Automates line-item price correction and aggregates variance into massive portfolio volume savings.
+
+#### 7.3 Memory Layout Configuration Symmetry Defect
+*   **The Issue**: Asymmetric or misaligned memory channels which bottleneck compute platforms (e.g. Cisco UCS systems lacking matched RAM populations).
+*   **Resolution Flow**: Algorithm detects memory channel mismatches natively and upgrades RAM modules to satisfy optimal channel architecture specifications.
+
+#### 7.4 Partner API Telemetry Blockages
+*   **The Issue**: Disconnected or blocked partner credentials causing blind spots in supply chain tracking.
+*   **Resolution Flow**: Safely re-authenticates partner gateway certificates, automatically restoring the telemetry ingress pipelines without human intervention. 
 
 ---
 
@@ -203,7 +211,7 @@ export interface IngestResponse {
   success: boolean;
   message: string;
   sourceFile: string;
-  ucid: string;
+  ucid: import('../src/types/data').UCID; // Complete natively translated UCID entity
   timestamp: string;
   parsedSummary: {
     vendorBrand: string;
@@ -211,7 +219,6 @@ export interface IngestResponse {
     itemsCount: number;
     initialConfidenceScore: number;
   };
-  solutions: import('../src/types/data').Solution[]; // List of structured parallel alternative designs generated
 }
 
 // 2. Playwright Automation Scraper Web Crawl
@@ -341,5 +348,26 @@ export interface WebhookDispatchResponse {
   status: "delivered" | "retrying" | "endpoint_unreachable";
   cryptographicSignature: string;
   auditLog: Array<{ attemptNumber: number; timestamp: string; httpStatusCode: number; responseBody: string; }>;
+}
+
+// 7. Taxonomy Graph & Relationships
+export interface GraphNode {
+  id: string;
+  label: string;
+  type: "Product" | "Sub-product" | "Category" | "Sub-category" | "SKU";
+  properties?: Record<string, unknown>;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: "depends on" | "mutually exclusive" | "hierarchy";
+}
+
+export interface GraphAPIResponse {
+  metadata: { id: string; lastUpdated?: string; version?: string; };
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 }
 ```

@@ -29,7 +29,7 @@ export function LaunchStep({ onNavigate }: LaunchStepProps) {
         id="launch-solution-builder-btn"
         type="button"
         onClick={() => onNavigate("solution-builder")}
-        className="px-8 py-3 bg-[#4a85fd] hover:bg-[#3474f3] text-white rounded-lg font-bold shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer focus:outline-none"
+        className="px-8 py-3 bg-brand-indigo hover:bg-[#3474f3] text-white rounded-lg font-bold shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer focus:outline-none"
       >
         <Play className="w-5 h-5 shrink-0" />
         <span>Launch Solution Builder</span>

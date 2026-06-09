@@ -13,13 +13,13 @@
 
 ## Core Monolithic Views
 The following views represent major modules and have specific loading, zero-state, and error boundary requirements.
-- [ ] `/src/components/live-mission/LiveMission.tsx` (Mission Control / Overview)
-- [ ] `/src/components/ingestion/IngestionHub.tsx` (Data Upload and Orchestration)
-- [ ] `/src/components/solution-builder/SolutionBuilder.tsx` (Solution Design Workspace)
-- [ ] `/src/components/forensics/ForensicView.tsx` (Audit & Inspection)
-- [ ] `/src/components/reconciliation/ReconciliationView.tsx` (Reconciliation and Diffing)
-- [ ] `/src/components/dashboard/Dashboard.tsx` (Analytics Dashboard)
-- [ ] `/src/components/catalog/CatalogManager.tsx` (Catalog SKU Library)
+- [x] `/src/components/live-mission/LiveMission.tsx` (Mission Control / Overview)
+- [x] `/src/components/ingestion/IngestionHub.tsx` (Data Upload and Orchestration)
+- [x] `/src/components/solution-builder/SolutionBuilder.tsx` (Solution Design Workspace)
+- [x] `/src/components/forensics/ForensicView.tsx` (Audit & Inspection)
+- [x] `/src/components/reconciliation/ReconciliationView.tsx` (Reconciliation and Diffing)
+- [x] `/src/components/dashboard/Dashboard.tsx` (Analytics Dashboard)
+- [x] `/src/components/catalog/CatalogManager.tsx` (Catalog SKU Library)
 
 ## Shared Primitives (To Be Extracted)
 Components currently inlined in monolithic views that should be standardized primitives:

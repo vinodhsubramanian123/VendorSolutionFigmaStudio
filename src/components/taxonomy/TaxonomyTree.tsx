@@ -40,7 +40,7 @@ export function TaxonomyTree({
   };
 
   return (
-    <div className="flex-1 select-none scrollbar-thin overflow-y-auto pr-0.5 min-h-0 space-y-1 text-[11px]">
+    <div className="flex-1 select-none pr-0.5 space-y-1 text-[11px]">
       {/* All SKUs node */}
       <button
         onClick={() =>

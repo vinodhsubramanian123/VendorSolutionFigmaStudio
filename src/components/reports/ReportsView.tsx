@@ -52,7 +52,7 @@ export function ReportsView({
   const activeMissions = ucids.filter((u) => u.currentStep !== "snapshot");
 
   const totalCommittedSpend = ucids
-    .flatMap((u) => u.snapshots)
+    .flatMap((u) => u.snapshots || [])
     .reduce((s, snapshot) => s + snapshot.totalValue, 0);
 
   // estimate averages
@@ -242,13 +242,13 @@ export function ReportsView({
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs h-full min-h-0">
+    <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs">
       {/* Banner */}
       <div
         className="p-4 rounded-xl border flex items-center justify-between"
         style={{
-          background: "rgba(74,133,253,0.03)",
-          borderColor: "rgba(74,133,253,0.1)",
+          background: "rgba(74, 133, 253,0.03)",
+          borderColor: "rgba(74, 133, 253,0.1)",
         }}
       >
         <div className="flex items-center gap-3">
@@ -288,8 +288,8 @@ export function ReportsView({
         <div
           className="p-4 rounded-xl border flex items-center justify-between"
           style={{
-            backgroundColor: "#0b1220",
-            borderColor: "rgba(74,133,253,0.08)",
+            backgroundColor: "var(--color-surface-elevated)",
+            borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
           <div className="space-y-1">
@@ -306,8 +306,8 @@ export function ReportsView({
         <div
           className="p-4 rounded-xl border flex items-center justify-between"
           style={{
-            backgroundColor: "#0b1220",
-            borderColor: "rgba(74,133,253,0.08)",
+            backgroundColor: "var(--color-surface-elevated)",
+            borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
           <div className="space-y-1">
@@ -324,8 +324,8 @@ export function ReportsView({
         <div
           className="p-4 rounded-xl border flex items-center justify-between"
           style={{
-            backgroundColor: "#0b1220",
-            borderColor: "rgba(74,133,253,0.08)",
+            backgroundColor: "var(--color-surface-elevated)",
+            borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
           <div className="space-y-1">
@@ -341,7 +341,7 @@ export function ReportsView({
       </div>
 
       {/* Grid segments */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
         {/* Gap Audit block */}
         {totalGaps > 0 && (
           <div className="lg:col-span-3 p-4 rounded-xl border border-[#ff9b36]/30 bg-[#ff9b36]/5 flex items-center justify-between">
@@ -372,24 +372,24 @@ export function ReportsView({
 
         {/* Sourcing History Table */}
         <div
-          className="lg:col-span-2 p-4 rounded-xl border flex flex-col gap-3 min-h-0"
+          className="lg:col-span-2 p-4 rounded-xl border flex flex-col gap-3"
           style={{
-            backgroundColor: "#0b1220",
-            borderColor: "rgba(74,133,253,0.08)",
+            backgroundColor: "var(--color-surface-elevated)",
+            borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
           <span className="text-xs text-white font-semibold block shrink-0">
             Commit Sourcing Ledger
           </span>
 
-          <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15 flex-1 min-h-0 overflow-y-auto">
-            <table className="w-full text-left font-sans text-[11px] border-collapse">
+          <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15 flex-1 pr-1">
+            <table className="min-w-[700px] w-full text-left font-sans text-[11px] border-collapse">
               <thead>
                 <tr
                   className="border-b text-gray-500"
                   style={{
-                    borderColor: "rgba(74,133,253,0.05)",
-                    backgroundColor: "rgba(74,133,253,0.01)",
+                    borderColor: "rgba(74, 133, 253,0.05)",
+                    backgroundColor: "rgba(74, 133, 253,0.01)",
                   }}
                 >
                   <th className="p-2.5">Flow Code</th>
@@ -416,7 +416,7 @@ export function ReportsView({
                         ${(m.snapshots[0]?.totalValue || 0).toLocaleString()}
                       </td>
                       <td className="p-2.5 text-center">
-                        <span className="px-2 py-0.5 rounded-full text-[8px] bg-[#00d4a0]/10 text-status-success font-bold">
+                        <span className="px-2 py-0.5 rounded-full text-[8px] bg-status-success/10 text-status-success font-bold">
                           LOCKED
                         </span>
                       </td>
@@ -440,16 +440,16 @@ export function ReportsView({
 
         {/* Dynamic active pipeline summary block */}
         <div
-          className="p-4 rounded-xl border flex flex-col gap-3 min-h-0"
+          className="p-4 rounded-xl border flex flex-col gap-3"
           style={{
-            backgroundColor: "#0b1220",
-            borderColor: "rgba(74,133,253,0.08)",
+            backgroundColor: "var(--color-surface-elevated)",
+            borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
           <span className="text-xs text-white font-semibold shrink-0">
             Active Parallel Pipeline Streams ({activeMissions.length})
           </span>
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
+          <div className="flex-1 pr-1 space-y-2">
             {activeMissions.map((m) => (
               <div
                 key={m.id}

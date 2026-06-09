@@ -64,9 +64,27 @@ When performing mutating actions (e.g., "Auto-Align" in Forensic View, Status Up
 ## 4. Specific Endpoint Enhancements
 
 ### 4.1 POST /api/ingest
-- **Payload**: Accepts `multipart/form-data` for file uploads or `application/json` for direct integrations.
-- **Behavior**: Should immediately return `202 Accepted` with a Job ID, triggering long-polling or WebSocket updates on the front-end if the job takes > 2 seconds.
+- **Payload**: Accepts `multipart/form-data` for file uploads or `application/json` for direct integrations. Contains the workflow data representing the BOQ.
+- **Behavior (Phase 2 True Ingestion)**: Instead of simulated/hardcoded matchers, the ingested workflow natively translates into a `UCID` with dynamically generated JSON structural solutions. The backend synchronously (or async via 202) processes the file and returns the structured `UCID`. The frontend immediately propagates this newly created `UCID` into the unified state, which seamlessly activates the `LiveMission` view.
 
 ### 4.2 POST /api/forensics/align
 - **Payload**: `{ issueId: string, ruleId: string, action: 'override' | 'apply_fix' }`
-- **Behavior**: Front-end eagerly marks row as resolving, disables the row action buttons, and then optimistic resolves upon `200 OK`.
+- **Behavior (Phase 3 Forensic Auto-Heal)**: Front-end eagerly performs the underlying data mutation (e.g. replacing an EOL part with an active one in the `ucid` configuration, or correcting a price). A global `useEffect` (the Forensic Auto-Heal hook) constantly monitors the payload structure and automatically marks the `forensicIssue` as `resolved` globally, guaranteeing cross-view alignment without requiring manual status updates.
+
+## 5. Taxonomy & Knowledge Graph API
+
+### 5.1 GET /api/taxonomy/graph/:configId
+- **Response**: `ApiResponse<GraphAPIResponse>` using definitions mapped in `src/types/taxonomy.ts` (`GraphMetadata`, `GraphNode`, `GraphEdge`).
+- **Behavior**: Lazily retrieves the mapping definitions and classification heuristics for a specific parsed configuration. Nodes represent hierarchy, edges describe their constraint relationship (`requires`, `mutually exclusive`, `hierarchy`).
+- **Orphan Diagnostics**: Incorporates telemetry for unmapped string literals representing unknown supplier components (`unmappedIds`).
+
+### 5.2 POST /api/taxonomy/map
+- **Payload**: `{ childId: string, targetParentId: string, properties: unknown }`
+- **Behavior**: Manually associates a disjointed node (orphan) to the graph structure using a Human-in-the-Loop override action (`Auto-Fix` or Drag & Drop). Also supports dragging existing mapped SKU nodes to structurally reassign their parent relationships within the hierarchy.
+
+### 5.3 DELETE /api/taxonomy/map/:nodeId
+- **Behavior**: Tears down relations attached to the node, degrading it to an orphaned state.
+
+### 5.4 POST /api/taxonomy/rules
+- **Payload**: `{ sourceId: string, ruleType: "requires" | "exclusive", explanation: string }`
+- **Behavior**: Computes and stores custom enforcement constraints inside the Graph rules engine to detect validation anomalies in future scans.

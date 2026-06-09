@@ -17,12 +17,6 @@ interface HybridPortfolioOrchestrationProps {
   ciscoSyncedConfigs: number;
   manualBOMStatus: "pending" | "partial" | "complete";
   manualUploadedFiles: string[];
-  portfolioTraceLogs: Array<{
-    ts: string;
-    sender: string;
-    level: "info" | "ok" | "warn";
-    msg: string;
-  }>;
   onStartPortfolioPipeline: () => void;
   onSimulateManualUpload: (configsCount: number) => void;
   onAdvanceStep: () => void;
@@ -34,7 +28,6 @@ export function HybridPortfolioOrchestration({
   ciscoSyncedConfigs,
   manualBOMStatus,
   manualUploadedFiles,
-  portfolioTraceLogs,
   onStartPortfolioPipeline,
   onSimulateManualUpload,
   onAdvanceStep,
@@ -487,41 +480,6 @@ export function HybridPortfolioOrchestration({
               </span>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Terminal logs trailing */}
-      <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4 text-left">
-        <div className="flex justify-between items-center text-left">
-          <span className="text-[10px] text-gray-400 font-mono block uppercase tracking-wider font-extrabold flex items-center gap-1.5 text-left">
-            <b className="text-indigo-400">Ledger Trace Log</b> Terminal
-            Real-time
-          </span>
-          <span className="p-1 px-1.5 rounded text-[8px] font-mono leading-none font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/25">
-            HMAC signature active
-          </span>
-        </div>
-
-        <div className="bg-black/30 border border-white/5 rounded-lg p-4 font-mono text-[10px] text-gray-400 h-48 overflow-y-auto space-y-1.5 select-text custom-scrollbar">
-          {portfolioTraceLogs.map((log, i) => (
-            <div key={i} className="flex gap-2.5 items-start">
-              <span className="text-gray-500 shrink-0 text-[9px]">
-                {log.ts}
-              </span>
-              <span
-                className={`px-1 rounded-[3px] text-[8px] font-bold shrink-0 uppercase tracking-widest ${
-                  log.level === "ok"
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : log.level === "warn"
-                      ? "bg-amber-500/10 text-amber-400"
-                      : "bg-white/5 text-gray-400"
-                }`}
-              >
-                {log.sender}
-              </span>
-              <p className="text-gray-300 leading-normal">{log.msg}</p>
-            </div>
-          ))}
         </div>
       </div>
 

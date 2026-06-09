@@ -1,18 +1,9 @@
 import React, { useState } from "react";
 import {
-  Upload,
-  Zap,
   Activity,
   GitCompare,
-  Camera,
-  CheckCircle,
   Clock,
-  Plus,
-  Layers,
   AlertCircle,
-  FileSpreadsheet,
-  Sparkles,
-  Radio,
   SkipForward,
   Rocket,
 } from "lucide-react";
@@ -26,40 +17,11 @@ import { StepContentPanel } from "./StepContentPanel";
 import { NewUCIDModal } from "./NewUCIDModal";
 import { StatusBadge } from "../shared/StatusBadge";
 import { LiveMissionSidebar } from "./LiveMissionSidebar";
+import { UCIDStepper } from "./UCIDStepper";
+import { UCIDEventLedger } from "./UCIDEventLedger";
 
 import { generateDefaultSolutions } from "../../lib/demoDataBuilder";
 import { PRIORITY_COLOR } from "../../lib/constants";
-
-const STEP_ICONS: Record<UCIDStep, React.ElementType> = {
-  "boq-intake": Upload,
-  "pre-intelligence": Zap,
-  "solution-design": Layers,
-  "vendor-provisioning": NetworkIconOfflineFallback,
-  "post-intelligence": Activity,
-  comparison: GitCompare,
-  snapshot: Camera,
-};
-
-function NetworkIconOfflineFallback(props: any) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <rect width="16" height="16" x="4" y="4" rx="2" />
-      <rect width="6" height="6" x="9" y="9" rx="1" />
-      <path d="M9 1H1v8h8V1Zm14 0h-8v8h8V1ZM9 15H1v8h8v-8Zm14 0h-8v8h8v-8Z" />
-    </svg>
-  );
-}
 
 interface LiveMissionProps {
   selectedId?: string;
@@ -367,7 +329,7 @@ export function LiveMission({
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-fadeIn h-full min-h-0">
+    <div className="flex flex-col gap-4 animate-fadeIn">
       {/* Top solution banner */}
       <SolutionBanner
         ucids={ucids}
@@ -377,7 +339,7 @@ export function LiveMission({
         onClearDeployed={() => setDeployedSolution && setDeployedSolution(null)}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
         {/* Left column: parallel active tickets */}
         <LiveMissionSidebar 
           ucids={ucids}
@@ -393,7 +355,7 @@ export function LiveMission({
         />
 
         {/* Right column: detailed workflow tracker */}
-        <div className="xl:col-span-3 flex flex-col gap-4 min-h-0 min-w-0">
+        <div className="xl:col-span-3 flex flex-col gap-4 min-w-0">
           {/* Sourcing Workspace Mode Selector Toolbar */}
           <div className="flex bg-surface-elevated p-1 rounded-xl border border-white/5">
             <button
@@ -430,7 +392,7 @@ export function LiveMission({
             </button>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+          <div className="pr-1">
             {workspaceMode === "consolidation" ? (
               <CampaignConsolidationHub
                 campaignName={getSolutionName(selected)}
@@ -459,7 +421,7 @@ export function LiveMission({
                           variant={selected.syncStatus === "Synced" ? "success" : selected.syncStatus === "Out-of-Sync" ? "warning" : "info"}
                           size="sm"
                         />
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#4a85fd]/15 border border-[#4a85fd]/20 text-indigo-400 font-semibold select-none">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-indigo/15 border border-brand-indigo/20 text-indigo-400 font-semibold select-none">
                           Campaign: {getSolutionName(selected)}
                         </span>
                         <span
@@ -501,182 +463,15 @@ export function LiveMission({
                     </div>
                   </div>
 
-                  {/* Stepper progress nodes */}
-                  <div className="flex items-center justify-between gap-1 overflow-x-auto pb-2 scrollbar-thin">
-                    {ucids.length > 0 &&
-                      [
-                        {
-                          id: "boq-intake",
-                          label: "WORKBOOK INTAKE",
-                          shortLabel: "Intake",
-                          desc: "Suck in structured legacy workbook formats.",
-                        },
-                        {
-                          id: "pre-intelligence",
-                          label: "CATALOG CLARITY",
-                          shortLabel: "Scan",
-                          desc: "Deduplicate catalog part descriptions.",
-                        },
-                        {
-                          id: "solution-design",
-                          label: "OPTIMAL SOURCING",
-                          shortLabel: "Design",
-                          desc: "Review alternative brand solutions.",
-                        },
-                        {
-                          id: "vendor-provisioning",
-                          label: "API LIVE GATEWAY",
-                          shortLabel: "Quotes",
-                          desc: "Secure live manufacturer API contract pricing.",
-                        },
-                        {
-                          id: "post-intelligence",
-                          label: "SPEC ALIGNMENT",
-                          shortLabel: "Rules",
-                          desc: "Enforce electrical channel socket layouts.",
-                        },
-                        {
-                          id: "comparison",
-                          label: "COST RECONCILIATION",
-                          shortLabel: "Winner",
-                          desc: "Establish final contract winner choice.",
-                        },
-                        {
-                          id: "snapshot",
-                          label: "TRANSACT SYNC LOCK",
-                          shortLabel: "Commit",
-                          desc: "Archive final bill-of-materials design.",
-                        },
-                      ].map((step, idx, array) => {
-                        const state = getStepState(
-                          selected,
-                          step.id as UCIDStep,
-                        );
-                        const IconComponent =
-                          STEP_ICONS[step.id as UCIDStep] || HelpIcon;
-                        const isCurrentViewing = activeStep === step.id;
-                        const isLast = idx === array.length - 1;
-
-                        return (
-                          <div
-                            key={step.id}
-                            className="flex items-center flex-1 min-w-[70px]"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => setViewStep(step.id as UCIDStep)}
-                              className="flex flex-col items-center gap-1 cursor-pointer w-full group relative focus:outline-none"
-                            >
-                              <div
-                                className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
-                                style={{
-                                  backgroundColor: isCurrentViewing
-                                    ? "rgba(74,133,253,0.15)"
-                                    : state === "complete"
-                                      ? "rgba(0,212,160,0.1)"
-                                      : "rgba(74,133,253,0.03)",
-                                  border: `1.5px solid ${isCurrentViewing ? "#4a85fd" : state === "complete" ? "#00d4a0" : "rgba(74,133,253,0.12)"}`,
-                                  boxShadow: isCurrentViewing
-                                    ? "0 0 12px rgba(74,133,253,0.4)"
-                                    : "none",
-                                }}
-                              >
-                                {state === "complete" ? (
-                                  <CheckCircle className="w-4 h-4 text-status-success" />
-                                ) : (
-                                  <IconComponent
-                                    className="w-3.5 h-3.5 font-bold"
-                                    style={{
-                                      color: isCurrentViewing
-                                        ? "#4a85fd"
-                                        : "#5d7899",
-                                    }}
-                                  />
-                                )}
-                              </div>
-                              <span
-                                className="text-[9px] font-bold text-center group-hover:text-white transition-colors"
-                                style={{
-                                  color: isCurrentViewing
-                                    ? "#4a85fd"
-                                    : state === "complete"
-                                      ? "#00d4a0"
-                                      : "#5d7899",
-                                }}
-                              >
-                                {step.shortLabel}
-                              </span>
-                            </button>
-                            {!isLast && (
-                              <div
-                                className="h-[1.5px] flex-1 min-w-[10px]"
-                                style={{
-                                  backgroundColor:
-                                    state === "complete"
-                                      ? "rgba(0,212,160,0.3)"
-                                      : "rgba(74,133,253,0.08)",
-                                }}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  {/* Stepper Active Area Description */}
-                  <div className="p-3 rounded-lg border text-xs text-left bg-surface-card border-indigo-500/10">
-                    <p className="font-semibold text-indigo-400 capitalize">
-                      Step {STEP_ORDER.indexOf(activeStep) + 1}:{" "}
-                      {
-                        [
-                          { id: "boq-intake", label: "WORKBOOK INTAKE" },
-                          { id: "pre-intelligence", label: "CATALOG CLARITY" },
-                          { id: "solution-design", label: "OPTIMAL SOURCING" },
-                          {
-                            id: "vendor-provisioning",
-                            label: "API LIVE GATEWAY",
-                          },
-                          { id: "post-intelligence", label: "SPEC ALIGNMENT" },
-                          { id: "comparison", label: "COST RECONCILIATION" },
-                          { id: "snapshot", label: "TRANSACT SYNC LOCK" },
-                        ].find((s) => s.id === activeStep)?.label
-                      }
-                    </p>
-                    <p className="text-gray-500 mt-0.5">
-                      {
-                        [
-                          {
-                            id: "boq-intake",
-                            desc: "Suck in structured legacy workbook formats.",
-                          },
-                          {
-                            id: "pre-intelligence",
-                            desc: "Deduplicate catalog part descriptions.",
-                          },
-                          {
-                            id: "solution-design",
-                            desc: "Review alternative brand solutions.",
-                          },
-                          {
-                            id: "vendor-provisioning",
-                            desc: "Secure live manufacturer API contract pricing.",
-                          },
-                          {
-                            id: "post-intelligence",
-                            desc: "Enforce electrical channel socket layouts.",
-                          },
-                          {
-                            id: "comparison",
-                            desc: "Establish final contract winner choice.",
-                          },
-                          {
-                            id: "snapshot",
-                            desc: "Archive final bill-of-materials design.",
-                          },
-                        ].find((s) => s.id === activeStep)?.desc
-                      }
-                    </p>
-                  </div>
+                  {/* Stepper progress nodes and description */}
+                  {ucids.length > 0 && (
+                    <UCIDStepper
+                      ucid={selected}
+                      activeStep={activeStep}
+                      setViewStep={setViewStep}
+                      getStepState={getStepState}
+                    />
+                  )}
 
                   {/* Render step details depending on step index */}
                   <div className="pt-2">
@@ -717,44 +512,7 @@ export function LiveMission({
                   </div>
                 </div>
 
-                {/* Audit events ledger / logs */}
-                <div className="p-4 rounded-xl border space-y-3 bg-surface-elevated border-indigo-500/10">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs text-white font-semibold flex items-center gap-1.5">
-                      <Radio className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />{" "}
-                      Live Verification Event Ledger
-                    </span>
-                    <span className="text-[10px] text-gray-500 font-mono">
-                      Channel: UCID-{selected.displayId}
-                    </span>
-                  </div>
-                  <div className="rounded-lg p-3 max-h-40 overflow-y-auto font-mono text-[10px] space-y-1.5 bg-surface-card text-left">
-                    {selected.events.map((ev, i) => (
-                      <div
-                        key={i}
-                        className="flex gap-3 items-start line-clamp-2"
-                      >
-                        <span className="text-gray-600 shrink-0">{ev.ts}</span>
-                        <span
-                          className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase ${
-                            ev.level === "ok"
-                              ? "bg-[#00d4a0]/15 text-status-success"
-                              : ev.level === "warn"
-                                ? "bg-[#ff9b36]/15 text-status-warning"
-                                : ev.level === "err"
-                                  ? "bg-[#ff3d5a]/15 text-status-error"
-                                  : "bg-white/10 text-gray-300"
-                          }`}
-                        >
-                          {ev.level}
-                        </span>
-                        <span className="text-gray-300 flex-1 leading-normal">
-                          {ev.msg}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <UCIDEventLedger ucid={selected} />
               </div>
             )}
           </div>
@@ -809,26 +567,5 @@ export function LiveMission({
         </div>
       )}
     </div>
-  );
-}
-
-function HelpIcon(props: any) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-      <path d="M12 17h.01" />
-    </svg>
   );
 }

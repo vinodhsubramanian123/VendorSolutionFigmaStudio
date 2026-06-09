@@ -119,13 +119,13 @@ export function Sidebar({
       style={{
         width: collapsed ? "4.5rem" : "17.5rem",
         backgroundColor: "#070a13",
-        borderColor: "rgba(74,133,253,0.1)",
+        borderColor: "rgba(74, 133, 253,0.1)",
       }}
     >
       {/* Header Panel */}
       <div
         className={`flex items-center ${collapsed ? "justify-center p-2" : "justify-between p-4"} h-16 border-b shrink-0`}
-        style={{ borderColor: "rgba(74,133,253,0.08)" }}
+        style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
       >
         {!collapsed && (
           <div className="flex items-center gap-2 overflow-hidden">
@@ -174,7 +174,7 @@ export function Sidebar({
               className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
               style={{
                 backgroundColor: isActive
-                  ? "rgba(74,133,253,0.08)"
+                  ? "rgba(74, 133, 253,0.08)"
                   : "transparent",
                 color: isActive ? "#fff" : "#8ba4cc",
               }}
@@ -226,7 +226,7 @@ export function Sidebar({
       {!collapsed && activeUCIDs.length > 0 && (
         <div
           className="p-3 border-t shrink-0 h-44 flex flex-col"
-          style={{ borderColor: "rgba(74,133,253,0.08)" }}
+          style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
         >
           <div className="flex items-center gap-1.5 px-1 mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
@@ -247,8 +247,8 @@ export function Sidebar({
                   style={{
                     backgroundColor: isActive
                       ? "rgba(255,155,54,0.08)"
-                      : "rgba(74,133,253,0.02)",
-                    border: `1px solid ${isActive ? "rgba(255,155,54,0.25)" : "rgba(74,133,253,0.05)"}`,
+                      : "rgba(74, 133, 253,0.02)",
+                    border: `1px solid ${isActive ? "rgba(255,155,54,0.25)" : "rgba(74, 133, 253,0.05)"}`,
                   }}
                 >
                   <div className="flex items-center justify-between">

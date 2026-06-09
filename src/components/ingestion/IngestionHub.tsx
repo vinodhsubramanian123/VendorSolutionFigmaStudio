@@ -92,51 +92,16 @@ export function IngestionHub({
     "pending" | "partial" | "complete"
   >("pending");
   const [manualUploadedFiles, setManualUploadedFiles] = useState<string[]>([]);
-  const [portfolioTraceLogs, setPortfolioTraceLogs] = useState<
-    Array<{
-      ts: string;
-      sender: string;
-      level: "info" | "ok" | "warn";
-      msg: string;
-    }>
-  >([
-    {
-      ts: new Date().toLocaleTimeString(),
-      sender: "LEDGER",
-      level: "info",
-      msg: "Core registry online. Awaiting PORT-2026-HQ-EXPANSION pipeline initiation.",
-    },
-  ]);
-
-  const addPortfolioLog = (
-    sender: string,
-    level: "info" | "ok" | "warn",
-    msg: string,
-  ) => {
-    setPortfolioTraceLogs((prev) => [
-      { ts: new Date().toLocaleTimeString(), sender, level, msg },
-      ...prev,
-    ]);
-  };
 
   const handleStartPortfolioPipeline = async () => {
     if (isPortfolioActive) return;
     try {
       setIsPendingAPI(true);
-      setPendingAPIMessage(
-        "Starting Multi-Vendor Lifecycle Orchestration Pipeline...",
-      );
       setIsPortfolioActive(true);
       setHpeSyncedConfigs(0);
       setCiscoSyncedConfigs(0);
       setManualBOMStatus("pending");
       setManualUploadedFiles([]);
-
-      addPortfolioLog(
-        "ORCHESTRATOR",
-        "info",
-        "Parent Opportunity registry PORT-2026-HQ-EXPANSION active. Triggering outbound multi-channel dispatch...",
-      );
 
       // Simulate API request to backend portfolio orchestrator
       try {
@@ -152,20 +117,8 @@ export function IngestionHub({
             ],
           }),
         });
-        if (res.ok) {
-          const data = await res.json();
-          addPortfolioLog(
-            "API-GATEWAY",
-            "ok",
-            `Dispatched API requests in parallel. Transaction key matched: ${data.transactionId}`,
-          );
-        }
       } catch {
-        addPortfolioLog(
-          "API-GATEWAY",
-          "warn",
-          "Database connection handshake bypassing standard proxy...",
-        );
+        // Fallback or handle error quietly
       }
 
       // Step-by-step parallel-automated crawling simulation corresponding to the 4 sequential configs
@@ -177,67 +130,7 @@ export function IngestionHub({
           setHpeSyncedConfigs(stepCount);
           setCiscoSyncedConfigs(stepCount);
 
-          if (stepCount === 1) {
-            setPendingAPIMessage(
-              `Parallel Worker [1/4]: Synchronizing HPE/Cisco Core Frameworks...`,
-            );
-            addPortfolioLog(
-              "HPEMarketplace",
-              "info",
-              "[Parallel Worker 1] Syncing Config 1 of 4: HPE DL380 Symmetrical Base CTO Unit Chassis...",
-            );
-            addPortfolioLog(
-              "DellPremierPortal",
-              "info",
-              "[Parallel Worker 2] Syncing Config 1 of 4: Cisco UCS C240 Rack Frame Base Server Chassis...",
-            );
-          } else if (stepCount === 2) {
-            setPendingAPIMessage(
-              `Parallel Worker [2/4]: Extracting Socket Layouts & RAM Traces...`,
-            );
-            addPortfolioLog(
-              "HPEMarketplace",
-              "info",
-              "[Parallel Worker 1] Syncing Config 2 of 4: Dynamic Intel Scalable 3D Xeon Sourcing SKU...",
-            );
-            addPortfolioLog(
-              "DellPremierPortal",
-              "info",
-              "[Parallel Worker 2] Syncing Config 2 of 4: Symmetrical Intel Xeon Multi-Core Thread Layout...",
-            );
-          } else if (stepCount === 3) {
-            setPendingAPIMessage(
-              `Parallel Worker [3/4]: Polling Interface Module Capabilities...`,
-            );
-            addPortfolioLog(
-              "HPEMarketplace",
-              "info",
-              "[Parallel Worker 1] Syncing Config 3 of 4: Symmetrical Dual Rank 64GB RDIMM Sourcing Pools...",
-            );
-            addPortfolioLog(
-              "DellPremierPortal",
-              "info",
-              "[Parallel Worker 2] Syncing Config 3 of 4: Enterprise Fabric Interface Cards (VIC) Arrays...",
-            );
-          } else if (stepCount === 4) {
-            setPendingAPIMessage(
-              `Parallel Worker [4/4]: Finalizing API Gateway Transactions...`,
-            );
-            addPortfolioLog(
-              "HPEMarketplace",
-              "ok",
-              "[Parallel Worker 1] Syncing Config 4 of 4: Hot-Plug Redundant Energy Supply unit synced seamlessly.",
-            );
-            addPortfolioLog(
-              "DellPremierPortal",
-              "ok",
-              "[Parallel Worker 2] Syncing Config 4 of 4: Dual Redundant PSU and Symmetrical Storage Array Synced.",
-            );
-            addPortfolioLog(
-              "LEDGER",
-              "ok",
-              "✓ Parallel Automated tracks are fully synchronized. Parent ledger paused awaiting manual partner drop for UCID-2026-1701.",
-            );
+          if (stepCount === 4) {
             clearInterval(interval);
             resolve();
           }
@@ -258,11 +151,6 @@ export function IngestionHub({
         configsCount === 2
           ? "DELL_PREMIER_PORTAL_PARTIAL_BOM.xlsx"
           : "DELL_PREMIER_COMPLETED_BOM.xlsx";
-      addPortfolioLog(
-        "UPLOAD-GATEWAY",
-        "info",
-        `Intake triggered for manual file: "${filename}" matching ${configsCount} configs...`,
-      );
 
       let apiSuccess = false;
       try {
@@ -282,11 +170,6 @@ export function IngestionHub({
           const data = await res.json();
           setManualBOMStatus(data.reconciliationStatus);
           setManualUploadedFiles((prev) => [...prev, filename]);
-          addPortfolioLog(
-            "RECONCILER",
-            data.reconciliationStatus === "complete" ? "ok" : "warn",
-            data.message,
-          );
 
           if (data.reconciliationStatus === "complete") {
             setToast({
@@ -308,13 +191,6 @@ export function IngestionHub({
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setManualBOMStatus(configsCount === 2 ? "partial" : "complete");
         setManualUploadedFiles((prev) => [...prev, filename]);
-        addPortfolioLog(
-          "RECONCILER",
-          configsCount === 2 ? "warn" : "ok",
-          configsCount === 2
-            ? "UCID-2026-1701 partial reconcile. Missing chassis module."
-            : "UCID-2026-1701 fully reconciled. Config matched successfully.",
-        );
 
         if (configsCount === 4) {
           setToast({
@@ -959,10 +835,10 @@ export function IngestionHub({
   };
 
   return (
-    <div className="flex flex-col gap-6 relative h-full min-h-0 select-none">
+    <div className="flex flex-col gap-6 relative select-none">
       {/* Toast Alert Popup */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[100] bg-[#0d1527]/95 border border-sky-500/30 rounded-xl shadow-2xl p-4 flex flex-col gap-3 min-w-[320px] max-w-sm backdrop-blur-md animate-fadeIn">
+        <div className="fixed bottom-6 right-6 z-[100] bg-surface-elevated/95 border border-sky-500/30 rounded-xl shadow-2xl p-4 flex flex-col gap-3 min-w-[320px] max-w-sm backdrop-blur-md animate-fadeIn">
           <div className="flex items-start gap-3 text-left">
             <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
               <CheckCircle className="w-4 h-4 text-emerald-400" />
@@ -1037,7 +913,7 @@ export function IngestionHub({
           </div>
 
           {/* Lifecycle Workflow Stepper */}
-          <div className="flex mt-5 bg-[#0f172a] rounded-lg border border-white/5 shrink-0 overflow-hidden relative">
+          <div className="flex mt-5 bg-surface-elevated rounded-lg border border-white/5 shrink-0 overflow-hidden relative">
             <div className="absolute inset-0 bg-indigo-500/5" />
             <div className="relative flex w-full">
               {[
@@ -1129,7 +1005,6 @@ export function IngestionHub({
           ciscoSyncedConfigs={ciscoSyncedConfigs}
           manualBOMStatus={manualBOMStatus}
           manualUploadedFiles={manualUploadedFiles}
-          portfolioTraceLogs={portfolioTraceLogs}
           onStartPortfolioPipeline={handleStartPortfolioPipeline}
           onSimulateManualUpload={simulateManualUpload}
           onAdvanceStep={advanceStep}

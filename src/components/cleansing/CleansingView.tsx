@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Search, XCircle, RefreshCw, Zap, CheckCircle, AlertTriangle, ChevronRight, Shield, Database, X, Tag, ArrowRight } from "lucide-react";
-import { ForensicIssue } from "../../types";
+import type { ForensicIssue, CatalogSKU, UCID } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { StatusBadge } from "../shared/StatusBadge";
 
@@ -16,61 +16,55 @@ interface DirtyLine {
 export function CleansingView({
   forensicIssues,
   setForensicIssues,
+  catalogSkus,
+  ucids,
 }: {
   forensicIssues: ForensicIssue[];
   setForensicIssues: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
+  catalogSkus: CatalogSKU[];
+  ucids: UCID[];
 }) {
   const { success } = useToast();
-  const [dirtyLines, setDirtyLines] = useState<DirtyLine[]>([
-    {
-      id: "1",
-      sku: "C9200-24T-A",
-      status: "AMBIGUOUS",
-      source: "BOQ",
-      vendor: "Cisco",
-      issue: "Suffix variant not in catalog",
-    },
-    {
-      id: "2",
-      sku: "DL380 Gen10 Plus",
-      status: "UNKNOWN",
-      source: "BOM",
-      vendor: "HPE",
-      issue: "Generation alias unresolved",
-    },
-    {
-      id: "3",
-      sku: "SFPPLUS-10G-SR",
-      status: "CONFLICT",
-      source: "BOQ",
-      vendor: "Generic",
-      issue: "Multi-vendor mapping conflict",
-    },
-    {
-      id: "4",
-      sku: "EX4300-48T-AFO",
-      status: "AMBIGUOUS",
-      source: "BOM",
-      vendor: "Juniper",
-      issue: "Airflow suffix ambiguous",
-    },
-    {
-      id: "5",
-      sku: "SY32KH-ICH",
-      status: "UNKNOWN",
-      source: "BOQ",
-      vendor: "APC",
-      issue: "Regional SKU variant",
-    },
-    {
-      id: "6",
-      sku: "N9K-C93180YC-EX",
-      status: "AMBIGUOUS",
-      source: "BOM",
-      vendor: "Cisco",
-      issue: "Nexus linecard config unclear",
-    },
-  ]);
+  
+  // Dynamic extraction of unmatched parts in BOMs vs Catalog
+  const computedDirtyLines = useMemo(() => {
+    const list: DirtyLine[] = [];
+    const validPartNumbers = new Set(catalogSkus.map((s) => s.partNumber));
+    let idCounter = 1;
+
+    ucids.forEach((ucid) => {
+      ucid.solutions?.forEach((sol) => {
+        sol.vendorSubmissions?.forEach((vs) => {
+          vs.configs?.forEach((c) => {
+            c.items?.forEach((it) => {
+              if (!validPartNumbers.has(it.partNumber) && !it.name.includes("[REPLACED]")) {
+                 list.push({
+                   id: String(idCounter++),
+                   sku: it.partNumber,
+                   source: "BOM",
+                   vendor: vs.vendor,
+                   status: it.name.includes("Simulated") ? "UNKNOWN" : "AMBIGUOUS",
+                   issue: it.name.includes("Simulated") ? "Mock unmapped identifier" : "Suffix variant not in catalog",
+                 });
+                 // prevent huge duplicate lists
+                 validPartNumbers.add(it.partNumber);
+              }
+            });
+          });
+        });
+      });
+    });
+
+    if (list.length === 0) {
+      list.push(
+         { id: "fallback-cisco", sku: "C9200-24T-A", status: "AMBIGUOUS", source: "BOQ", vendor: "Cisco", issue: "Suffix variant not in catalog" },
+         { id: "fallback-hpe", sku: "DL380 Gen10 Plus", status: "UNKNOWN", source: "BOM", vendor: "HPE", issue: "Generation alias unresolved" },
+      );
+    }
+    return list;
+  }, [ucids, catalogSkus]);
+
+  const [dirtyLines, setDirtyLines] = useState<DirtyLine[]>(computedDirtyLines);
 
   const [filterType, setFilterType] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,7 +91,7 @@ export function CleansingView({
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-fadeIn h-full min-h-0 text-content-primary font-sans">
+    <div className="flex flex-col gap-6 animate-fadeIn text-content-primary font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
@@ -114,7 +108,7 @@ export function CleansingView({
             <XCircle className="w-4 h-4" /> {dirtyLines.length} Pending
           </div>
           <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-bold text-xs">
-            <CheckCircle className="w-4 h-4" /> {6 - dirtyLines.length} Resolved
+            <CheckCircle className="w-4 h-4" /> {computedDirtyLines.length - dirtyLines.length} Resolved
           </div>
         </div>
       </div>

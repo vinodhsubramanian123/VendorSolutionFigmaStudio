@@ -31,7 +31,7 @@ export function BreadcrumbNav({
   };
 
   const activeMission =
-    (view === "live-mission" || view === "taxonomy") && activeMissionId
+    view === "live-mission" && activeMissionId
       ? ucids.find((u) => u.id === activeMissionId)
       : null;
 

@@ -17,9 +17,11 @@ The React application is structurally complete. It operates around the `App.tsx`
 
 ### State Management Rules
 
-1. **Top-Level Ownership**: The state of `ucids`, `vendors`, `catalogSkus`, `forensicIssues` is currently owned by `App.tsx`.
-2. **Immutability Strictness**: Arrays and nested structures (like `Solution` -> `VendorSubmission` -> `Config`) must be updated via clean React immutability patterns (e.g. `map`, `spread`). Never mutate nested properties in place.
-3. **Synchronous Propagation**: Prop drilling is utilized due to the lack of Redux/Zustand. All state setters trigger synchronous topological cascading updates to children.
+1. **Top-Level Ownership**: The state of `ucids`, `vendors`, `catalogSkus`, `forensicIssues` is fully centralized and owned by `App.tsx`. 
+2. **True Global Weld (Phase 1)**: The core modules (`ReconciliationView`, `SolutionBuilder`, `TaxonomyGraphEditor`, `ForensicView`) are deeply welded to the primary state loop in `App.tsx`. They rely entirely on `ucids` and standard props.
+3. **Immutability Strictness**: Arrays and nested structures (like `Solution` -> `VendorSubmission` -> `Config`) must be updated via clean React immutability patterns (e.g. `map`, `spread`). Never mutate nested properties in place.
+4. **Synchronous Propagation & Auto-Heal**: All state setters trigger synchronous topological cascading updates to children. The `Forensic Auto-Heal Hook` acts as a listener, guaranteeing automated issue resolution globally upon detecting healthy metric repairs.
+5. **Zero-State Handling & Visual Brilliance**: All screens support fallback "Zero-States" (empty states) smoothly without generic loading spinners. Deeply nested tables have visually scaled tabular structures, fixed clipping constraints, and framer-motion list-addition flourishes (Phase 4).
 
 ## 2. API Contracts & Payload Specifications
 

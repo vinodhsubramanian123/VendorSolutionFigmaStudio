@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
@@ -16,7 +16,6 @@ import { SearchView } from "./components/search/SearchView";
 import { ReconciliationView } from "./components/reconciliation/ReconciliationView";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { DataPersistenceGate } from "./components/shared/DataPersistenceGate";
-import { StateConsistencyMonitor } from "./components/shared/StateConsistencyMonitor";
 import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import type { AppView } from "./types";
@@ -56,6 +55,68 @@ export default function App() {
     "sys_forensic_issues",
     INITIAL_ISSUES,
   );
+
+  // Phase 3: The Forensic Auto-Heal Hook
+  useEffect(() => {
+    // EOL Risk
+    const globalHasEol = ucids.some((u) =>
+      u.solutions?.some((sol) =>
+        sol.vendorSubmissions?.some((vs) =>
+          vs.configs?.some((c) =>
+            c.items?.some((it) => it.partNumber === "815100-B21")
+          )
+        )
+      )
+    );
+
+    // Price Variance
+    const globalHasPriceRisk = ucids.some((u) =>
+      u.solutions?.some((sol) =>
+        sol.vendorSubmissions?.some((vs) =>
+          vs.configs?.some((c) =>
+            c.items?.some((it) => it.partNumber === "400-BPSB" && it.unitPrice > 1190)
+          )
+        )
+      )
+    );
+
+    // Cisco Memory Symmetry
+    const globalHasCiscoRisk = ucids.some((u) =>
+      u.solutions?.some((sol) =>
+        sol.vendorSubmissions?.some((vs) =>
+          vs.vendor === "Cisco" &&
+          vs.configs?.some((c) =>
+            c.items?.some((it) => it.type === "Memory" && it.quantity % 8 !== 0)
+          )
+        )
+      )
+    );
+    
+    // Juniper API state
+    const globalHasJuniperIssue = vendors.some((v) => v.shortName === "Juniper" && v.status === "error");
+
+    setForensicIssues((prev) => {
+      let changed = false;
+      const next = prev.map(issue => {
+        let isResolved = false;
+        if (issue.id === 'iss-1') isResolved = !globalHasEol;
+        if (issue.id === 'iss-2') isResolved = !globalHasPriceRisk;
+        if (issue.id === 'iss-3') isResolved = !globalHasCiscoRisk;
+        if (issue.id === 'iss-4') isResolved = !globalHasJuniperIssue;
+
+        if (isResolved && issue.status !== 'resolved') {
+          changed = true;
+          return { ...issue, status: 'resolved' as const };
+        } else if (!isResolved && issue.status === 'resolved') {
+          changed = true;
+          return { ...issue, status: 'open' as const };
+        }
+        return issue;
+      });
+      return changed ? next : prev;
+    });
+
+  }, [ucids, vendors, setForensicIssues]);
 
   // Central Application-Wide State for Pending API Calls
   const [isPendingAPI, setIsPendingAPI] = useState(false);
@@ -117,17 +178,19 @@ export default function App() {
               Clear Central Search
             </button>
           </div>
-          <SearchView
-            query={searchQuery}
-            ucids={ucids}
-            vendors={vendors}
-            catalogSkus={catalogSkus}
-            onNavigate={(newView) => {
-              setSearchQuery("");
-              setView(newView);
-            }}
-            onSelectMission={handleSelectMission}
-          />
+          <ErrorBoundary>
+            <SearchView
+              query={searchQuery}
+              ucids={ucids}
+              vendors={vendors}
+              catalogSkus={catalogSkus}
+              onNavigate={(newView) => {
+                setSearchQuery("");
+                setView(newView);
+              }}
+              onSelectMission={handleSelectMission}
+            />
+          </ErrorBoundary>
         </div>
       );
     }
@@ -135,126 +198,162 @@ export default function App() {
     switch (view) {
       case "dashboard":
         return (
-          <Dashboard
-            onNavigate={setView}
-            ucids={ucids}
-            vendors={vendors}
-            forensicIssues={forensicIssues}
-          />
+          <ErrorBoundary>
+            <Dashboard
+              onNavigate={setView}
+              ucids={ucids}
+              vendors={vendors}
+              forensicIssues={forensicIssues}
+            />
+          </ErrorBoundary>
         );
       case "ingestion-hub":
         return (
-          <IngestionHub
-            ucids={ucids}
-            setUcids={setUcids}
-            onNavigate={setView}
-            onSelectMission={handleSelectMission}
-            isPendingAPI={isPendingAPI}
-            setIsPendingAPI={setIsPendingAPI}
-            pendingAPIMessage={pendingAPIMessage}
-            setPendingAPIMessage={setPendingAPIMessage}
-            setApiProgress={setApiProgress}
-          />
+          <ErrorBoundary>
+            <IngestionHub
+              ucids={ucids}
+              setUcids={setUcids}
+              onNavigate={setView}
+              onSelectMission={handleSelectMission}
+              isPendingAPI={isPendingAPI}
+              setIsPendingAPI={setIsPendingAPI}
+              pendingAPIMessage={pendingAPIMessage}
+              setPendingAPIMessage={setPendingAPIMessage}
+              setApiProgress={setApiProgress}
+            />
+          </ErrorBoundary>
         );
       case "live-mission":
         return (
-          <LiveMission
-            selectedId={activeMissionId}
-            onSelectId={setActiveMissionId}
-            ucids={ucids}
-            setUcids={setUcids}
-            deployedSolution={deployedSolution}
-            setDeployedSolution={setDeployedSolution}
-          />
+          <ErrorBoundary>
+            <LiveMission
+              selectedId={activeMissionId}
+              onSelectId={setActiveMissionId}
+              ucids={ucids}
+              setUcids={setUcids}
+              deployedSolution={deployedSolution}
+              setDeployedSolution={setDeployedSolution}
+            />
+          </ErrorBoundary>
         );
       case "catalog":
         return (
-          <CatalogManager
-            catalogSkus={catalogSkus}
-            setCatalogSkus={setCatalogSkus}
-            vendors={vendors}
-          />
+          <ErrorBoundary>
+            <CatalogManager
+              catalogSkus={catalogSkus}
+              setCatalogSkus={setCatalogSkus}
+              vendors={vendors}
+            />
+          </ErrorBoundary>
         );
       case "vendor-portal":
         return (
-          <VendorPortal
-            vendors={vendors}
-            setVendors={setVendors}
-            ucids={ucids}
-            setUcids={setUcids}
-          />
+          <ErrorBoundary>
+            <VendorPortal
+              vendors={vendors}
+              setVendors={setVendors}
+              ucids={ucids}
+              setUcids={setUcids}
+            />
+          </ErrorBoundary>
         );
       case "forensic":
         return (
-          <ForensicView
-            forensicIssues={forensicIssues}
-            setForensicIssues={setForensicIssues}
-            setVendors={setVendors}
-            setCatalogSkus={setCatalogSkus}
-            ucids={ucids}
-            setUcids={setUcids}
-            activeMissionId={activeMissionId}
-            setActiveMissionId={setActiveMissionId}
-            onNavigate={setView}
-          />
+          <ErrorBoundary>
+            <ForensicView
+              forensicIssues={forensicIssues}
+              setForensicIssues={setForensicIssues}
+              setVendors={setVendors}
+              setCatalogSkus={setCatalogSkus}
+              ucids={ucids}
+              setUcids={setUcids}
+              activeMissionId={activeMissionId}
+              setActiveMissionId={setActiveMissionId}
+              onNavigate={setView}
+            />
+          </ErrorBoundary>
         );
       case "reports":
         return (
-          <ReportsView
-            ucids={ucids}
-            setUcids={setUcids}
-            vendors={vendors}
-            setVendors={setVendors}
-            catalogSkus={catalogSkus}
-          />
+          <ErrorBoundary>
+            <ReportsView
+              ucids={ucids}
+              setUcids={setUcids}
+              vendors={vendors}
+              setVendors={setVendors}
+              catalogSkus={catalogSkus}
+            />
+          </ErrorBoundary>
         );
       case "cleansing":
         return (
-          <CleansingView
-            forensicIssues={forensicIssues}
-            setForensicIssues={setForensicIssues}
-          />
+          <ErrorBoundary>
+            <CleansingView
+              forensicIssues={forensicIssues}
+              setForensicIssues={setForensicIssues}
+              catalogSkus={catalogSkus}
+              ucids={ucids}
+            />
+          </ErrorBoundary>
         );
       case "taxonomy":
         return (
-          <TaxonomyGraphEditor
-            ucids={ucids}
-            setUcids={setUcids}
-            activeMissionId={activeMissionId}
-            setActiveMissionId={setActiveMissionId}
-          />
+          <ErrorBoundary>
+            <TaxonomyGraphEditor
+              ucids={ucids}
+              setUcids={setUcids}
+              catalogSkus={catalogSkus}
+              setCatalogSkus={setCatalogSkus}
+              activeMissionId={activeMissionId}
+              setActiveMissionId={setActiveMissionId}
+            />
+          </ErrorBoundary>
         );
       case "solution-builder":
         return (
-          <SolutionBuilder
-            ucids={ucids}
-            setUcids={setUcids}
-            onNavigate={setView}
-            setDeployedSolution={setDeployedSolution}
-            onSelectMission={handleSelectMission}
-          />
+          <ErrorBoundary>
+            <SolutionBuilder
+              ucids={ucids}
+              setUcids={setUcids}
+              onNavigate={setView}
+              setDeployedSolution={setDeployedSolution}
+              onSelectMission={handleSelectMission}
+            />
+          </ErrorBoundary>
         );
       case "reconciliation":
-        return <ReconciliationView />;
+        return (
+          <ErrorBoundary>
+            <ReconciliationView
+              ucids={ucids}
+              setUcids={setUcids}
+              catalogSkus={catalogSkus}
+            />
+          </ErrorBoundary>
+        );
       case "search":
         return (
-          <SearchView
-            query=""
-            ucids={ucids}
-            vendors={vendors}
-            catalogSkus={catalogSkus}
-            onNavigate={handleNavigate}
-            onSelectMission={handleSelectMission}
-          />
+          <ErrorBoundary>
+            <SearchView
+              query=""
+              ucids={ucids}
+              vendors={vendors}
+              catalogSkus={catalogSkus}
+              onNavigate={handleNavigate}
+              onSelectMission={handleSelectMission}
+            />
+          </ErrorBoundary>
         );
       default:
         return (
-          <Dashboard
-            onNavigate={setView}
-            ucids={ucids}
-            vendors={vendors}
-            forensicIssues={forensicIssues}
-          />
+          <ErrorBoundary>
+            <Dashboard
+              onNavigate={setView}
+              ucids={ucids}
+              vendors={vendors}
+              forensicIssues={forensicIssues}
+            />
+          </ErrorBoundary>
         );
     }
   }
@@ -287,8 +386,8 @@ export default function App() {
           isPendingAPI={isPendingAPI}
         />
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 shrink-0 min-h-0">
-          <div className="max-w-7xl mx-auto flex flex-col min-h-full h-full">
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 shrink-0">
+          <div className="w-full flex flex-col min-h-full">
             <BreadcrumbNav
               view={view}
               activeMissionId={activeMissionId}
@@ -296,11 +395,6 @@ export default function App() {
               onNavigate={handleNavigate}
             />
             <ErrorBoundary>
-              <StateConsistencyMonitor
-                ucids={ucids}
-                vendors={vendors}
-                catalogSkus={catalogSkus}
-              />
               <DataPersistenceGate
                 ucids={ucids}
                 vendors={vendors}

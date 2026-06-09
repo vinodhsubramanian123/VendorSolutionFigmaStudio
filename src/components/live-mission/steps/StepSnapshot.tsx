@@ -17,9 +17,9 @@ export function StepSnapshot({
 }: StepSnapshotProps) {
   return (
     <div className="space-y-4">
-      <div className="p-4 border border-[#00d4a0]/20 bg-[#00d4a0]/5 rounded-xl space-y-3">
+      <div className="p-4 border border-status-success/20 bg-status-success/5 rounded-xl space-y-3">
         <div className="flex items-center gap-2.5 text-left">
-          <div className="w-8 h-8 rounded-full bg-[#00d4a0]/10 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-status-success/10 flex items-center justify-center">
             <CheckCircle className="w-5 h-5 text-status-success" />
           </div>
           <div>
@@ -32,7 +32,7 @@ export function StepSnapshot({
           </div>
         </div>
 
-        <div className="border-t pt-3 space-y-2 border-[#00d4a0]/10 text-left">
+        <div className="border-t pt-3 space-y-2 border-status-success/10 text-left">
           {ucid.snapshots.map((snap) => (
             <div
               key={snap.id}
@@ -198,7 +198,7 @@ export function StepSnapshot({
 
               const auditTrail =
                 `------------------------------------------------------------------------\n` +
-                `2. INTEGRITY VERIFICATION LOG & TELEMETRY REGISTRY EVENTS:\n\n` +
+                `2. INTEGRITY VERIFICATION LOG & AUDIT EVENTS:\n\n` +
                 (ucid.events && ucid.events.length > 0
                   ? ucid.events
                       .map(

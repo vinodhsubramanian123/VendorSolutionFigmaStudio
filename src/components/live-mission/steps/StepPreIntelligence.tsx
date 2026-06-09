@@ -38,7 +38,7 @@ export function StepPreIntelligence({
           </span>
         </div>
       ) : (ucid.solutions[0]?.vendorSubmissions?.length ?? 0) > 0 ? (
-        <div className="p-3 border rounded-lg border-[#00d4a0]/20 bg-[#00d4a0]/5 flex items-center justify-between">
+        <div className="p-3 border rounded-lg border-status-success/20 bg-status-success/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-status-success" />
             <div className="text-left">

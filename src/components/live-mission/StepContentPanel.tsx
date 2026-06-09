@@ -7,6 +7,7 @@ import {
 } from "../../types";
 import { StepBoqIntake } from "./steps/StepBoqIntake";
 import { StepPreIntelligence } from "./steps/StepPreIntelligence";
+import { StepSolutionDesign } from "./steps/StepSolutionDesign";
 import { StepVendorProvisioning } from "./steps/StepVendorProvisioning";
 import { StepPostIntelligence } from "./steps/StepPostIntelligence";
 import { StepComparison } from "./steps/StepComparison";

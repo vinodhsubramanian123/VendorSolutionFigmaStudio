@@ -56,7 +56,7 @@ export function SolutionConfigCard({
     });
   }
 
-  const allItems = submission.configs.flatMap((c) => c.items);
+  const allItems = (submission.configs || []).flatMap((c) => c.items);
 
   return (
     <div className="p-4 rounded-xl border flex flex-col gap-3 bg-surface-card border-indigo-500/10">
@@ -65,7 +65,7 @@ export function SolutionConfigCard({
           <Layers className="w-3.5 h-3.5 text-indigo-400" /> Alternative{" "}
           {index === 0 ? "A" : "B"} ({submission.vendor})
         </span>
-        <span className="text-[10px] font-bold text-status-success bg-[#00d4a0]/10 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] font-bold text-status-success bg-status-success/10 px-2 py-0.5 rounded-full">
           {submission.complianceScore}% compliant
         </span>
       </div>

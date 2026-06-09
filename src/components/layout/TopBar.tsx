@@ -70,7 +70,7 @@ export function TopBar({
       className="relative h-16 px-6 border-b flex items-center justify-between shrink-0 select-none"
       style={{
         backgroundColor: "#090d19",
-        borderColor: "rgba(74,133,253,0.1)",
+        borderColor: "rgba(74, 133, 253,0.1)",
       }}
     >
       {/* View Title */}
@@ -106,14 +106,14 @@ export function TopBar({
             placeholder="Search SKUs, vendors, processes..."
             className="w-full h-9 pl-9 pr-8 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 border transition-all"
             style={{
-              backgroundColor: "rgba(74,133,253,0.03)",
-              borderColor: "rgba(74,133,253,0.12)",
+              backgroundColor: "rgba(74, 133, 253,0.03)",
+              borderColor: "rgba(74, 133, 253,0.12)",
             }}
           />
           <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none">
             <div
               className="px-1.5 py-0.5 rounded text-[9px] font-mono border text-gray-600 bg-white/2"
-              style={{ borderColor: "rgba(74,133,253,0.08)" }}
+              style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
             >
               ⌘K
             </div>
@@ -124,8 +124,8 @@ export function TopBar({
         <div
           className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-gray-400 font-mono text-[10px]"
           style={{
-            backgroundColor: "rgba(74,133,253,0.02)",
-            borderColor: "rgba(74,133,253,0.08)",
+            backgroundColor: "rgba(74, 133, 253,0.02)",
+            borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
           <Clock className="w-3.5 h-3.5 text-indigo-400" />
@@ -153,7 +153,7 @@ export function TopBar({
         {/* User Badge */}
         <div
           className="flex items-center gap-2.5 pl-2 border-l"
-          style={{ borderColor: "rgba(74,133,253,0.1)" }}
+          style={{ borderColor: "rgba(74, 133, 253,0.1)" }}
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white bg-indigo-500/15 border border-indigo-500/30">
             <User className="w-4 h-4 text-indigo-300" />

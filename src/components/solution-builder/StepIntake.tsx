@@ -172,7 +172,7 @@ export function StepIntake({
                   </p>
                   <button
                     type="button"
-                    className="mt-2 px-3 py-1.5 bg-[#0f172a] hover:bg-black/40 text-gray-300 font-medium rounded-lg text-[10px] border border-white/10"
+                    className="mt-2 px-3 py-1.5 bg-surface-elevated hover:bg-black/40 text-gray-300 font-medium rounded-lg text-[10px] border border-white/10"
                   >
                     Select File
                   </button>
@@ -200,7 +200,7 @@ export function StepIntake({
             </div>
             <button
               onClick={onProceed}
-              className="px-5 py-2.5 rounded-lg bg-[#0f172a] hover:bg-[#131d35] text-indigo-400 font-bold border border-indigo-500/20 hover:border-indigo-500/40 cursor-pointer transition flex items-center gap-1.5 focus:outline-none text-[10px]"
+              className="px-5 py-2.5 rounded-lg bg-surface-elevated hover:bg-[#131d35] text-indigo-400 font-bold border border-indigo-500/20 hover:border-indigo-500/40 cursor-pointer transition flex items-center gap-1.5 focus:outline-none text-[10px]"
             >
               <span>Proceed to Assignment Map (Step 2)</span>
               <ArrowRight className="w-4 h-4" />
@@ -290,102 +290,6 @@ export function StepIntake({
         </div>
 
         {/* Interactive Schema Inspector Panel */}
-        <div className="bg-surface-elevated border border-indigo-500/10 rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4.5 h-4.5 text-yellow-400" />
-            <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">
-              🤖 Agent & DB Contract Spec
-            </h4>
-          </div>
-
-          <p className="text-gray-500 text-[11px] leading-normal">
-            Click schemas to inspect active PostgreSQL / Spanner JSON
-            contracts mapping visual components to background automated
-            workers.
-          </p>
-
-          {/* Accordion Tabs for Schema definitions */}
-          <div className="space-y-2 border-t border-white/5 pt-3">
-            <details className="group border border-white/5 rounded-lg bg-black/25 overflow-hidden">
-              <summary className="p-2 text-[10px] font-bold text-gray-300 font-mono flex items-center justify-between cursor-pointer hover:bg-white/2">
-                <span>1. UCID COMPILING CONTRACT</span>
-                <span className="text-indigo-400 text-[9px] group-open:rotate-180 transition">
-                  &#9662;
-                </span>
-              </summary>
-              <pre className="p-2.5 bg-black/60 font-mono text-[9px] text-status-success border-t border-white/5 overflow-x-auto leading-relaxed">
-                {`interface UCID {
-  id: string; // Hash UUID
-  displayId: string; // "UCID-2026-0041"
-  name: string; // "Scale-Out Compute"
-  priority: 'critical'|'high'|'medium';
-  solutions: Solution[]; 
-  events: LogEvent[]; // Telemetry
-}`}
-              </pre>
-            </details>
-
-            <details className="group border border-white/5 rounded-lg bg-black/25 overflow-hidden">
-              <summary className="p-2 text-[10px] font-bold text-gray-300 font-mono flex items-center justify-between cursor-pointer hover:bg-white/2">
-                <span>2. WORKWORK SHEETS & AUDITS</span>
-                <span className="text-indigo-400 text-[9px] group-open:rotate-180 transition">
-                  &#9662;
-                </span>
-              </summary>
-              <div className="p-2.5 bg-black/60 font-mono text-[9.5px] text-gray-400 border-t border-white/5 space-y-2 leading-relaxed">
-                <p className="text-yellow-400 font-bold">
-                  Matched Critical Rule validations during extraction:
-                </p>
-                <div className="p-1.5 bg-red-500/10 border border-red-500/20 rounded">
-                  <span className="text-status-error font-bold">
-                    Rule 1 (EOL Risk Check):
-                  </span>
-                  <p className="text-[9px] text-gray-300 mt-0.5">
-                    Scans SKU{" "}
-                    <code className="text-white bg-black/30 px-1 font-mono">
-                      815100-B21
-                    </code>{" "}
-                    to flag status{" "}
-                    <code className="text-white bg-black/30 px-1 font-mono">
-                      'eol'
-                    </code>{" "}
-                    and replace with Intel Xeon 6430
-                  </p>
-                </div>
-                <div className="p-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded">
-                  <span className="text-status-warning font-bold">
-                    Rule 2 (Contract Rate Variance):
-                  </span>
-                  <p className="text-[9px] text-gray-300 mt-0.5">
-                    Scans SKU{" "}
-                    <code className="text-white bg-black/30 px-1 font-mono">
-                      400-BPSB
-                    </code>{" "}
-                    Dell Drive to verify raw quote pricing against API list
-                    price ($1,190 contract vs $1,590 listed).
-                  </p>
-                </div>
-              </div>
-            </details>
-
-            <details className="group border border-white/5 rounded-lg bg-black/25 overflow-hidden">
-              <summary className="p-2 text-[10px] font-bold text-gray-300 font-mono flex items-center justify-between cursor-pointer hover:bg-white/2">
-                <span>3. PLAYWRIGHT CRAWLER API</span>
-                <span className="text-indigo-400 text-[9px] group-open:rotate-180 transition">
-                  &#9662;
-                </span>
-              </summary>
-              <pre className="p-2.5 bg-black/60 font-mono text-[9px] text-purple-400 border-t border-white/5 overflow-x-auto leading-relaxed">
-                {`interface PlaywrightAgentConfig {
-  targetUrl: string;
-  headless: boolean;
-  timeoutMs: number;
-  proxyRotation: boolean;
-}`}
-              </pre>
-            </details>
-          </div>
-        </div>
       </div>
     </div>
   );

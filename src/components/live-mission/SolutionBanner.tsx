@@ -23,7 +23,7 @@ export function SolutionBanner({
   onClearDeployed,
 }: SolutionBannerProps) {
   const currentTotalCommitted = ucids
-    .flatMap((u) => u.snapshots)
+    .flatMap((u) => u.snapshots || [])
     .reduce((sum, sn) => sum + sn.totalValue, 0);
 
   const stateCfg = {
@@ -36,8 +36,8 @@ export function SolutionBanner({
     },
     active: {
       color: "#4a85fd",
-      bg: "rgba(74,133,253,0.1)",
-      border: "rgba(74,133,253,0.25)",
+      bg: "rgba(74, 133, 253,0.1)",
+      border: "rgba(74, 133, 253,0.25)",
       label: "Active Pipeline",
       dot: "#4a85fd",
     },

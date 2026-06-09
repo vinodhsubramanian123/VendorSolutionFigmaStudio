@@ -31,7 +31,7 @@ export function LiveMissionSidebar({
   getSolutionName,
 }: LiveMissionSidebarProps) {
   return (
-    <div className="xl:col-span-1 flex flex-col gap-3 min-h-0">
+    <div className="xl:col-span-1 flex flex-col gap-3">
       {/* Mapping Hierarchy Clarity Panel */}
       <div className="p-3 bg-gradient-to-b from-[#0e1629] to-[#090e1b] border border-indigo-500/20 rounded-xl space-y-2.5 shadow-xl">
         <div className="flex items-center justify-between border-b border-indigo-500/10 pb-2">
@@ -130,7 +130,7 @@ export function LiveMissionSidebar({
             </div>
           </div>
         ) : (
-          <div className="space-y-2.5 text-[10px] text-gray-400 max-h-56 overflow-y-auto pr-0.5">
+          <div className="space-y-2.5 text-[10px] text-gray-400 pr-0.5">
             <div className="space-y-1">
               <p className="text-white font-semibold flex items-center gap-1 text-[10.5px]">
                 <span className="text-indigo-400">Q:</span> Did I upload 4
@@ -189,7 +189,7 @@ export function LiveMissionSidebar({
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
+      <div className="pr-1 space-y-4">
         {Object.entries(groupedUcids).map(([solutionGroup, groupItems]) => {
           return (
             <div
@@ -254,13 +254,13 @@ export function LiveMissionSidebar({
                       className="w-full text-left p-3 rounded-lg border transition-all duration-200 block cursor-pointer"
                       style={{
                         backgroundColor: isSelected
-                          ? "rgba(74,133,253,0.12)"
+                          ? "rgba(74, 133, 253,0.12)"
                           : "#070a13",
                         borderColor: isSelected
-                          ? "rgba(74,133,253,0.45)"
+                          ? "rgba(74, 133, 253,0.45)"
                           : isDone
                             ? "rgba(0,212,160,0.15)"
-                            : "rgba(74,133,253,0.06)",
+                            : "rgba(74, 133, 253,0.06)",
                       }}
                     >
                       <div className="flex items-center justify-between mb-1.5">
@@ -295,7 +295,7 @@ export function LiveMissionSidebar({
 
                       <div
                         className="w-full h-1 mt-2 rounded-full overflow-hidden"
-                        style={{ backgroundColor: "rgba(74,133,253,0.08)" }}
+                        style={{ backgroundColor: "rgba(74, 133, 253,0.08)" }}
                       >
                         <div
                           className="h-full rounded-full transition-all duration-500"
@@ -337,9 +337,9 @@ export function LiveMissionSidebar({
                                   key={sol.id}
                                   className={`flex-1 h-1 rounded transition-all duration-300 relative ${
                                     isActive
-                                      ? "bg-indigo-500 shadow-[0_0_8px_rgba(74,133,253,0.6)] animate-pulse"
+                                      ? "bg-indigo-500 shadow-[0_0_8px_rgba(74, 133, 253,0.6)] animate-pulse"
                                       : isCompleted
-                                        ? "bg-[#00d4a0]"
+                                        ? "bg-status-success"
                                         : "bg-gray-800"
                                   }`}
                                   title={`${sol.name} (Value: $${sol.vendorSubmissions?.[0]?.totalPrice?.toLocaleString()})`}

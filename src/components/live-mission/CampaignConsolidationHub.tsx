@@ -35,24 +35,24 @@ export function CampaignConsolidationHub({
   const isLocked = !!campaignLocked[campaignName];
 
   // Calculations
-  const totalOriginalBudget = campaignUcids.reduce((sum, u) => {
+  const totalOriginalBudget = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.originalPrice ?? 0);
-  }, 0);
+  }, 0), [campaignUcids]);
 
-  const totalSourcedBudget = campaignUcids.reduce((sum, u) => {
+  const totalSourcedBudget = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
-  }, 0);
+  }, 0), [campaignUcids]);
 
   const totalSavings = totalOriginalBudget - totalSourcedBudget;
 
-  const totalCommittedValue = campaignUcids
-    .flatMap((u) => u.snapshots)
-    .reduce((sum, sn) => sum + sn.totalValue, 0);
+  const totalCommittedValue = React.useMemo(() => campaignUcids
+    .flatMap((u) => u.snapshots || [])
+    .reduce((sum, sn) => sum + sn.totalValue, 0), [campaignUcids]);
 
   // Status metrics
-  const completedPipes = campaignUcids.filter(
+  const completedPipes = React.useMemo(() => campaignUcids.filter(
     (u) => u.currentStep === "snapshot",
-  ).length;
+  ).length, [campaignUcids]);
 
   // Sourcing strategies
   function handleApplyBestOfBreed() {
@@ -189,7 +189,7 @@ export function CampaignConsolidationHub({
   }
 
   // Calculate homogenous totals of campaign portfolio
-  const hpeTotal = campaignUcids.reduce((sum, u) => {
+  const hpeTotal = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     const s =
       u.solutions.find((x) =>
         x?.vendorSubmissions?.some((v) => v.vendor === "HPE"),
@@ -198,9 +198,9 @@ export function CampaignConsolidationHub({
       s?.vendorSubmissions?.find((v) => v.vendor === "HPE") ??
       s?.vendorSubmissions?.[0];
     return sum + (sub?.totalPrice ?? 0);
-  }, 0);
+  }, 0), [campaignUcids]);
 
-  const dellTotal = campaignUcids.reduce((sum, u) => {
+  const dellTotal = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     const s =
       u.solutions.find((x) =>
         x?.vendorSubmissions?.some((v) => v.vendor === "Dell"),
@@ -209,16 +209,28 @@ export function CampaignConsolidationHub({
       s?.vendorSubmissions?.find((v) => v.vendor === "Dell") ??
       s?.vendorSubmissions?.[0];
     return sum + (sub?.totalPrice ?? 0);
-  }, 0);
+  }, 0), [campaignUcids]);
 
-  const bestBreedTotal = campaignUcids.reduce((sum, u) => {
+  const bestBreedTotal = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     const cheaps = [...u.solutions].sort((a, b) => {
       const ap = a?.vendorSubmissions?.[0]?.totalPrice ?? 0;
       const bp = b?.vendorSubmissions?.[0]?.totalPrice ?? 0;
       return ap - bp;
     });
     return sum + (cheaps[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
-  }, 0);
+  }, 0), [campaignUcids]);
+
+  if (campaignUcids.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center bg-surface-card border border-white/5 rounded-xl h-full min-h-[400px]">
+        <Layers className="w-12 h-12 text-indigo-500/30 mb-4" />
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider">No Active Campaigns</h3>
+        <p className="text-xs text-gray-500 mt-2 max-w-md leading-relaxed">
+          There are currently no active spreadsheet pipelines assigned to this campaign portfolio. Ingest configurations via the Hub to activate the consolidation ledger.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -277,7 +289,7 @@ export function CampaignConsolidationHub({
               ${totalSourcedBudget.toLocaleString()}
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-[#00d4a0]/5 border border-[#00d4a0]/10">
+          <div className="p-3 rounded-lg bg-status-success/5 border border-status-success/10">
             <p className="text-[9px] text-status-success font-bold uppercase font-mono">
               Consolidation Delta Savings
             </p>
@@ -331,7 +343,7 @@ export function CampaignConsolidationHub({
           </div>
 
           {/* HPE Homogenous Sourcing */}
-          <div className="p-3.5 rounded-xl border border-[#00d4a0]/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
+          <div className="p-3.5 rounded-xl border border-status-success/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
             <div className="space-y-1">
               <StatusBadge status="Single Sponsor (HPE)" variant="success" />
               <h5 className="text-xs font-bold text-white mt-1">
