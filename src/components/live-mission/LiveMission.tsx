@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Activity,
   GitCompare,
@@ -6,6 +6,7 @@ import {
   AlertCircle,
   SkipForward,
   Rocket,
+  Loader2,
 } from "lucide-react";
 import type { UCID, UCIDStep, Solution, Snapshot } from "../../types";
 import { STEP_ORDER } from "../../lib/mockData";
@@ -22,6 +23,7 @@ import { UCIDEventLedger } from "./UCIDEventLedger";
 
 import { generateDefaultSolutions } from "../../lib/demoDataBuilder";
 import { PRIORITY_COLOR } from "../../lib/constants";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 interface LiveMissionProps {
   selectedId?: string;
@@ -54,6 +56,13 @@ export function LiveMission({
     message: string;
     type: "success" | "warn" | "error";
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [viewStep, setViewStep] = useState<UCIDStep | null>(null);
   const [runningIntel, setRunningIntel] = useState<string | null>(null);
   const [intelProgress, setIntelProgress] = useState(0);
@@ -103,27 +112,37 @@ export function LiveMission({
     return groups;
   }, [ucids]);
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
   // Default to first UCID if none selected or if selected is not found
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
 
   if (!selected) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] border border-dashed border-brand-indigo/15 bg-surface-elevated/50 rounded-xl m-6">
-        <div className="w-16 h-16 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-6 border border-brand-indigo/20">
-          <Rocket className="w-8 h-8 text-brand-indigo" />
+      <ErrorBoundary>
+        <div className="flex flex-col items-center justify-center h-full min-h-[400px] border border-dashed border-brand-indigo/15 bg-surface-elevated/50 rounded-xl m-6">
+          <div className="w-16 h-16 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-6 border border-brand-indigo/20">
+            <Rocket className="w-8 h-8 text-brand-indigo" />
+          </div>
+          <h2 className="text-xl font-bold text-content-primary mb-2">No Active Missions</h2>
+          <p className="text-content-muted text-sm text-center max-w-md mb-8">
+            Initialize a new UCID campaign to begin intelligence tracking.
+          </p>
+          <button
+            onClick={() => setShowNewUCID(true)}
+            className="px-6 py-2.5 rounded-lg bg-brand-indigo text-white font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
+          >
+            Create New Mission
+          </button>
         </div>
-        <h2 className="text-xl font-bold text-content-primary mb-2">No Active Missions</h2>
-        <p className="text-content-muted text-sm text-center max-w-md mb-8">
-          Initialize a new UCID campaign to begin intelligence tracking.
-        </p>
-        <button
-          onClick={() => setShowNewUCID(true)}
-          className="px-6 py-2.5 rounded-lg bg-brand-indigo text-white font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
-        >
-          Create New Mission
-        </button>
-      </div>
+      </ErrorBoundary>
     );
   }
 
@@ -329,7 +348,8 @@ export function LiveMission({
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-fadeIn">
+    <ErrorBoundary>
+      <div className="flex flex-col gap-4 animate-fadeIn">
       {/* Top solution banner */}
       <SolutionBanner
         ucids={ucids}
@@ -567,5 +587,6 @@ export function LiveMission({
         </div>
       )}
     </div>
+    </ErrorBoundary>
   );
 }

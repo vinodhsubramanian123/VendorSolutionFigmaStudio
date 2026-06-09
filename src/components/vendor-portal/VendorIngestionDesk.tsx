@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
-import { Upload, Sparkles } from 'lucide-react';
-import type { UCID, BOMItem } from '../../types';
-import { Select } from '../shared/Select';
-import { Button } from '../shared/Button';
+import React, { useState, useEffect } from "react";
+import {
+  KeyRound,
+  Shield,
+  Terminal,
+  Play,
+  RotateCw,
+  Eye,
+  EyeOff,
+  Radio,
+  FileCheck2,
+  Lock,
+} from "lucide-react";
+import type { UCID } from "../../types";
 
 interface VendorIngestionDeskProps {
   ucids: UCID[];
@@ -15,386 +24,313 @@ export function VendorIngestionDesk({
   setUcids,
   showToast,
 }: VendorIngestionDeskProps) {
-  // File Upload states
-  const [targetUcidId, setTargetUcidId] = useState<string>(
-    ucids[0]?.id || "u1",
-  );
-  const [selectedVendorChannel, setSelectedVendorChannel] = useState<string>("HPE");
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadedBOMName, setUploadedBOMName] = useState<string>("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedPortal, setSelectedPortal] = useState<"HPE" | "Dell" | "Cisco">("HPE");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [mfaToken, setMfaToken] = useState<string>("");
+  const [certValid, setCertValid] = useState(true);
+  const [lastTested, setLastTested] = useState<string>("Never tested");
+  
+  // Scraper execution states
+  const [isRunningTest, setIsRunningTest] = useState(false);
+  const [authStatus, setAuthStatus] = useState<"authorized" | "not_configured" | "expired" | "verifying">("not_configured");
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([
+    "System Initialized. Playwright Web-Automation Daemon listening on thread pool...",
+    "Awaiting partner credential handshake config...",
+  ]);
 
-  const targetUcid = ucids.find((u) => u.id === targetUcidId);
-
-  // Dynamic injection of parsed items into the active UCID solutions
-  function injectBOMItems(
-    vendorLabel: string,
-    filename: string,
-    customItems: BOMItem[],
-    simulatedSavings = 10000,
-  ) {
-    setIsUploading(true);
-
-    setTimeout(() => {
-      setIsUploading(false);
-      setUploadedBOMName(filename);
-
-      setUcids((prevUcids) => {
-        return prevUcids.map((u) => {
-          if (u.id === targetUcidId) {
-            // Find if there's already an existing master solution. If not, create one.
-            let updatedSolutions = [...u.solutions];
-            if (updatedSolutions.length === 0) {
-              updatedSolutions.push({
-                id: `sol-master-${u.id}`,
-                name: "Master Architectural Solution",
-                targetUcidId: u.id,
-                vendorSubmissions: [],
-              });
-            }
-
-            const masterSolution = updatedSolutions[0];
-            const originalSum = customItems.reduce(
-              (acc, current) => acc + current.unitPrice * current.quantity,
-              0,
-            );
-            const computedPrice = originalSum - simulatedSavings;
-
-            const matchIndex = masterSolution.vendorSubmissions.findIndex(
-              (vs) => vs.vendor.toLowerCase() === vendorLabel.toLowerCase(),
-            );
-
-            const newSubmission = {
-              id: `vs-manual-${vendorLabel.toLowerCase()}-${Date.now()}`,
-              vendor: vendorLabel,
-              label: `${vendorLabel} Manual Upload — Sourced from ${filename}`,
-              totalPrice: computedPrice,
-              originalPrice: originalSum,
-              savings: simulatedSavings,
-              complianceScore: 98,
-              configs: [
-                {
-                  id: `cfg-manual-${vendorLabel.toLowerCase()}`,
-                  name: "Manual Parse Config",
-                  totalPrice: computedPrice,
-                  originalPrice: originalSum,
-                  savings: simulatedSavings,
-                  items: customItems,
-                },
-              ],
-            };
-
-            if (matchIndex !== -1) {
-              masterSolution.vendorSubmissions[matchIndex] = newSubmission;
-            } else {
-              masterSolution.vendorSubmissions.push(newSubmission);
-            }
-
-            // Move currentStep to 'comparison' if it was in boq-intake to demonstrate progress
-            const nextStep =
-              u.currentStep === "boq-intake"
-                ? "pre-intelligence"
-                : u.currentStep;
-
-            return {
-              ...u,
-              solutions: updatedSolutions,
-              currentStep: nextStep as any,
-              completedSteps: Array.from(
-                new Set([...u.completedSteps, "boq-intake"]),
-              ) as any,
-              events: [
-                ...u.events,
-                {
-                  ts: new Date().toLocaleTimeString(),
-                  level: "ok",
-                  msg: `Manual Sourcing BOM Ingested: file "${filename}" parsed into ${vendorLabel} configuration alternative ($${computedPrice.toLocaleString()}).`,
-                },
-              ],
-            };
-          }
-          return u;
-        });
-      });
-
-      showToast(
-        `Document parsed! ${vendorLabel} alternative dynamically generated.`,
-        "success",
-      );
-    }, 1200);
-  }
-
-  // Pre-configured manual upload scenarios
-  function handleScenarioUpload(type: "hpe-legacy" | "dell-overcharge") {
-    if (type === "hpe-legacy") {
-      const items: BOMItem[] = [
-        {
-          id: "item-h1",
-          partNumber: "P40411-B21",
-          name: "HPE ProLiant DL380 Gen11 CTO Chassis",
-          type: "Chassis",
-          quantity: 10,
-          unitPrice: 3400,
-        },
-        {
-          id: "item-h2",
-          partNumber: "815100-B21",
-          name: "Intel Xeon Gold 6130 Processor (EOL Alert Line)",
-          type: "Processor",
-          quantity: 20,
-          unitPrice: 1890,
-        }, // EOL!
-        {
-          id: "item-h3",
-          partNumber: "P38454-B21",
-          name: "HPE 64GB DDR5 RDIMM RAM Kit",
-          type: "Memory",
-          quantity: 80,
-          unitPrice: 580,
-        },
-      ];
-      injectBOMItems("HPE", "HPE_PARTNER_QUOTE_6130_EOL.xlsx", items, 8000);
+  // Set default credentials whenever selected portal shifts to make it populated and professional
+  useEffect(() => {
+    if (selectedPortal === "HPE") {
+      setUsername("enterprise_sourcing_hpe_prod");
+      setPassword("HPE-S0urcing-2026!");
+      setMfaToken("RO7K-9154-A24B");
+      setAuthStatus("authorized");
+      setConsoleLogs([
+        "[08:34:10] [Manager] - Loading HPE Partner Ready configuration credentials...",
+        "[08:34:11] [CredentialVault] - Decrypted corporate client TLS connection certificates.",
+        "[08:34:12] [Daemon] - Playwright connection verified with hpe.com secure tunnel gateway.",
+      ]);
+    } else if (selectedPortal === "Dell") {
+      setUsername("dell_premier_procurement_lead");
+      setPassword("DellAdminSecure3902!!");
+      setMfaToken("DL-9824-MFA-X2");
+      setAuthStatus("authorized");
+      setConsoleLogs([
+        "[09:10:02] [Manager] - Dell Premier portal authentication state valid.",
+        "[09:10:05] [Scraper] - Handshake completed. 1 corporate customer account linked.",
+      ]);
     } else {
-      const items: BOMItem[] = [
-        {
-          id: "item-d1",
-          partNumber: "210-BFXS",
-          name: "Dell PowerEdge R760 8SFF Motherboard Chassis",
-          type: "Chassis",
-          quantity: 12,
-          unitPrice: 3250,
-        },
-        {
-          id: "item-d2",
-          partNumber: "400-BPSB",
-          name: "Dell 3.84TB SAS Read Intensive SSD SFF (Markup Alert Line)",
-          type: "Drive",
-          quantity: 24,
-          unitPrice: 1590,
-        }, // Overcharged! API list says $1,190
-        {
-          id: "item-d3",
-          partNumber: "370-AHFF",
-          name: "Dell 64GB RDIMM 4800MT/s Dual Rank DDR5 memory",
-          type: "Memory",
-          quantity: 48,
-          unitPrice: 595,
-        },
-      ];
-      injectBOMItems("Dell", "DELL_PREMIER_QUOTE_DRAFT.csv", items, 15000);
+      setUsername("cisco_ccw_integrator_ops");
+      setPassword("CiscoCCW-Cloud-Pass#2");
+      setMfaToken("CI-5100-MFA");
+      setAuthStatus("expired");
+      setConsoleLogs([
+        "[10:12:05] [Manager] - CCW token detected: EXPIRED.",
+        "[10:12:06] [CCW-Gate] - Playwright browser automation requires rotating session refresh token.",
+        "[10:12:07] [MFA-Gate] - Awaiting manual MFA trigger or Playwright browser re-authentication.",
+      ]);
     }
+  }, [selectedPortal]);
+
+  // Handle Playwright Simulation Test
+  function handleRunPortalTest() {
+    setIsRunningTest(true);
+    setAuthStatus("verifying");
+    
+    // Staggered log outputs to demonstrate dynamic automation
+    const testLogs = [
+      `[Run] Spawning Playwright headless chromium container...`,
+      `[Auth] Navigating to target partner portal: ${
+        selectedPortal === "HPE"
+          ? "https://partner.hpe.com/ready/login"
+          : selectedPortal === "Dell"
+            ? "https://premier.dell.com"
+            : "https://commerce.cisco.com/ccw"
+      }`,
+      `[Auth] Locate username element #user-id -> Injected value "${username}"`,
+      `[Auth] Locate password element [type=password] -> Managed handshake transfer...`,
+      `[MFA] Authenticating utilizing rolling Session MFA Key seeds...`,
+      `[Bypass] Resolved Akamai bot-detection and validated cookies...`,
+      `[Success] Handshake finalized. Fetched user profile configuration successfully!`,
+      `[Active] Discovered 3 active workspace quotes assigned to VSIP opportunities.`
+    ];
+
+    setConsoleLogs((prev) => [
+      ...prev,
+      `--- PLAYWRIGHT DIAGNOSTIC HANDSHAKE COMMENCED [VENDOR = ${selectedPortal}] ---`
+    ]);
+
+    let idx = 0;
+    const interval = setInterval(() => {
+      if (idx < testLogs.length) {
+        setConsoleLogs((prev) => [...prev, `[PLAYWRIGHT] ${testLogs[idx]}`]);
+        idx++;
+      } else {
+        clearInterval(interval);
+        setIsRunningTest(false);
+        setAuthStatus("authorized");
+        const now = new Date().toLocaleTimeString();
+        setLastTested(now);
+        showToast(`${selectedPortal} Playwright connection authenticated successfully!`, "success");
+        
+        // Push an event to active UCIDs log representing the background sync
+        setUcids((prev) => 
+          prev.map((u, i) => {
+            if (i === 0) {
+              return {
+                ...u,
+                events: [
+                  ...u.events,
+                  {
+                    ts: now,
+                    level: "ok",
+                    msg: `Playwright Automation: Authenticated partner gate ${selectedPortal} utilizing secure credentials. Refreshed direct contract rates index.`,
+                  }
+                ]
+              };
+            }
+            return u;
+          })
+        );
+      }
+    }, 400);
   }
 
-  // Custom File drop handler
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      const customItems: BOMItem[] = [
-        {
-          id: "item-drop1",
-          partNumber: "GENERIC-CHASSIS-1",
-          name: "Custom Imported Chassis Base",
-          type: "Chassis",
-          quantity: 4,
-          unitPrice: 2900,
-        },
-        {
-          id: "item-drop2",
-          partNumber: "P40424-B21",
-          name: "Intel Xeon Gold 6430 Processor",
-          type: "Processor",
-          quantity: 8,
-          unitPrice: 2150,
-        },
-        {
-          id: "item-drop3",
-          partNumber: "P38454-B21",
-          name: "HPE 64GB DDR5 memory module",
-          type: "Memory",
-          quantity: 32,
-          unitPrice: 580,
-        },
-      ];
-      injectBOMItems(selectedVendorChannel, file.name, customItems, 12000);
-    }
-  };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
+  function handleSaveCredentials() {
+    showToast(`${selectedPortal} Sourcing portal credentials stored securely.`, "success");
+    setConsoleLogs((prev) => [
+      ...prev,
+      `[Vault] Credentials altered and re-committed into secure memory vault.`
+    ]);
+  }
 
   return (
     <div className="p-4 rounded-xl border bg-surface-elevated/80 border-indigo-500/15 flex flex-col gap-4 shadow-xl">
+      {/* Title */}
       <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
         <div className="flex items-center gap-2">
-          <Upload className="w-4 h-4 text-indigo-400" />
+          <KeyRound className="w-4 h-4 text-indigo-400" />
           <h3 className="text-xs text-white font-bold uppercase tracking-wider">
-            BOM Ingestion & Crawling
+            Playwright Automator Vault
           </h3>
         </div>
-        <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+        <Radio className={`w-3.5 h-3.5 ${authStatus === "authorized" ? "text-emerald-400 animate-pulse" : "text-amber-500 animate-pulse"}`} />
       </div>
 
-      <p className="text-[10.5px] text-gray-400 leading-normal">
-        Inject manual competitor quotation workbooks or execute Playwright
-        automated scraping to populate active solutions.
-      </p>
-
-      {/* Target Profile Binding Selection */}
-      <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
-          Target Workflow Profile (UCID)
-        </label>
-        <Select
-          value={targetUcidId}
-          onChange={(e) => setTargetUcidId(e.target.value)}
-        >
-          {ucids.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.displayId} — {u.name}
-            </option>
-          ))}
-        </Select>
-        {targetUcid && (
-          <p className="text-[9.5px] text-indigo-400 mt-1 font-mono">
-            Current Status in Pipeline:{" "}
-            {targetUcid.currentStep.toUpperCase()}
-          </p>
-        )}
+      {/* Concept Explainer */}
+      <div className="p-2.5 bg-indigo-500/5 border border-indigo-500/20 rounded-lg text-left space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+          <span className="text-[9px] font-bold text-indigo-400 font-mono uppercase tracking-wider">
+            Web-Automation Gateway
+          </span>
+        </div>
+        <p className="text-[10px] text-gray-400 leading-snug">
+          Since direct REST supplier pricing endpoints do not exist publicly for vendor portals, our server utilizes background <span className="text-gray-300 font-semibold font-mono">Playwright / Puppeteer Headless Browser Crawlers</span> to fetch, audit, and pull actual quotation BOM parameters. Configure credentials securely below.
+        </p>
       </div>
 
-      {/* Selector of which manufacturer the quote belongs to */}
+      {/* Portal Selection Selector */}
       <div className="space-y-1">
         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
-          Distributor Channel
+          Select Partner Portal
         </label>
         <div className="grid grid-cols-3 gap-2">
-          {["HPE", "Dell", "Cisco"].map((ch) => (
-            <Button
-              key={ch}
-              size="sm"
-              variant={selectedVendorChannel === ch ? "primary" : "outline"}
-              onClick={() => setSelectedVendorChannel(ch)}
+          {(["HPE", "Dell", "Cisco"] as const).map((port) => (
+            <button
+              key={port}
+              type="button"
+              onClick={() => setSelectedPortal(port)}
+              className={`py-1.5 rounded font-bold text-[11px] border cursor-pointer transition flex items-center justify-center gap-1 ${
+                selectedPortal === port
+                  ? "bg-indigo-500 text-white border-indigo-400"
+                  : "bg-white/5 hover:bg-white/10 text-gray-300 border-white/5"
+              }`}
             >
-              {ch} Gate
-            </Button>
+              {port === "Cisco" ? "Cisco CCW" : `${port} Premier`}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Drag and Drop Box */}
-      <div
-        onDragEnter={handleDrag}
-        onDragOver={handleDrag}
-        onDragLeave={handleDrag}
-        onDrop={handleDrop}
-        className={`border border-dashed rounded-xl p-5 text-center flex flex-col items-center justify-center gap-2.5 transition ${
-          dragActive
-            ? "border-indigo-400 bg-indigo-500/5"
-            : "border-white/10 bg-black/20 hover:border-white/15"
-        }`}
-      >
-        <Upload
-          className={`w-8 h-8 ${dragActive ? "text-indigo-400 animate-bounce" : "text-gray-600"}`}
-        />
+      {/* Security Credentials Card */}
+      <div className="p-3 bg-black/35 rounded-lg border border-white/5 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">
+            Corporate Auth Parameters
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full" style={{
+              backgroundColor: authStatus === "authorized" ? "#00d4a0" : authStatus === "verifying" ? "#ff9b36" : "#ff3d5a"
+            }} />
+            <span className="text-[9px] uppercase font-mono text-gray-400">
+              {authStatus === "authorized" ? "Connected" : authStatus === "verifying" ? "Testing..." : "Auth Needed"}
+            </span>
+          </div>
+        </div>
+
+        {/* Username */}
         <div className="space-y-1">
-          <p className="text-[11px] text-white font-semibold">
-            Drag & Drop Competitor quote file here
-          </p>
-          <p className="text-[9.5px] text-gray-500">
-            Supports Excel (.xlsx, .xls) and Tabular CSV data
-          </p>
+          <label className="text-[9px] font-bold text-gray-500 uppercase">Partner Username</label>
+          <div className="relative">
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g. partner_account_id"
+              className="w-full bg-[#03050a] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
+            />
+          </div>
         </div>
 
-        <div className="w-full flex items-center justify-center gap-1.5 border-t border-white/5 pt-2 mt-1">
-          <input
-            type="file"
-            id="bom-manual-file-selector"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                const file = e.target.files[0];
-                const customItems: BOMItem[] = [
-                  {
-                    id: "item-f1",
-                    partNumber: "GENERIC-SER-101",
-                    name: "Custom Imported Server Blade Base",
-                    type: "Chassis",
-                    quantity: 6,
-                    unitPrice: 3100,
-                  },
-                  {
-                    id: "item-f2",
-                    partNumber: "P40424-B21",
-                    name: "Intel Xeon Gold 6430 Processor",
-                    type: "Processor",
-                    quantity: 12,
-                    unitPrice: 2150,
-                  },
-                  {
-                    id: "item-f3",
-                    partNumber: "P38454-B21",
-                    name: "HPE 64GB DDR5 memory module",
-                    type: "Memory",
-                    quantity: 48,
-                    unitPrice: 580,
-                  },
-                ];
-                injectBOMItems(
-                  selectedVendorChannel,
-                  file.name,
-                  customItems,
-                  9500,
-                );
-              }
-            }}
-          />
-          <label
-            htmlFor="bom-manual-file-selector"
-            className="text-[9px] bg-white/5 hover:bg-white/10 text-gray-300 font-bold px-3 py-1.5 rounded cursor-pointer transition border border-white/5 uppercase tracking-wide inline-block"
-          >
-            Browse Document
+        {/* Password */}
+        <div className="space-y-1">
+          <label className="text-[9px] font-bold text-gray-500 uppercase">Secure Client Password</label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••••"
+              className="w-full bg-[#03050a] border border-white/10 rounded pl-2 pr-8 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-2 text-gray-500 hover:text-white"
+            >
+              {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Partner MFA Session Key */}
+        <div className="space-y-1">
+          <label className="text-[9px] font-bold text-gray-500 uppercase flex items-center justify-between">
+            <span>MFA Secret Token Seed (TOTP)</span>
+            <span className="text-[8px] text-indigo-400 lowercase font-mono">Bypasses MFA hurdles</span>
           </label>
+          <input
+            type="text"
+            value={mfaToken}
+            onChange={(e) => setMfaToken(e.target.value)}
+            placeholder="ABCD-EFGH-1234-5678"
+            className="w-full bg-[#03050a] border border-white/10 rounded px-2 py-1.5 text-xs font-mono text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
+          />
+        </div>
+
+        {/* SSL client cert toggler */}
+        <div className="flex items-center justify-between pt-1 font-mono text-[9.5px] border-t border-white/5">
+          <span className="text-gray-500">Corporate SSL Cert:</span>
+          <button
+            type="button"
+            onClick={() => {
+              setCertValid(!certValid);
+              showToast(`TLS Client Certificate verification flipped to ${!certValid ? "ENABLED" : "DISABLED"}.`, "warn");
+            }}
+            className={`px-2 py-0.5 rounded font-bold transition flex items-center gap-1 ${
+              certValid ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
+            }`}
+          >
+            <Shield className="w-2.5 h-2.5" />
+            {certValid ? "AUTH_VALID" : "TLS_REQUIRED"}
+          </button>
+        </div>
+
+        {/* Actions row */}
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={handleSaveCredentials}
+            className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 rounded text-[10px] font-bold text-gray-200 py-2 cursor-pointer transition transition-all"
+          >
+            Store Secret Config
+          </button>
+
+          <button
+            type="button"
+            onClick={handleRunPortalTest}
+            disabled={isRunningTest || !username || !password}
+            className="flex-1 bg-indigo-500 hover:bg-indigo-600 border border-indigo-400/20 rounded text-[10px] font-bold text-white py-2 cursor-pointer transition transition-all flex items-center justify-center gap-1 disabled:opacity-40"
+          >
+            {isRunningTest ? <RotateCw className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+            Test Web-Automator
+          </button>
         </div>
       </div>
 
-      {/* Quick Demo Contract Injection Scenarios */}
-      <div className="bg-black/30 rounded-lg p-3 border border-white/5 space-y-2">
-        <span className="text-[9px] uppercase font-black text-indigo-400 tracking-wider">
-          💡 Mock Simulation Presets
-        </span>
-        <p className="text-[9.5px] text-gray-400 leading-normal">
-          Quickly load representative customer quote workbooks directly
-          into the data matrix to trigger forensic compliance scenarios:
-        </p>
-        <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[9px]">
-          <button
-            type="button"
-            onClick={() => handleScenarioUpload("hpe-legacy")}
-            className="p-1 px-1.5 rounded bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 text-amber-400 text-left cursor-pointer transition"
-          >
-            ● HPE EOL Quote
-          </button>
-          <button
-            type="button"
-            onClick={() => handleScenarioUpload("dell-overcharge")}
-            className="p-1 px-1.5 rounded bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400 text-left cursor-pointer transition"
-          >
-            ● Dell Price Discrepancy
-          </button>
+      {/* Diagnostics Playwright console logger output */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Terminal className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
+              Daemon Playwright Pipe
+            </span>
+          </div>
+          <span className="text-[9px] font-mono text-gray-500">
+            Last Handshake: {lastTested}
+          </span>
+        </div>
+
+        <div className="h-44 rounded-lg bg-[#03050a] border border-white/5 p-2.5 font-mono text-[9px] text-gray-400 overflow-y-auto space-y-1 scrollbar-thin select-text text-left">
+          {consoleLogs.map((log, idx) => (
+            <div key={idx} className={
+              log.includes("[Success]") || log.includes("AUTH SUCCESS")
+                ? "text-status-success font-semibold"
+                : log.includes("EXPIRED") || log.includes("expired")
+                  ? "text-red-400"
+                  : log.startsWith("---")
+                    ? "text-indigo-400 font-bold border-y border-white/5 py-1 my-1"
+                    : "text-gray-400"
+            }>
+              {log}
+            </div>
+          ))}
         </div>
       </div>
-
     </div>
   );
 }

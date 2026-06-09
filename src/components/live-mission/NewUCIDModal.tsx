@@ -108,8 +108,8 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
           </div>
 
           <div className="space-y-1 text-left">
-            <label className="text-gray-400 font-semibold uppercase">
-              BOM Quantities / Raw Specification Text
+            <label className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+              BOQ Input Quantities / Raw Specification Text
             </label>
             <textarea
               value={rawBOMText}

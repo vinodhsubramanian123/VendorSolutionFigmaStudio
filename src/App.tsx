@@ -163,38 +163,6 @@ export default function App() {
   }
 
   function renderView() {
-    // If a search query is active, override standard view and display matched lookup indexes
-    if (searchQuery.trim().length > 0) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 font-mono">
-              Centralized matching result indices for pattern: "{searchQuery}"
-            </span>
-            <button
-              onClick={() => setSearchQuery("")}
-              className="text-xs px-2.5 py-1 rounded bg-surface-elevated border border-white/5 text-gray-400 hover:text-white cursor-pointer"
-            >
-              Clear Central Search
-            </button>
-          </div>
-          <ErrorBoundary>
-            <SearchView
-              query={searchQuery}
-              ucids={ucids}
-              vendors={vendors}
-              catalogSkus={catalogSkus}
-              onNavigate={(newView) => {
-                setSearchQuery("");
-                setView(newView);
-              }}
-              onSelectMission={handleSelectMission}
-            />
-          </ErrorBoundary>
-        </div>
-      );
-    }
-
     switch (view) {
       case "dashboard":
         return (
@@ -328,6 +296,9 @@ export default function App() {
               ucids={ucids}
               setUcids={setUcids}
               catalogSkus={catalogSkus}
+              forensicIssues={forensicIssues}
+              setForensicIssues={setForensicIssues}
+              setVendors={setVendors}
             />
           </ErrorBoundary>
         );
@@ -335,12 +306,13 @@ export default function App() {
         return (
           <ErrorBoundary>
             <SearchView
-              query=""
+              query={searchQuery}
               ucids={ucids}
               vendors={vendors}
               catalogSkus={catalogSkus}
               onNavigate={handleNavigate}
               onSelectMission={handleSelectMission}
+              onSearchChange={setSearchQuery}
             />
           </ErrorBoundary>
         );
@@ -381,12 +353,17 @@ export default function App() {
         <TopBar
           activeView={view}
           onSearch={setSearchQuery}
+          searchQuery={searchQuery}
           onNavigate={handleNavigate}
           apiProgress={apiProgress}
           isPendingAPI={isPendingAPI}
+          ucids={ucids}
+          vendors={vendors}
+          catalogSkus={catalogSkus}
+          onSelectMission={handleSelectMission}
         />
 
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 shrink-0">
+        <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6 shrink-0">
           <div className="w-full flex flex-col min-h-full">
             <BreadcrumbNav
               view={view}

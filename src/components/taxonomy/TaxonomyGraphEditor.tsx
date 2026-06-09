@@ -18,6 +18,7 @@ import type { UCID, CatalogSKU, Config } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { createPortal } from "react-dom";
 import { useToast } from "../shared/ToastContext";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { MockTaxonomyApi, TaxonomyGraphNode, TaxonomyGraphEdge } from "../../lib/api-mock";
 
 interface TreeNode {
@@ -117,6 +118,7 @@ export function TaxonomyGraphEditor({
   const { success, warn, error } = useToast();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [configDropdownOpen, setConfigDropdownOpen] = useState(false);
   
   // Extract all configs from UCIDs
   const allConfigs = useMemo(() => {
@@ -248,14 +250,32 @@ export function TaxonomyGraphEditor({
         <div className="flex gap-3">
           
           {/* Atomic Config Selector */}
-           <div className="relative group">
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-white/10 text-white text-xs font-bold transition-all hover:bg-white/5 disabled:opacity-50" disabled={allConfigs.length === 0}>
-                <Layers className="w-4 h-4 text-indigo-400" />
-                {activeConfigObj ? activeConfigObj.name : "No Configs Available"}
-                <ChevronDown className="w-3 h-3 ml-2 text-gray-500" />
+           <div className="relative">
+              <button 
+                onClick={() => setConfigDropdownOpen(!configDropdownOpen)} 
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-[#070a13] border ${configDropdownOpen ? 'border-brand-indigo ring-1 ring-[#4a85fd]/45' : 'border-white/10'} text-white text-xs font-bold transition-all hover:bg-[#0b1220] disabled:opacity-50 min-w-[280px] justify-between cursor-pointer relative`} 
+                disabled={allConfigs.length === 0}
+                type="button"
+              >
+                <span className="absolute -top-1.5 left-3 px-1.5 bg-[#03050a] text-[8.5px] font-bold text-gray-400 uppercase tracking-widest select-none">
+                  Solution Selector
+                </span>
+                <div className="flex items-center gap-2 text-left truncate">
+                  <Layers className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span className="truncate text-white text-[11px] font-bold uppercase tracking-wide">
+                    {activeConfigObj ? activeConfigObj.name : "Select Config..."}
+                  </span>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${configDropdownOpen ? 'rotate-180 text-brand-indigo' : ''}`} />
               </button>
-              {/* Dropdown */}
-              <div className="absolute top-full mt-2 right-0 w-[420px] max-h-[400px] overflow-y-auto bg-surface-elevated border border-white/10 rounded-xl shadow-xl p-2 hidden group-hover:block z-50 scrollbar">
+              {/* Stateful Custom Dropdown */}
+              {configDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-45" 
+                    onClick={() => setConfigDropdownOpen(false)} 
+                  />
+                  <div className="absolute top-full mt-2 right-0 w-[420px] max-h-[300px] overflow-y-auto bg-[#0b1220] border border-indigo-500/35 rounded-xl shadow-2xl p-2.5 z-50 scrollbar animate-slideIn">
                  <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 pb-2 mb-2 border-b border-white/5">Select Solution Element</div>
                  {allConfigs.map((c, idx) => (
                    <button
@@ -273,8 +293,10 @@ export function TaxonomyGraphEditor({
                  {allConfigs.length === 0 && (
                    <div className="text-xs text-gray-400 p-2 text-center">No configs found across UCIDs.</div>
                  )}
-              </div>
-           </div>
+                  </div>
+                </>
+              )}
+            </div>
 
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
@@ -314,6 +336,7 @@ export function TaxonomyGraphEditor({
                        selectedNodeId={selectedNodeId}
                        onSelect={setSelectedNodeId}
                        onMapNode={handleMapNode}
+                       isRoot={true}
                     />
                  ) : (
                     <div className="flex items-center justify-center p-20 text-gray-500 font-mono">No Graph Data Generated</div>
@@ -458,7 +481,7 @@ export function TaxonomyGraphEditor({
     </div>
   );
 
-  return isFullscreen ? createPortal(graphContent, document.body) : graphContent;
+  return isFullscreen ? createPortal(<ErrorBoundary>{graphContent}</ErrorBoundary>, document.body) : <ErrorBoundary>{graphContent}</ErrorBoundary>;
 }
 
 // -------------------------------------------------------------------------------------
@@ -479,12 +502,14 @@ const TreeNodeView = ({
   nodeWrapper, 
   selectedNodeId, 
   onSelect,
-  onMapNode
+  onMapNode,
+  isRoot = false
 }: { 
   nodeWrapper: TreeNode, 
   selectedNodeId: string | null, 
   onSelect: (id: string) => void,
-  onMapNode: (childId: string, parentId: string, childInfo: any) => void 
+  onMapNode: (childId: string, parentId: string, childInfo: any) => void,
+  isRoot?: boolean
 }) => {
   const { node, children, edgeType, edgeLabel } = nodeWrapper;
   const isSelected = selectedNodeId === node.id;
@@ -501,9 +526,9 @@ const TreeNodeView = ({
       
       {/* Node Data Card with Drag / Drop Targets */}
       <div
-        draggable={node.id !== treeRoot?.node?.id}
+        draggable={!isRoot}
         onDragStart={(e) => {
-          if (node.id !== treeRoot?.node?.id) {
+          if (!isRoot) {
             e.dataTransfer.setData("application/json", JSON.stringify({ type: "existing_node", id: node.id, item: { partNumber: node.label, rawDescription: node.sublabel } }));
             e.currentTarget.style.opacity = '0.5';
           }
@@ -539,7 +564,7 @@ const TreeNodeView = ({
         className={`cursor-pointer rounded-xl border p-3 min-w-[240px] max-w-[380px] transition-all relative z-10
            ${isSelected ? `${colors.bg} ${colors.border} shadow-[0_20px_40px_rgba(255,255,255,0.05)] scale-[1.02]` : 'bg-[#070a13] border-white/10 hover:border-white/30'}
            ${isDragOver ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-black scale-105' : ''}
-           ${node.id !== treeRoot?.node?.id ? 'cursor-grab active:cursor-grabbing' : ''}
+           ${!isRoot ? 'cursor-grab active:cursor-grabbing' : ''}
         `}
       >
          {isDragOver && (

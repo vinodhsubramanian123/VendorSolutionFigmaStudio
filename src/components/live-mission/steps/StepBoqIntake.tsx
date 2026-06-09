@@ -404,6 +404,29 @@ export function StepBoqIntake({
 
   return (
     <div className="space-y-4">
+      {/* Unified Pipeline Active Banner */}
+      <div className="p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center justify-between text-left gap-4">
+        <div>
+          <span className="text-[9px] font-bold text-indigo-400 font-mono tracking-wider uppercase bg-indigo-500/10 px-2 py-0.5 rounded">
+            ● Unified State Sync Active
+          </span>
+          <p className="text-[11px] text-white font-semibold mt-1">
+            Sourcing Ingestion & Opportunity sync
+          </p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-snug">
+            Any spreadsheet compiled or simulated here updates the central procurement ledger inside <span className="text-gray-300 font-medium">BOM Reconciliation Diff</span> and maps EOL risks inside <span className="text-gray-300 font-medium">Forensic Scan & Heal</span> instantly.
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <span className="text-[10px] font-mono text-emerald-400 font-bold block">
+            ID: {ucid.displayId}
+          </span>
+          <span className="text-[9px] text-gray-500 font-sans block mt-0.5">
+            Status: Synchronized
+          </span>
+        </div>
+      </div>
+
       <p className="text-[11px] text-gray-400 leading-normal font-sans">
         Pricing comparisons and specifications are managed centrally to maintain
         ledger integrity and avoid multi-file conflicts.

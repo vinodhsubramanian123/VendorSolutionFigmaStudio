@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Hammer, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Hammer, Check, Loader2 } from 'lucide-react';
 import type { UCID, Solution, VendorSubmission } from '../../types';
 import type { ConfigItem, UcidContainer } from '../../types/builder';
 import { StepIntake } from './StepIntake';
 import { StepWorkspace } from './StepWorkspace';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 
 interface SolutionBuilderProps {
   ucids: UCID[];
@@ -20,6 +21,13 @@ export function SolutionBuilder({
   setDeployedSolution,
   onSelectMission
 }: SolutionBuilderProps) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Step 1: Intake | Step 2: Builder
   const [step, setStep] = useState<1 | 2>(1);
   const [solutionName, setSolutionName] = useState('Project Horizon — UCID Solution v1');
@@ -216,67 +224,77 @@ export function SolutionBuilder({
     onSelectMission(generatedUcids[0].id);
   };
 
-  return (
-    <div className="flex flex-col gap-4 text-xs select-none">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-indigo-500/10 p-5 rounded-xl">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
-            <Hammer className="w-5 h-5 text-indigo-400" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-white">Multi-Client Quote Compilation Desk</h1>
-            <p className="text-[10px] text-gray-500 mt-0.5">
-              Intake raw excel Sheets of multi-tab Bills of Quantities and compile them into distinct parallel UCIDs.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-              step >= 1 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
-            }`}>
-              {step > 1 || isIngested ? <Check className="w-3.5 h-3.5" /> : '1'}
-            </div>
-            <span className={`font-semibold tracking-tight ${step === 1 ? 'text-indigo-400 font-bold' : 'text-gray-400'}`}>BOQ Intake Parse</span>
-          </div>
-          <div className="w-6 h-px bg-white/10" />
-          <div className="flex items-center gap-2">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-              step === 2 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
-            }`}>
-              2
-            </div>
-            <span className={`font-semibold tracking-tight ${step === 2 ? 'text-indigo-400 font-bold' : 'text-gray-500'}`}>UCID Assignment Map</span>
-          </div>
-        </div>
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
       </div>
+    );
+  }
 
-      {step === 1 ? (
-        <StepIntake
-          activeUcidsCount={ucids.length}
-          onProceed={() => setStep(2)}
-          onSimulationLoad={() => setIsIngested(true)}
-        />
-      ) : (
-        <StepWorkspace
-          solutionName={solutionName}
-          setSolutionName={setSolutionName}
-          isMultiUcid={isMultiUcid}
-          toggleMultiUcidMode={toggleMultiUcidMode}
-          handleAddUcid={handleAddUcid}
-          configs={configs}
-          selectedConfigId={selectedConfigId}
-          setSelectedConfigId={setSelectedConfigId}
-          ucidsList={ucidsList}
-          assignConfigToUcid={assignConfigToUcid}
-          updateContainerName={updateContainerName}
-          updateContainerReasoning={updateContainerReasoning}
-          toggleContainerLock={toggleContainerLock}
-          ucids={ucids}
-          handleDeployToLiveMission={handleDeployToLiveMission}
-        />
-      )}
+  return (
+    <ErrorBoundary>
+      <div className="flex flex-col gap-4 text-xs select-none">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-indigo-500/10 p-5 rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+              <Hammer className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold text-white">Multi-Client Quote Compilation Desk</h1>
+              <p className="text-[10px] text-gray-500 mt-0.5">
+                Intake raw excel Sheets of multi-tab Bills of Quantities and compile them into distinct parallel UCIDs.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
+                step >= 1 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
+              }`}>
+                {step > 1 || isIngested ? <Check className="w-3.5 h-3.5" /> : '1'}
+              </div>
+              <span className={`font-semibold tracking-tight ${step === 1 ? 'text-indigo-400 font-bold' : 'text-gray-400'}`}>BOQ Intake Parse</span>
+            </div>
+            <div className="w-6 h-px bg-white/10" />
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
+                step === 2 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
+              }`}>
+                2
+              </div>
+              <span className={`font-semibold tracking-tight ${step === 2 ? 'text-indigo-400 font-bold' : 'text-gray-500'}`}>UCID Assignment Map</span>
+            </div>
+          </div>
+        </div>
+
+        {step === 1 ? (
+          <StepIntake
+            activeUcidsCount={ucids.length}
+            onProceed={() => setStep(2)}
+            onSimulationLoad={() => setIsIngested(true)}
+          />
+        ) : (
+          <StepWorkspace
+            solutionName={solutionName}
+            setSolutionName={setSolutionName}
+            isMultiUcid={isMultiUcid}
+            toggleMultiUcidMode={toggleMultiUcidMode}
+            handleAddUcid={handleAddUcid}
+            configs={configs}
+            selectedConfigId={selectedConfigId}
+            setSelectedConfigId={setSelectedConfigId}
+            ucidsList={ucidsList}
+            assignConfigToUcid={assignConfigToUcid}
+            updateContainerName={updateContainerName}
+            updateContainerReasoning={updateContainerReasoning}
+            toggleContainerLock={toggleContainerLock}
+            ucids={ucids}
+            handleDeployToLiveMission={handleDeployToLiveMission}
+          />
+        )}
     </div>
-  );
+  </ErrorBoundary>
+);
 }

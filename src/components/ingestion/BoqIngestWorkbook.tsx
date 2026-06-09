@@ -102,9 +102,9 @@ export function BoqIngestWorkbook({
                 value={selectedPreset}
                 onChange={(e) => setSelectedPreset(e.target.value as any)}
               >
-                <option value="hpe-legacy">HPE Legacy 6130 EOL</option>
-                <option value="dell-overcharge">Dell Premier Markup</option>
-                <option value="cisco-asymmetry">Cisco Asymmetry Layout</option>
+                <option value="hpe-legacy" className="bg-[#0b1220] text-white">HPE Legacy 6130 EOL</option>
+                <option value="dell-overcharge" className="bg-[#0b1220] text-white">Dell Premier Markup</option>
+                <option value="cisco-asymmetry" className="bg-[#0b1220] text-white">Cisco Asymmetry Layout</option>
               </Select>
             </div>
           </div>

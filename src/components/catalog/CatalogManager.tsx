@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import type { CatalogSKU } from "../../types";
 import { TaxonomyTree } from "../taxonomy/TaxonomyTree";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 import { CatalogHeader } from "./CatalogHeader";
 import { CatalogAddForm } from "./CatalogAddForm";
@@ -25,6 +26,12 @@ export function CatalogManager({
     type: "success" | "warn" | "error";
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const totalCatalogItems = useMemo(() => {
     if (!vendors || vendors.length === 0) return 16625;
@@ -240,9 +247,18 @@ export function CatalogManager({
     setNewPrice("");
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col gap-4 animate-fadeIn select-none text-xs">
-      <CatalogHeader
+    <ErrorBoundary>
+      <div className="h-full flex flex-col gap-4 animate-fadeIn select-none text-xs">
+        <CatalogHeader
         totalCatalogItems={totalCatalogItems}
         totalConnectedVendors={totalConnectedVendors}
         onAddClick={() => setShowAddForm(true)}
@@ -269,7 +285,7 @@ export function CatalogManager({
       {/* Main 2-Column Desktop Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1">
         {/* LEFT COLUMN: VENDOR TAXONOMY DRAWER */}
-        <div className="lg:col-span-3 bg-surface-elevated border border-white/5 rounded-xl p-4 flex flex-col gap-4">
+        <div className="lg:col-span-3 xl:col-span-2 bg-surface-elevated border border-white/5 rounded-xl p-4 flex flex-col gap-4">
           <div className="pb-2 border-b border-white/5 flex flex-col shrink-0">
             <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider font-mono">
               Manufacturer Taxonomy
@@ -291,7 +307,7 @@ export function CatalogManager({
         </div>
 
         {/* RIGHT COLUMN: INTERACTIVE SKU CARDS GRID */}
-        <div className="lg:col-span-9 flex flex-col gap-4">
+        <div className="lg:col-span-9 xl:col-span-10 flex flex-col gap-4">
           <CatalogFilterBar
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -432,6 +448,7 @@ export function CatalogManager({
           </button>
         </div>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

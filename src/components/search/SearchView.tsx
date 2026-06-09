@@ -1,5 +1,7 @@
-import { Database, Globe, Target, Search, ArrowUpRight } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Database, Globe, Target, Search, ArrowUpRight, Loader2, Sparkles } from "lucide-react";
 import type { AppView, UCID, Vendor, CatalogSKU } from "../../types";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 interface SearchViewProps {
   query: string;
@@ -8,6 +10,7 @@ interface SearchViewProps {
   catalogSkus: CatalogSKU[];
   onNavigate: (view: AppView) => void;
   onSelectMission: (id: string) => void;
+  onSearchChange?: (newQuery: string) => void;
 }
 
 function highlightText(text: string, query: string) {
@@ -47,60 +50,141 @@ export function SearchView({
   catalogSkus,
   onNavigate,
   onSelectMission,
+  onSearchChange,
 }: SearchViewProps) {
-  const normQuery = query.toLowerCase().trim();
+  const [isLoading, setIsLoading] = useState(true);
+  const [localInput, setLocalInput] = useState(query);
 
-  // Filter matched records
-  const matchedMissions = (ucids as UCID[]).filter(
-    (u) =>
-      u.displayId.toLowerCase().includes(normQuery) ||
-      u.name.toLowerCase().includes(normQuery) ||
-      u.projectRef.toLowerCase().includes(normQuery),
-  );
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const matchedVendors = vendors.filter(
-    (v) =>
-      v.name.toLowerCase().includes(normQuery) ||
-      v.shortName.toLowerCase().includes(normQuery),
-  );
+  useEffect(() => {
+    setLocalInput(query);
+  }, [query]);
 
-  const matchedSkus = catalogSkus.filter(
-    (s) =>
-      s.partNumber.toLowerCase().includes(normQuery) ||
-      s.name.toLowerCase().includes(normQuery) ||
-      s.type.toLowerCase().includes(normQuery),
-  );
+  const activeQuery = localInput;
+  const normQuery = activeQuery.toLowerCase().trim();
 
-  const totalMatches =
-    matchedMissions.length + matchedVendors.length + matchedSkus.length;
+  const handleSearchSubmit = (val: string) => {
+    setLocalInput(val);
+    if (onSearchChange) {
+      onSearchChange(val);
+    }
+  };
+
+  // Filter matched records with useMemo
+  const matchedMissions = useMemo(() => {
+    if (!normQuery) return [];
+    return (ucids as UCID[]).filter(
+      (u) =>
+        u.displayId.toLowerCase().includes(normQuery) ||
+        u.name.toLowerCase().includes(normQuery) ||
+        u.projectRef.toLowerCase().includes(normQuery),
+    );
+  }, [ucids, normQuery]);
+
+  const matchedVendors = useMemo(() => {
+    if (!normQuery) return [];
+    return vendors.filter(
+      (v) =>
+        v.name.toLowerCase().includes(normQuery) ||
+        v.shortName.toLowerCase().includes(normQuery),
+    );
+  }, [vendors, normQuery]);
+
+  const matchedSkus = useMemo(() => {
+    if (!normQuery) return [];
+    return catalogSkus.filter(
+      (s) =>
+        s.partNumber.toLowerCase().includes(normQuery) ||
+        s.name.toLowerCase().includes(normQuery) ||
+        s.type.toLowerCase().includes(normQuery),
+    );
+  }, [catalogSkus, normQuery]);
+
+  const totalMatches = useMemo(() => {
+    return matchedMissions.length + matchedVendors.length + matchedSkus.length;
+  }, [matchedMissions, matchedVendors, matchedSkus]);
+
+  const suggestions = [
+    { text: "HPE DL380 Gen11", category: "Hardware Chassis" },
+    { text: "Cisco UCS", category: "Computing Architectures" },
+    { text: "Intel Xeon Gold", category: "Processors" },
+    { text: "UCID-2026", category: "Workflow Tracks" },
+    { text: "Lead times", category: "Logistics" }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs">
-      {/* Search Header Banner */}
-      <div
-        id="search-header-banner"
-        className="p-4 rounded-xl border flex items-center justify-between"
-        style={{
-          background: "rgba(74, 133, 253,0.03)",
-          borderColor: "rgba(74, 133, 253,0.1)",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <Search className="text-indigo-400 w-5 h-5" />
-          <div>
-            <p className="text-xs text-white font-bold">
-              Unified Sourcing Search Lookup Analyzer
-            </p>
+    <ErrorBoundary>
+      <div className="flex flex-col gap-5 animate-fadeIn select-none leading-normal text-xs">
+        {/* Beautiful Cognitive Search Console Body Input */}
+        <div 
+          className="p-6 rounded-xl border flex flex-col gap-4 relative overflow-hidden" 
+          style={{
+            background: "linear-gradient(135deg, rgba(74,133,253,0.04) 0%, rgba(124,58,237,0.02) 100%)",
+            borderColor: "rgba(74, 133, 253,0.12)",
+          }}
+        >
+          <div className="flex flex-col gap-1 z-10">
+            <h1 className="text-sm font-semibold text-white tracking-tight flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              Cognitive Sourcing Knowledge Explorer
+            </h1>
             <p className="text-[10px] text-gray-500">
-              Matched {totalMatches} elements for keyword pattern: &quot;{query}
-              &quot;
+              Query unified cross-entity schemas covering Active Workflows, Sourced Parts, and Vendor partner API registries.
             </p>
           </div>
-        </div>
-      </div>
 
-      {totalMatches > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+          <div className="flex gap-2 max-w-2xl w-full z-10">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                id="view-search-input"
+                type="text"
+                value={localInput}
+                onChange={(e) => handleSearchSubmit(e.target.value)}
+                placeholder="Type here to search parts, manufacturers, process IDs..."
+                className="w-full h-11 pl-10 pr-4 rounded-lg bg-black/40 border border-white/10 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/25 transition-all text-ellipsis"
+              />
+            </div>
+            {localInput && (
+              <button
+                onClick={() => handleSearchSubmit("")}
+                className="px-4 h-11 rounded-lg bg-surface-elevated hover:bg-white/5 border border-white/10 text-gray-400 hover:text-white transition cursor-pointer text-[11px]"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 mt-1 z-10">
+            <span className="text-[10px] text-gray-500 font-medium">Suggestions:</span>
+            {suggestions.map((sug, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSearchSubmit(sug.text)}
+                className="px-2.5 py-1 rounded bg-[#0b1220] hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 text-gray-400 hover:text-indigo-300 transition text-[10px] cursor-pointer"
+              >
+                {sug.text}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Search Results Display Area */}
+        {activeQuery.trim() !== "" ? (
+          totalMatches > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
           {/* Workflows Column */}
           <div
             className="flex flex-col gap-2.5"
@@ -250,7 +334,22 @@ export function SearchView({
             ledgers.
           </p>
         </div>
+      )) : (
+        <div
+          className="p-12 rounded-xl border border-dashed border-white/5 flex flex-col items-center justify-center gap-2.5"
+          id="search-awaiting-state"
+          style={{ backgroundColor: "rgba(74, 133, 253, 0.01)" }}
+        >
+          <Search className="w-8 h-8 text-indigo-500/40" />
+          <p className="text-gray-400 font-semibold uppercase tracking-wider text-[10px] mt-1 text-center">
+            Awaiting Sourcing Query
+          </p>
+          <p className="text-[10px] text-gray-600 text-center max-w-sm leading-relaxed">
+            Enter a search term above, or select one of the quick suggestions to search across active client workflows, hardware parts, and live vendor APIs.
+          </p>
+        </div>
       )}
     </div>
+    </ErrorBoundary>
   );
 }

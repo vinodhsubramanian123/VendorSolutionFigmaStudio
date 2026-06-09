@@ -79,6 +79,29 @@ export function StepIntake({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
       {/* Main Intake Canvas */}
       <div className="lg:col-span-2 space-y-4">
+        {/* Unified Pipeline Active Banner */}
+        <div className="p-3 bg-indigo-500/5 border border-indigo-500/15 rounded-xl flex items-center justify-between text-left gap-4">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse shrink-0" />
+              <span className="text-[9px] font-bold text-indigo-400 font-mono uppercase tracking-wider">
+                Sourcing State Sync Connected
+              </span>
+            </div>
+            <p className="text-[10px] text-gray-400 mt-1 leading-normal">
+              Any specification uploaded or demo loaded in this Configurator instantly binds to the central <span className="text-gray-300 font-medium">Opportunities Ledger</span>, and feeds metrics straight into your parallel tracking dashboards.
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <span className="text-[10px] font-mono text-emerald-400 font-bold block">
+              Active Sync
+            </span>
+            <span className="text-[9px] text-gray-500 font-sans block mt-0.5 animate-fadeIn">
+              Active Accounts: {activeUcidsCount}
+            </span>
+          </div>
+        </div>
+
         <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
@@ -91,7 +114,7 @@ export function StepIntake({
               </h3>
               <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
                 Upload your customer hardware requirements sheet,
-                cross-vendor BOM workbook, or raw equipment PARTS spec file.
+                cross-vendor BOQ workbook, or raw equipment PARTS spec file.
                 The system will dynamically resolve nomenclature, run rules
                 validators, and seed dual-sourcing mapping cards.
               </p>
@@ -219,7 +242,7 @@ export function StepIntake({
           <div className="space-y-3">
             <div className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 pb-2">
               <span className="text-gray-400 font-sans font-medium">
-                BOM Sheet Loaded
+                BOQ Document Ingested
               </span>
               <StatusBadge 
                 status={isIngested ? "ACCEPTED" : "AWAITING"}

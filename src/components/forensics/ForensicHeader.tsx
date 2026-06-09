@@ -58,40 +58,51 @@ export function ForensicHeader({
       </div>
 
       {/* Unified Working Profile Selector */}
-      {currUcid && (
-        <div className="bg-surface-elevated p-4 rounded-xl border border-brand-indigo/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <div className="min-w-0">
-              <span className="text-gray-400">Sourcing Working Profile: </span>
-              <strong className="text-white font-mono font-bold bg-black/45 px-1.5 py-0.5 rounded border border-white/5">
-                {currUcid.displayId}
-              </strong>
-              <span className="text-gray-500 font-medium ml-1.5 truncate hidden md:inline">
-                — {currUcid.name}
-              </span>
+      <div className="bg-surface-elevated p-4 rounded-xl border border-brand-indigo/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs min-h-[58px]">
+        {currUcid ? (
+          <>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div className="min-w-0">
+                <span className="text-gray-400">Sourcing Working Profile: </span>
+                <strong className="text-white font-mono font-bold bg-black/45 px-1.5 py-0.5 rounded border border-white/5">
+                  {currUcid.displayId}
+                </strong>
+                <span className="text-gray-500 font-medium ml-1.5 truncate hidden md:inline col-span-2">
+                  — {currUcid.name}
+                </span>
+              </div>
             </div>
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-64">
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                Switch Context:
+              </span>
+              <Select
+                value={currUcid.id}
+                onChange={(e) => setActiveMissionId(e.target.value)}
+              >
+                {ucids.map((u) => (
+                  <option 
+                    key={u.id} 
+                    value={u.id}
+                    className="bg-[#0b1220] text-white py-2"
+                  >
+                    {u.displayId} — {u.name.length > 24 ? u.name.substring(0, 24) + "..." : u.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-between w-full animate-pulse">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-gray-700 shrink-0" />
+              <div className="h-4 w-48 bg-gray-800 rounded" />
+            </div>
+            <div className="h-8 w-64 bg-gray-800 rounded" />
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-64">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-              Switch Profile context:
-            </span>
-            <Select
-              value={currUcid.id}
-              onChange={(e) => setActiveMissionId(e.target.value)}
-            >
-              {ucids.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.displayId} —{" "}
-                  {u.name.length > 32
-                    ? u.name.substring(0, 32) + "..."
-                    : u.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

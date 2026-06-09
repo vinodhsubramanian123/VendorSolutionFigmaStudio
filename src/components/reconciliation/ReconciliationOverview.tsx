@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Database,
@@ -27,27 +27,31 @@ export function ReconciliationOverview({
 }: ReconciliationOverviewProps) {
   const toast = useToast();
 
-  const activeUCID =
-    ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison") ||
-    ucids?.find((u) => u.solutions?.length > 0) ||
-    ucids?.[0];
+  const activeUCID = useMemo(() => {
+    return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison") ||
+      ucids?.find((u) => u.solutions?.length > 0) ||
+      ucids?.[0];
+  }, [ucids]);
 
-  const dynamicConfigs =
-    activeUCID?.solutions?.[0]?.vendorSubmissions?.[0]?.configs || [];
+  const dynamicConfigs = useMemo(() => {
+    return activeUCID?.solutions?.[0]?.vendorSubmissions?.[0]?.configs || [];
+  }, [activeUCID]);
 
-  const totalConfigs = dynamicConfigs.length;
-  const totalItems = dynamicConfigs.reduce((acc, c) => acc + c.items.length, 0);
+  const totalConfigs = useMemo(() => dynamicConfigs.length, [dynamicConfigs]);
+  const totalItems = useMemo(() => dynamicConfigs.reduce((acc, c) => acc + c.items.length, 0), [dynamicConfigs]);
 
-  const matchedTotal = dynamicConfigs.reduce((acc, cfg) => 
-    acc + cfg.items.filter(it => 
-       catalogSkus?.some(sku => sku.partNumber === it.partNumber) || !it.name.includes("Simulated")
-    ).length
-  , 0);
+  const matchedTotal = useMemo(() => {
+    return dynamicConfigs.reduce((acc, cfg) => 
+      acc + cfg.items.filter(it => 
+         catalogSkus?.some(sku => sku.partNumber === it.partNumber) || !it.name.includes("Simulated")
+      ).length
+    , 0);
+  }, [dynamicConfigs, catalogSkus]);
 
-  const missingItems = totalItems - matchedTotal;
-  const matchPercentage = totalItems ? Math.round((matchedTotal / totalItems) * 100) : 0;
+  const missingItems = useMemo(() => totalItems - matchedTotal, [totalItems, matchedTotal]);
+  const matchPercentage = useMemo(() => totalItems ? Math.round((matchedTotal / totalItems) * 100) : 0, [totalItems, matchedTotal]);
   
-  const estValue = dynamicConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
+  const estValue = useMemo(() => dynamicConfigs.reduce((acc, c) => acc + c.totalPrice, 0), [dynamicConfigs]);
 
   if (!dynamicConfigs || dynamicConfigs.length === 0) {
     return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   Command,
@@ -8,28 +8,50 @@ import {
   Clock,
   User,
   Sparkles,
+  Database,
+  Target,
+  Globe,
+  ArrowUpRight,
 } from "lucide-react";
-import { AppView } from "../../types";
+import { AppView, UCID, Vendor, CatalogSKU } from "../../types";
 
 interface TopBarProps {
   activeView: AppView;
   onSearch: (query: string) => void;
+  searchQuery?: string;
   onNavigate?: (newView: AppView) => void;
   apiProgress?: number;
   isPendingAPI?: boolean;
   syncHealth?: { status: "healthy" | "warning" | "error"; message: string };
+  ucids?: UCID[];
+  vendors?: Vendor[];
+  catalogSkus?: CatalogSKU[];
+  onSelectMission?: (id: string) => void;
 }
 
 export function TopBar({
   activeView,
   onSearch,
+  searchQuery,
   onNavigate,
   apiProgress,
   isPendingAPI,
   syncHealth,
+  ucids = [],
+  vendors = [],
+  catalogSkus = [],
+  onSelectMission,
 }: TopBarProps) {
-  const [localQuery, setLocalQuery] = useState("");
+  const [localQuery, setLocalQuery] = useState(searchQuery || "");
   const [timeStr, setTimeStr] = useState("2026-06-06 13:40:10 UTC");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLocalQuery(searchQuery || "");
+  }, [searchQuery]);
 
   // Format the view name for elegant header reading
   const viewTitles: Record<AppView, string> = {
@@ -63,11 +85,51 @@ export function TopBar({
     const val = e.target.value;
     setLocalQuery(val);
     onSearch(val);
+    if (val.trim().length > 0) {
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  };
+
+  const cleanQuery = localQuery.toLowerCase().trim();
+
+  const matchedMissions = cleanQuery ? (ucids || []).filter(u =>
+    (u.displayId || "").toLowerCase().includes(cleanQuery) ||
+    (u.name || "").toLowerCase().includes(cleanQuery) ||
+    (u.projectRef || "").toLowerCase().includes(cleanQuery)
+  ).slice(0, 3) : [];
+
+  const matchedVendors = cleanQuery ? (vendors || []).filter(v =>
+    (v.name || "").toLowerCase().includes(cleanQuery) ||
+    (v.shortName || "").toLowerCase().includes(cleanQuery)
+  ).slice(0, 3) : [];
+
+  const matchedSkus = cleanQuery ? (catalogSkus || []).filter(s =>
+    (s.partNumber || "").toLowerCase().includes(cleanQuery) ||
+    (s.name || "").toLowerCase().includes(cleanQuery)
+  ).slice(0, 3) : [];
+
+  const hasMatches = matchedMissions.length > 0 || matchedVendors.length > 0 || matchedSkus.length > 0;
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setShowDropdown(false);
+      onNavigate && onNavigate("search");
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    // Allow small timeout for clicks on items
+    setTimeout(() => {
+      setShowDropdown(false);
+    }, 250);
   };
 
   return (
     <header
-      className="relative h-16 px-6 border-b flex items-center justify-between shrink-0 select-none"
+      className="relative h-16 px-6 border-b flex items-center justify-between shrink-0 select-none z-30"
       style={{
         backgroundColor: "#090d19",
         borderColor: "rgba(74, 133, 253,0.1)",
@@ -94,30 +156,147 @@ export function TopBar({
         </button>
 
         {/* Search Input Box */}
-        <div className="relative group w-72">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-500">
-            <Search className="w-4 h-4 group-focus-within:text-indigo-400 transition-colors" />
-          </div>
+        <div className="relative w-80" ref={dropdownRef}>
+          <button
+            onClick={() => inputRef.current?.focus()}
+            className="absolute inset-y-0 left-3 flex items-center text-gray-500 hover:text-indigo-400 transition-colors z-10"
+            title="Focus Search Input"
+          >
+            <Search className="w-4 h-4" />
+          </button>
           <input
+            ref={inputRef}
             id="global-search-input"
             type="text"
             value={localQuery}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
+              setIsFocused(true);
+              if (localQuery.trim().length > 0) setShowDropdown(true);
+            }}
+            onBlur={handleBlur}
             placeholder="Search SKUs, vendors, processes..."
-            className="w-full h-9 pl-9 pr-8 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 border transition-all"
+            className="w-full h-9 pl-9 pr-12 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 border transition-all"
             style={{
               backgroundColor: "rgba(74, 133, 253,0.03)",
               borderColor: "rgba(74, 133, 253,0.12)",
             }}
           />
-          <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none">
-            <div
-              className="px-1.5 py-0.5 rounded text-[9px] font-mono border text-gray-600 bg-white/2"
-              style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
-            >
-              ⌘K
-            </div>
+          <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-[9px] font-mono text-gray-600">
+            <span>↵ Enter</span>
           </div>
+
+          {/* Sourcing Real-Time Search dropdown Popover */}
+          {showDropdown && isFocused && cleanQuery.length > 0 && (
+            <div
+              className="absolute left-0 right-0 top-11 p-3 rounded-xl border shadow-2xl z-50 flex flex-col gap-3 animate-fadeIn text-[11px]"
+              style={{
+                backgroundColor: "#070a13",
+                borderColor: "rgba(74,133,253,0.15)",
+                backgroundImage: "linear-gradient(180deg, rgba(7,10,19,0.98) 0%, rgba(11,18,32,0.98) 100%)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {hasMatches ? (
+                <div className="flex flex-col gap-2.5 max-h-72 overflow-y-auto scrollbar-thin pr-0.5">
+                  {/* Matching Workflows */}
+                  {matchedMissions.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <div className="text-[9px] uppercase font-bold text-gray-500 flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
+                        <Target className="w-3.5 h-3.5 text-orange-400" />
+                        <span>Active Tracks ({matchedMissions.length})</span>
+                      </div>
+                      {matchedMissions.map(m => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            onSelectMission && onSelectMission(m.id);
+                            onNavigate && onNavigate("live-mission");
+                            setShowDropdown(false);
+                          }}
+                          className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
+                        >
+                          <span className="font-semibold text-indigo-300 group-hover:text-indigo-200 truncate pr-2 max-w-[120px]">{m.displayId}</span>
+                          <span className="flex-1 truncate text-gray-400 group-hover:text-gray-300 text-right">{m.name}</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-transparent group-hover:text-indigo-400 ml-1 shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Matching Vendors */}
+                  {matchedVendors.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <div className="text-[9px] uppercase font-bold text-gray-500 flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
+                        <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Vendor Partners ({matchedVendors.length})</span>
+                      </div>
+                      {matchedVendors.map(v => (
+                        <button
+                          key={v.id}
+                          onClick={() => {
+                            onNavigate && onNavigate("vendor-portal");
+                            setShowDropdown(false);
+                          }}
+                          className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
+                        >
+                          <span className="font-semibold text-emerald-300 group-hover:text-emerald-200">{v.shortName}</span>
+                          <span className="flex-1 truncate text-gray-400 group-hover:text-gray-300 text-right">{v.name}</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-transparent group-hover:text-emerald-400 ml-1 shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Matching SKUs */}
+                  {matchedSkus.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <div className="text-[9px] uppercase font-bold text-gray-500 flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
+                        <Database className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Inventory SKUs ({matchedSkus.length})</span>
+                      </div>
+                      {matchedSkus.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => {
+                            onNavigate && onNavigate("catalog");
+                            setShowDropdown(false);
+                          }}
+                          className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
+                        >
+                          <span className="font-mono text-indigo-300 group-hover:text-indigo-200 truncate pr-2 max-w-[120px]">{s.partNumber}</span>
+                          <span className="flex-1 truncate text-gray-400 group-hover:text-gray-300 text-right">{s.name}</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-transparent group-hover:text-indigo-400 ml-1 shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  No direct quick matches. Press Enter ↵ to trigger comprehensive Sourcing Query.
+                </div>
+              )}
+
+              {/* Cognitive Footer link */}
+              <div
+                className="mt-1 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500 font-medium"
+              >
+                <span>↵ Press Enter to review details</span>
+                <button
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent blur
+                    setShowDropdown(false);
+                    onNavigate && onNavigate("search");
+                  }}
+                  className="text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5 font-bold cursor-pointer hover:underline"
+                >
+                  Open Sourcing Explorer &rarr;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Live Clock / Timezone */}

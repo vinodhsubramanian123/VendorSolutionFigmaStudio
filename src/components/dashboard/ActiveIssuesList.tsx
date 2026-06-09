@@ -8,7 +8,9 @@ interface ActiveIssuesListProps {
 }
 
 export function ActiveIssuesList({ forensicIssues, onNavigate }: ActiveIssuesListProps) {
-  const activeIssues = forensicIssues.filter((f) => f.status !== "resolved");
+  const activeIssues = React.useMemo(() => {
+    return forensicIssues.filter((f) => f.status !== "resolved");
+  }, [forensicIssues]);
 
   return (
     <div

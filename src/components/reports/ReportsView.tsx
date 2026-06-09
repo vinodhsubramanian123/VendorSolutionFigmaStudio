@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FileText,
   Download,
@@ -9,8 +9,10 @@ import {
   AlertTriangle,
   Zap,
   Database,
+  Loader2,
 } from "lucide-react";
 import type { UCID, CatalogSKU, Vendor } from "../../types";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 interface ReportsViewProps {
   ucids: UCID[];
@@ -28,45 +30,75 @@ export function ReportsView({
   catalogSkus,
 }: ReportsViewProps) {
   const [showValidator, setShowValidator] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (ucids.length === 0) {
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const committedMissions = useMemo(() => {
+    return ucids.filter((u) => u.currentStep === "snapshot");
+  }, [ucids]);
+
+  const activeMissions = useMemo(() => {
+    return ucids.filter((u) => u.currentStep !== "snapshot");
+  }, [ucids]);
+
+  const totalCommittedSpend = useMemo(() => {
+    return ucids
+      .flatMap((u) => u.snapshots || [])
+      .reduce((s, snapshot) => s + snapshot.totalValue, 0);
+  }, [ucids]);
+
+  // estimate averages
+  const avgSourcingSavings = useMemo(() => {
+    return ucids.reduce((total, u) => {
+      const s1 = u.solutions[0]?.vendorSubmissions?.[0]?.savings ?? 0;
+      const s2 = u.solutions[0]?.vendorSubmissions?.[1]?.savings ?? 0;
+      return total + (s1 > s2 ? s1 : s2);
+    }, 0);
+  }, [ucids]);
+
+  // Gap Audit logic
+  const ucidGaps = useMemo(() => {
+    return ucids.filter((u) => !u.name || !u.projectRef);
+  }, [ucids]);
+
+  const vendorGaps = useMemo(() => {
+    return vendors?.filter((v) => !v.apiEndpoint || !v.syncInterval) || [];
+  }, [vendors]);
+
+  const totalGaps = ucidGaps.length + vendorGaps.length;
+
+  if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center text-center p-12 bg-surface-elevated border border-white/5 rounded-xl gap-4 animate-fadeIn my-auto max-w-2xl mx-auto mt-12">
-        <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400">
-          <FileText className="w-8 h-8" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-sm font-semibold text-white">
-            No Reports Data Available
-          </h2>
-          <p className="text-xs text-gray-400 max-w-sm leading-normal">
-            Awaiting active hardware sourcing configurations (UCIDs) to compile
-            comprehensive portfolio reports and integrity audits.
-          </p>
-        </div>
+      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
       </div>
     );
   }
 
-  const committedMissions = ucids.filter((u) => u.currentStep === "snapshot");
-  const activeMissions = ucids.filter((u) => u.currentStep !== "snapshot");
-
-  const totalCommittedSpend = ucids
-    .flatMap((u) => u.snapshots || [])
-    .reduce((s, snapshot) => s + snapshot.totalValue, 0);
-
-  // estimate averages
-  const avgSourcingSavings = ucids.reduce((total, u) => {
-    const s1 = u.solutions[0]?.vendorSubmissions?.[0]?.savings ?? 0;
-    const s2 = u.solutions[0]?.vendorSubmissions?.[1]?.savings ?? 0;
-    return total + (s1 > s2 ? s1 : s2);
-  }, 0);
-
-  // Gap Audit logic
-  const ucidGaps = ucids.filter((u) => !u.name || !u.projectRef);
-  const vendorGaps =
-    vendors?.filter((v) => !v.apiEndpoint || !v.syncInterval) || [];
-  const totalGaps = ucidGaps.length + vendorGaps.length;
+  if (ucids.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div className="flex flex-col items-center justify-center text-center p-12 bg-surface-elevated border border-white/5 rounded-xl gap-4 animate-fadeIn my-auto max-w-2xl mx-auto mt-12">
+          <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400">
+            <FileText className="w-8 h-8" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold text-white">
+              No Reports Data Available
+            </h2>
+            <p className="text-xs text-gray-400 max-w-sm leading-normal">
+              Awaiting active hardware sourcing configurations (UCIDs) to compile
+              comprehensive portfolio reports and integrity audits.
+            </p>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
   const handleFixAllGaps = () => {
     if (setUcids && ucidGaps.length > 0) {
@@ -242,7 +274,8 @@ export function ReportsView({
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs">
+    <ErrorBoundary>
+      <div className="flex flex-col gap-4 animate-fadeIn select-none leading-normal text-xs">
       {/* Banner */}
       <div
         className="p-4 rounded-xl border flex items-center justify-between"
@@ -477,5 +510,6 @@ export function ReportsView({
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

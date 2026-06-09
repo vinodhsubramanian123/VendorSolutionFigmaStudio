@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   CheckCircle,
   Layers,
   Sparkles,
   Radio,
   FileSpreadsheet,
+  Loader2,
 } from "lucide-react";
 import { UCID, Snapshot } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 interface CampaignConsolidationHubProps {
   campaignName: string;
@@ -33,6 +35,13 @@ export function CampaignConsolidationHub({
   setCampaignLocked,
 }: CampaignConsolidationHubProps) {
   const isLocked = !!campaignLocked[campaignName];
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Calculations
   const totalOriginalBudget = React.useMemo(() => campaignUcids.reduce((sum, u) => {
@@ -220,20 +229,31 @@ export function CampaignConsolidationHub({
     return sum + (cheaps[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
   }, 0), [campaignUcids]);
 
-  if (campaignUcids.length === 0) {
+  if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center bg-surface-card border border-white/5 rounded-xl h-full min-h-[400px]">
-        <Layers className="w-12 h-12 text-indigo-500/30 mb-4" />
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider">No Active Campaigns</h3>
-        <p className="text-xs text-gray-500 mt-2 max-w-md leading-relaxed">
-          There are currently no active spreadsheet pipelines assigned to this campaign portfolio. Ingest configurations via the Hub to activate the consolidation ledger.
-        </p>
+      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
       </div>
     );
   }
 
+  if (campaignUcids.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div className="flex flex-col items-center justify-center p-12 text-center bg-surface-card border border-white/5 rounded-xl h-full min-h-[400px]">
+          <Layers className="w-12 h-12 text-indigo-500/30 mb-4" />
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">No Active Campaigns</h3>
+          <p className="text-xs text-gray-500 mt-2 max-w-md leading-relaxed">
+            There are currently no active spreadsheet pipelines assigned to this campaign portfolio. Ingest configurations via the Hub to activate the consolidation ledger.
+          </p>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <ErrorBoundary>
+      <div className="space-y-6">
       {/* Title block */}
       <div
         className="p-4 rounded-xl border border-indigo-500/10 bg-surface-elevated/90 space-y-3 shadow-2xl relative overflow-hidden"
@@ -624,5 +644,6 @@ export function CampaignConsolidationHub({
         )}
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react";
-import { Search, XCircle, RefreshCw, Zap, CheckCircle, AlertTriangle, ChevronRight, Shield, Database, X, Tag, ArrowRight } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Search, XCircle, RefreshCw, Zap, CheckCircle, AlertTriangle, ChevronRight, Shield, Database, X, Tag, ArrowRight, Loader2 } from "lucide-react";
 import type { ForensicIssue, CatalogSKU, UCID } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { StatusBadge } from "../shared/StatusBadge";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 interface DirtyLine {
   id: string;
@@ -25,6 +26,12 @@ export function CleansingView({
   ucids: UCID[];
 }) {
   const { success } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Dynamic extraction of unmatched parts in BOMs vs Catalog
   const computedDirtyLines = useMemo(() => {
@@ -90,9 +97,18 @@ export function CleansingView({
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6 animate-fadeIn text-content-primary font-sans">
-      {/* Header */}
+    <ErrorBoundary>
+      <div className="flex flex-col gap-6 animate-fadeIn text-content-primary font-sans">
+        {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
           <h2 className="text-lg font-bold text-white tracking-tight">
@@ -407,5 +423,6 @@ export function CleansingView({
         </div>
       </div>
     </div>
+  </ErrorBoundary>
   );
 }

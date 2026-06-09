@@ -8,8 +8,12 @@ import {
   Download,
   ChevronDown,
   ShieldAlert,
+  Zap,
+  AlertTriangle,
 } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
+import { useToast } from '../shared/ToastContext';
+import type { UCID, CatalogSKU, Vendor, ForensicIssue } from '../../types';
 
 // Define TS Interfaces for Drift Reconciliation Table
 interface TableRow {
@@ -23,6 +27,13 @@ interface TableRow {
   bomQty: string | number;
   unitPrice: string | number;
   totalPrice: string | number;
+  rawPartNumber: string;
+  rawQty: number;
+  rawType: string;
+  rawPrice: number;
+  hasAlert: boolean;
+  alertId: string;
+  alertTitle: string;
 }
 
 interface TableGroup {
@@ -33,21 +44,28 @@ interface TableGroup {
   rows: TableRow[];
 }
 
-import type { UCID, CatalogSKU } from '../../types';
-
 interface ReconciliationDrillDownProps {
   selectedConfigSheet: string;
   setSelectedConfigSheet: (sheet: string | null) => void;
   ucids?: UCID[];
+  setUcids?: React.Dispatch<React.SetStateAction<UCID[]>>;
   catalogSkus?: CatalogSKU[];
+  forensicIssues?: ForensicIssue[];
+  setForensicIssues?: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
+  setVendors?: React.Dispatch<React.SetStateAction<Vendor[]>>;
 }
 
 export function ReconciliationDrillDown({
   selectedConfigSheet,
   setSelectedConfigSheet,
   ucids,
+  setUcids,
   catalogSkus,
+  forensicIssues,
+  setForensicIssues,
+  setVendors,
 }: ReconciliationDrillDownProps) {
+  const toast = useToast();
   const [reconciliationFilter, setReconciliationFilter] = useState<string>("All");
 
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
@@ -82,9 +100,32 @@ export function ReconciliationDrillDown({
         status = isSimulated ? "Missing" : "Spec !=";
       }
 
+      // Detect active forensic alerts from global issue register:
+      const hasEolAlert = item.partNumber === "815100-B21" && forensicIssues?.some(i => i.id === "iss-1" && i.status !== "resolved");
+      const hasPriceAlert = item.partNumber === "400-BPSB" && item.unitPrice > 1190 && forensicIssues?.some(i => i.id === "iss-2" && i.status !== "resolved");
+      const hasMemorySymmetryAlert = type === "Memory" && item.quantity % 8 !== 0 && forensicIssues?.some(i => i.id === "iss-3" && i.status !== "resolved");
+
+      let hasAlert = false;
+      let alertId = "";
+      let alertTitle = "";
+
+      if (hasEolAlert) {
+        hasAlert = true;
+        alertId = "iss-1";
+        alertTitle = "Obsolete HPE Xeon CPU Vendor Limit Warning";
+      } else if (hasPriceAlert) {
+        hasAlert = true;
+        alertId = "iss-2";
+        alertTitle = "Quotation Price Premium Overage Detected";
+      } else if (hasMemorySymmetryAlert) {
+        hasAlert = true;
+        alertId = "iss-3";
+        alertTitle = "Power bus memory allocation asymmetrical";
+      }
+
       grouped.get(type)!.push({
         id: item.id || `row-${idx}`,
-        boqItem: item.name.replace("[REPLACED] ", ""),
+        boqItem: item.name.replace("[REPLACED] ", "").replace(" [REPLACED]", "").replace(" [ALIGNED]", ""),
         boqPart: `BOQ-${item.partNumber.substring(0, 8)}`,
         boqQty: item.quantity,
         status: status,
@@ -93,6 +134,13 @@ export function ReconciliationDrillDown({
         bomQty: status === "Missing" ? "—" : item.quantity,
         unitPrice: status === "Missing" ? "—" : item.unitPrice.toLocaleString(),
         totalPrice: status === "Missing" ? "—" : (item.unitPrice * item.quantity).toLocaleString(),
+        rawPartNumber: item.partNumber,
+        rawQty: item.quantity,
+        rawType: type,
+        rawPrice: item.unitPrice,
+        hasAlert,
+        alertId,
+        alertTitle,
       });
     });
 
@@ -107,7 +155,260 @@ export function ReconciliationDrillDown({
     const totalPrice = config.items.reduce((acc, it) => acc + (it.unitPrice * it.quantity), 0);
 
     return { driftTableData: groups, configName: config.name, totalPrice, activeUCID };
-  }, [ucids, selectedConfigSheet, catalogSkus]);
+  }, [ucids, selectedConfigSheet, catalogSkus, forensicIssues]);
+
+  // Direct Auto-Heal method to resolve discrepancies in real-time
+  const handleAutoHeal = (issueId: string) => {
+    if (!activeUCID || !setUcids) return;
+
+    if (issueId === "iss-1") {
+      setUcids((prev) =>
+        prev.map((u) => {
+          if (u.id === activeUCID.id) {
+            const nextSolutions = u.solutions.map((sol) => {
+              const matchedCPU = sol.vendorSubmissions?.some((vs) =>
+                vs.configs?.some((c) =>
+                  c.items?.some((it) => it.partNumber === "815100-B21"),
+                ),
+              );
+              if (!matchedCPU) return sol;
+
+              const repairedSubmissions =
+                sol.vendorSubmissions?.map((vs) => {
+                  const repairedConfigs =
+                    vs.configs?.map((c) => {
+                      const repairedItems =
+                        c.items?.map((it) => {
+                          if (it.partNumber === "815100-B21") {
+                            return {
+                              ...it,
+                              partNumber: "P40424-B21",
+                              name: "Intel Xeon Gold 6430 CPU [REPLACED]",
+                              unitPrice: 2150,
+                            };
+                          }
+                          return it;
+                        }) || [];
+                      const newConfigSum = repairedItems.reduce(
+                        (acc, curr) => acc + curr.unitPrice * curr.quantity,
+                        0,
+                      );
+                      return {
+                        ...c,
+                        items: repairedItems,
+                        totalPrice: newConfigSum,
+                        savings: Math.max(0, c.originalPrice - newConfigSum),
+                      };
+                    }) || [];
+                  const newVsSum = repairedConfigs.reduce(
+                    (acc, c) => acc + c.totalPrice,
+                    0,
+                  );
+                  return {
+                    ...vs,
+                    configs: repairedConfigs,
+                    totalPrice: newVsSum,
+                    savings: Math.max(0, vs.originalPrice - newVsSum),
+                    complianceScore: 100,
+                  };
+                }) || [];
+
+              return {
+                ...sol,
+                vendorSubmissions: repairedSubmissions,
+              };
+            });
+
+            return {
+              ...u,
+              solutions: nextSolutions,
+              events: [
+                ...u.events,
+                {
+                  ts: new Date().toLocaleTimeString(),
+                  level: "ok",
+                  msg: "BOM Direct Align: Replaced obsolete HPE processor 815100-B21 with model P40424-B21.",
+                },
+              ],
+            };
+          }
+          return u;
+        }),
+      );
+
+      setForensicIssues?.((prev) =>
+        prev.map((iss) =>
+          iss.id === "iss-1" ? { ...iss, status: "resolved" as const } : iss,
+        ),
+      );
+      toast.success("Obsolete HPE CPU successfully aligned and certified!");
+    } else if (issueId === "iss-2") {
+      setUcids((prev) =>
+        prev.map((u) => {
+          if (u.id === activeUCID.id) {
+            const nextSolutions = u.solutions.map((sol) => {
+              const hasOverage = sol.vendorSubmissions?.some((vs) =>
+                vs.configs?.some((c) =>
+                  c.items?.some(
+                    (it) => it.partNumber === "400-BPSB" && it.unitPrice > 1190,
+                  ),
+                ),
+              );
+              if (!hasOverage) return sol;
+
+              const repairedSubmissions =
+                sol.vendorSubmissions?.map((vs) => {
+                  const repairedConfigs =
+                    vs.configs?.map((c) => {
+                      const repairedItems =
+                        c.items?.map((it) => {
+                          if (it.partNumber === "400-BPSB") {
+                            return {
+                              ...it,
+                              unitPrice: 1190,
+                              name: "Dell 3.84TB Enterprise NVMe SSD [ALIGNED]",
+                            };
+                          }
+                          return it;
+                        }) || [];
+                      const newConfigSum = repairedItems.reduce(
+                        (acc, curr) => acc + curr.unitPrice * curr.quantity,
+                        0,
+                      );
+                      return {
+                        ...c,
+                        items: repairedItems,
+                        totalPrice: newConfigSum,
+                        savings: Math.max(0, c.originalPrice - newConfigSum),
+                      };
+                    }) || [];
+                  const newVsSum = repairedConfigs.reduce(
+                    (acc, c) => acc + c.totalPrice,
+                    0,
+                  );
+                  return {
+                    ...vs,
+                    configs: repairedConfigs,
+                    totalPrice: newVsSum,
+                    savings: Math.max(0, vs.originalPrice - newVsSum),
+                  };
+                }) || [];
+
+              return {
+                ...sol,
+                vendorSubmissions: repairedSubmissions,
+              };
+            });
+
+            return {
+              ...u,
+              solutions: nextSolutions,
+              events: [
+                ...u.events,
+                {
+                  ts: new Date().toLocaleTimeString(),
+                  level: "ok",
+                  msg: "BOM Direct Align: Adjusted overcharge markup on Dell SFF premium drive to standard trade agreement limit of $1,190.",
+                },
+              ],
+            };
+          }
+          return u;
+        }),
+      );
+
+      setForensicIssues?.((prev) =>
+        prev.map((iss) =>
+          iss.id === "iss-2" ? { ...iss, status: "resolved" as const } : iss,
+        ),
+      );
+      toast.success("Dell quoted unit price contract matched successfully.");
+    } else if (issueId === "iss-3") {
+      setUcids((prev) =>
+        prev.map((u) => {
+          if (u.id === activeUCID.id) {
+            const nextSolutions = u.solutions.map((sol) => {
+              const hasAsymmetricMemory = sol.vendorSubmissions?.some(
+                (vs) =>
+                  vs.vendor === "Cisco" &&
+                  vs.configs?.some((c) =>
+                    c.items?.some(
+                      (it) => it.type === "Memory" && it.quantity % 8 !== 0,
+                    ),
+                  ),
+              );
+              if (!hasAsymmetricMemory) return sol;
+
+              const repairedSubmissions =
+                sol.vendorSubmissions?.map((vs) => {
+                  if (vs.vendor !== "Cisco") return vs;
+                  const repairedConfigs =
+                    vs.configs?.map((c) => {
+                      const repairedItems =
+                        c.items?.map((it) => {
+                          if (it.type === "Memory") {
+                            return {
+                              ...it,
+                              quantity: 8,
+                              name: "Cisco 64GB DDR5 memory module [REBALANCED]",
+                            };
+                          }
+                          return it;
+                        }) || [];
+                      const newConfigSum = repairedItems.reduce(
+                        (acc, curr) => acc + curr.unitPrice * curr.quantity,
+                        0,
+                      );
+                      return {
+                        ...c,
+                        items: repairedItems,
+                        totalPrice: newConfigSum,
+                        savings: Math.max(0, c.originalPrice - newConfigSum),
+                      };
+                    }) || [];
+                  const newVsSum = repairedConfigs.reduce(
+                    (acc, c) => acc + c.totalPrice,
+                    0,
+                  );
+                  return {
+                    ...vs,
+                    configs: repairedConfigs,
+                    totalPrice: newVsSum,
+                    savings: Math.max(0, vs.originalPrice - newVsSum),
+                  };
+                }) || [];
+
+              return {
+                ...sol,
+                vendorSubmissions: repairedSubmissions,
+              };
+            });
+
+            return {
+              ...u,
+              solutions: nextSolutions,
+              events: [
+                ...u.events,
+                {
+                  ts: new Date().toLocaleTimeString(),
+                  level: "ok",
+                  msg: "BOM Direct Align: Balanced memory loadout to optimal 8-channel socket standards.",
+                },
+              ],
+            };
+          }
+          return u;
+        }),
+      );
+
+      setForensicIssues?.((prev) =>
+        prev.map((iss) =>
+          iss.id === "iss-3" ? { ...iss, status: "resolved" as const } : iss,
+        ),
+      );
+      toast.success("Balanced dual-socket bus alignment configured.");
+    }
+  };
 
   const stats = React.useMemo(() => {
     let all = 0, matched = 0, missing = 0, added = 0, spec = 0, qty = 0;
@@ -320,11 +621,31 @@ export function ReconciliationDrillDown({
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="border-b border-white/2 hover:bg-white/2 transition-colors duration-100 text-[11px] font-medium text-gray-300"
+                        className={`border-b border-white/2 hover:bg-white/2 transition-colors duration-100 text-[11px] font-medium text-gray-300 ${
+                          row.hasAlert
+                            ? "border-l-2 border-l-amber-500 bg-amber-500/[0.03]"
+                            : ""
+                        }`}
                       >
                         {/* BOQ descriptive attributes */}
-                        <td className="py-3 px-4 font-semibold text-white max-w-xs truncate text-left">
-                          {row.boqItem}
+                        <td className="py-3 px-4 font-semibold text-white max-w-xs text-left">
+                          <div className="truncate">{row.boqItem}</div>
+                          {row.hasAlert && (
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5 p-1 px-1.5 rounded bg-amber-500/10 border border-amber-500/25 text-[9.5px] font-bold text-amber-400 font-mono inline-flex">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-bounce" />
+                              <span>{row.alertTitle}</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAutoHeal(row.alertId);
+                                }}
+                                className="ml-1 px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-black font-extrabold uppercase text-[9px] tracking-wide cursor-pointer transition flex items-center gap-0.5 border-0 focus:outline-none"
+                              >
+                                <Zap className="w-2.5 h-2.5 text-[#000]" />
+                                <span>Auto-Align</span>
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td className="py-3 px-2 font-mono text-gray-400 text-left">
                           {row.boqPart}
@@ -362,8 +683,8 @@ export function ReconciliationDrillDown({
                         </td>
                         <td className="py-3 px-2 text-right font-mono text-gray-500">
                           {row.unitPrice !== "—"
-                            ? `$${row.unitPrice}`
-                            : "—"}
+                             ? `$${row.unitPrice}`
+                             : "—"}
                         </td>
                         <td className="py-3 px-4 text-right font-mono font-bold text-status-success">
                           {row.totalPrice !== "—"

@@ -222,12 +222,11 @@ export function TechnicalBomWorkspace({
               }}
             >
               {ucids.map((u) => (
-                <option key={u.id} value={u.id}>
+                <option key={u.id} value={u.id} className="bg-[#0b1220] text-white py-2">
                   {u.displayId} —{" "}
                   {u.solutions.length > 0
-                    ? Object.values(u.solutions[0]?.vendorSubmissions || {})[0]
-                        ?.vendor
-                    : "Unknown"}{" "}
+                    ? u.solutions[0]?.vendorSubmissions?.[0]?.vendor || "Multi-Vendor"
+                    : "No Solution"}{" "}
                   (Sourced)
                 </option>
               ))}

@@ -8,10 +8,12 @@ import {
   ChevronRight,
   Zap,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { UCID_STEPS } from "../../lib/mockData";
 import { useChartDimensions } from "../../hooks/useChartDimensions";
 import type { AppView, UCID, Vendor, ForensicIssue } from "../../types";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 import { KpiCard } from "./KpiCard";
 import { VendorHealthList } from "./VendorHealthList";
@@ -33,6 +35,12 @@ export function Dashboard({
   forensicIssues,
 }: DashboardProps) {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 250);
+    return () => clearTimeout(timer);
+  }, []);
 
   const areaChart = useChartDimensions();
   const pieChart = useChartDimensions();
@@ -52,16 +60,20 @@ export function Dashboard({
     color: v.color,
   })), [vendors]);
 
-    const averagePipeline = activeUCIDs.length > 0 
-      ? Math.round(activeUCIDs.reduce((acc, u) => {
-          const stepIdx = UCID_STEPS.findIndex((s) => s.id === u.currentStep);
-          return acc + (stepIdx / (UCID_STEPS.length - 1)) * 100;
-      }, 0) / activeUCIDs.length)
-      : 0;
+    const averagePipeline = useMemo(() => {
+      return activeUCIDs.length > 0 
+        ? Math.round(activeUCIDs.reduce((acc, u) => {
+            const stepIdx = UCID_STEPS.findIndex((s) => s.id === u.currentStep);
+            return acc + (stepIdx / (UCID_STEPS.length - 1)) * 100;
+        }, 0) / activeUCIDs.length)
+        : 0;
+    }, [activeUCIDs]);
       
-    const recentMission = activeUCIDs.length > 0 ? activeUCIDs[0].displayId : "No active missions";
+    const recentMission = useMemo(() => {
+      return activeUCIDs.length > 0 ? activeUCIDs[0].displayId : "No active missions";
+    }, [activeUCIDs]);
 
-  const KPI_CARDS = [
+  const KPI_CARDS = useMemo(() => [
     {
       id: "vendor-portal",
       label: "Connected Vendors",
@@ -122,11 +134,20 @@ export function Dashboard({
       delta: "Healthy",
       up: true,
     },
-  ];
+  ], [connectedVendors, vendors.length, totalCatalog, activeUCIDs.length, ucids.length, forensicIssues, criticalIssues, averagePipeline, recentMission]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Welcome banner */}
+    <ErrorBoundary>
+      <div className="space-y-4 animate-fadeIn">
+        {/* Welcome banner */}
       <div
         className="rounded-xl p-4 flex items-center justify-between"
         style={{
@@ -344,5 +365,6 @@ export function Dashboard({
         </div>
       </div>
     </div>
+  </ErrorBoundary>
   );
 }
