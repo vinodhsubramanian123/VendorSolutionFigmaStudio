@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Database, Globe, Target, Search, ArrowUpRight, Loader2, Sparkles } from "lucide-react";
 import type { AppView, UCID, Vendor, CatalogSKU } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
@@ -118,7 +119,12 @@ export function SearchView({
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col gap-5 animate-fadeIn select-none leading-normal text-xs">
+      <motion.div 
+        className="flex flex-col gap-5 select-none leading-normal text-xs"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         {/* Beautiful Cognitive Search Console Body Input */}
         <div 
           className="p-6 rounded-xl border flex flex-col gap-4 relative overflow-hidden" 
@@ -341,7 +347,7 @@ export function SearchView({
           </p>
         </div>
       )}
-    </div>
+    </motion.div>
     </ErrorBoundary>
   );
 }

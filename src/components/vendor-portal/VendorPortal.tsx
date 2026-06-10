@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "motion/react";
 import {
   Globe,
   RefreshCw,
@@ -114,7 +115,12 @@ export function VendorPortal({
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col gap-4 animate-fadeIn">
+      <motion.div 
+        className="flex flex-col gap-4"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
       {/* Toast Alert overlay */}
       {toast && (
         <div
@@ -174,9 +180,15 @@ export function VendorPortal({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end md:self-auto bg-indigo-500/5 px-3 py-2 rounded-lg border border-indigo-500/10 font-mono text-[10px] text-indigo-300 shrink-0 select-none">
-          <RefreshCw className="w-3 h-3 text-indigo-400 animate-spin" />
-          <span>PLAYWRIGHT DEAMON: ACTIVE IN BACKGROUND</span>
+        <div className="flex items-center gap-2 self-end md:self-auto shrink-0 select-none">
+          <button 
+            onClick={handleSyncAll}
+            disabled={syncingAll}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-[10px] transition-all cursor-pointer shadow-lg active:scale-95 ${syncingAll ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300' : 'bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/20 text-indigo-400'}`}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${syncingAll ? 'animate-spin' : ''}`} />
+            <span className="font-bold tracking-wider">{syncingAll ? 'SYNCING CATALOGS...' : 'SYNC ALL ENDPOINTS'}</span>
+          </button>
         </div>
       </div>
 
@@ -199,7 +211,7 @@ export function VendorPortal({
           />
         </div>
       </div>
-    </div>
+    </motion.div>
     </ErrorBoundary>
   );
 }

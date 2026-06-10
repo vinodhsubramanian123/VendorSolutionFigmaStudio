@@ -1,5 +1,6 @@
 import { tokens } from "../../styles/tokens";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
+import { motion } from "motion/react";
 import {
   Activity,
   GitCompare,
@@ -325,10 +326,14 @@ export function MissionControl({
             committedAt:
               new Date().toISOString().replace("T", " ").substring(0, 19) +
               " UTC",
-            winnerSolution: prizeSol?.name || "",
+            winnerSolution: prizeSol?.name || prizeSol?.label || "",
             totalValue: prizeSol.totalPrice,
             notes:
               "Contract locked & archived automatically in secure compliance ledger.",
+            version: u.snapshots.length + 1,
+            timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+            locked: true,
+            bomSnapshot: prizeSol.configs || []
           };
           return {
             ...u,
@@ -372,7 +377,12 @@ export function MissionControl({
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col gap-4 animate-fadeIn">
+      <motion.div 
+        className="flex flex-col gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         {activeJobId && (
           <JobPoller
             jobId={activeJobId}
@@ -617,7 +627,7 @@ export function MissionControl({
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
     </ErrorBoundary>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import {
   ShieldAlert,
   CheckCircle,
@@ -686,7 +687,12 @@ export function ForensicView({
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col gap-4 animate-fadeIn">
+      <motion.div 
+        className="flex flex-col gap-4"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 p-3.5 rounded-xl border shadow-2xl bg-surface-elevated border-emerald-500 flex flex-row items-center gap-3 animate-slideIn">
@@ -763,7 +769,7 @@ export function ForensicView({
         prefillRule={prefillRule}
         onPrefillConsumed={() => setPrefillRule(null)}
       />
-    </div>
+    </motion.div>
   </ErrorBoundary>
   );
 }

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "motion/react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ReconciliationEmpty } from "./ReconciliationEmpty";
 import { ReconciliationOverview } from "./ReconciliationOverview";
 import { ReconciliationDrillDown } from "./ReconciliationDrillDown";
 import type { UCID, CatalogSKU, Vendor, ForensicIssue } from "../../types";
-import { Loader2 } from "lucide-react";
+import { Loader2, Camera } from "lucide-react";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { SnapshotsPanel } from "./SnapshotsPanel";
 
 interface ReconciliationViewProps {
   ucids: UCID[];
@@ -25,9 +27,17 @@ export function ReconciliationView({
   setVendors,
 }: ReconciliationViewProps) {
   const [hasDrift, setHasDrift] = useState(true);
+  const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
+
   // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
   const activeUCIDList = useMemo(() => {
     return ucids.filter(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison");
+  }, [ucids]);
+
+  const activeUCID = useMemo(() => {
+    return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison") ||
+      ucids?.find((u) => u.solutions?.length > 0) ||
+      ucids?.[0];
   }, [ucids]);
 
   // BOM Reconciliation state
@@ -41,7 +51,12 @@ export function ReconciliationView({
 
   return (
     <ErrorBoundary>
-      <div className="space-y-5 text-xs animate-fadeIn select-none">
+      <motion.div 
+        className="space-y-5 text-xs select-none"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
       {/* VENDORIQ • PREMIUM UI COMPONENTS header bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-surface-header border border-white/5 py-2 px-4 rounded-xl"> 
         <div className="flex items-center gap-2.5">
@@ -56,6 +71,13 @@ export function ReconciliationView({
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSnapshotPanelOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 hover:text-indigo-300 font-extrabold uppercase text-[9.5px] tracking-wider transition-all duration-150 cursor-pointer focus:outline-none"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>Version Snapshots ({activeUCID?.snapshots?.length || 0})</span>
+          </button>
           <div className="flex items-center gap-1">
             <StatusBadge 
               status="Dual Sourced Synced API" 
@@ -71,6 +93,7 @@ export function ReconciliationView({
           setHasDrift={setHasDrift} 
           setSelectedConfigSheet={setSelectedConfigSheet} 
           ucids={ucids}
+          setUcids={setUcids}
           catalogSkus={catalogSkus}
         />
       ) : (
@@ -85,7 +108,16 @@ export function ReconciliationView({
           setVendors={setVendors}
         />
       )}
-    </div>
+
+      <SnapshotsPanel
+        isOpen={isSnapshotPanelOpen}
+        onClose={() => setIsSnapshotPanelOpen(false)}
+        activeUCID={activeUCID}
+        ucids={ucids}
+        setUcids={setUcids}
+        catalogSkus={catalogSkus}
+      />
+    </motion.div>
     </ErrorBoundary>
   );
 }

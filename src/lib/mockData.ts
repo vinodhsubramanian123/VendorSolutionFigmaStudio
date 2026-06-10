@@ -1080,6 +1080,65 @@ export const UCIDS: UCID[] = [
         winnerSolution: "Juniper SRX Gateway Security Configuration",
         totalValue: 3800,
         notes: "Signed contract uploaded, PO-2026-0922 issued successfully.",
+        version: 1,
+        timestamp: "2026-05-25 13:02:00",
+        locked: true,
+        payload: [
+          {
+            id: "sol-master-u4",
+            name: "Master Architectural Solution",
+            targetUcidId: "u4",
+            vendorSubmissions: [
+              {
+                id: "vs-u4-jun",
+                vendor: "Juniper",
+                label: "Juniper SRX Gateway Security Configuration",
+                totalPrice: 3800,
+                originalPrice: 4200,
+                savings: 400,
+                complianceScore: 100,
+                configs: [
+                  {
+                    id: "cfg-u4-jun-1",
+                    name: "Juniper Routing Config",
+                    totalPrice: 3800,
+                    originalPrice: 4200,
+                    savings: 400,
+                    items: [
+                      {
+                        id: "bi-13",
+                        partNumber: "SRX300-SYS-JB",
+                        name: "SRX300 Services Gateway with Care",
+                        type: "Network Adapter",
+                        quantity: 4,
+                        unitPrice: 950,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        bomSnapshot: [
+          {
+            id: "cfg-u4-jun-1",
+            name: "Juniper Routing Config",
+            totalPrice: 3800,
+            originalPrice: 4200,
+            savings: 400,
+            items: [
+              {
+                id: "bi-13",
+                partNumber: "SRX300-SYS-JB",
+                name: "SRX300 Services Gateway with Care",
+                type: "Network Adapter",
+                quantity: 4,
+                unitPrice: 950,
+              },
+            ],
+          },
+        ],
       },
     ],
   },

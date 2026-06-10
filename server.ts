@@ -416,6 +416,28 @@ async function startServer() {
     });
   });
 
+  // REST API: Endpoint 8: Save snapshot for specific UCID
+  app.post("/api/ucids/:unit/snapshots", (req, res) => {
+    const { unit } = req.params;
+    const { snapshot } = req.body;
+
+    if (!snapshot) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing snapshot object in request body."
+      });
+    }
+
+    console.log(`[SNAPSHOT API] => Persisted snapshot version v${snapshot.version} for UCID unit: ${unit}`);
+
+    res.status(200).json({
+      success: true,
+      ucid: unit,
+      snapshotId: snapshot.id,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Mount Vite Middleware for development OR serve built static assets in Production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

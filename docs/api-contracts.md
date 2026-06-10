@@ -88,3 +88,20 @@ When performing mutating actions (e.g., "Auto-Align" in Forensic View, Status Up
 ### 5.4 POST /api/taxonomy/rules
 - **Payload**: `{ sourceId: string, ruleType: "requires" | "exclusive", explanation: string }`
 - **Behavior**: Computes and stores custom enforcement constraints inside the Graph rules engine to detect validation anomalies in future scans.
+
+## 6. Snapshot & Version Control API
+
+### 6.1 GET /api/ucids/:ucid/snapshots
+- **Response**: `ApiResponse<Snapshot[]>` where `Snapshot` matches the data schemas containing `version`, `timestamp`, `locked`, and `bomSnapshot`.
+
+### 6.2 POST /api/ucids/:ucid/snapshots
+- **Payload**: `{ label: string, winnerSolution: string, notes: string, bomSnapshot: any[] }`
+- **Behavior**: Compiles the current active BOM assembly layout, increments the version number relative to this specific UCID, logs the accurate server-side timestamp, and returns the newly instantiated `locked: true` snapshot payload.
+
+### 6.3 PATCH /api/ucids/:ucid/snapshots/:snapshotId/lock
+- **Payload**: `{ locked: boolean }`
+- **Behavior**: Updates the immutability flag of the designated contract snapshot. Allows manual overrides / toggles.
+
+### 6.4 DELETE /api/ucids/:ucid/snapshots/:snapshotId
+- **Behavior**: Attempts deletion. Rejects with an error HTTP 403 response if the target snapshot's `locked` attribute remains `true`.
+

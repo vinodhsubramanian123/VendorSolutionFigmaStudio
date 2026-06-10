@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { tokens } from "./styles/tokens";
 import { RefreshCw } from "lucide-react";
 import { Sidebar } from "./components/layout/Sidebar";
@@ -54,6 +55,58 @@ export default function App() {
     "sys_forensic_issues",
     INITIAL_ISSUES,
   );
+
+  // Graceful Migration of Snapshot objects inside ucids
+  useEffect(() => {
+    let migrated = false;
+    const nextUcids = ucids.map((u) => {
+      let uMigrated = false;
+      const nextSnaps = (u.snapshots || []).map((s, idx) => {
+        const fallbackVersion = s.version ?? (idx + 1);
+        const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
+        const fallbackLocked = s.locked ?? true;
+        
+        let fallbackBom: any[] = s.bomSnapshot;
+        if (!fallbackBom) {
+          if (s.payload && Array.isArray(s.payload)) {
+            fallbackBom = s.payload[0]?.vendorSubmissions?.[0]?.configs || [];
+          } else {
+            fallbackBom = [];
+          }
+        }
+
+        if (
+          s.version !== fallbackVersion ||
+          s.timestamp !== fallbackTimestamp ||
+          s.locked !== fallbackLocked ||
+          s.bomSnapshot === undefined
+        ) {
+          uMigrated = true;
+          return {
+            ...s,
+            version: fallbackVersion,
+            timestamp: fallbackTimestamp,
+            locked: fallbackLocked,
+            bomSnapshot: fallbackBom,
+          };
+        }
+        return s;
+      });
+
+      if (uMigrated) {
+        migrated = true;
+        return {
+          ...u,
+          snapshots: nextSnaps,
+        };
+      }
+      return u;
+    });
+
+    if (migrated) {
+      setUcids(nextUcids);
+    }
+  }, [ucids, setUcids]);
 
   // Phase 3: The Forensic Auto-Heal Hook
   useEffect(() => {
@@ -376,7 +429,18 @@ export default function App() {
                 onConfirmNavigation={confirmNavigation}
                 onCancelNavigation={cancelNavigation}
               >
-                {renderView()}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={view}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="flex-1 flex flex-col min-h-full"
+                  >
+                    {renderView()}
+                  </motion.div>
+                </AnimatePresence>
               </DataPersistenceGate>
             </ErrorBoundary>
           </div>

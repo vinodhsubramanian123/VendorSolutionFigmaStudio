@@ -371,3 +371,19 @@ export interface GraphAPIResponse {
   edges: GraphEdge[];
 }
 ```
+
+---
+
+### 7. Snapshot Versioning, Lock State, and Detailed BOM Specification Management
+
+To secure negotiated pricing structures over long sales/procurement execution windows, the platform implements a strict **Snapshot Versioning & Control Engine**. This ensures changes are recorded systematically and previous milestones remain locked as authoritative history.
+
+#### 7.1 Lifecycle Rules for Snapshots
+- **Snapshot Creation**: Users can take a snapshot at any point. Taking a snapshot copies the entire current BOM configuration (stored in `bomSnapshot`), compiles a designated version number, applies a high-precision timestamp, and initializes as `locked: true` by default.
+- **Lock/Unlock Flags**: Every snapshot must contain a `locked` boolean variable.
+  - A **locked** snapshot is immutable and cannot be deleted or mid-edited.
+  - An **unlocked** snapshot allows deletions or overrides if a re-alignment becomes necessary (not standard practice, but supported via manual toggling).
+- **Versioning Increments**: Snapshots are index-aligned and versioned incrementally starting at `1` for each UCID to ensure a transparent historical audit trail.
+- **Detailed BOM Spec Visuals**: Within the version list, snapshots can be expanded to display accurate nested SKU properties (part numbers, description names, quantities, and line pricing totals) cached at that specific point in time rather than general text notes.
+
+---

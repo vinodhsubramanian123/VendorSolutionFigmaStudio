@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "motion/react";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import { useWorkflowManager } from "../../hooks/useWorkflowManager";
 import {
@@ -666,7 +667,12 @@ export function IngestionHub({
     }
   };  return (
     <ErrorBoundary>
-      <div className="flex flex-col gap-6 relative select-none">
+      <motion.div 
+        className="flex flex-col gap-6 relative select-none"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         {/* Toast Alert Popup */}
         {toast && (
           <div className="fixed bottom-6 right-6 z-[100] bg-surface-elevated/95 border border-sky-500/30 rounded-xl shadow-2xl p-4 flex flex-col gap-3 min-w-[320px] max-w-sm backdrop-blur-md animate-fadeIn">
@@ -865,11 +871,12 @@ export function IngestionHub({
           onStartPortfolioPipeline={handleStartPortfolioPipeline}
           onSimulateManualUpload={simulateManualUpload}
           onAdvanceStep={advanceStep}
+          activeUCID={targetUcid}
         />
       )}
 
       {mode === "launch" && <LaunchStep onNavigate={onNavigate} />}
-      </div>
+      </motion.div>
     </ErrorBoundary>
   );
 }

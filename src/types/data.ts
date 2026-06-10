@@ -85,6 +85,11 @@ export interface Snapshot {
   winnerSolution: string; // The selected solution architecture (ID or Name)
   totalValue: number; // Absolute order layout cost (USD)
   notes: string; // Administrative notes or auditing justifications
+  payload?: any; // The configuration payload state at the time of the snapshot
+  version: number; // Snapshot version number
+  timestamp: string; // Real-time timestamp of creation
+  locked: boolean; // Indicates if snapshot is locked
+  bomSnapshot?: any; // Full config BOM snapshot representing the reconciled state
 }
 
 /**

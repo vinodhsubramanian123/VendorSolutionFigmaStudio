@@ -1,5 +1,6 @@
 import { tokens } from "../../styles/tokens";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { motion } from "motion/react";
 import {
   Globe,
   Database,
@@ -262,9 +263,17 @@ export function Dashboard({
 
   return (
     <ErrorBoundary>
-      <div className="space-y-4 animate-fadeIn">
+      <motion.div 
+        className="space-y-4"
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         {/* Welcome banner */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="rounded-xl p-4 flex items-center justify-between"
         style={{
           background:
@@ -304,7 +313,7 @@ export function Dashboard({
             Live Mission Control
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -382,7 +391,7 @@ export function Dashboard({
           <ActiveIssuesList forensicIssues={forensicIssues} onNavigate={onNavigate} />
         </div>
       </div>
-    </div>
+    </motion.div>
   </ErrorBoundary>
   );
 }

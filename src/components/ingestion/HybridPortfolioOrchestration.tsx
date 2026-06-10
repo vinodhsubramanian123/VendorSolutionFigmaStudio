@@ -10,6 +10,7 @@ import {
   Activity,
 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
+import { UCID } from "../../types";
 
 interface HybridPortfolioOrchestrationProps {
   isPortfolioActive: boolean;
@@ -20,6 +21,7 @@ interface HybridPortfolioOrchestrationProps {
   onStartPortfolioPipeline: () => void;
   onSimulateManualUpload: (configsCount: number) => void;
   onAdvanceStep: () => void;
+  activeUCID?: UCID;
 }
 
 export function HybridPortfolioOrchestration({
@@ -31,7 +33,10 @@ export function HybridPortfolioOrchestration({
   onStartPortfolioPipeline,
   onSimulateManualUpload,
   onAdvanceStep,
+  activeUCID,
 }: HybridPortfolioOrchestrationProps) {
+  const projectRefString = activeUCID?.projectRef || "OPPORTUNITY-2026-HQ-EXPANSION";
+
   return (
     <div className="space-y-6 animate-fadeIn text-left select-none">
       {/* Top description card */}
@@ -44,7 +49,7 @@ export function HybridPortfolioOrchestration({
           <div className="space-y-2">
             <StatusBadge status="Parent Portfolio Coordinator" variant="info" />
             <h2 className="text-lg font-bold text-white font-sans tracking-tight">
-              Active Deal: OPPORTUNITY-2026-HQ-EXPANSION
+              Active Deal: {projectRefString}
             </h2>
             <p className="text-[11px] text-gray-400 max-w-2xl leading-relaxed">
               Consolidate automated crawlers running sequential step iterations
@@ -647,7 +652,7 @@ export function HybridPortfolioOrchestration({
             ciscoSyncedConfigs === 4 ? (
               <span>
                 ✔ <strong>Ledger Integrity High</strong>: Sourcing analysis
-                complete for OPPORTUNITY-2026-HQ-EXPANSION. Total deal size
+                complete for {projectRefString}. Total deal size
                 calculated: <strong>$1,249,700</strong> with absolute alignment
                 across automated and manual paths. No cross-contamination or
                 ambiguity occurred!

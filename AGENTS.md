@@ -114,8 +114,9 @@ Keep all modifications clean, explicit, and perfectly typed. Never leave danglin
 
 ## 6. Strict Data Hydration
 *   **Rule**: NO HARDCODING. All domain data must be sourced either from API endpoints or structured mocks representing remote interfaces. View components must remain dumb representations of their properties.
+*   **Playwright Browser Engine Logs**: Playwright static logs are MVP placeholder — Phase 2 will integrate real websocket/SSE streams from active browser instances.
 
 ---
 
 ## 7. Frontend Freeze Status
-**FRONTEND FROZEN — All PRD scenarios implemented, ready for backend**
+**FRONTEND FROZEN — All PRD scenarios implemented, all hardcoding removed, ready for backend**

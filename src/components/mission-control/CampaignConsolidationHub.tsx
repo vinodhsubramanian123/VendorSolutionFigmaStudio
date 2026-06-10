@@ -168,6 +168,10 @@ export function CampaignConsolidationHub({
           winnerSolution: winningSol.vendor,
           totalValue: winningSol.totalPrice,
           notes: `Master digital covenant locked by ${campaignSigner}. Cryptographic compliance checksum generated successfully.`,
+          version: u.snapshots.length + 1,
+          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+          locked: true,
+          bomSnapshot: (winningSol as any).configs || []
         };
 
         return {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Database,
   Layers,
@@ -17,6 +17,7 @@ interface ReconciliationOverviewProps {
   setSelectedConfigSheet: (sheet: string | null) => void;
   setHasDrift: (hasDrift: boolean) => void;
   ucids?: UCID[];
+  setUcids?: React.Dispatch<React.SetStateAction<UCID[]>>;
   catalogSkus?: CatalogSKU[];
 }
 
@@ -24,6 +25,7 @@ export function ReconciliationOverview({
   setSelectedConfigSheet,
   setHasDrift,
   ucids,
+  setUcids,
   catalogSkus,
 }: ReconciliationOverviewProps) {
   const toast = useToast();
@@ -79,6 +81,30 @@ export function ReconciliationOverview({
 
   const onReconSuccess = (result: any, context: any) => {
     toast.success("Reconciliation committed successfully! UCID status set to locked sync.");
+    
+    if (setUcids && activeUCID) {
+      setUcids(prev => prev.map(u => {
+        if (u.id === activeUCID.id) {
+          const newSnapshot: any = {
+            id: `snap-${Date.now()}`,
+            label: "Post-Reconciliation Lock",
+            committedAt: new Date().toISOString().split("T")[0],
+            winnerSolution: u.solutions?.[0]?.vendorSubmissions?.[0]?.label || "Consolidated Sourcing",
+            totalValue: u.solutions?.[0]?.vendorSubmissions?.[0]?.totalPrice || 0,
+            notes: "Automatic commit following drift reconciliation.",
+            payload: JSON.parse(JSON.stringify(u.solutions))
+          };
+          return {
+            ...u,
+            currentStep: "snapshot",
+            completedSteps: [...u.completedSteps, "comparison"],
+            snapshots: [...u.snapshots, newSnapshot]
+          };
+        }
+        return u;
+      }));
+    }
+    
     setHasDrift(false);
     setReconJobId(null);
   };
@@ -149,7 +175,12 @@ export function ReconciliationOverview({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 animate-fadeIn">
+    <motion.div 
+      className="grid grid-cols-1 lg:grid-cols-4 gap-4"
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+    >
       {/* UCID-2026-0042 Header Ribbon summary */}
       <div className="lg:col-span-4 bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"> 
         <div className="flex items-center gap-3">
@@ -264,6 +295,7 @@ export function ReconciliationOverview({
               
               return (
               <motion.div 
+                layout
                 key={cfg.id} 
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -373,6 +405,7 @@ export function ReconciliationOverview({
                 <AnimatePresence>
                 {unassignedSpares.map((un) => (
                   <motion.div
+                    layout
                     key={un.part}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -422,6 +455,7 @@ export function ReconciliationOverview({
                 <AnimatePresence>
                 {assignedSpares.map((asp) => (
                   <motion.div
+                    layout
                     key={asp.part}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -457,6 +491,6 @@ export function ReconciliationOverview({
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

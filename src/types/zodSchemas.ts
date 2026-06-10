@@ -63,6 +63,11 @@ export const SnapshotSchema = z.object({
   winnerSolution: z.string(),
   totalValue: z.number().nonnegative(),
   notes: z.string(),
+  payload: z.any().optional(),
+  version: z.number().int().nonnegative().optional(),
+  timestamp: z.string().optional(),
+  locked: z.boolean().optional(),
+  bomSnapshot: z.any().optional(),
 });
 
 // 7. UCID Zod Schema

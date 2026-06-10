@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from "motion/react";
 import { Hammer, Check, Loader2 } from 'lucide-react';
 import type { UCID, Solution, VendorSubmission } from '../../types';
 import type { ConfigItem, UcidContainer } from '../../types/data';
@@ -236,7 +237,12 @@ export function SolutionBuilder({
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col gap-4 text-xs select-none">
+      <motion.div 
+        className="flex flex-col gap-4 text-xs select-none"
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-indigo-500/10 p-5 rounded-xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
@@ -296,7 +302,7 @@ export function SolutionBuilder({
             handleDeployToMissionControl={handleDeployToMissionControl}
           />
         )}
-    </div>
+      </motion.div>
   </ErrorBoundary>
 );
 }

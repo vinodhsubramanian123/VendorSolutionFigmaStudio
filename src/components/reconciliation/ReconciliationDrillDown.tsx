@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
   ChevronRight,
@@ -419,7 +419,12 @@ export function ReconciliationDrillDown({
   };
 
   return (
-    <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4 animate-scaleUp">
+    <motion.div 
+      className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       {/* Back button and navigation breadcrumbs */}
       <div className="flex justify-between items-center bg-black/10 py-2 px-3 rounded-lg">
         <div className="flex items-center gap-3">
@@ -547,7 +552,8 @@ export function ReconciliationDrillDown({
               return (
                 <React.Fragment key={group.name}>
                   {/* Accordion Group Separator Row */}
-                  <tr
+                  <motion.tr
+                    layout
                     onClick={() => toggleGroup(group.name)}
                     className="bg-zinc-950/70 border-b border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors select-none font-bold text-xs"
                   >
@@ -584,13 +590,14 @@ export function ReconciliationDrillDown({
                         </div>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
 
                   {/* Group Body list */}
                   <AnimatePresence>
                   {!isCollapsed &&
                     filteredRows.map((row) => (
                       <motion.tr
+                        layout
                         key={row.id}
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -690,6 +697,6 @@ export function ReconciliationDrillDown({
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

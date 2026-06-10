@@ -1,5 +1,6 @@
 import { tokens } from "../../styles/tokens";
 import React, { useState, useMemo, useEffect } from "react";
+import { motion } from "motion/react";
 import { Info, Loader2, Network } from "lucide-react";
 import type { CatalogSKU } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
@@ -243,7 +244,12 @@ export function CatalogManager({
 
   return (
     <ErrorBoundary>
-      <div className="h-full flex flex-col gap-4 animate-fadeIn select-none text-xs">
+      <motion.div 
+        className="h-full flex flex-col gap-4 text-xs select-none"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
+      >
         <CatalogHeader
         totalCatalogItems={totalCatalogItems}
         totalConnectedVendors={totalConnectedVendors}
@@ -394,7 +400,7 @@ export function CatalogManager({
           </button>
         </div>
       )}
-      </div>
+      </motion.div>
     </ErrorBoundary>
   );
 }
