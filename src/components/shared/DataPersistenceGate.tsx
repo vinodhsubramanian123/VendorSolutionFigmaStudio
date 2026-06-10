@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, Database, RefreshCw, AlertTriangle } from "lucide-react";
+import { AlertCircle, Database, RefreshCw, AlertTriangle, ShieldCheck, HelpCircle } from "lucide-react";
 import type { UCID, Vendor, CatalogSKU } from "../../types";
+import { UCIDSchema, VendorSchema, CatalogSKUSchema } from "../../types";
+import { z } from "zod";
 
 interface DataPersistenceGateProps {
   children: React.ReactNode;
@@ -27,6 +29,45 @@ export function DataPersistenceGate({
   const isUcidsValid = Array.isArray(ucids);
   const isVendorsValid = Array.isArray(vendors);
   const isCatalogValid = Array.isArray(catalogSkus);
+  
+  // High-performance robust Zod evaluation state
+  const [schemaDrift, setSchemaDrift] = useState<{
+    aligned: boolean;
+    errors: string[];
+  }>({ aligned: true, errors: [] });
+
+  useEffect(() => {
+    try {
+      const ucidCheck = z.array(UCIDSchema).safeParse(ucids);
+      const vendorCheck = z.array(VendorSchema).safeParse(vendors);
+      const catalogCheck = z.array(CatalogSKUSchema).safeParse(catalogSkus);
+
+      const errors: string[] = [];
+      if (!ucidCheck.success) {
+        errors.push(`UCID Schema Mismatch: ${ucidCheck.error.issues.map(e => `${e.path.join(".")}: ${e.message}`).join(", ")}`);
+      }
+      if (!vendorCheck.success) {
+        errors.push(`Vendor Schema Mismatch: ${vendorCheck.error.issues.map(e => `${e.path.join(".")}: ${e.message}`).join(", ")}`);
+      }
+      if (!catalogCheck.success) {
+        errors.push(`CatalogSKU Schema Mismatch: ${catalogCheck.error.issues.map(e => `${e.path.join(".")}: ${e.message}`).join(", ")}`);
+      }
+
+      setSchemaDrift({
+        aligned: errors.length === 0,
+        errors
+      });
+
+      if (errors.length > 0) {
+        console.warn("⚠️ [VSIP Schema Validation Drift Detected]:", errors);
+      } else {
+        console.log("✅ [VSIP Schema Alignment Secure]: 100% compliant with standard relational contracts.");
+      }
+    } catch (e) {
+      console.error("Zod verification crashed:", e);
+    }
+  }, [ucids, vendors, catalogSkus]);
+
   const isHealthy = isUcidsValid && isVendorsValid && isCatalogValid;
 
   const handleRestoreSession = () => {

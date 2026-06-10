@@ -1,7 +1,7 @@
+import { tokens } from "../../styles/tokens";
 import React, { useState, useMemo, useEffect } from "react";
-import { Info, Loader2 } from "lucide-react";
+import { Info, Loader2, Network } from "lucide-react";
 import type { CatalogSKU } from "../../types";
-import { TaxonomyTree } from "../taxonomy/TaxonomyTree";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 import { CatalogHeader } from "./CatalogHeader";
@@ -9,6 +9,7 @@ import { CatalogAddForm } from "./CatalogAddForm";
 import { CatalogFilterBar } from "./CatalogFilterBar";
 import { CatalogCardsList } from "./CatalogCardsList";
 import { CatalogPagination } from "./CatalogPagination";
+import { CatalogTypeFilters } from "./CatalogTypeFilters";
 
 interface CatalogManagerProps {
   catalogSkus: CatalogSKU[];
@@ -26,13 +27,6 @@ export function CatalogManager({
     type: "success" | "warn" | "error";
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
-
   const totalCatalogItems = useMemo(() => {
     if (!vendors || vendors.length === 0) return 16625;
     return vendors.reduce((acc, v) => acc + (v.catalogItems || 0), 0);
@@ -247,14 +241,6 @@ export function CatalogManager({
     setNewPrice("");
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div className="h-full flex flex-col gap-4 animate-fadeIn select-none text-xs">
@@ -295,15 +281,10 @@ export function CatalogManager({
             </span>
           </div>
 
-          <TaxonomyTree
-            catalogSkus={catalogSkus}
-            selectedPath={selectedPath}
-            expandedNodes={expandedNodes}
-            onToggleNode={toggleNode}
-            onSelectPath={selectPathFn}
-            vendors={vendors}
-            onSetToast={setToast}
-          />
+          <div className="flex-1 flex flex-col justify-center items-center opacity-50 p-4 border border-dashed border-white/10 rounded-lg">
+             <Network className="w-8 h-8 text-indigo-500 mb-2" />
+             <p className="text-center text-gray-500 text-[10px]">Taxonomy node engine retired. Filtering operates via search.</p>
+          </div>
         </div>
 
         {/* RIGHT COLUMN: INTERACTIVE SKU CARDS GRID */}
@@ -318,48 +299,13 @@ export function CatalogManager({
           />
 
           {/* Category Quick Chips selector */}
-          <div className="flex gap-2 flex-wrap items-center">
-            {projectTypes.map((type) => {
-              const isActive =
-                typeFilter === type.toLowerCase() ||
-                (type === "all" && typeFilter === "all");
-              // Count dynamic matched types in active local ledger using memoized counts for maximum optimization
-              const matchesCount =
-                type === "all"
-                  ? typeCounts.all
-                  : typeCounts[type.toLowerCase()] || 0;
-
-              return (
-                <button
-                  key={type}
-                  onClick={() => {
-                    setTypeFilter(type.toLowerCase());
-                    setSelectedPath({
-                      vendor: "all",
-                      solution: "all",
-                      product: "all",
-                      generation: "all",
-                      chassis: "all",
-                    });
-                  }}
-                  className={`px-3 py-1.5 rounded-lg border text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                    isActive
-                      ? "bg-indigo-500 text-white border-transparent shadow shadow-indigo-500/20"
-                      : "bg-surface-elevated border-white/5 text-gray-400 hover:text-white hover:bg-[#0f1728]"
-                  }`}
-                >
-                  <span>{type === "all" ? "All" : type}</span>
-                  <span
-                    className={`font-mono text-[9px] px-1.5 py-0.2 rounded font-black ${
-                      isActive ? "bg-black/30 text-white" : "bg-black/40 text-gray-500"
-                    }`}
-                  >
-                    {matchesCount}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <CatalogTypeFilters
+            projectTypes={projectTypes}
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+            setSelectedPath={setSelectedPath}
+            typeCounts={typeCounts}
+          />
 
           {/* Hardware Sourcing Cards Grid */}
           <CatalogCardsList
@@ -419,22 +365,22 @@ export function CatalogManager({
           style={{
             backgroundColor:
               toast.type === "success"
-                ? "#091815"
+                ? `${tokens.colors.status.success}1a` 
                 : toast.type === "warn"
-                  ? "#1c1409"
-                  : "#1c090d",
+                  ? `${tokens.colors.status.warning}1a` 
+                  : `${tokens.colors.status.error}1a`, 
             borderColor:
               toast.type === "success"
-                ? "#00d4a0"
+                ? tokens.colors.status.success 
                 : toast.type === "warn"
-                  ? "#ff9b36"
-                  : "#ff3d5a",
+                  ? tokens.colors.status.warning 
+                  : tokens.colors.status.error, 
             color:
               toast.type === "success"
-                ? "#00d4a0"
+                ? tokens.colors.status.success 
                 : toast.type === "warn"
-                  ? "#ff9b36"
-                  : "#ff3d5a",
+                  ? tokens.colors.status.warning 
+                  : tokens.colors.status.error, 
           }}
         >
           <Info className="w-4 h-4 shrink-0" />

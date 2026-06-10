@@ -140,7 +140,7 @@ export function UCIDStepper({ ucid, activeStep, setViewStep, getStepState }: UCI
                       : state === "complete"
                         ? "rgba(0,212,160,0.1)"
                         : "rgba(74, 133, 253,0.03)",
-                    border: `1.5px solid ${isCurrentViewing ? "#4a85fd" : state === "complete" ? "#00d4a0" : "rgba(74, 133, 253,0.12)"}`,
+                    border: `1.5px solid ${isCurrentViewing ? "#4a85fd" : state === "complete" ? "#00d4a0" : "rgba(74, 133, 253,0.12)"}`, // color-ok
                     boxShadow: isCurrentViewing ? "0 0 12px rgba(74, 133, 253,0.4)" : "none",
                   }}
                 >
@@ -149,14 +149,14 @@ export function UCIDStepper({ ucid, activeStep, setViewStep, getStepState }: UCI
                   ) : (
                     <IconComponent
                       className="w-3.5 h-3.5 font-bold"
-                      style={{ color: isCurrentViewing ? "#4a85fd" : "#5d7899" }}
+                      style={{ color: isCurrentViewing ? "#4a85fd" : "#5d7899" }} // color-ok
                     />
                   )}
                 </div>
                 <span
                   className="text-[9px] font-bold text-center group-hover:text-white transition-colors"
                   style={{
-                    color: isCurrentViewing ? "#4a85fd" : state === "complete" ? "#00d4a0" : "#5d7899",
+                    color: isCurrentViewing ? "#4a85fd" : state === "complete" ? "#00d4a0" : "#5d7899", // color-ok
                   }}
                 >
                   {step.shortLabel}

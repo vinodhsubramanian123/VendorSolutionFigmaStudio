@@ -1,7 +1,5 @@
+import { BadgeVariant, BadgeSize } from "@/src/types";
 import React from "react";
-
-export type BadgeVariant = "success" | "warning" | "error" | "info" | "default";
-export type BadgeSize = "sm" | "md";
 
 export interface StatusBadgeProps {
   status: string;
@@ -13,7 +11,7 @@ export interface StatusBadgeProps {
 
 const variantStyles: Record<BadgeVariant, string> = {
   success: "border-status-success/30 bg-status-success/10 text-status-success",
-  warning: "border-[#f59e0b]/30 bg-[#f59e0b]/10 text-amber-500",
+  warning: "border-amber-500/30 bg-amber-500/10 text-amber-500",
   error: "border-status-error/30 bg-status-error/10 text-status-error",
   info: "border-brand-indigo/30 bg-brand-indigo/10 text-brand-indigo",
   default: "border-gray-500/30 bg-gray-500/10 text-gray-400",

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Hammer, Check, Loader2 } from 'lucide-react';
 import type { UCID, Solution, VendorSubmission } from '../../types';
-import type { ConfigItem, UcidContainer } from '../../types/builder';
+import type { ConfigItem, UcidContainer } from '../../types/data';
 import { StepIntake } from './StepIntake';
 import { StepWorkspace } from './StepWorkspace';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
@@ -21,13 +21,6 @@ export function SolutionBuilder({
   setDeployedSolution,
   onSelectMission
 }: SolutionBuilderProps) {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Step 1: Intake | Step 2: Builder
   const [step, setStep] = useState<1 | 2>(1);
   const [solutionName, setSolutionName] = useState('Project Horizon — UCID Solution v1');
@@ -50,7 +43,7 @@ export function SolutionBuilder({
       id: 'cfg-1',
       name: 'Primary Compute Node - DL380',
       targetUcidId: 'UCID-2026-1699',
-      vendor: 'HPE',
+      vendor: "HPE",
       totalPrice: 244800,
       originalPrice: 261000,
       items: [
@@ -64,7 +57,7 @@ export function SolutionBuilder({
       id: 'cfg-2',
       name: 'Database Core - PowerEdge',
       targetUcidId: 'UCID-2026-1699',
-      vendor: 'Dell',
+      vendor: "Dell",
       totalPrice: 165200,
       originalPrice: 179000,
       items: [
@@ -90,6 +83,23 @@ export function SolutionBuilder({
 
   const [selectedConfigId, setSelectedConfigId] = useState<string>('cfg-1');
   const [isIngested, setIsIngested] = useState(false);
+
+  // Memoized calculations on configurations list for performance optimization
+  const { totalConfigPrice, totalOriginalConfigPrice, uniqueVendorsCount } = useMemo(() => {
+    let totalPriceSum = 0;
+    let originalPriceSum = 0;
+    const vendorsSet = new Set<string>();
+    configs.forEach(c => {
+      totalPriceSum += c.totalPrice;
+      originalPriceSum += c.originalPrice;
+      vendorsSet.add(c.vendor);
+    });
+    return {
+      totalConfigPrice: totalPriceSum,
+      totalOriginalConfigPrice: originalPriceSum,
+      uniqueVendorsCount: vendorsSet.size
+    };
+  }, [configs]);
 
   // Switch configs across UCID boxes
   const assignConfigToUcid = (configId: string, ucidId: string) => {
@@ -144,7 +154,7 @@ export function SolutionBuilder({
   };
 
   // Deploy to Live Parallel Mission Control
-  const handleDeployToLiveMission = () => {
+  const handleDeployToMissionControl = () => {
     const activeUcids = isMultiUcid ? ucidsList : [ucidsList[0]];
 
     const generatedUcids: UCID[] = activeUcids.map((container, containerIdx) => {
@@ -224,14 +234,6 @@ export function SolutionBuilder({
     onSelectMission(generatedUcids[0].id);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div className="flex flex-col gap-4 text-xs select-none">
@@ -291,7 +293,7 @@ export function SolutionBuilder({
             updateContainerReasoning={updateContainerReasoning}
             toggleContainerLock={toggleContainerLock}
             ucids={ucids}
-            handleDeployToLiveMission={handleDeployToLiveMission}
+            handleDeployToMissionControl={handleDeployToMissionControl}
           />
         )}
     </div>

@@ -49,7 +49,7 @@ export function ForensicSidebar({
         </div>
         <div className="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-red-500 to-[#00d4a0] transition-all"
+            className="h-full bg-gradient-to-r from-red-500 to-status-success transition-all"
             style={{
               width: `${
                 openIssuesCount === 0

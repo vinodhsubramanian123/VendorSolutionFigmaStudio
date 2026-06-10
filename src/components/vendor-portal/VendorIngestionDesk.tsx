@@ -12,6 +12,7 @@ import {
   Lock,
 } from "lucide-react";
 import type { UCID } from "../../types";
+import { tokens } from "../../styles/tokens";
 
 interface VendorIngestionDeskProps {
   ucids: UCID[];
@@ -203,7 +204,7 @@ export function VendorIngestionDesk({
           </span>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full" style={{
-              backgroundColor: authStatus === "authorized" ? "#00d4a0" : authStatus === "verifying" ? "#ff9b36" : "#ff3d5a"
+              backgroundColor: authStatus === "authorized" ? tokens.colors.status.success : authStatus === "verifying" ? tokens.colors.status.warning : tokens.colors.status.error
             }} />
             <span className="text-[9px] uppercase font-mono text-gray-400">
               {authStatus === "authorized" ? "Connected" : authStatus === "verifying" ? "Testing..." : "Auth Needed"}
@@ -220,7 +221,7 @@ export function VendorIngestionDesk({
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="e.g. partner_account_id"
-              className="w-full bg-[#03050a] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
+              className="w-full bg-surface-canvas border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
             />
           </div>
         </div>
@@ -234,7 +235,7 @@ export function VendorIngestionDesk({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••••"
-              className="w-full bg-[#03050a] border border-white/10 rounded pl-2 pr-8 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
+              className="w-full bg-surface-canvas border border-white/10 rounded pl-2 pr-8 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
             />
             <button
               type="button"
@@ -257,7 +258,7 @@ export function VendorIngestionDesk({
             value={mfaToken}
             onChange={(e) => setMfaToken(e.target.value)}
             placeholder="ABCD-EFGH-1234-5678"
-            className="w-full bg-[#03050a] border border-white/10 rounded px-2 py-1.5 text-xs font-mono text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
+            className="w-full bg-surface-canvas border border-white/10 rounded px-2 py-1.5 text-xs font-mono text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50"
           />
         </div>
 
@@ -315,7 +316,7 @@ export function VendorIngestionDesk({
           </span>
         </div>
 
-        <div className="h-44 rounded-lg bg-[#03050a] border border-white/5 p-2.5 font-mono text-[9px] text-gray-400 overflow-y-auto space-y-1 scrollbar-thin select-text text-left">
+        <div className="h-44 rounded-lg bg-surface-canvas border border-white/5 p-2.5 font-mono text-[9px] text-gray-400 overflow-y-auto space-y-1 scrollbar-thin select-text text-left">
           {consoleLogs.map((log, idx) => (
             <div key={idx} className={
               log.includes("[Success]") || log.includes("AUTH SUCCESS")

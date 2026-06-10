@@ -1,19 +1,10 @@
+import { Toast, ToastContextType } from "../../types/data";
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CheckCircle2, AlertTriangle, XCircle, X } from "lucide-react";
+import { tokens } from "../../styles/tokens";
 
-export interface Toast {
-  id: string;
-  message: string;
-  type: "success" | "warn" | "error";
-}
 
-interface ToastContextType {
-  toast: (message: string, type?: "success" | "warn" | "error") => void;
-  success: (message: string) => void;
-  warn: (message: string) => void;
-  error: (message: string) => void;
-}
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
@@ -76,11 +67,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <div
                 className={`p-3.5 rounded-xl border flex items-start gap-3 shadow-2xl ${
                   t.type === "success"
-                    ? "bg-[#061513] border-emerald-500/20 text-status-success"
+                    ? "border-emerald-500/20 text-status-success"
                     : t.type === "warn"
-                      ? "bg-[#18110b] border-amber-500/20 text-status-warning"
-                      : "bg-[#1a0c0e] border-rose-500/20 text-status-error"
+                      ? "border-amber-500/20 text-status-warning"
+                      : "border-rose-500/20 text-status-error"
                 }`}
+                style={{
+                  backgroundColor:
+                    t.type === "success"
+                      ? `${tokens.colors.status.success}0d`
+                      : t.type === "warn"
+                        ? `${tokens.colors.status.warning}0d`
+                        : `${tokens.colors.status.error}0d`,
+                }}
               >
                 {t.type === "success" && (
                   <CheckCircle2 className="w-4.5 h-4.5 shrink-0 mt-0.5 text-emerald-400" />

@@ -195,6 +195,7 @@ export function StepIntake({
                   </p>
                   <button
                     type="button"
+                    onClick={triggerPicker}
                     className="mt-2 px-3 py-1.5 bg-surface-elevated hover:bg-black/40 text-gray-300 font-medium rounded-lg text-[10px] border border-white/10"
                   >
                     Select File
@@ -223,7 +224,7 @@ export function StepIntake({
             </div>
             <button
               onClick={onProceed}
-              className="px-5 py-2.5 rounded-lg bg-surface-elevated hover:bg-[#131d35] text-indigo-400 font-bold border border-indigo-500/20 hover:border-indigo-500/40 cursor-pointer transition flex items-center gap-1.5 focus:outline-none text-[10px]"
+              className="px-5 py-2.5 rounded-lg bg-surface-elevated hover:bg-surface-elevated text-indigo-400 font-bold border border-indigo-500/20 hover:border-indigo-500/40 cursor-pointer transition flex items-center gap-1.5 focus:outline-none text-[10px]" 
             >
               <span>Proceed to Assignment Map (Step 2)</span>
               <ArrowRight className="w-4 h-4" />

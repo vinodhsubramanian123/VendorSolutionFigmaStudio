@@ -1,5 +1,6 @@
 import React from 'react';
 import { Database, RefreshCw, Plus } from 'lucide-react';
+import { useToast } from '../shared/ToastContext';
 
 interface CatalogHeaderProps {
   totalCatalogItems: number;
@@ -12,6 +13,7 @@ export function CatalogHeader({
   totalConnectedVendors,
   onAddClick,
 }: CatalogHeaderProps) {
+  const toast = useToast();
   return (
     <div
       className="p-4 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
@@ -40,6 +42,7 @@ export function CatalogHeader({
       <div className="flex items-center gap-2">
         <button
           type="button"
+          onClick={() => toast.success("Manual catalog sync initiated. Verifying vendor APIs...")}
           className="px-3 py-1.5 rounded-lg bg-black/20 text-gray-400 hover:text-white border border-white/5 font-semibold transition cursor-pointer text-[10.5px] flex items-center gap-1"
         >
           <RefreshCw className="w-3 h-3 text-indigo-400" />

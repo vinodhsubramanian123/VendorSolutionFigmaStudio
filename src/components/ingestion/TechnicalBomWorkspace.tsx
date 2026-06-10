@@ -84,7 +84,7 @@ export function TechnicalBomWorkspace({
   return (
     <div className="flex flex-col gap-6 w-full text-left">
       {/* Universal Multi-UCID Batch Reconciliation Control Board */}
-      <div className="p-6 bg-gradient-to-r from-indigo-950/40 via-[#0b1220] to-indigo-950/20 border border-sky-400/10 rounded-xl flex flex-col gap-6 shadow-2xl text-left">
+      <div className="p-6 bg-gradient-to-r from-indigo-950/40 via-surface-elevated to-indigo-950/20 border border-sky-400/10 rounded-xl flex flex-col gap-6 shadow-2xl text-left"> 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2 max-w-2xl text-left">
             <span className="text-[9.5px] bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded font-black uppercase tracking-wider">
@@ -222,7 +222,7 @@ export function TechnicalBomWorkspace({
               }}
             >
               {ucids.map((u) => (
-                <option key={u.id} value={u.id} className="bg-[#0b1220] text-white py-2">
+                <option key={u.id} value={u.id} className="bg-surface-elevated text-white py-2">
                   {u.displayId} —{" "}
                   {u.solutions.length > 0
                     ? u.solutions[0]?.vendorSubmissions?.[0]?.vendor || "Multi-Vendor"
@@ -558,11 +558,11 @@ export function TechnicalBomWorkspace({
                     </div>
 
                     {/* Cost Matrix Variance Checklist */}
-                    <div className="bg-black/20 rounded-lg border border-white/5 p-4 text-left">
+                    <div className="bg-black/20 rounded-lg border border-white/5 p-4 text-left overflow-x-auto">
                       <p className="text-[9px] text-gray-500 uppercase tracking-widest font-black block mb-2">
                         Cost variance matrix check
                       </p>
-                      <table className="w-full text-left border-collapse text-[10px]">
+                      <table className="w-full text-left border-collapse text-[10px] min-w-[500px]">
                         <thead>
                           <tr className="border-b border-white/5 text-gray-500 font-mono">
                             <th className="pb-2">SPEC SOLUTION ID</th>

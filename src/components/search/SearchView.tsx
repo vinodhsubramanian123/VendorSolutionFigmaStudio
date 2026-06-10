@@ -116,14 +116,6 @@ export function SearchView({
     { text: "Lead times", category: "Logistics" }
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div className="flex flex-col gap-5 animate-fadeIn select-none leading-normal text-xs">
@@ -173,7 +165,7 @@ export function SearchView({
               <button
                 key={idx}
                 onClick={() => handleSearchSubmit(sug.text)}
-                className="px-2.5 py-1 rounded bg-[#0b1220] hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 text-gray-400 hover:text-indigo-300 transition text-[10px] cursor-pointer"
+                className="px-2.5 py-1 rounded bg-surface-elevated hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 text-gray-400 hover:text-indigo-300 transition text-[10px] cursor-pointer"
               >
                 {sug.text}
               </button>

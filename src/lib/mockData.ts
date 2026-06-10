@@ -1,4 +1,21 @@
-import { UCID, Vendor, CatalogSKU, ForensicIssue, UCIDStep } from "../types";
+import { UCID, Vendor, CatalogSKU, ForensicIssue, UCIDStep, Job } from "../types";
+import { tokens } from "../styles/tokens";
+
+export const MOCK_JOBS: Job[] = [
+  {
+    job_id: "job-active-1",
+    type: "config_process",
+    status: "processing",
+    progress: 45,
+    context: {
+      ucid: "UCID-2026-0042",
+      config_id: "cfg-123",
+      solution_id: "sol-active",
+    },
+    parent_job_id: "",
+    child_jobs: []
+  }
+];
 
 export const STEP_ORDER: UCIDStep[] = [
   "boq-intake",
@@ -66,7 +83,7 @@ export const VENDORS: Vendor[] = [
     name: "Hewlett Packard Enterprise",
     shortName: "HPE",
     status: "connected",
-    color: "#00d4a0",
+    color: tokens.colors.status.success, 
     catalogItems: 5812,
     apiHealth: 99.4,
     apiEndpoint: "https://api.hpe.com/v2/pricing/instant",
@@ -78,7 +95,7 @@ export const VENDORS: Vendor[] = [
     name: "Dell Technologies",
     shortName: "Dell",
     status: "connected",
-    color: "#4a85fd",
+    color: tokens.colors.accent.indigo, 
     catalogItems: 4831,
     apiHealth: 98.7,
     apiEndpoint: "https://direct.dell.com/oem/api/v1/quotes",
@@ -90,7 +107,7 @@ export const VENDORS: Vendor[] = [
     name: "Cisco Systems",
     shortName: "Cisco",
     status: "syncing",
-    color: "#a855f7",
+    color: tokens.colors.accent.violet, 
     catalogItems: 3104,
     apiHealth: 92.1,
     apiEndpoint: "https://commerce.cisco.com/api/v3/solutions",
@@ -102,7 +119,7 @@ export const VENDORS: Vendor[] = [
     name: "Juniper Networks",
     shortName: "Juniper",
     status: "disconnected",
-    color: "#ff9b36",
+    color: tokens.colors.status.warning, 
     catalogItems: 1420,
     apiHealth: 0.0,
     apiEndpoint: "https://api.juniper.net/partners/v1/catalog",

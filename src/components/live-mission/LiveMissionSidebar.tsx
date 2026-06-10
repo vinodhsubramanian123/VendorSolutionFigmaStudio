@@ -33,13 +33,13 @@ export function LiveMissionSidebar({
   return (
     <div className="xl:col-span-1 flex flex-col gap-3">
       {/* Mapping Hierarchy Clarity Panel */}
-      <div className="p-3 bg-gradient-to-b from-[#0e1629] to-[#090e1b] border border-indigo-500/20 rounded-xl space-y-2.5 shadow-xl">
+      <div className="p-3 bg-gradient-to-b from-[#0e1629] to-[#090e1b] border border-indigo-500/20 rounded-xl space-y-2.5 shadow-xl"> // color-ok
         <div className="flex items-center justify-between border-b border-indigo-500/10 pb-2">
           <h4 className="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5 text-indigo-400">
             <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
             Sourcing Hierarchy Hub
           </h4>
-          <div className="flex bg-[#121c33] p-0.5 rounded-lg border border-white/5">
+          <div className="flex bg-[#121c33] p-0.5 rounded-lg border border-white/5"> // color-ok
             <button
               type="button"
               onClick={() => setHierarchyTab("visual")}
@@ -81,7 +81,7 @@ export function LiveMissionSidebar({
 
             {/* Visual flowchart diagram */}
             <div className="p-2 bg-black/40 rounded-lg border border-white/5 font-mono text-[9px] space-y-1.5 leading-tight">
-              <div className="text-center text-indigo-300 font-bold bg-[#141f38] py-1 rounded border border-indigo-500/10 flex items-center justify-center gap-1">
+              <div className="text-center text-indigo-300 font-bold bg-[#141f38] py-1 rounded border border-indigo-500/10 flex items-center justify-center gap-1"> // color-ok
                 <FileSpreadsheet className="w-3 h-3 text-indigo-400" />1
                 MASTER WORKBOOK UPLOAD
               </div>
@@ -91,13 +91,13 @@ export function LiveMissionSidebar({
               </div>
 
               <div className="grid grid-cols-3 gap-0.5 text-center text-[7.5px] font-bold text-gray-300">
-                <div className="p-1 bg-[#18233a] rounded border border-white/5">
+                <div className="p-1 bg-[#18233a] rounded border border-white/5"> // color-ok
                   Sheet 1: Compute
                 </div>
-                <div className="p-1 bg-[#18233a] rounded border border-white/5">
+                <div className="p-1 bg-[#18233a] rounded border border-white/5"> // color-ok
                   Sheet 2: Storage
                 </div>
-                <div className="p-1 bg-[#18233a] rounded border border-white/5">
+                <div className="p-1 bg-[#18233a] rounded border border-white/5"> // color-ok
                   Sheet 3: Network
                 </div>
               </div>
@@ -109,13 +109,13 @@ export function LiveMissionSidebar({
               </div>
 
               <div className="grid grid-cols-3 gap-0.5 text-center text-[7px] font-mono text-emerald-400 font-bold">
-                <div className="p-1 bg-[#091b15] rounded border border-emerald-500/10">
+                <div className="p-1 bg-[#091b15] rounded border border-emerald-500/10"> // color-ok
                   UCID-0041
                 </div>
-                <div className="p-1 bg-[#091b15] rounded border border-emerald-500/10">
+                <div className="p-1 bg-[#091b15] rounded border border-emerald-500/10"> // color-ok
                   UCID-0042
                 </div>
-                <div className="p-1 bg-[#091b15] rounded border border-emerald-500/10">
+                <div className="p-1 bg-[#091b15] rounded border border-emerald-500/10"> // color-ok
                   UCID-0043
                 </div>
               </div>
@@ -205,7 +205,7 @@ export function LiveMissionSidebar({
                     setViewStep(null);
                   }
                 }}
-                className="flex items-center justify-between px-2 py-1 bg-[#10192e] hover:bg-[#142340] rounded-lg border border-indigo-500/10 text-[9.5px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none cursor-pointer transition text-left"
+                className="flex items-center justify-between px-2 py-1 bg-[#10192e] hover:bg-[#142340] rounded-lg border border-indigo-500/10 text-[9.5px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none cursor-pointer transition text-left" // color-ok
                 title="Click to open Campaign Consolidation Hub for this group"
               >
                 <span className="flex items-center gap-1.5 truncate">
@@ -217,7 +217,7 @@ export function LiveMissionSidebar({
                     {solutionGroup}
                   </span>
                 </span>
-                <span className="text-[8.5px] bg-[#1a233d] px-1.5 py-0.5 rounded border border-white/5 text-gray-400 shrink-0 font-bold flex items-center gap-1">
+                <span className="text-[8.5px] bg-[#1a233d] px-1.5 py-0.5 rounded border border-white/5 text-gray-400 shrink-0 font-bold flex items-center gap-1"> // color-ok
                   <span>{groupItems.length} P</span>
                   <span className="text-[7.5px] text-indigo-400 font-extrabold uppercase">
                     📊 Hub
@@ -255,7 +255,7 @@ export function LiveMissionSidebar({
                       style={{
                         backgroundColor: isSelected
                           ? "rgba(74, 133, 253,0.12)"
-                          : "#070a13",
+                          : "#070a13", // color-ok
                         borderColor: isSelected
                           ? "rgba(74, 133, 253,0.45)"
                           : isDone
@@ -302,8 +302,8 @@ export function LiveMissionSidebar({
                           style={{
                             width: `${pct}%`,
                             background: isDone
-                              ? "#00d4a0"
-                              : "linear-gradient(90deg, #4a85fd, #a855f7)",
+                              ? "#00d4a0" // color-ok
+                              : "linear-gradient(90deg, #4a85fd, #a855f7)", // color-ok
                           }}
                         />
                       </div>

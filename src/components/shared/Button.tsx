@@ -38,6 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <button
+      onClick={props.onClick}
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all focus:outline-none focus:ring-2 focus:ring-brand-indigo/50 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       disabled={disabled || isLoading}
       {...props}

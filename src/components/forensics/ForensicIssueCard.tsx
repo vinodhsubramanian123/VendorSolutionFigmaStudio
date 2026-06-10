@@ -36,7 +36,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
               className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
                 issue.severity === "critical"
                   ? "bg-status-error/15 text-status-error"
-                  : "bg-[#ff9b36]/15 text-status-warning"
+                  : "bg-status-warning/15 text-status-warning" 
               }`}
             >
               {issue.severity}
@@ -80,7 +80,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
             )}
             <button
               onClick={() => onAutoHeal(issue.id)}
-              className="flex items-center gap-1.2 text-[10px] font-extrabold py-2 px-3.5 rounded-lg bg-status-success/12 text-status-success hover:bg-status-success/25 transition-all cursor-pointer border border-status-success/22 uppercase tracking-wide shadow-md shadow-[#00d4a0]/5"
+              className="flex items-center gap-1.2 text-[10px] font-extrabold py-2 px-3.5 rounded-lg bg-status-success/12 text-status-success hover:bg-status-success/25 transition-all cursor-pointer border border-status-success/22 uppercase tracking-wide shadow-md shadow-status-success/5" 
             >
               <Zap className="w-3.5 h-3.5 text-yellow-500 shrink-0" /> Auto-Align Component
             </button>

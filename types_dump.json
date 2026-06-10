@@ -1,0 +1,919 @@
+{
+  "IngestRequest": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface IngestRequest {\n  fileName: string;\n  presetType: \"hpe-legacy\" | \"dell-overcharge\" | \"cisco-asymmetry\";\n  rawText?: string;\n}"
+    }
+  ],
+  "IngestResponse": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface IngestResponse {\n  success: boolean;\n  message: string;\n  sourceFile: string;\n  ucid: string;\n  timestamp: string;\n  parsedSummary: {\n    vendorBrand: string;\n    detectedChassis: string;\n    itemsCount: number;\n    initialConfidenceScore: number;\n  };\n  solutions: any[]; // List of structured parallel alternative designs generated\n}"
+    }
+  ],
+  "ReconciliationRequest": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface ReconciliationRequest {\n  solutions: Array<{\n    id: string;\n    vendor: string;\n    items: Array<{\n      partNumber: string;\n      quantity: number;\n      unitPrice: number;\n      type: string;\n    }>;\n  }>;\n}"
+    }
+  ],
+  "ReconciliationResponse": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface ReconciliationResponse {\n  comparisonHash: string;\n  calculatedAt: string;\n  metrics: {\n    cheapestSolutionId: string;\n    highestComplianceId: string;\n    totalSavingsUSD: number;\n    optimumHybridAlternative: {\n      totalCost: number;\n      chassisVendor: string;\n      componentsCount: number;\n    };\n  };\n  matrix: Array<{\n    solutionId: string;\n    vendor: string;\n    baseCost: number;\n    negotiatedContractCost: number;\n    variancePercentage: number;\n    leadTimeBottleneckDays: number;\n    deliveryConfidenceRating: number; // 0-100%\n  }>;\n}"
+    }
+  ],
+  "ConstraintCheckRequest": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface ConstraintCheckRequest {\n  chassisSKU: string;\n  cpuSKU: string;\n  ramQuantity: number;\n  psuWattsCount: number;\n}"
+    }
+  ],
+  "ConstraintCheckResponse": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface ConstraintCheckResponse {\n  isCompliant: boolean;\n  socketMatch: {\n    status: \"compatible\" | \"asymmetric\" | \"blocked\";\n    chassisSocket: string;\n    cpuSocket: string;\n    description: string;\n  };\n  powerLimitTest: {\n    passed: boolean;\n    estimatedTdpWatts: number;\n    maxSupportedWatts: number;\n    marginWatts: number;\n  };\n  memoryBalanceCheck: {\n    passed: boolean;\n    quantity: number;\n    optimalLayoutSymmetry: number; // e.g. multiples of 8 for Xeon 4th-Gen\n    recommendsCorrection: boolean;\n    message: string;\n  };\n}"
+    }
+  ],
+  "WebhookDispatchRequest": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface WebhookDispatchRequest {\n  endpointUrl: string;\n  secretToken: string;\n  ucidRef: string;\n  payloadData: {\n    snapshotHash: string;\n    committedValue: number;\n    winnerSolution: string;\n    timestamp: string;\n  };\n}"
+    }
+  ],
+  "WebhookDispatchResponse": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface WebhookDispatchResponse {\n  dispatchId: string;\n  status: \"delivered\" | \"retrying\" | \"endpoint_unreachable\";\n  cryptographicSignature: string; // HMAC-SHA256 of the payload body using client secretToken\n  auditLog: Array<{\n    attemptNumber: number;\n    timestamp: string;\n    httpStatusCode: number;\n    responseBody: string;\n  }>;\n}"
+    }
+  ],
+  "PlaywrightRunRequest": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface PlaywrightRunRequest {\n  agentName: \"AribaScraper\" | \"HPEMarketplace\" | \"DellPremierPortal\";\n  ucidRef: string;\n  targetPortalUrl: string;\n  bypassCaptchas: boolean;\n}"
+    }
+  ],
+  "PlaywrightRunResponse": [
+    {
+      "file": "/app/applet/server.ts",
+      "kind": "interface",
+      "text": "export interface PlaywrightRunResponse {\n  taskId: string;\n  status: \"idle\" | \"running\" | \"success\" | \"failed\";\n  executionTimeMs: number;\n  crawledItemsExtracted: number;\n  logTrail: Array<{\n    timestamp: string;\n    level: \"info\" | \"debug\" | \"warning\" | \"error\";\n    message: string;\n  }>;\n}"
+    }
+  ],
+  "AppView": [
+    {
+      "file": "/app/applet/src/types.ts",
+      "kind": "type",
+      "text": "export type AppView =\n  | \"dashboard\"\n  | \"ingestion-hub\"\n  | \"mission-control\"\n  | \"catalog\"\n  | \"vendor-portal\"\n  | \"forensic\"\n  | \"solution-builder\"\n  | \"reconciliation\"\n  | \"search\";"
+    }
+  ],
+  "UCIDStep": [
+    {
+      "file": "/app/applet/src/types.ts",
+      "kind": "type",
+      "text": "export type UCIDStep =\n  | \"boq-intake\"\n  | \"pre-intelligence\"\n  | \"solution-design\"\n  | \"vendor-provisioning\"\n  | \"post-intelligence\"\n  | \"comparison\"\n  | \"snapshot\";"
+    }
+  ],
+  "WorkflowStep": [
+    {
+      "file": "/app/applet/src/hooks/useWorkflowManager.ts",
+      "kind": "interface",
+      "text": "export interface WorkflowStep {\n  id: string;\n  label: string;\n  status: WorkflowStepStatus;\n}"
+    }
+  ],
+  "WorkflowManagerState": [
+    {
+      "file": "/app/applet/src/hooks/useWorkflowManager.ts",
+      "kind": "interface",
+      "text": "interface WorkflowManagerState {\n  currentStepIndex: number;\n  stepStatuses: Record<string, WorkflowStepStatus>;\n  auditLogs: Array<{\n    timestamp: string;\n    fromStep?: string;\n    toStep: string;\n    action: string;\n  }>;\n}"
+    }
+  ],
+  "WorkflowStepStatus": [
+    {
+      "file": "/app/applet/src/hooks/useWorkflowManager.ts",
+      "kind": "type",
+      "text": "export type WorkflowStepStatus = \"idle\" | \"in-progress\" | \"completed\" | \"error\";"
+    }
+  ],
+  "ConfigItem": [
+    {
+      "file": "/app/applet/src/types/builder.ts",
+      "kind": "interface",
+      "text": "export interface ConfigItem {\n  id: string;\n  name: string;\n  targetUcidId: string;\n  vendor: \"HPE\" | \"Dell\" | \"Cisco\";\n  totalPrice: number;\n  originalPrice: number;\n  items: BOMItem[];\n}"
+    }
+  ],
+  "UcidContainer": [
+    {
+      "file": "/app/applet/src/types/builder.ts",
+      "kind": "interface",
+      "text": "export interface UcidContainer {\n  id: string; // e.g. UCID-2026-1699\n  name: string;\n  reasoning: string;\n  locked: boolean;\n  syncStatus?: \"Pending\" | \"Synced\" | \"Out-of-Sync\";\n}"
+    }
+  ],
+  "BOMItem": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface BOMItem {\n  id: string; // Globally Unique UUID / Primary Key\n  partNumber: string; // Canonical Manufacturer SKU (e.g. \"INTEL-8480X-SP\")\n  name: string; // Clear English representation description\n  type: string; // Asset class: \"Processor\" | \"Memory\" | \"Chassis\" | \"Storage\" | \"Networking\" | \"Power\"\n  quantity: number; // Sourced quantity\n  unitPrice: number; // Sourced Unit Price (denominated in USD)\n}"
+    }
+  ],
+  "Config": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface Config {\n  id: string; // Config Hash UUID\n  name: string; // E.g. \"Primary Compute Node - DL380\"\n  totalPrice: number;\n  originalPrice: number;\n  savings: number;\n  items: BOMItem[];\n}"
+    }
+  ],
+  "VendorSubmission": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface VendorSubmission {\n  id: string; // Submission UUID\n  vendor: string; // Brand identifier E.g. \"HPE\", \"Dell\"\n  label: string; // Description\n  totalPrice: number;\n  originalPrice: number;\n  savings: number;\n  complianceScore: number;\n  configs: Config[]; // Array of configuration sheets assigned to this vendor proposal\n}"
+    }
+  ],
+  "Solution": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface Solution {\n  id: string; // Local Proposal UUID\n  name: string; // E.g. \"Core Spine Upgrade\"\n  targetUcidId: string;\n  vendorSubmissions: VendorSubmission[]; // The alternatives\n}"
+    }
+  ],
+  "LogEvent": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface LogEvent {\n  ts: string; // ISO-8601 UTC Timestamp\n  level: \"info\" | \"warn\" | \"ok\" | \"err\"; // Telemetry tracking severity levels\n  msg: string; // Informational narrative string\n}"
+    }
+  ],
+  "Snapshot": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface Snapshot {\n  id: string; // Snapshot Unique Hash / Primary Key\n  label: string; // User-assigned milestone identifier\n  committedAt: string; // Signature date timestamp\n  winnerSolution: string; // The selected solution architecture (ID or Name)\n  totalValue: number; // Absolute order layout cost (USD)\n  notes: string; // Administrative notes or auditing justifications\n}"
+    }
+  ],
+  "UCID": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface UCID {\n  id: string; // Master UCID Job Hash\n  displayId: string; // Human indexing reference (e.g., \"UCID-2026-092\")\n  name: string; // Customer-facing Solution layout name\n  solutionName?: string; // Explicit configuration group assignment\n  priority: \"critical\" | \"high\" | \"medium\" | \"low\"; // Ingestion priority tier\n  projectRef: string; // Internal SAP/Salesforce active Opportunity identification\n  createdAt: string; // Creation Timestamp\n  currentStep:\n    | \"boq-intake\"\n    | \"pre-intelligence\"\n    | \"solution-design\"\n    | \"vendor-provisioning\"\n    | \"post-intelligence\"\n    | \"comparison\"\n    | \"snapshot\";\n  completedSteps: (\n    | \"boq-intake\"\n    | \"pre-intelligence\"\n    | \"solution-design\"\n    | \"vendor-provisioning\"\n    | \"post-intelligence\"\n    | \"comparison\"\n    | \"snapshot\"\n  )[];\n  rawBOM: string; // Raw unstructured text or parsed JSON data from the uploader\n  solutions: Solution[]; // Collection of automatically generated vendor design alternatives\n  events: LogEvent[]; // Forensic execution log trail\n  snapshots: Snapshot[]; // Committed contract history\n  syncStatus?: \"Pending\" | \"Synced\" | \"Out-of-Sync\" | \"Error\"; // Badges requested for Live Mission & Solution Builder consistency tracking\n}"
+    }
+  ],
+  "Vendor": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface Vendor {\n  id: string; // Vendor database key\n  name: string; // Full corporate name (e.g., \"Hewlett Packard Enterprise\")\n  shortName: string; // Brand code (e.g. \"HPE\", \"Dell\")\n  status: \"connected\" | \"disconnected\" | \"syncing\" | \"error\"; // API channel state including hard failures\n  color: string; // Branding color accent\n  catalogItems: number; // Total indexed catalog items in local cache\n  apiHealth: number; // API availability threshold (percentage rating 0-100)\n  apiEndpoint: string; // Direct OAuth URL to supplier inventory system\n  syncInterval: string; // Recurrence cron schedule/expression config\n  lastSync: string; // Latest ingestion timestamp\n}"
+    }
+  ],
+  "CatalogSKU": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface CatalogSKU {\n  id: string; // Internal Inventory SKU Primary Key\n  vendor: string; // Sourcing Brand Ref\n  partNumber: string; // True physical part identifier (e.g. \"HPE-DL380-CHASS\")\n  name: string; // Formal description title\n  type: string; // Component type classification\n  price: number; // Sourced base list price (USD)\n  leadTimeDays: number; // Supplier estimated fulfillment duration\n  status: \"active\" | \"eol\" | \"restricted\"; // Lifecycle states\n  // Structured taxonomy attributes to prevent string-inferrence hardcoding\n  solution?: string; // Enterprise solution category e.g. \"Server\", \"Storage\"\n  productFamily?: string; // e.g. \"DL380\", \"Synergy\", \"Alletra\"\n  generation?: string; // e.g. \"Gen11\", \"Gen10\"\n  chassisRef?: string; // Direct relation to the chassis grouping ID\n}"
+    }
+  ],
+  "ForensicIssue": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface ForensicIssue {\n  id: string; // Forensic exception locator ID\n  title: string; // Exception summary\n  description: string; // Deep technical description of discrepancy or overage\n  vendor: string; // Brand involved\n  severity: \"critical\" | \"warning\" | \"info\"; // Danger level\n  status: \"open\" | \"fixing\" | \"resolved\"; // Correction status\n  affectedItems: number; // Number of line items affected by this rule\n  suggestedAction: string; // Automated repair trigger description\n}"
+    }
+  ],
+  "PlaywrightAgentConfig": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PlaywrightAgentConfig {\n  targetUrl: string; // Login or inventory portal address\n  headless: boolean; // Display browser engine or run headless\n  viewportWidth: number;\n  viewportHeight: number;\n  timeoutMs: number; // Execution halt deadline\n  maxRetries: number; // Fail-over reloads\n  proxyRotation: boolean; // Toggle dynamic routing to prevent CAPTCHAs\n}"
+    }
+  ],
+  "PlaywrightExecutionLog": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PlaywrightExecutionLog {\n  timestamp: string;\n  level: \"info\" | \"debug\" | \"screenshot\" | \"error\";\n  message: string;\n  screenshotUrl?: string; // Cloud storage file handle for optical debugging\n}"
+    }
+  ],
+  "PlaywrightAgentTask": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PlaywrightAgentTask {\n  taskId: string;\n  agentName: \"AribaScraper\" | \"HPEMarketplace\" | \"DellPremierPortal\";\n  ucidRef: string;\n  startedAt: string;\n  completedAt?: string;\n  status: PlaywrightAgentStatus;\n  config: PlaywrightAgentConfig;\n  logs: PlaywrightExecutionLog[];\n  metrics: {\n    pagesNavigated: number;\n    selectorsResolved: number;\n    bandwidthBytes: number;\n    durationMs: number;\n  };\n  extractedItemsCount: number;\n}"
+    }
+  ],
+  "PhysicalConstraint": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PhysicalConstraint {\n  socketType: \"LGA4677\" | \"LGA1700\" | \"AM5\" | \"BGA\";\n  thermalDesignPower: number; // Maximum thermal load in Watts\n  ramFormat: \"DDR4\" | \"DDR5\";\n  maxDdrLanes: number;\n  pcieGen: number;\n}"
+    }
+  ],
+  "CompatibilityRule": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface CompatibilityRule {\n  ruleId: string;\n  sourceType: string;\n  targetType: string;\n  relationType: \"compatible\" | \"blocks\" | \"requires\" | \"recommended\";\n  formulaExpression?: string; // Algebraic validation expressions for power budgets\n  errorMessage: string;\n}"
+    }
+  ],
+  "TaxonomyNode": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface TaxonomyNode {\n  id: string; // Material tag\n  label: string; // Human identification tag\n  type:\n    | \"vendor\"\n    | \"solution_type\"\n    | \"product_family\"\n    | \"generation\"\n    | \"chassis\"\n    | \"category\"\n    | \"subcategory\"\n    | \"sku\";\n  vendor: string;\n  constraints?: PhysicalConstraint;\n}"
+    }
+  ],
+  "TaxonomyEdge": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface TaxonomyEdge {\n  id: string;\n  source: string; // Tail item ID\n  target: string; // Head item ID\n  type: \"maps_to\" | \"fits_within\" | \"powers\" | \"cools\";\n  validated: boolean;\n}"
+    }
+  ],
+  "LineReconciliationDiff": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface LineReconciliationDiff {\n  itemId: string;\n  field: \"price\" | \"partNumber\" | \"leadTime\" | \"description\";\n  originalValue: string | number;\n  proposedValue: string | number;\n  severity: \"high\" | \"medium\" | \"low\";\n  resolved: boolean;\n}"
+    }
+  ],
+  "ReconciliationSession": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface ReconciliationSession {\n  sessionId: string;\n  ucidRef: string;\n  committedAt?: string;\n  committedBy?: string;\n  status: \"draft\" | \"locked\" | \"reviewing\";\n  discrepancyCount: number;\n  diffs: LineReconciliationDiff[];\n}"
+    }
+  ],
+  "OutboundWebhookConfig": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface OutboundWebhookConfig {\n  endpointUrl: string;\n  secretToken: string;\n  retryPolicy: {\n    exponentialBackoff: boolean;\n    maxAttempts: number;\n  };\n  enabledEvents: (\n    | \"bom.synchronized\"\n    | \"reconciliation.committed\"\n    | \"forensic.flagged\"\n  )[];\n}"
+    }
+  ],
+  "WebhookDeliveryLog": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface WebhookDeliveryLog {\n  deliveryId: string;\n  endpointUrl: string;\n  timestamp: string;\n  responseStatusCode: number;\n  payloadSize: number;\n  payloadBody: string;\n  retryCount: number;\n  success: boolean;\n}"
+    }
+  ],
+  "SearchQueryDescriptor": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface SearchQueryDescriptor {\n  queryString: string;\n  filters: {\n    vendors: string[];\n    types: string[];\n    priceMin?: number;\n    priceMax?: number;\n    complianceScoreMin?: number;\n    status: (\"active\" | \"eol\" | \"restricted\")[];\n  };\n  pagination: {\n    page: number;\n    limit: number;\n  };\n  weights: {\n    textMatch: number;\n    priceUrgency: number;\n    leadTimeFavorability: number;\n  };\n}"
+    }
+  ],
+  "PaginatedResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PaginatedResponse<T> {\n  data: T[];\n  metadata: {\n    totalCount: number;\n    currentPage: number;\n    totalPages: number;\n    hasNextPage: boolean;\n  };\n}"
+    }
+  ],
+  "PortfolioUcidRef": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PortfolioUcidRef {\n  id: string;\n  channel: \"manual\" | \"automated\";\n  vendor: string;\n}"
+    }
+  ],
+  "PortfolioOrchestrateRequest": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PortfolioOrchestrateRequest {\n  portfolioId: string;\n  ucids: PortfolioUcidRef[];\n}"
+    }
+  ],
+  "PortfolioOrchestrateResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PortfolioOrchestrateResponse {\n  success: boolean;\n  transactionId: string;\n  status: \"orchestrating\" | \"failed\";\n  timestamp: string;\n}"
+    }
+  ],
+  "PortfolioManualUploadRequest": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PortfolioManualUploadRequest {\n  portfolioId: string;\n  ucidRef: string;\n  filename: string;\n  configsMatchedCount: number;\n  configs?: Array<{\n    configId: string;\n    status: \"synced\" | \"pending\";\n    priceUSD: number;\n  }>;\n}"
+    }
+  ],
+  "PortfolioManualUploadResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface PortfolioManualUploadResponse {\n  success: boolean;\n  reconciliationStatus: \"partial\" | \"complete\";\n  reconciledPriceUSD: number;\n  missingSlots: string[];\n  integrityScore: number;\n  message: string;\n}"
+    }
+  ],
+  "IngestBOMRequest": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface IngestBOMRequest {\n  fileName: string;\n  rawContent: string;\n  source: \"manual\" | \"api\" | \"email\";\n}"
+    }
+  ],
+  "IngestBOMResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface IngestBOMResponse {\n  success: boolean;\n  ucid: UCID;\n  matchMetrics: {\n    totalItems: number;\n    matchedItems: number;\n    confidenceScore: number;\n  };\n}"
+    }
+  ],
+  "GetUCIDDetailRequest": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface GetUCIDDetailRequest {\n  ucidId: string;\n  includeEvents?: boolean;\n  includeSnapshots?: boolean;\n}"
+    }
+  ],
+  "GetUCIDDetailResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface GetUCIDDetailResponse {\n  ucid: UCID;\n}"
+    }
+  ],
+  "CreateSnapshotRequest": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface CreateSnapshotRequest {\n  ucidId: string;\n  winnerVendor: string;\n  signerName: string;\n}"
+    }
+  ],
+  "CreateSnapshotResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface CreateSnapshotResponse {\n  success: boolean;\n  snapshot: Snapshot;\n  ucid: UCID;\n}"
+    }
+  ],
+  "UpdateUCIDStepRequest": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface UpdateUCIDStepRequest {\n  ucidId: string;\n  nextStep: UCID[\"currentStep\"];\n}"
+    }
+  ],
+  "UpdateUCIDStepResponse": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface UpdateUCIDStepResponse {\n  success: boolean;\n  ucid: UCID;\n}"
+    }
+  ],
+  "SourcingRule": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "interface",
+      "text": "export interface SourcingRule {\n  id: string;\n  ruleType: \"substitution\" | \"price_cap\" | \"symmetry\" | \"api_gateway\";\n  partNumber: string;\n  mappedOutput: string;\n  label: string;\n  vendor: string;\n  status: \"active\" | \"draft\";\n}"
+    }
+  ],
+  "PlaywrightAgentStatus": [
+    {
+      "file": "/app/applet/src/types/data.ts",
+      "kind": "type",
+      "text": "export type PlaywrightAgentStatus =\n  | \"idle\"\n  | \"running\"\n  | \"success\"\n  | \"failed\"\n  | \"rate-limited\";"
+    }
+  ],
+  "TaxonomyGraphNode": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "interface",
+      "text": "export interface TaxonomyGraphNode {\n  id: string;\n  type: \"product\" | \"subproduct\" | \"category\" | \"subcategory\" | \"sku\";\n  label: string;\n  sublabel?: string;\n  constraints?: string[];\n  dependencies?: string[];\n  x?: number;\n  y?: number;\n}"
+    }
+  ],
+  "TaxonomyGraphEdge": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "interface",
+      "text": "export interface TaxonomyGraphEdge {\n  id: string;\n  from: string;\n  to: string;\n  type: \"contains\" | \"requires\" | \"exclusive\";\n}"
+    }
+  ],
+  "TaxonomyGraphPayload": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "interface",
+      "text": "export interface TaxonomyGraphPayload {\n  nodes: TaxonomyGraphNode[];\n  edges: TaxonomyGraphEdge[];\n  unmappedIds: string[];\n}"
+    }
+  ],
+  "GraphMetadata": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "type",
+      "text": "export type GraphMetadata = z.infer<typeof GraphMetadataSchema>;"
+    }
+  ],
+  "GraphNode": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "type",
+      "text": "export type GraphNode = z.infer<typeof GraphNodeSchema>;"
+    }
+  ],
+  "GraphEdge": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "type",
+      "text": "export type GraphEdge = z.infer<typeof GraphEdgeSchema>;"
+    }
+  ],
+  "GraphAPIResponse": [
+    {
+      "file": "/app/applet/src/types/taxonomy.ts",
+      "kind": "type",
+      "text": "export type GraphAPIResponse = z.infer<typeof GraphAPISchema>;"
+    }
+  ],
+  "CatalogAddFormProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogAddForm.tsx",
+      "kind": "interface",
+      "text": "interface CatalogAddFormProps {\n  onAddSku: (e: React.FormEvent) => void;\n  onClose: () => void;\n  newVendor: string;\n  setNewVendor: (val: string) => void;\n  newType: string;\n  setNewType: (val: string) => void;\n  newPartNo: string;\n  setNewPartNo: (val: string) => void;\n  newName: string;\n  setNewName: (val: string) => void;\n  newPrice: string;\n  setNewPrice: (val: string) => void;\n  newLeadTime: string;\n  setNewLeadTime: (val: string) => void;\n}"
+    }
+  ],
+  "CatalogCardsListProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogCardsList.tsx",
+      "kind": "interface",
+      "text": "interface CatalogCardsListProps {\n  paginatedSkus: CatalogSKU[];\n  editingSkuId: string | null;\n  editedPrice: string;\n  setEditedPrice: (val: string) => void;\n  startEditing: (sku: CatalogSKU) => void;\n  savePrice: (id: string) => void;\n  setEditingSkuId: (id: string | null) => void;\n  onClearFilters: () => void;\n}"
+    }
+  ],
+  "CatalogFilterBarProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogFilterBar.tsx",
+      "kind": "interface",
+      "text": "interface CatalogFilterBarProps {\n  searchTerm: string;\n  setSearchTerm: (val: string) => void;\n  selectedPath: any;\n  setSelectedPath: (val: any) => void;\n  setVendorFilter: (val: string) => void;\n  setTypeFilter: (val: string) => void;\n}"
+    }
+  ],
+  "CatalogHeaderProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogHeader.tsx",
+      "kind": "interface",
+      "text": "interface CatalogHeaderProps {\n  totalCatalogItems: number;\n  totalConnectedVendors: number;\n  onAddClick: () => void;\n}"
+    }
+  ],
+  "CatalogManagerProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogManager.tsx",
+      "kind": "interface",
+      "text": "interface CatalogManagerProps {\n  catalogSkus: CatalogSKU[];\n  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;\n  vendors?: any[];\n}"
+    }
+  ],
+  "CatalogPaginationProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogPagination.tsx",
+      "kind": "interface",
+      "text": "interface CatalogPaginationProps {\n  filteredSkusLength: number;\n  currentPage: number;\n  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;\n  pageSize: number;\n}"
+    }
+  ],
+  "CatalogTypeFiltersProps": [
+    {
+      "file": "/app/applet/src/components/catalog/CatalogTypeFilters.tsx",
+      "kind": "interface",
+      "text": "interface CatalogTypeFiltersProps {\n  projectTypes: string[];\n  typeFilter: string;\n  setTypeFilter: (val: string) => void;\n  setSelectedPath: (path: any) => void;\n  typeCounts: Record<string, number>;\n}"
+    }
+  ],
+  "ActiveIssuesListProps": [
+    {
+      "file": "/app/applet/src/components/dashboard/ActiveIssuesList.tsx",
+      "kind": "interface",
+      "text": "interface ActiveIssuesListProps {\n  forensicIssues: ForensicIssue[];\n  onNavigate: (v: AppView) => void;\n}"
+    }
+  ],
+  "CatalogTrendAnalyzerProps": [
+    {
+      "file": "/app/applet/src/components/dashboard/CatalogTrendAnalyzer.tsx",
+      "kind": "interface",
+      "text": "interface CatalogTrendAnalyzerProps {\n  dimensions: { width: number; height: number };\n  chartRef: React.RefObject<HTMLDivElement>;\n}"
+    }
+  ],
+  "DashboardProps": [
+    {
+      "file": "/app/applet/src/components/dashboard/Dashboard.tsx",
+      "kind": "interface",
+      "text": "interface DashboardProps {\n  onNavigate: (v: AppView) => void;\n  ucids: UCID[];\n  vendors: Vendor[];\n  forensicIssues: ForensicIssue[];\n}"
+    }
+  ],
+  "KpiCardProps": [
+    {
+      "file": "/app/applet/src/components/dashboard/KpiCard.tsx",
+      "kind": "interface",
+      "text": "interface KpiCardProps {\n  id: string;\n  label: string;\n  value: string;\n  sub: string;\n  icon: React.ElementType;\n  color: string;\n  delta: string;\n  up: boolean;\n  hovered: boolean;\n  onMouseEnter: () => void;\n  onMouseLeave: () => void;\n  onClick: () => void;\n}"
+    }
+  ],
+  "VendorHealthListProps": [
+    {
+      "file": "/app/applet/src/components/dashboard/VendorHealthList.tsx",
+      "kind": "interface",
+      "text": "interface VendorHealthListProps {\n  vendors: Vendor[];\n  onNavigate: (v: AppView) => void;\n}"
+    }
+  ],
+  "VendorStatusBoardProps": [
+    {
+      "file": "/app/applet/src/components/dashboard/VendorStatusBoard.tsx",
+      "kind": "interface",
+      "text": "interface VendorStatusBoardProps {\n  totalCatalog: number;\n  vendorPieData: { name: string; value: number; color: string }[];\n  dimensions: { width: number; height: number };\n  chartRef: React.RefObject<HTMLDivElement>;\n}"
+    }
+  ],
+  "ForensicHeaderProps": [
+    {
+      "file": "/app/applet/src/components/forensics/ForensicHeader.tsx",
+      "kind": "interface",
+      "text": "interface ForensicHeaderProps {\n  currUcid: UCID | undefined;\n  ucids: UCID[];\n  scanning: boolean;\n  setActiveMissionId: (id: string) => void;\n  runAuditScanner: () => void;\n}"
+    }
+  ],
+  "ForensicIssueCardProps": [
+    {
+      "file": "/app/applet/src/components/forensics/ForensicIssueCard.tsx",
+      "kind": "interface",
+      "text": "interface ForensicIssueCardProps {\n  issue: ForensicIssue;\n  onAutoHeal: (id: string) => void;\n  onManualPromote?: (issue: ForensicIssue) => void;\n}"
+    }
+  ],
+  "ForensicSidebarProps": [
+    {
+      "file": "/app/applet/src/components/forensics/ForensicSidebar.tsx",
+      "kind": "interface",
+      "text": "interface ForensicSidebarProps {\n  openIssuesCount: number;\n  forensicIssues: ForensicIssue[];\n}"
+    }
+  ],
+  "ForensicViewProps": [
+    {
+      "file": "/app/applet/src/components/forensics/ForensicView.tsx",
+      "kind": "interface",
+      "text": "interface ForensicViewProps {\n  forensicIssues: ForensicIssue[];\n  setForensicIssues: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;\n  setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;\n  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  activeMissionId?: string;\n  setActiveMissionId: React.Dispatch<React.SetStateAction<string | undefined>>;\n  onNavigate?: (view: any) => void;\n}"
+    }
+  ],
+  "ScannerOutputProps": [
+    {
+      "file": "/app/applet/src/components/forensics/ScannerOutput.tsx",
+      "kind": "interface",
+      "text": "interface ScannerOutputProps {\n  scanning: boolean;\n  scanStdout: string[];\n}"
+    }
+  ],
+  "SourcingRulesVaultProps": [
+    {
+      "file": "/app/applet/src/components/forensics/SourcingRulesVault.tsx",
+      "kind": "interface",
+      "text": "interface SourcingRulesVaultProps {\n  sourcingRules: SourcingRule[];\n  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;\n  triggerToast: (message: string, type: \"success\" | \"warn\") => void;\n  prefillRule: Partial<SourcingRule> | null;\n  onPrefillConsumed: () => void;\n}"
+    }
+  ],
+  "BoqIngestWorkbookProps": [
+    {
+      "file": "/app/applet/src/components/ingestion/BoqIngestWorkbook.tsx",
+      "kind": "interface",
+      "text": "interface BoqIngestWorkbookProps {\n  selectedPreset: \"hpe-legacy\" | \"dell-overcharge\" | \"cisco-asymmetry\";\n  setSelectedPreset: (\n    val: \"hpe-legacy\" | \"dell-overcharge\" | \"cisco-asymmetry\",\n  ) => void;\n  boqFile: string;\n  isBOQIngesting: boolean;\n  boqProgress: number;\n  boqResponse: any;\n  boqError: string;\n  onTriggerBOQParse: (\n    fileName: string,\n    preset: \"hpe-legacy\" | \"dell-overcharge\" | \"cisco-asymmetry\",\n  ) => void;\n  onSplitAndProvision: () => void;\n}"
+    }
+  ],
+  "HybridPortfolioOrchestrationProps": [
+    {
+      "file": "/app/applet/src/components/ingestion/HybridPortfolioOrchestration.tsx",
+      "kind": "interface",
+      "text": "interface HybridPortfolioOrchestrationProps {\n  isPortfolioActive: boolean;\n  hpeSyncedConfigs: number;\n  ciscoSyncedConfigs: number;\n  manualBOMStatus: \"pending\" | \"partial\" | \"complete\";\n  manualUploadedFiles: string[];\n  onStartPortfolioPipeline: () => void;\n  onSimulateManualUpload: (configsCount: number) => void;\n  onAdvanceStep: () => void;\n}"
+    }
+  ],
+  "IngestionHubProps": [
+    {
+      "file": "/app/applet/src/components/ingestion/IngestionHub.tsx",
+      "kind": "interface",
+      "text": "interface IngestionHubProps {\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  onNavigate: (view: any) => void;\n  onSelectMission: (id: string) => void;\n  isPendingAPI?: boolean;\n  setIsPendingAPI?: (pending: boolean) => void;\n  pendingAPIMessage?: string;\n  setPendingAPIMessage?: (msg: string) => void;\n  setApiProgress?: (progress: number) => void;\n}"
+    }
+  ],
+  "LaunchStepProps": [
+    {
+      "file": "/app/applet/src/components/ingestion/LaunchStep.tsx",
+      "kind": "interface",
+      "text": "interface LaunchStepProps {\n  onNavigate: (view: any) => void;\n}"
+    }
+  ],
+  "TechnicalBomWorkspaceProps": [
+    {
+      "file": "/app/applet/src/components/ingestion/TechnicalBomWorkspace.tsx",
+      "kind": "interface",
+      "text": "interface TechnicalBomWorkspaceProps {\n  ucids: UCID[];\n  selectedUcidId: string;\n  setSelectedUcidId: (id: string) => void;\n  bomVerifyResult: any;\n  setBomVerifyResult: (res: any) => void;\n  bomReconResult: any;\n  setBomReconResult: (res: any) => void;\n  activeBOMFile: string;\n  setActiveBOMFile: (file: string) => void;\n  isBOMIngesting: boolean;\n  setIsBOMIngesting: (ingesting: boolean) => void;\n  bomProgress: number;\n  setBomProgress: (progress: number) => void;\n  selectedBomsForBatch: string[];\n  setSelectedBomsForBatch: React.Dispatch<React.SetStateAction<string[]>>;\n  bomError: string;\n  onTriggerBOMParse: (fileName: string) => void;\n  onTriggerBatchReconciliation: () => void;\n  onSelectMission: (id: string) => void;\n}"
+    }
+  ],
+  "BreadcrumbNavProps": [
+    {
+      "file": "/app/applet/src/components/layout/BreadcrumbNav.tsx",
+      "kind": "interface",
+      "text": "interface BreadcrumbNavProps {\n  view: AppView;\n  activeMissionId?: string;\n  ucids: UCID[];\n  onNavigate: (view: AppView) => void;\n}"
+    }
+  ],
+  "SidebarProps": [
+    {
+      "file": "/app/applet/src/components/layout/Sidebar.tsx",
+      "kind": "interface",
+      "text": "interface SidebarProps {\n  activeView: AppView;\n  onNavigate: (view: AppView) => void;\n  collapsed: boolean;\n  onToggle: () => void;\n  activeMissionId?: string;\n  onSelectMission: (id: string) => void;\n  ucids: UCID[];\n  vendors: any[];\n  forensicIssues: any[];\n}"
+    }
+  ],
+  "TopBarProps": [
+    {
+      "file": "/app/applet/src/components/layout/TopBar.tsx",
+      "kind": "interface",
+      "text": "interface TopBarProps {\n  activeView: AppView;\n  onSearch: (query: string) => void;\n  searchQuery?: string;\n  onNavigate?: (newView: AppView) => void;\n  apiProgress?: number;\n  isPendingAPI?: boolean;\n  syncHealth?: { status: \"healthy\" | \"warning\" | \"error\"; message: string };\n  ucids?: UCID[];\n  vendors?: Vendor[];\n  catalogSkus?: CatalogSKU[];\n  onSelectMission?: (id: string) => void;\n}"
+    }
+  ],
+  "CampaignConsolidationHubProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/CampaignConsolidationHub.tsx",
+      "kind": "interface",
+      "text": "interface CampaignConsolidationHubProps {\n  campaignName: string;\n  campaignUcids: UCID[];\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  campaignSigner: string;\n  setCampaignSigner: React.Dispatch<React.SetStateAction<string>>;\n  campaignLocked: Record<string, boolean>;\n  setCampaignLocked: React.Dispatch<\n    React.SetStateAction<Record<string, boolean>>\n  >;\n}"
+    }
+  ],
+  "MissionControlProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/MissionControl.tsx",
+      "kind": "interface",
+      "text": "interface MissionControlProps {\n  selectedId?: string;\n  onSelectId: (id: string | undefined) => void;\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  deployedSolution?: {\n    name: string;\n    ucidCount: number;\n    timestamp: number;\n  } | null;\n  setDeployedSolution?: React.Dispatch<\n    React.SetStateAction<{\n      name: string;\n      ucidCount: number;\n      timestamp: number;\n    } | null>\n  >;\n}"
+    }
+  ],
+  "MissionControlSidebarProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/MissionControlSidebar.tsx",
+      "kind": "interface",
+      "text": "interface MissionControlSidebarProps {\n  ucids: UCID[];\n  selectedId?: string;\n  hierarchyTab: \"visual\" | \"faq\";\n  setHierarchyTab: (tab: \"visual\" | \"faq\") => void;\n  setShowNewUCID: (show: boolean) => void;\n  groupedUcids: Record<string, UCID[]>;\n  setWorkspaceMode: (mode: \"individual\" | \"consolidation\") => void;\n  onSelectId: (id: string | undefined) => void;\n  setViewStep: (step: UCIDStep | null) => void;\n  getSolutionName: (u: UCID) => string;\n}"
+    }
+  ],
+  "NewUCIDModalProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/NewUCIDModal.tsx",
+      "kind": "interface",
+      "text": "interface NewUCIDModalProps {\n  onClose: () => void;\n  onCreate: (ucid: UCID) => void;\n}"
+    }
+  ],
+  "SolutionBannerProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/SolutionBanner.tsx",
+      "kind": "interface",
+      "text": "interface SolutionBannerProps {\n  ucids: UCID[];\n  solutionState: \"planning\" | \"active\" | \"complete\";\n  completeCount: number;\n  deployedSolution?: {\n    name: string;\n    ucidCount: number;\n    timestamp: number;\n  } | null;\n  onClearDeployed?: () => void;\n}"
+    }
+  ],
+  "SolutionConfigCardProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/SolutionConfigCard.tsx",
+      "kind": "interface",
+      "text": "interface SolutionConfigCardProps {\n  submission: VendorSubmission;\n  index: number;\n  onUpdate: (sol: VendorSubmission) => void;\n}"
+    }
+  ],
+  "SourcingReconciliationDiffProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/SourcingReconciliationDiff.tsx",
+      "kind": "interface",
+      "text": "interface SourcingReconciliationDiffProps {\n  submissions: VendorSubmission[];\n}"
+    }
+  ],
+  "StepContentPanelProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/StepContentPanel.tsx",
+      "kind": "interface",
+      "text": "interface StepContentPanelProps {\n  ucid: UCID;\n  activeStep: UCIDStep;\n  runningIntel: string | null;\n  intelProgress: number;\n  committingSnapshot: boolean;\n  onRunIntel: () => void;\n  onAdvance: () => void;\n  onCommitSnapshot: () => void;\n  appendLogEvent: (level: \"info\" | \"warn\" | \"ok\" | \"err\", msg: string) => void;\n  onUpdateSolutions: (sols: Solution[]) => void;\n  onUpdateBOM: (rawText: string) => void;\n  onShowToast: (msg: string, type: \"success\" | \"warn\" | \"error\") => void;\n}"
+    }
+  ],
+  "UCIDEventLedgerProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/UCIDEventLedger.tsx",
+      "kind": "interface",
+      "text": "interface UCIDEventLedgerProps {\n  ucid: UCID;\n}"
+    }
+  ],
+  "UCIDStepperProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/UCIDStepper.tsx",
+      "kind": "interface",
+      "text": "interface UCIDStepperProps {\n  ucid: UCID;\n  activeStep: UCIDStep;\n  setViewStep: (step: UCIDStep) => void;\n  getStepState: (u: UCID, stepId: UCIDStep) => \"upcoming\" | \"active\" | \"complete\";\n}"
+    }
+  ],
+  "TableRow": [
+    {
+      "file": "/app/applet/src/components/reconciliation/ReconciliationDrillDown.tsx",
+      "kind": "interface",
+      "text": "interface TableRow {\n  id: string;\n  boqItem: string;\n  boqPart: string;\n  boqQty: string | number;\n  status: \"Matched\" | \"Missing\" | \"Spec !=\" | \"Qty Delta\" | \"Added\";\n  bomPart: string;\n  bomItem: string;\n  bomQty: string | number;\n  unitPrice: string | number;\n  totalPrice: string | number;\n  rawPartNumber: string;\n  rawQty: number;\n  rawType: string;\n  rawPrice: number;\n  hasAlert: boolean;\n  alertId: string;\n  alertTitle: string;\n}"
+    }
+  ],
+  "TableGroup": [
+    {
+      "file": "/app/applet/src/components/reconciliation/ReconciliationDrillDown.tsx",
+      "kind": "interface",
+      "text": "interface TableGroup {\n  name: string;\n  count: number;\n  greenDot: boolean;\n  orangeDot: boolean;\n  rows: TableRow[];\n}"
+    }
+  ],
+  "ReconciliationDrillDownProps": [
+    {
+      "file": "/app/applet/src/components/reconciliation/ReconciliationDrillDown.tsx",
+      "kind": "interface",
+      "text": "interface ReconciliationDrillDownProps {\n  selectedConfigSheet: string;\n  setSelectedConfigSheet: (sheet: string | null) => void;\n  ucids?: UCID[];\n  setUcids?: React.Dispatch<React.SetStateAction<UCID[]>>;\n  catalogSkus?: CatalogSKU[];\n  forensicIssues?: ForensicIssue[];\n  setForensicIssues?: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;\n  setVendors?: React.Dispatch<React.SetStateAction<Vendor[]>>;\n}"
+    }
+  ],
+  "ReconciliationOverviewProps": [
+    {
+      "file": "/app/applet/src/components/reconciliation/ReconciliationOverview.tsx",
+      "kind": "interface",
+      "text": "interface ReconciliationOverviewProps {\n  setSelectedConfigSheet: (sheet: string | null) => void;\n  setHasDrift: (hasDrift: boolean) => void;\n  ucids?: UCID[];\n  catalogSkus?: CatalogSKU[];\n}"
+    }
+  ],
+  "ReconciliationViewProps": [
+    {
+      "file": "/app/applet/src/components/reconciliation/ReconciliationView.tsx",
+      "kind": "interface",
+      "text": "interface ReconciliationViewProps {\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  catalogSkus: CatalogSKU[];\n  forensicIssues?: ForensicIssue[];\n  setForensicIssues?: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;\n  setVendors?: React.Dispatch<React.SetStateAction<Vendor[]>>;\n}"
+    }
+  ],
+  "SearchViewProps": [
+    {
+      "file": "/app/applet/src/components/search/SearchView.tsx",
+      "kind": "interface",
+      "text": "interface SearchViewProps {\n  query: string;\n  ucids: AppView[] | any[]; // Accept any/compatible ucids for search\n  vendors: Vendor[];\n  catalogSkus: CatalogSKU[];\n  onNavigate: (view: AppView) => void;\n  onSelectMission: (id: string) => void;\n  onSearchChange?: (newQuery: string) => void;\n}"
+    }
+  ],
+  "ButtonProps": [
+    {
+      "file": "/app/applet/src/components/shared/Button.tsx",
+      "kind": "interface",
+      "text": "interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {\n  variant?: \"primary\" | \"secondary\" | \"outline\" | \"ghost\" | \"danger\" | \"success\";\n  size?: \"sm\" | \"md\" | \"lg\";\n  isLoading?: boolean;\n}"
+    }
+  ],
+  "DataPersistenceGateProps": [
+    {
+      "file": "/app/applet/src/components/shared/DataPersistenceGate.tsx",
+      "kind": "interface",
+      "text": "interface DataPersistenceGateProps {\n  children: React.ReactNode;\n  ucids: UCID[];\n  vendors: Vendor[];\n  catalogSkus: CatalogSKU[];\n  isPendingAPI?: boolean;\n  requestedView?: string | null;\n  onConfirmNavigation?: () => void;\n  onCancelNavigation?: () => void;\n}"
+    }
+  ],
+  "Props": [
+    {
+      "file": "/app/applet/src/components/shared/ErrorBoundary.tsx",
+      "kind": "interface",
+      "text": "interface Props {\n  children?: ReactNode;\n}"
+    }
+  ],
+  "State": [
+    {
+      "file": "/app/applet/src/components/shared/ErrorBoundary.tsx",
+      "kind": "interface",
+      "text": "interface State {\n  hasError: boolean;\n  errorMsg: string;\n}"
+    }
+  ],
+  "SelectProps": [
+    {
+      "file": "/app/applet/src/components/shared/Select.tsx",
+      "kind": "interface",
+      "text": "interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {\n  // You can add custom props here if needed later\n}"
+    }
+  ],
+  "SKUCardProps": [
+    {
+      "file": "/app/applet/src/components/shared/SKUCard.tsx",
+      "kind": "interface",
+      "text": "interface SKUCardProps {\n  sku: CatalogSKU;\n  onCopy?: (partNumber: string) => void;\n  className?: string;\n  onClick?: () => void;\n}"
+    }
+  ],
+  "StatusBadgeProps": [
+    {
+      "file": "/app/applet/src/components/shared/StatusBadge.tsx",
+      "kind": "interface",
+      "text": "export interface StatusBadgeProps {\n  status: string;\n  variant?: BadgeVariant;\n  size?: BadgeSize;\n  className?: string;\n  icon?: React.ReactNode;\n}"
+    }
+  ],
+  "BadgeVariant": [
+    {
+      "file": "/app/applet/src/components/shared/StatusBadge.tsx",
+      "kind": "type",
+      "text": "export type BadgeVariant = \"success\" | \"warning\" | \"error\" | \"info\" | \"default\";"
+    }
+  ],
+  "BadgeSize": [
+    {
+      "file": "/app/applet/src/components/shared/StatusBadge.tsx",
+      "kind": "type",
+      "text": "export type BadgeSize = \"sm\" | \"md\";"
+    }
+  ],
+  "Toast": [
+    {
+      "file": "/app/applet/src/components/shared/ToastContext.tsx",
+      "kind": "interface",
+      "text": "export interface Toast {\n  id: string;\n  message: string;\n  type: \"success\" | \"warn\" | \"error\";\n}"
+    }
+  ],
+  "ToastContextType": [
+    {
+      "file": "/app/applet/src/components/shared/ToastContext.tsx",
+      "kind": "interface",
+      "text": "interface ToastContextType {\n  toast: (message: string, type?: \"success\" | \"warn\" | \"error\") => void;\n  success: (message: string) => void;\n  warn: (message: string) => void;\n  error: (message: string) => void;\n}"
+    }
+  ],
+  "ConfigLibraryItemProps": [
+    {
+      "file": "/app/applet/src/components/solution-builder/ConfigLibraryItem.tsx",
+      "kind": "interface",
+      "text": "interface ConfigLibraryItemProps {\n  cfg: ConfigItem;\n  isSelected: boolean;\n  onSelect: () => void;\n  isMultiUcid: boolean;\n  ucidsList: UcidContainer[];\n  assignConfigToUcid: (configId: string, ucidId: string) => void;\n}"
+    }
+  ],
+  "SolutionBuilderProps": [
+    {
+      "file": "/app/applet/src/components/solution-builder/SolutionBuilder.tsx",
+      "kind": "interface",
+      "text": "interface SolutionBuilderProps {\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  onNavigate: (view: any) => void;\n  setDeployedSolution: React.Dispatch<React.SetStateAction<any>>;\n  onSelectMission: (id: string) => void;\n}"
+    }
+  ],
+  "StepIntakeProps": [
+    {
+      "file": "/app/applet/src/components/solution-builder/StepIntake.tsx",
+      "kind": "interface",
+      "text": "interface StepIntakeProps {\n  activeUcidsCount: number;\n  onProceed: () => void;\n  onSimulationLoad: (fileName: string) => void;\n}"
+    }
+  ],
+  "StepWorkspaceProps": [
+    {
+      "file": "/app/applet/src/components/solution-builder/StepWorkspace.tsx",
+      "kind": "interface",
+      "text": "interface StepWorkspaceProps {\n  solutionName: string;\n  setSolutionName: (name: string) => void;\n  isMultiUcid: boolean;\n  toggleMultiUcidMode: (enabled: boolean) => void;\n  handleAddUcid: () => void;\n  configs: ConfigItem[];\n  selectedConfigId: string;\n  setSelectedConfigId: (id: string) => void;\n  ucidsList: UcidContainer[];\n  assignConfigToUcid: (configId: string, ucidId: string) => void;\n  updateContainerName: (id: string, name: string) => void;\n  updateContainerReasoning: (id: string, reasoning: string) => void;\n  toggleContainerLock: (id: string) => void;\n  ucids: UCID[];\n  handleDeployToMissionControl: () => void;\n}"
+    }
+  ],
+  "VendorGatewaysProps": [
+    {
+      "file": "/app/applet/src/components/vendor-portal/VendorGateways.tsx",
+      "kind": "interface",
+      "text": "interface VendorGatewaysProps {\n  vendors: Vendor[];\n  handleToggleStatus: (vendorId: string) => void;\n}"
+    }
+  ],
+  "VendorIngestionDeskProps": [
+    {
+      "file": "/app/applet/src/components/vendor-portal/VendorIngestionDesk.tsx",
+      "kind": "interface",
+      "text": "interface VendorIngestionDeskProps {\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n  showToast: (message: string, type: \"success\" | \"warn\" | \"error\") => void;\n}"
+    }
+  ],
+  "VendorPortalProps": [
+    {
+      "file": "/app/applet/src/components/vendor-portal/VendorPortal.tsx",
+      "kind": "interface",
+      "text": "interface VendorPortalProps {\n  vendors: Vendor[];\n  setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;\n  ucids: UCID[];\n  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;\n}"
+    }
+  ],
+  "StepBoqIntakeProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepBoqIntake.tsx",
+      "kind": "interface",
+      "text": "interface StepBoqIntakeProps {\n  ucid: UCID;\n  onUpdateBOM: (rawText: string) => void;\n  onUpdateSolutions: (sols: Solution[]) => void;\n  appendLogEvent: (level: \"info\" | \"warn\" | \"ok\" | \"err\", msg: string) => void;\n  onShowToast: (msg: string, type: \"success\" | \"warn\" | \"error\") => void;\n  onAdvance: () => void;\n}"
+    }
+  ],
+  "StepComparisonProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepComparison.tsx",
+      "kind": "interface",
+      "text": "interface StepComparisonProps {\n  ucid: UCID;\n  committingSnapshot: boolean;\n  onCommitSnapshot: () => void;\n  onUpdateSolutions: (sols: Solution[]) => void;\n  appendLogEvent: (level: \"info\" | \"warn\" | \"ok\" | \"err\", msg: string) => void;\n}"
+    }
+  ],
+  "StepPostIntelligenceProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepPostIntelligence.tsx",
+      "kind": "interface",
+      "text": "interface StepPostIntelligenceProps {\n  onAdvance: () => void;\n  appendLogEvent: (level: \"info\" | \"warn\" | \"ok\" | \"err\", msg: string) => void;\n}"
+    }
+  ],
+  "StepPreIntelligenceProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepPreIntelligence.tsx",
+      "kind": "interface",
+      "text": "interface StepPreIntelligenceProps {\n  ucid: UCID;\n  isRunning: boolean;\n  intelProgress: number;\n  onAdvance: () => void;\n  onRunIntel: () => void;\n}"
+    }
+  ],
+  "StepSnapshotProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepSnapshot.tsx",
+      "kind": "interface",
+      "text": "interface StepSnapshotProps {\n  ucid: UCID;\n  onShowToast: (msg: string, type: \"success\" | \"warn\" | \"error\") => void;\n  appendLogEvent: (level: \"info\" | \"warn\" | \"ok\" | \"err\", msg: string) => void;\n}"
+    }
+  ],
+  "StepSolutionDesignProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepSolutionDesign.tsx",
+      "kind": "interface",
+      "text": "interface StepSolutionDesignProps {\n  ucid: UCID;\n  onAdvance: () => void;\n  onUpdateSolutions: (sols: Solution[]) => void;\n  appendLogEvent: (level: \"info\" | \"warn\" | \"ok\" | \"err\", msg: string) => void;\n}"
+    }
+  ],
+  "StepVendorProvisioningProps": [
+    {
+      "file": "/app/applet/src/components/mission-control/steps/StepVendorProvisioning.tsx",
+      "kind": "interface",
+      "text": "interface StepVendorProvisioningProps {\n  onAdvance: () => void;\n}"
+    }
+  ],
+  "SchemaInspectorProps": [
+    {
+      "file": "/app/applet/app/applet/src/components/solution-builder/SchemaInspector.tsx",
+      "kind": "interface",
+      "text": "interface SchemaInspectorProps {\n  data: any;\n  title?: string;\n}"
+    }
+  ]
+}

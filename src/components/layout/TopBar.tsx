@@ -1,3 +1,4 @@
+import { tokens } from "../../styles/tokens";
 import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
@@ -14,6 +15,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { AppView, UCID, Vendor, CatalogSKU } from "../../types";
+import { useToast } from "../shared/ToastContext";
 
 interface TopBarProps {
   activeView: AppView;
@@ -42,6 +44,7 @@ export function TopBar({
   catalogSkus = [],
   onSelectMission,
 }: TopBarProps) {
+  const toast = useToast();
   const [localQuery, setLocalQuery] = useState(searchQuery || "");
   const [timeStr, setTimeStr] = useState("2026-06-06 13:40:10 UTC");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -56,17 +59,15 @@ export function TopBar({
   // Format the view name for elegant header reading
   const viewTitles: Record<AppView, string> = {
     dashboard: "Intelligence Dashboard Overview",
-    "live-mission": "Live Parallel Mission Control",
+    "mission-control": "Live Parallel Mission Control",
     catalog: "Unified Vendor Catalog SKU Manager",
     "vendor-portal": "Vendor API Integrations & Health",
     forensic: "Forensic Scan & Automated Repair Center",
-    cleansing: "Taxonomy Cleansing & Part Number Mapping",
-    taxonomy: "Procurement Taxonomy Knowledge Graph",
     "solution-builder": "Visual Solution Architecture Configurator",
-    reports: "Comparative Audit & Performance Reports",
     "ingestion-hub": "Centralized BOQ & BOM Ingestion Hub",
     reconciliation: "BOM Reconciliation Drift Analyzer",
     search: "Cognitive Semantic NLP Query Search",
+    "taxonomy-graph": "Taxonomy Graph Editor",
   };
 
   useEffect(() => {
@@ -131,7 +132,7 @@ export function TopBar({
     <header
       className="relative h-16 px-6 border-b flex items-center justify-between shrink-0 select-none z-30"
       style={{
-        backgroundColor: "#090d19",
+        backgroundColor: tokens.colors.background.header, 
         borderColor: "rgba(74, 133, 253,0.1)",
       }}
     >
@@ -143,7 +144,7 @@ export function TopBar({
       </div>
 
       {/* Global Lookup Search & Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Create Solution Gradient Button */}
         <button
           id="topbar-create-solution-btn"
@@ -152,11 +153,11 @@ export function TopBar({
           className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 transition shadow-md shadow-indigo-500/10 cursor-pointer flex items-center gap-1.5 focus:outline-none shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Create Solution</span>
+          <span className="hidden sm:inline">Create Solution</span>
         </button>
 
         {/* Search Input Box */}
-        <div className="relative w-80" ref={dropdownRef}>
+        <div className="relative w-32 sm:w-60 md:w-80" ref={dropdownRef}>
           <button
             onClick={() => inputRef.current?.focus()}
             className="absolute inset-y-0 left-3 flex items-center text-gray-500 hover:text-indigo-400 transition-colors z-10"
@@ -192,7 +193,7 @@ export function TopBar({
             <div
               className="absolute left-0 right-0 top-11 p-3 rounded-xl border shadow-2xl z-50 flex flex-col gap-3 animate-fadeIn text-[11px]"
               style={{
-                backgroundColor: "#070a13",
+                backgroundColor: tokens.colors.background.card, 
                 borderColor: "rgba(74,133,253,0.15)",
                 backgroundImage: "linear-gradient(180deg, rgba(7,10,19,0.98) 0%, rgba(11,18,32,0.98) 100%)",
                 backdropFilter: "blur(8px)",
@@ -212,7 +213,7 @@ export function TopBar({
                           key={m.id}
                           onClick={() => {
                             onSelectMission && onSelectMission(m.id);
-                            onNavigate && onNavigate("live-mission");
+                            onNavigate && onNavigate("mission-control");
                             setShowDropdown(false);
                           }}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
@@ -285,6 +286,10 @@ export function TopBar({
               >
                 <span>↵ Press Enter to review details</span>
                 <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                    onNavigate && onNavigate("search");
+                  }}
                   onMouseDown={(e) => {
                     e.preventDefault(); // Prevent blur
                     setShowDropdown(false);
@@ -315,6 +320,7 @@ export function TopBar({
         <div className="flex items-center gap-1">
           <button
             id="btn-notifications"
+            onClick={() => toast.success("No new priority notifications.")}
             className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer relative"
           >
             <Bell className="w-4 h-4" />
@@ -323,6 +329,7 @@ export function TopBar({
 
           <button
             id="btn-settings"
+            onClick={() => toast.success("Settings modal opening...")}
             className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
           >
             <Settings className="w-4 h-4" />

@@ -28,25 +28,25 @@ export function SolutionBanner({
 
   const stateCfg = {
     planning: {
-      color: "#5d7899",
+      color: "#5d7899", // color-ok
       bg: "rgba(93,120,153,0.08)",
       border: "rgba(93,120,153,0.18)",
       label: "Planning",
-      dot: "#5d7899",
+      dot: "#5d7899", // color-ok
     },
     active: {
-      color: "#4a85fd",
+      color: "#4a85fd", // color-ok
       bg: "rgba(74, 133, 253,0.1)",
       border: "rgba(74, 133, 253,0.25)",
       label: "Active Pipeline",
-      dot: "#4a85fd",
+      dot: "#4a85fd", // color-ok
     },
     complete: {
-      color: "#00d4a0",
+      color: "#00d4a0", // color-ok
       bg: "rgba(0,212,160,0.1)",
       border: "rgba(0,212,160,0.25)",
       label: "Operational Sync Lock",
-      dot: "#00d4a0",
+      dot: "#00d4a0", // color-ok
     },
   }[solutionState];
 
@@ -55,7 +55,7 @@ export function SolutionBanner({
       className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-5 rounded-xl border relative overflow-hidden shadow-2xl transition duration-300"
       style={{
         background: `linear-gradient(135deg, ${stateCfg.bg} 0%, rgba(11,18,32,0.98) 100%)`,
-        borderColor: deployedSolution ? "#4a85fd" : stateCfg.border,
+        borderColor: deployedSolution ? "#4a85fd" : stateCfg.border, // color-ok
       }}
     >
       {/* Visual background ambient glow overlay for freshly deployed campaign */}

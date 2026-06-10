@@ -25,8 +25,3 @@ export const GraphAPISchema = z.object({
   nodes: z.array(GraphNodeSchema),
   edges: z.array(GraphEdgeSchema),
 });
-
-export type GraphMetadata = z.infer<typeof GraphMetadataSchema>;
-export type GraphNode = z.infer<typeof GraphNodeSchema>;
-export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
-export type GraphAPIResponse = z.infer<typeof GraphAPISchema>;

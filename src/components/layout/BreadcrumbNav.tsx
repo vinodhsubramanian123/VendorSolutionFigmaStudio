@@ -18,20 +18,18 @@ export function BreadcrumbNav({
   const viewLabels: Record<AppView, string> = {
     dashboard: "Dashboard",
     "ingestion-hub": "BOQ & BOM Ingest Hub",
-    "live-mission": "Live Mission Control",
+    "mission-control": "Live Mission Control",
     catalog: "Catalog SKU Manager",
     "vendor-portal": "Vendor Portal & APIs",
     forensic: "Forensic Scan & Heal",
-    cleansing: "Taxonomy Cleansing",
-    taxonomy: "Taxonomy Graph",
     "solution-builder": "Solution Configurator",
-    reports: "Reports & Auditing",
     reconciliation: "BOM Reconciliation Diff",
     search: "Semantic NLP Search",
+    "taxonomy-graph": "Taxonomy Graph Editor",
   };
 
   const activeMission =
-    view === "live-mission" && activeMissionId
+    view === "mission-control" && activeMissionId
       ? ucids.find((u) => u.id === activeMissionId)
       : null;
 

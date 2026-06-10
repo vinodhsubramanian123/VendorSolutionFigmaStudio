@@ -1,26 +1,5 @@
 import { CatalogSKU, Config } from "../types";
-
-export interface TaxonomyGraphNode {
-  id: string;
-  type: "product" | "subproduct" | "category" | "subcategory" | "sku";
-  label: string;
-  sublabel?: string;
-  constraints?: string[];
-  dependencies?: string[];
-}
-
-export interface TaxonomyGraphEdge {
-  id: string;
-  from: string;
-  to: string;
-  type: "contains" | "requires" | "exclusive";
-}
-
-export interface TaxonomyGraphPayload {
-  nodes: TaxonomyGraphNode[];
-  edges: TaxonomyGraphEdge[];
-  unmappedIds: string[];
-}
+import { TaxonomyGraphNode, TaxonomyGraphEdge, TaxonomyGraphPayload } from "../types/data";
 
 // Simulated backend store for rules and manual links
 const serverState = {

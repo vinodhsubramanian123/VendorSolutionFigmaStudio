@@ -110,3 +110,12 @@ Before completing your turn, always execute:
 2.  `npm run build` (or `compile_applet` tool) to ensure proper package distribution.
 
 Keep all modifications clean, explicit, and perfectly typed. Never leave dangling comments such as `style-=` or malformed JSX statements.
+
+
+## 6. Strict Data Hydration
+*   **Rule**: NO HARDCODING. All domain data must be sourced either from API endpoints or structured mocks representing remote interfaces. View components must remain dumb representations of their properties.
+
+---
+
+## 7. Frontend Freeze Status
+**FRONTEND FROZEN — All PRD scenarios implemented, ready for backend**

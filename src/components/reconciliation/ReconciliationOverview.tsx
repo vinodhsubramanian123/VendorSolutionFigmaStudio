@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../shared/ToastContext';
 import { StatusBadge } from '../shared/StatusBadge';
+import { JobPoller } from '../shared/JobPoller';
 
 import type { UCID, CatalogSKU } from '../../types';
 
@@ -52,6 +53,40 @@ export function ReconciliationOverview({
   const matchPercentage = useMemo(() => totalItems ? Math.round((matchedTotal / totalItems) * 100) : 0, [totalItems, matchedTotal]);
   
   const estValue = useMemo(() => dynamicConfigs.reduce((acc, c) => acc + c.totalPrice, 0), [dynamicConfigs]);
+
+  const [reconJobId, setReconJobId] = useState<string | null>(null);
+
+  const triggerReconJob = async () => {
+    try {
+      const ucid = activeUCID?.id || "mock-ucid";
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "reconciliation",
+          context: { ucid, config_id: "all", solution_id: "recon" },
+          parent_job_id: ""
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReconJobId(data.job_id);
+      }
+    } catch(err) {
+      toast.error("Failed to start recon job");
+    }
+  };
+
+  const onReconSuccess = (result: any, context: any) => {
+    toast.success("Reconciliation committed successfully! UCID status set to locked sync.");
+    setHasDrift(false);
+    setReconJobId(null);
+  };
+
+  const onReconError = (error: string, context: any) => {
+    toast.error(error);
+    setReconJobId(null);
+  };
 
   if (!dynamicConfigs || dynamicConfigs.length === 0) {
     return (
@@ -116,7 +151,7 @@ export function ReconciliationOverview({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 animate-fadeIn">
       {/* UCID-2026-0042 Header Ribbon summary */}
-      <div className="lg:col-span-4 bg-[#0a101f] border border-white/5 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="lg:col-span-4 bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"> 
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400">
             <Database className="w-5 h-5 animate-pulse" />
@@ -141,7 +176,7 @@ export function ReconciliationOverview({
         {/* Metrics Blocks */}
         <div className="flex flex-wrap items-center gap-6 text-left w-full md:w-auto">
           <div className="flex flex-col">
-            <span className="text-[9px] text-[#8ea8d4] uppercase font-black tracking-widest font-mono">
+            <span className="text-[9px] text-content-secondary uppercase font-black tracking-widest font-mono"> 
               Configs
             </span>
             <span className="text-base font-bold text-white mt-0.5">
@@ -150,7 +185,7 @@ export function ReconciliationOverview({
           </div>
           <div className="w-px h-8 bg-white/5 hidden sm:block" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-[#8ea8d4] uppercase font-black tracking-widest font-mono">
+            <span className="text-[9px] text-content-secondary uppercase font-black tracking-widest font-mono"> 
               Total Items
             </span>
             <span className="text-base font-bold text-white mt-0.5">
@@ -188,10 +223,7 @@ export function ReconciliationOverview({
 
         <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0 pt-2 md:pt-0 border-t md:border-transparent border-white/5">
           <button
-            onClick={() => {
-              toast.success("Reconciliation committed successfully! UCID status set to locked sync.");
-              setHasDrift(false);
-            }}
+            onClick={triggerReconJob}
             className="w-full md:w-auto px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-750 text-white font-extrabold uppercase text-[10px] tracking-wider cursor-pointer shadow-lg shadow-purple-500/10 focus:outline-none flex items-center justify-center gap-1.5"
           >
             <RefreshCw
@@ -202,6 +234,17 @@ export function ReconciliationOverview({
           </button>
         </div>
       </div>
+
+      {reconJobId && (
+        <div className="lg:col-span-4 mb-4">
+          <JobPoller
+            jobId={reconJobId}
+            context={{ ucid: activeUCID?.id || "mock-ucid", config_id: "all", solution_id: "recon" }}
+            onSuccess={onReconSuccess}
+            onError={onReconError}
+          />
+        </div>
+      )}
 
         {/* Left hand column: Dynamic derived config items listed */}
         <div className="lg:col-span-3 space-y-3">
@@ -287,7 +330,7 @@ export function ReconciliationOverview({
 
                 <button
                   onClick={() => setSelectedConfigSheet(cfg.id)}
-                  className="mt-4 w-full py-1.5 rounded-lg bg-[#141d30]/65 hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/20 text-indigo-300 font-bold tracking-wide transition uppercase text-[10px] cursor-pointer focus:outline-none"
+                  className="mt-4 w-full py-1.5 rounded-lg bg-surface-header hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/20 text-indigo-300 font-bold tracking-wide transition uppercase text-[10px] cursor-pointer focus:outline-none" 
                 >
                   View BOM Reconciliation &gt;
                 </button>
@@ -346,7 +389,7 @@ export function ReconciliationOverview({
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="font-mono text-status-warning font-extrabold bg-[#ff9b36]/5 border border-[#ff9b36]/10 px-1 rounded">
+                      <span className="font-mono text-status-warning font-extrabold bg-status-warning/5 border border-status-warning/10 px-1 rounded"> 
                         x{un.qty}
                       </span>
                       <button

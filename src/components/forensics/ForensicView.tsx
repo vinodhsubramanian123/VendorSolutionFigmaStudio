@@ -14,23 +14,14 @@ import {
   Sparkles,
   Info,
 } from "lucide-react";
-import type { ForensicIssue, Vendor, CatalogSKU, UCID } from "../../types";
+import type { ForensicIssue, Vendor, CatalogSKU, UCID, SourcingRule } from "../../types";
 import { ForensicHeader } from "./ForensicHeader";
 import { ScannerOutput } from "./ScannerOutput";
 import { ForensicIssueCard } from "./ForensicIssueCard";
 import { ForensicSidebar } from "./ForensicSidebar";
+import { SourcingRulesVault } from "./SourcingRulesVault";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
-
-export interface SourcingRule {
-  id: string;
-  ruleType: "substitution" | "price_cap" | "symmetry" | "api_gateway";
-  partNumber: string;
-  mappedOutput: string;
-  label: string;
-  vendor: string;
-  status: "active" | "draft";
-}
 
 const INITIAL_RULES: SourcingRule[] = [
   {
@@ -98,22 +89,7 @@ export function ForensicView({
     INITIAL_RULES
   );
 
-  // States for new policy form creation
-  const [isAddingRule, setIsAddingRule] = useState(false);
-  const [newRuleType, setNewRuleType] = useState<SourcingRule["ruleType"]>("substitution");
-  const [newPartNumber, setNewPartNumber] = useState("");
-  const [newMappedOutput, setNewMappedOutput] = useState("");
-  const [newLabel, setNewLabel] = useState("");
-  const [newVendor, setNewVendor] = useState("HPE");
-  const [newStatus, setNewStatus] = useState<SourcingRule["status"]>("active");
-
-  // State for inline row editing
-  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
-  const [editPartNumber, setEditPartNumber] = useState("");
-  const [editMappedOutput, setEditMappedOutput] = useState("");
-  const [editLabel, setEditLabel] = useState("");
-  const [editVendor, setEditVendor] = useState("");
-  const [editStatus, setEditStatus] = useState<SourcingRule["status"]>("active");
+  const [prefillRule, setPrefillRule] = useState<Partial<SourcingRule> | null>(null);
 
   // Get active selected profile or default to first
   const currUcid = ucids.find((u) => u.id === activeMissionId) || ucids[0];
@@ -672,101 +648,40 @@ export function ForensicView({
     }
   }
 
-  // --- SOURCING RULES CRUD OPERATIONAL HANDLERS ---
-  const handleAddRule = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPartNumber.trim() || !newMappedOutput.trim()) {
-      triggerToast("Missing required input fields on Sourcing Policy Form.", "warn");
-      return;
-    }
-
-    const newRule: SourcingRule = {
-      id: `rule-${Date.now()}`,
-      ruleType: newRuleType,
-      partNumber: newPartNumber.trim(),
-      mappedOutput: newMappedOutput.trim(),
-      label: newLabel.trim() || `${newRuleType.toUpperCase()} Override Policy`,
-      vendor: newVendor,
-      status: newStatus,
-    };
-
-    setSourcingRules((prev) => [newRule, ...prev]);
-    setIsAddingRule(false);
-    setNewPartNumber("");
-    setNewMappedOutput("");
-    setNewLabel("");
-    triggerToast("Intelligence Policy Created & Continuous Feed Repopulated!", "success");
-  };
-
-  const handleStartEdit = (rule: SourcingRule) => {
-    setEditingRuleId(rule.id);
-    setEditPartNumber(rule.partNumber);
-    setEditMappedOutput(rule.mappedOutput);
-    setEditLabel(rule.label);
-    setEditVendor(rule.vendor);
-    setEditStatus(rule.status);
-  };
-
-  const handleSaveEdit = (ruleId: string) => {
-    if (!editPartNumber.trim() || !editMappedOutput.trim()) {
-      triggerToast("Input parameters cannot be left blank during edit.", "warn");
-      return;
-    }
-
-    setSourcingRules((prev) =>
-      prev.map((r) =>
-        r.id === ruleId
-          ? {
-              ...r,
-              partNumber: editPartNumber.trim(),
-              mappedOutput: editMappedOutput.trim(),
-              label: editLabel.trim(),
-              vendor: editVendor,
-              status: editStatus,
-            }
-          : r
-      )
-    );
-    setEditingRuleId(null);
-    triggerToast("Sourcing Intelligence overridden and persistent layers flushed.", "success");
-  };
-
-  const handleDeleteRule = (ruleId: string) => {
-    setSourcingRules((prev) => prev.filter((r) => r.id !== ruleId));
-    triggerToast("Sourcing Intelligence policy permanently retired.", "success");
-  };
-
   const handleManualPromote = (issue: ForensicIssue) => {
-    setIsAddingRule(true);
     if (issue.id === "iss-1") {
-      setNewRuleType("substitution");
-      setNewPartNumber("815100-B21");
-      setNewMappedOutput("P40424-B21");
-      setNewVendor("HPE");
-      setNewLabel("Manual Override: Map obsolete 815100-B21 to P40424-B21 CPU");
+      setPrefillRule({
+        ruleType: "substitution",
+        partNumber: "815100-B21",
+        mappedOutput: "P40424-B21",
+        vendor: "HPE",
+        label: "Manual Override: Map obsolete 815100-B21 to P40424-B21 CPU"
+      });
     } else if (issue.id === "iss-2") {
-      setNewRuleType("price_cap");
-      setNewPartNumber("400-BPSB");
-      setNewMappedOutput("1190");
-      setNewVendor("Dell");
-      setNewLabel("Manual Override: Cap Dell 400-BPSB at contract level of $1,190");
+      setPrefillRule({
+        ruleType: "price_cap",
+        partNumber: "400-BPSB",
+        mappedOutput: "1190",
+        vendor: "Dell",
+        label: "Manual Override: Cap Dell 400-BPSB at contract level of $1,190"
+      });
     } else if (issue.id === "iss-3") {
-      setNewRuleType("symmetry");
-      setNewPartNumber("Memory");
-      setNewMappedOutput("multiple_of_8");
-      setNewVendor("Cisco");
-      setNewLabel("Manual Override: Enforce memory socket physical layout symmetry multi-of-8");
+      setPrefillRule({
+        ruleType: "symmetry",
+        partNumber: "Memory",
+        mappedOutput: "multiple_of_8",
+        vendor: "Cisco",
+        label: "Manual Override: Enforce memory socket physical layout symmetry multi-of-8"
+      });
     } else if (issue.id === "iss-4") {
-      setNewRuleType("api_gateway");
-      setNewPartNumber("Juniper API");
-      setNewMappedOutput("authorized_oauth_v1");
-      setNewVendor("Juniper");
-      setNewLabel("Manual Override: Authorize active telemetry pipeline credentials");
+      setPrefillRule({
+        ruleType: "api_gateway",
+        partNumber: "Juniper API",
+        mappedOutput: "authorized_oauth_v1",
+        vendor: "Juniper",
+        label: "Manual Override: Authorize active telemetry pipeline credentials"
+      });
     }
-    triggerToast("Override parameters prefilled! Review and save the rule at the bottom.", "success");
-    setTimeout(() => {
-      document.querySelector("form")?.scrollIntoView({ behavior: "smooth" });
-    }, 150);
   };
 
   return (
@@ -841,303 +756,13 @@ export function ForensicView({
         </div>
 
       {/* Sourcing Intelligence Policy Rules Vault */}
-      <div 
-        className="p-5 rounded-xl border flex flex-col gap-4 mt-2" 
-        style={{
-          backgroundColor: "#070a13",
-          borderColor: "rgba(74, 133, 253, 0.08)"
-        }}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-              <BrainCircuit className="w-4.5 h-4.5 text-indigo-400" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                Centralized Sourcing Intelligence & Override Registry
-                <span className="text-[10px] bg-indigo-500/15 text-indigo-300 font-mono font-normal px-2 py-0.5 rounded border border-indigo-500/20">
-                  Learning Loop Database
-                </span>
-              </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">
-                Manage automated mapping policies, partner contractual cap targets, and hardware physical symmetry rules.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setIsAddingRule(!isAddingRule)}
-            className="flex items-center gap-1.5 text-xs px-3.5 py-1.8 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition cursor-pointer select-none self-start sm:self-auto border-0"
-          >
-            {isAddingRule ? (
-              <>
-                <X className="w-3.5 h-3.5" /> Close Panel
-              </>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5" /> Define Sourcing Override
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Info card describing the real flow */}
-        <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-[11px] text-indigo-200 flex gap-2.5 leading-normal">
-          <Info className="w-4.5 h-4.5 text-indigo-400 shrink-0 mt-0.5" />
-          <p>
-            <strong>Core Engineering Mechanics:</strong> Sourcing Intel acts as an automated override shield. Every time you trigger 
-            <strong className="text-white"> "Auto-Align Component" </strong> in the compliance anomalies above, the system corrects the active opportunity Bill of Materials 
-            <em> and promotes the resolution mappings safely to this database in real-time</em>. You can also manually CRUD override directives below to preempt future configuration errors.
-          </p>
-        </div>
-
-        {/* Expandable Creation Form */}
-        {isAddingRule && (
-          <form onSubmit={handleAddRule} className="p-4 rounded-lg bg-black/45 border border-white/5 space-y-4 animate-slideIn">
-            <div className="text-[11px] font-bold uppercase text-gray-400 flex items-center gap-1 tracking-wider border-b border-white/5 pb-1">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" /> Create New Sourcing Intelligence Directive
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-              <div>
-                <label className="block text-gray-400 font-medium mb-1">Rule Class Category</label>
-                <select
-                  value={newRuleType}
-                  onChange={(e) => setNewRuleType(e.target.value as any)}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
-                >
-                  <option value="substitution">Obsolete Substitution Mapping</option>
-                  <option value="price_cap">Price Contract Cap ($)</option>
-                  <option value="symmetry">Structural Geometry Symmetry</option>
-                  <option value="api_gateway">Credentials & API Gateway</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 font-medium mb-1">Target SKU / Parameter Code</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 400-BPSB or Processor"
-                  value={newPartNumber}
-                  onChange={(e) => setNewPartNumber(e.target.value)}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-400 font-medium mb-1">Alignment Override Value</label>
-                <input
-                  type="text"
-                  placeholder="e.g. P40424-B21 or 1190"
-                  value={newMappedOutput}
-                  onChange={(e) => setNewMappedOutput(e.target.value)}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-400 font-medium mb-1">Brand Sourcing Entity</label>
-                <select
-                  value={newVendor}
-                  onChange={(e) => setNewVendor(e.target.value)}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
-                >
-                  <option value="HPE">HPE (Hewlett Packard Enterprise)</option>
-                  <option value="Dell">Dell Technologies</option>
-                  <option value="Cisco">Cisco Systems</option>
-                  <option value="Juniper">Juniper Networks</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-400 font-medium mb-1">Directive Override Narrative / Explanation</label>
-              <input
-                type="text"
-                placeholder="Brief justification logs e.g. Contract rate locked during 2026 Procurement summit"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg text-xs placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 text-xs pt-1">
-              <button
-                type="button"
-                onClick={() => setIsAddingRule(false)}
-                className="px-3.5 py-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition cursor-pointer font-bold border-0"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition cursor-pointer font-bold flex items-center gap-1.5 border-0"
-              >
-                <Plus className="w-3.5 h-3.5" /> Save Sourcing Rule
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Main Table Matrix */}
-        <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-black/40 border-b border-white/5 text-gray-400 font-semibold font-mono text-[10px] uppercase select-none tracking-wider">
-                <th className="p-3">Target Reference Parameter</th>
-                <th className="p-3">Category Class</th>
-                <th className="p-3">Alignment Override</th>
-                <th className="p-3">Sourcing Narrative / Rule Logs</th>
-                <th className="p-3">Sourced Vendor</th>
-                <th className="p-3">Operational State</th>
-                <th className="p-3 text-center">Engine Control</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {sourcingRules.map((rule) => {
-                const isEditing = editingRuleId === rule.id;
-                return (
-                  <tr key={rule.id} className="hover:bg-white/2 transition-colors">
-                    {/* Target ref SKU */}
-                    <td className="p-3 font-mono font-bold text-white whitespace-nowrap">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editPartNumber}
-                          onChange={(e) => setEditPartNumber(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus:border-indigo-500/40"
-                        />
-                      ) : (
-                        rule.partNumber
-                      )}
-                    </td>
-
-                    {/* Rule type class */}
-                    <td className="p-3 font-medium whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${
-                        rule.ruleType === "substitution"
-                          ? "bg-purple-500/15 text-purple-300 border border-purple-500/20"
-                          : rule.ruleType === "price_cap"
-                          ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20"
-                          : rule.ruleType === "symmetry"
-                          ? "bg-amber-500/15 text-amber-300 border border-amber-500/20"
-                          : "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
-                      }`}>
-                        {rule.ruleType}
-                      </span>
-                    </td>
-
-                    {/* Alignment Override */}
-                    <td className="p-3 font-mono text-white whitespace-nowrap">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editMappedOutput}
-                          onChange={(e) => setEditMappedOutput(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus:border-indigo-500/40"
-                        />
-                      ) : (
-                        <span className="font-bold text-indigo-300">
-                          {rule.ruleType === "price_cap" && !isNaN(Number(rule.mappedOutput)) ? `$${Number(rule.mappedOutput).toLocaleString()}` : rule.mappedOutput}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Narrative label */}
-                    <td className="p-3 text-gray-400">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editLabel}
-                          onChange={(e) => setEditLabel(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-indigo-500/40"
-                        />
-                      ) : (
-                        rule.label
-                      )}
-                    </td>
-
-                    {/* Sourced vendor */}
-                    <td className="p-3 font-bold text-gray-200">
-                      {isEditing ? (
-                        <select
-                          value={editVendor}
-                          onChange={(e) => setEditVendor(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none"
-                        >
-                          <option value="HPE">HPE</option>
-                          <option value="Dell">Dell</option>
-                          <option value="Cisco">Cisco</option>
-                          <option value="Juniper">Juniper</option>
-                        </select>
-                      ) : (
-                        rule.vendor
-                      )}
-                    </td>
-
-                    {/* Operational State badgification */}
-                    <td className="p-3 whitespace-nowrap">
-                      {isEditing ? (
-                        <select
-                          value={editStatus}
-                          onChange={(e) => setEditStatus(e.target.value as any)}
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none"
-                        >
-                          <option value="active">Active</option>
-                          <option value="draft">Draft</option>
-                        </select>
-                      ) : (
-                        <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9.5px] ${
-                          rule.status === "active" ? "text-emerald-400" : "text-gray-500 animate-pulse"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${rule.status === "active" ? "bg-emerald-400" : "bg-gray-500"}`} />
-                          {rule.status}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="p-3 text-center whitespace-nowrap">
-                      {isEditing ? (
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleSaveEdit(rule.id)}
-                            className="p-1 px-2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition cursor-pointer text-[10px] font-bold flex items-center gap-1"
-                          >
-                            <Save className="w-3.5 h-3.5" /> Save
-                          </button>
-                          <button
-                            onClick={() => setEditingRuleId(null)}
-                            className="p-1 px-2 rounded bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 transition cursor-pointer text-[10px] font-bold flex items-center gap-1"
-                          >
-                            <X className="w-3.5 h-3.5" /> Pin
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleStartEdit(rule)}
-                            className="p-1 px-2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition cursor-pointer text-[11px] font-medium flex items-center gap-0.5"
-                            title="Edit override directive parameters"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" /> Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRule(rule.id)}
-                            className="p-1.5 rounded bg-red-400/10 border border-red-400/20 text-red-400 hover:bg-red-400/20 transition cursor-pointer text-[11px] font-medium"
-                            title="Delete policy permanently"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <SourcingRulesVault
+        sourcingRules={sourcingRules}
+        setSourcingRules={setSourcingRules}
+        triggerToast={triggerToast}
+        prefillRule={prefillRule}
+        onPrefillConsumed={() => setPrefillRule(null)}
+      />
     </div>
   </ErrorBoundary>
   );

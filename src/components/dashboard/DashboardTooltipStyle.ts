@@ -1,11 +1,12 @@
+import { tokens } from "../../styles/tokens";
 export const TOOLTIP_STYLE = {
   contentStyle: {
-    background: "#0d1528",
+    background: tokens.colors.background.tooltip, 
     border: "1px solid rgba(74, 133, 253,0.2)",
     borderRadius: 8,
-    color: "#dde6ff",
+    color: tokens.colors.text.primary, 
     fontSize: 12,
   },
-  itemStyle: { color: "#8ba4cc" },
-  labelStyle: { color: "#dde6ff", fontWeight: 600 },
+  itemStyle: { color: tokens.colors.text.secondary }, 
+  labelStyle: { color: tokens.colors.text.primary, fontWeight: 600 }, 
 };

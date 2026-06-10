@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Globe,
   RefreshCw,
@@ -10,6 +10,7 @@ import type { Vendor, UCID } from "../../types";
 import { VendorIngestionDesk } from "./VendorIngestionDesk";
 import { VendorGateways } from "./VendorGateways";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { tokens } from "../../styles/tokens";
 
 interface VendorPortalProps {
   vendors: Vendor[];
@@ -35,6 +36,11 @@ export function VendorPortal({
     const timer = setTimeout(() => setIsLoading(false), 200);
     return () => clearTimeout(timer);
   }, []);
+
+  // Memoized lists calculations for UI sorting optimization & reactive reactivity
+  const sortedVendors = useMemo(() => {
+    return [...vendors].sort((a, b) => a.name.localeCompare(b.name));
+  }, [vendors]);
 
   // Trigger Toast Notification
   function showToast(message: string, type: "success" | "warn" | "error") {
@@ -91,14 +97,6 @@ export function VendorPortal({
     }, 1000);
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
   if (vendors.length === 0) {
     return (
       <ErrorBoundary>
@@ -124,16 +122,16 @@ export function VendorPortal({
           style={{
             backgroundColor:
               toast.type === "success"
-                ? "#091815"
+                ? `${tokens.colors.status.success}1a`
                 : toast.type === "error"
-                  ? "#1c090d"
-                  : "#1c1409",
+                  ? `${tokens.colors.status.error}1a`
+                  : `${tokens.colors.status.warning}1a`,
             borderColor:
               toast.type === "success"
-                ? "#00d4a0"
+                ? tokens.colors.status.success
                 : toast.type === "error"
-                  ? "#ff3d5a"
-                  : "#ff9b36",
+                  ? tokens.colors.status.error
+                  : tokens.colors.status.warning,
           }}
         >
           <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-white/5">
@@ -187,7 +185,7 @@ export function VendorPortal({
         {/* Left Columns - Connected Supplier Channels */}
         <div className="lg:col-span-2 pr-1 space-y-4">
           <VendorGateways
-            vendors={vendors}
+            vendors={sortedVendors}
             handleToggleStatus={handleToggleStatus}
           />
         </div>

@@ -27,7 +27,7 @@ export function UCIDEventLedger({ ucid }: UCIDEventLedgerProps) {
                 ev.level === "ok"
                   ? "bg-status-success/15 text-status-success"
                   : ev.level === "warn"
-                    ? "bg-[#ff9b36]/15 text-status-warning"
+                    ? "bg-[#ff9b36]/15 text-status-warning" // color-ok
                     : ev.level === "err"
                       ? "bg-status-error/15 text-status-error"
                       : "bg-white/10 text-gray-300"

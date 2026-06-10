@@ -1,3 +1,4 @@
+import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { AlertTriangle, Edit2, Check, X, Server, Cpu, Layers, HardDrive, Network, Sliders } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -68,7 +69,7 @@ export function CatalogCardsList({
                 key={sku.id}
                 className="bg-surface-elevated border rounded-xl p-4 flex flex-col justify-between hover:border-indigo-500/30 transition duration-200 relative overflow-hidden group/card"
                 style={{
-                  borderColor: isEditing ? "#00d4a0" : "rgba(74, 133, 253,0.06)",
+                  borderColor: isEditing ? tokens.colors.status.success : "rgba(74, 133, 253,0.06)", 
                 }}
               >
                 {/* Top Row content */}

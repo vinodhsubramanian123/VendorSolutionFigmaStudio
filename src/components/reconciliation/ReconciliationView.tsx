@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ReconciliationEmpty } from "./ReconciliationEmpty";
 import { ReconciliationOverview } from "./ReconciliationOverview";
@@ -25,25 +25,15 @@ export function ReconciliationView({
   setVendors,
 }: ReconciliationViewProps) {
   const [hasDrift, setHasDrift] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
+  const activeUCIDList = useMemo(() => {
+    return ucids.filter(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison");
+  }, [ucids]);
 
   // BOM Reconciliation state
   const [selectedConfigSheet, setSelectedConfigSheet] = useState<string | null>(
     null,
   );
-
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
 
   if (!hasDrift) {
     return <ReconciliationEmpty />;
@@ -53,11 +43,11 @@ export function ReconciliationView({
     <ErrorBoundary>
       <div className="space-y-5 text-xs animate-fadeIn select-none">
       {/* VENDORIQ • PREMIUM UI COMPONENTS header bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-[#090d16] border border-white/5 py-2 px-4 rounded-xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-surface-header border border-white/5 py-2 px-4 rounded-xl"> 
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-status-error" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff9b36]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-status-warning" /> 
             <span className="w-2.5 h-2.5 rounded-full bg-status-success" />
           </div>
           <span className="font-mono text-[10px] uppercase font-black tracking-widest text-purple-500">

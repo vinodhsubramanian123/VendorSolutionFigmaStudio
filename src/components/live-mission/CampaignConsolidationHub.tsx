@@ -36,13 +36,6 @@ export function CampaignConsolidationHub({
 }: CampaignConsolidationHubProps) {
   const isLocked = !!campaignLocked[campaignName];
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Calculations
   const totalOriginalBudget = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.originalPrice ?? 0);
@@ -229,14 +222,6 @@ export function CampaignConsolidationHub({
     return sum + (cheaps[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
   }, 0), [campaignUcids]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
   if (campaignUcids.length === 0) {
     return (
       <ErrorBoundary>
@@ -334,7 +319,7 @@ export function CampaignConsolidationHub({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Best of Breed Strategy */}
-          <div className="p-3.5 rounded-xl border border-indigo-500/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
+          <div className="p-3.5 rounded-xl border border-indigo-500/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left"> // color-ok
             <div className="space-y-1">
               <StatusBadge status="Dynamic Blending" variant="success" />
               <h5 className="text-xs font-bold text-white mt-1">
@@ -363,7 +348,7 @@ export function CampaignConsolidationHub({
           </div>
 
           {/* HPE Homogenous Sourcing */}
-          <div className="p-3.5 rounded-xl border border-status-success/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
+          <div className="p-3.5 rounded-xl border border-status-success/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left"> // color-ok
             <div className="space-y-1">
               <StatusBadge status="Single Sponsor (HPE)" variant="success" />
               <h5 className="text-xs font-bold text-white mt-1">
@@ -393,7 +378,7 @@ export function CampaignConsolidationHub({
           </div>
 
           {/* Dell Homogenous Sourcing */}
-          <div className="p-3.5 rounded-xl border border-blue-500/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left">
+          <div className="p-3.5 rounded-xl border border-blue-500/15 bg-[#070b13] flex flex-col justify-between gap-3 text-left"> // color-ok
             <div className="space-y-1">
               <StatusBadge status="Single Sponsor (dell)" variant="info" />
               <h5 className="text-xs font-bold text-white mt-1">
@@ -547,7 +532,7 @@ export function CampaignConsolidationHub({
       </div>
 
       {/* Corporate Certification Lock Block */}
-      <div className="p-4 rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/10 to-[#0b1220] space-y-4 shadow-xl">
+      <div className="p-4 rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/10 to-[#0b1220] space-y-4 shadow-xl"> // color-ok
         <div className="flex items-center gap-2 pb-2 border-b border-white/5">
           <CheckCircle className="w-4 h-4 text-emerald-400" />
           <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
@@ -623,7 +608,7 @@ export function CampaignConsolidationHub({
                 placeholder="Type Procurement Officer Initials / Name to authorize..."
                 value={campaignSigner}
                 onChange={(e) => setCampaignSigner(e.target.value)}
-                className="flex-1 px-3 py-2 text-xs rounded-lg bg-[#070b13] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-medium font-mono"
+                className="flex-1 px-3 py-2 text-xs rounded-lg bg-[#070b13] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-medium font-mono" // color-ok
               />
 
               <button

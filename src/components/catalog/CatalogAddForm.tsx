@@ -1,4 +1,5 @@
 import React from 'react';
+import { tokens } from "../../styles/tokens";
 import { Database, X } from 'lucide-react';
 import { Select } from '../shared/Select';
 import { Button } from '../shared/Button';
@@ -41,7 +42,7 @@ export function CatalogAddForm({
       <div
         className="w-full max-w-sm rounded-xl border p-5 space-y-4"
         style={{
-          backgroundColor: "#090d19",
+          backgroundColor: tokens.colors.background.header, 
           borderColor: "rgba(74, 133, 253,0.18)",
           boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
         }}
@@ -72,8 +73,8 @@ export function CatalogAddForm({
                 value={newVendor}
                 onChange={(e) => setNewVendor(e.target.value)}
               >
-                <option value="HPE">HPE</option>
-                <option value="Dell">Dell</option>
+                <option >HPE</option>
+                <option >Dell</option>
                 <option value="Cisco">Cisco</option>
                 <option value="Juniper">Juniper</option>
               </Select>

@@ -1,3 +1,4 @@
+import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { RefreshCw } from 'lucide-react';
 
@@ -13,7 +14,7 @@ export function ScannerOutput({ scanning, scanStdout }: ScannerOutputProps) {
     <div
       className="p-4 rounded-xl border space-y-3"
       style={{
-        backgroundColor: "#070a13",
+        backgroundColor: tokens.colors.background.card, 
         borderColor: "rgba(74, 133, 253,0.08)",
       }}
     >

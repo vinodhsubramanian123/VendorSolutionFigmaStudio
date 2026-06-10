@@ -1,3 +1,4 @@
+import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { TrendingUp, Activity } from 'lucide-react';
@@ -20,16 +21,16 @@ export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnaly
     >
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm font-semibold" style={{ color: "#dde6ff" }}>
+          <p className="text-sm font-semibold" style={{ color: tokens.colors.text.primary }}> 
             Catalog Growth
           </p>
-          <p className="text-xs" style={{ color: "#5d7899" }}>
+          <p className="text-xs" style={{ color: tokens.colors.text.muted }}> 
             Total SKUs synced across all vendors (6 months)
           </p>
         </div>
         <span
           className="flex items-center gap-1 text-xs px-2 py-1 rounded-full"
-          style={{ background: "rgba(0,212,160,0.1)", color: "#00d4a0" }}
+          style={{ background: "rgba(0,212,160,0.1)", color: tokens.colors.status.success }} 
         >
           <TrendingUp className="w-3 h-3" /> +59%
         </span>
@@ -50,13 +51,13 @@ export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnaly
                 <stop
                   key="stop-1"
                   offset="5%"
-                  stopColor="#4a85fd"
+                  stopColor={tokens.colors.accent.indigo} 
                   stopOpacity={0.3}
                 />
                 <stop
                   key="stop-2"
                   offset="95%"
-                  stopColor="#4a85fd"
+                  stopColor={tokens.colors.accent.indigo} 
                   stopOpacity={0}
                 />
               </linearGradient>
@@ -69,13 +70,13 @@ export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnaly
             <XAxis
               key="xaxis"
               dataKey="month"
-              tick={{ fill: "#5d7899", fontSize: 11 }}
+              tick={{ fill: tokens.colors.text.muted, fontSize: 11 }} 
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               key="yaxis"
-              tick={{ fill: "#5d7899", fontSize: 11 }}
+              tick={{ fill: tokens.colors.text.muted, fontSize: 11 }} 
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => (v / 1000).toFixed(0) + "k"}
@@ -88,10 +89,10 @@ export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnaly
               key="area"
               type="monotone"
               dataKey="items"
-              stroke="#4a85fd"
+              stroke={tokens.colors.accent.indigo} 
               strokeWidth={2}
               fill="url(#catGrad)"
-              dot={{ fill: "#4a85fd", r: 3 }}
+              dot={{ fill: tokens.colors.accent.indigo, r: 3 }} 
             />
           </AreaChart>
         ) : (

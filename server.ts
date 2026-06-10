@@ -1,155 +1,53 @@
 import express from "express";
+import { IngestRequest, IngestResponse, ReconciliationRequest, ReconciliationResponse, ConstraintCheckRequest, ConstraintCheckResponse, WebhookDispatchRequest, WebhookDispatchResponse, PlaywrightRunRequest, PlaywrightRunResponse } from "./src/types/data";
 import path from "path";
 import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
+import {
+  IngestRequestSchema,
+  ReconciliationRequestSchema,
+  ConstraintCheckRequestSchema,
+  WebhookDispatchRequestSchema,
+  PlaywrightRunRequestSchema,
+  PortfolioOrchestrateRequestSchema,
+  PortfolioManualUploadRequestSchema
+} from "./src/types/zodSchemas";
+import { runIntegrationDiagnosticTestSuite } from "./src/lib/backendMockData";
+
+/**
+ * Express middleware helper to enforce strict contract schema compliance.
+ * Resolves back-front discrepancy gaps instantly with detailed field arrays.
+ */
+function validateBody(schema: any) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction): any => {
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "VALIDATION_FAILED",
+          message: "Request body does not conform to the strict VSIP data contract schema specifications.",
+          details: parsed.error.issues.reduce((acc: any, curr: any) => {
+            const key = curr.path.join(".") || "body";
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(curr.message);
+            return acc;
+          }, {})
+        }
+      });
+    }
+    req.body = parsed.data;
+    next();
+  };
+}
 
 // Define the API Port and Ingress binding configuration as per platform rules
 const PORT = 3000;
 const HOST = "0.0.0.0";
-
-/**
- * ============================================================================
- * SERVER-SIDE ENTERPRISE PROCUREMENT INTEGRITY CONTRACTS
- * ============================================================================
- * These TypeScript contracts represent raw request/response communication schemas. 
- * External services or downstream microservices should strictly inherit these layouts.
- */
-
-// 1. Ingestion contracts
-export interface IngestRequest {
-  fileName: string;
-  presetType: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
-  rawText?: string;
-}
-
-export interface IngestResponse {
-  success: boolean;
-  message: string;
-  sourceFile: string;
-  ucid: string;
-  timestamp: string;
-  parsedSummary: {
-    vendorBrand: string;
-    detectedChassis: string;
-    itemsCount: number;
-    initialConfidenceScore: number;
-  };
-  solutions: any[]; // List of structured parallel alternative designs generated
-}
-
 // 2. Reconciliation & Comparison Contracts
-export interface ReconciliationRequest {
-  solutions: Array<{
-    id: string;
-    vendor: string;
-    items: Array<{
-      partNumber: string;
-      quantity: number;
-      unitPrice: number;
-      type: string;
-    }>;
-  }>;
-}
-
-export interface ReconciliationResponse {
-  comparisonHash: string;
-  calculatedAt: string;
-  metrics: {
-    cheapestSolutionId: string;
-    highestComplianceId: string;
-    totalSavingsUSD: number;
-    optimumHybridAlternative: {
-      totalCost: number;
-      chassisVendor: string;
-      componentsCount: number;
-    };
-  };
-  matrix: Array<{
-    solutionId: string;
-    vendor: string;
-    baseCost: number;
-    negotiatedContractCost: number;
-    variancePercentage: number;
-    leadTimeBottleneckDays: number;
-    deliveryConfidenceRating: number; // 0-100%
-  }>;
-}
-
 // 3. Taxonomy Physical Constraints Verification
-export interface ConstraintCheckRequest {
-  chassisSKU: string;
-  cpuSKU: string;
-  ramQuantity: number;
-  psuWattsCount: number;
-}
-
-export interface ConstraintCheckResponse {
-  isCompliant: boolean;
-  socketMatch: {
-    status: "compatible" | "asymmetric" | "blocked";
-    chassisSocket: string;
-    cpuSocket: string;
-    description: string;
-  };
-  powerLimitTest: {
-    passed: boolean;
-    estimatedTdpWatts: number;
-    maxSupportedWatts: number;
-    marginWatts: number;
-  };
-  memoryBalanceCheck: {
-    passed: boolean;
-    quantity: number;
-    optimalLayoutSymmetry: number; // e.g. multiples of 8 for Xeon 4th-Gen
-    recommendsCorrection: boolean;
-    message: string;
-  };
-}
-
 // 4. Webhook Dispatch Outbound CRM/ERP Sync
-export interface WebhookDispatchRequest {
-  endpointUrl: string;
-  secretToken: string;
-  ucidRef: string;
-  payloadData: {
-    snapshotHash: string;
-    committedValue: number;
-    winnerSolution: string;
-    timestamp: string;
-  };
-}
-
-export interface WebhookDispatchResponse {
-  dispatchId: string;
-  status: "delivered" | "retrying" | "endpoint_unreachable";
-  cryptographicSignature: string; // HMAC-SHA256 of the payload body using client secretToken
-  auditLog: Array<{
-    attemptNumber: number;
-    timestamp: string;
-    httpStatusCode: number;
-    responseBody: string;
-  }>;
-}
-
 // 5. Playwright Automation Scraper Web Crawl
-export interface PlaywrightRunRequest {
-  agentName: "AribaScraper" | "HPEMarketplace" | "DellPremierPortal";
-  ucidRef: string;
-  targetPortalUrl: string;
-  bypassCaptchas: boolean;
-}
-
-export interface PlaywrightRunResponse {
-  taskId: string;
-  status: "idle" | "running" | "success" | "failed";
-  executionTimeMs: number;
-  crawledItemsExtracted: number;
-  logTrail: Array<{
-    timestamp: string;
-    level: "info" | "debug" | "warning" | "error";
-    message: string;
-  }>;
-}
 
 /**
  * ============================================================================
@@ -179,15 +77,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 1: Smart Ingestion & Workbook Splitter
-  app.post("/api/boq/ingest", (req, res) => {
+  app.post("/api/boq/ingest", validateBody(IngestRequestSchema), (req, res) => {
     const { fileName, presetType, rawText }: IngestRequest = req.body;
-
-    if (!fileName || !presetType) {
-      return res.status(400).json({
-        success: false,
-        error: "Missing required fields: fileName or presetType"
-      });
-    }
 
     // Dynamic mock response generations mapping specific rules to prevent guessing
     let vendor = "HPE";
@@ -318,14 +209,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 2: Reconciliation & Comparisons Analytics Engine
-  app.post("/api/reconciliation/compare", (req, res) => {
+  app.post("/api/reconciliation/compare", validateBody(ReconciliationRequestSchema), (req, res) => {
     const { solutions }: ReconciliationRequest = req.body;
-
-    if (!solutions || !Array.isArray(solutions) || solutions.length === 0) {
-      return res.status(400).json({
-        error: "Missing required solutions list arrays for head-to-head comparison parameters."
-      });
-    }
 
     // Dynamic calculus simulation mimicking smart catalog pricing
     let cheapestId = solutions[0]?.id || "unknown";
@@ -400,14 +285,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 3: Taxonomy Physical Constraints Verification
-  app.post("/api/taxonomy/check-constraints", (req, res) => {
+  app.post("/api/taxonomy/check-constraints", validateBody(ConstraintCheckRequestSchema), (req, res) => {
     const { chassisSKU, cpuSKU, ramQuantity, psuWattsCount }: ConstraintCheckRequest = req.body;
-
-    if (!chassisSKU || !cpuSKU) {
-      return res.status(400).json({
-        error: "Missing parameters chassisSKU or cpuSKU requirements."
-      });
-    }
 
     // Heuristics verification based on catalog hardware guidelines
     const isEolCpu = cpuSKU === "815100-B21";
@@ -451,14 +330,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 4: Outbound Synchronization Integration Webhooks
-  app.post("/api/integrations/dispatch", (req, res) => {
+  app.post("/api/integrations/dispatch", validateBody(WebhookDispatchRequestSchema), (req, res) => {
     const { endpointUrl, secretToken, ucidRef, payloadData }: WebhookDispatchRequest = req.body;
-
-    if (!endpointUrl || !secretToken || !ucidRef) {
-      return res.status(400).json({
-        error: "Required properties missing: endpointUrl, secretToken, or ucidRef."
-      });
-    }
 
     // Create dynamic cryptographic HMAC signature representing enterprise standards
     const hmac = crypto.createHmac("sha256", secretToken);
@@ -491,14 +364,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 5: Playwright Automation Scraper Crawler Execution Simulators
-  app.post("/api/agents/run", (req, res) => {
+  app.post("/api/agents/run", validateBody(PlaywrightRunRequestSchema), (req, res) => {
     const { agentName, ucidRef, targetPortalUrl, bypassCaptchas }: PlaywrightRunRequest = req.body;
-
-    if (!agentName || !ucidRef) {
-      return res.status(400).json({
-        error: "Missing required routing parameters: agentName or ucidRef."
-      });
-    }
 
     const logTrail = [
       { timestamp: new Date(Date.now() - 2500).toISOString(), level: "info" as const, message: `Booting Chromium worker instance to target path: ${targetPortalUrl || "https://premier.dell.com"}` },
@@ -521,11 +388,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 6: Hybrid Multi-UCID Portfolio Parallel Orchestrator
-  app.post("/api/portfolio/orchestrate", (req, res) => {
+  app.post("/api/portfolio/orchestrate", validateBody(PortfolioOrchestrateRequestSchema), (req, res) => {
     const { portfolioId, ucids } = req.body;
-    if (!portfolioId || !ucids) {
-      return res.status(400).json({ error: "Missing parent portfolioId or child UCID list" });
-    }
     res.status(200).json({
       success: true,
       transactionId: "tx_orchestrate_" + crypto.randomBytes(5).toString("hex"),
@@ -535,11 +399,8 @@ async function startServer() {
   });
 
   // REST API: Endpoint 7: Submit Manual Partner Portal BOM with configuration level segregation
-  app.post("/api/portfolio/upload-manual", (req, res) => {
+  app.post("/api/portfolio/upload-manual", validateBody(PortfolioManualUploadRequestSchema), (req, res) => {
     const { portfolioId, ucidRef, filename, configsMatchedCount } = req.body;
-    if (!portfolioId || !ucidRef || !filename) {
-      return res.status(400).json({ error: "Missing required properties: portfolioId, ucidRef, or filename" });
-    }
 
     const matchCount = Number(configsMatchedCount || 4);
     const resolvedStatus = matchCount < 4 ? "partial" : "complete";
@@ -571,7 +432,50 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  
+// Mock Job polling endpoints
+const jobStore = new Map<string, any>();
+
+app.post("/api/jobs", (req, res) => {
+  const { type, context, parent_job_id } = req.body;
+  const jobId = "job_" + crypto.randomBytes(4).toString("hex");
+  jobStore.set(jobId, {
+    job_id: jobId,
+    type,
+    status: 'processing',
+    progress: 10,
+    context,
+    parent_job_id,
+    child_jobs: []
+  });
+  res.status(200).json({ job_id: jobId });
+});
+
+app.get("/api/jobs/:job_id", (req, res) => {
+  const jobId = req.params.job_id;
+  const job = jobStore.get(jobId);
+  if (!job) {
+    return res.status(404).json({ error: "Job not found" });
+  }
+  
+  if (job.status === "processing") {
+    if (job.progress < 100) {
+      job.progress += 25;
+    }
+    if (job.progress >= 100) {
+      job.status = "completed";
+      job.result = { success: true };
+    }
+  }
+
+  res.json(job);
+});
+
+app.get("/api/jobs/:job_id/children", (req, res) => {
+  res.json([]);
+});
+
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`[FULL-STACK ENGINE] Procurement Server running securely on http://localhost:${PORT}`);
   });
 }

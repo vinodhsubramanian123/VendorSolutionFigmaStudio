@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { TaxonomyGraphNode, TaxonomyGraphEdge, TaxonomyGraphPayload, MockTaxonomyApi } from "../lib/api-mock";
+import { MockTaxonomyApi } from "../lib/api-mock";
+import { TaxonomyGraphNode, TaxonomyGraphEdge, TaxonomyGraphPayload } from "../types/data";
 import { Config, CatalogSKU } from "../types";
 
 export function useCatalogGraphData(configId: string | null, allConfigs: (Config & {vendor?: string})[], catalogSkus: CatalogSKU[]) {

@@ -1,12 +1,5 @@
+import { WorkflowStepStatus } from "../types";
 import { useLocalStorageState } from "./useLocalStorageState";
-
-export type WorkflowStepStatus = "idle" | "in-progress" | "completed" | "error";
-
-export interface WorkflowStep {
-  id: string;
-  label: string;
-  status: WorkflowStepStatus;
-}
 
 interface WorkflowManagerState {
   currentStepIndex: number;

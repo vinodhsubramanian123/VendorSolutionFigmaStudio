@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
+import { tokens } from "./styles/tokens";
 import { RefreshCw } from "lucide-react";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
 import { Dashboard } from "./components/dashboard/Dashboard";
-import { LiveMission } from "./components/live-mission/LiveMission";
+import { MissionControl } from "./components/mission-control/MissionControl";
 import { CatalogManager } from "./components/catalog/CatalogManager";
 import { VendorPortal } from "./components/vendor-portal/VendorPortal";
 import { ForensicView } from "./components/forensics/ForensicView";
-import { ReportsView } from "./components/reports/ReportsView";
-import { CleansingView } from "./components/cleansing/CleansingView";
-import { TaxonomyGraphEditor } from "./components/taxonomy/TaxonomyGraphEditor";
 import { SolutionBuilder } from "./components/solution-builder/SolutionBuilder";
 import { IngestionHub } from "./components/ingestion/IngestionHub";
 import { SearchView } from "./components/search/SearchView";
 import { ReconciliationView } from "./components/reconciliation/ReconciliationView";
+import { TaxonomyGraphView } from "./components/taxonomy/TaxonomyGraphView";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { DataPersistenceGate } from "./components/shared/DataPersistenceGate";
 import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
@@ -146,7 +145,7 @@ export default function App() {
     setRequestedView(null);
   };
 
-  // Track deployed solution context to reflect on LiveMission with specific banners/pill
+  // Track deployed solution context to reflect on MissionControl with specific banners/pill
   const [deployedSolution, setDeployedSolution] = useState<{
     name: string;
     ucidCount: number;
@@ -156,10 +155,36 @@ export default function App() {
   // High-level topbar search query strings
   const [searchQuery, setSearchQuery] = useState("");
 
+
+  // Deep link routing
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/ucid/')) {
+      const id = path.split('/')[2];
+      if (id) {
+        setActiveMissionId(id);
+        setView('forensic'); // Prompt says "load ForensicView with UCID pre-selected"
+      }
+    } else if (path.startsWith('/config/')) {
+      const id = path.split('/')[2];
+      if (id) {
+        // Here we could set configs but we don't have a state for it
+        setView('solution-builder');
+      }
+    } else if (path.startsWith('/job/')) {
+      const id = path.split('/')[2];
+      if (id) {
+        // pass job_id, just set view to ingestion hub for now
+        setView('ingestion-hub');
+      }
+    }
+  }, []);
+
+
   function handleSelectMission(missionId: string) {
     setActiveMissionId(missionId);
     setSearchQuery("");
-    setView("live-mission");
+    setView("mission-control");
   }
 
   function renderView() {
@@ -191,10 +216,10 @@ export default function App() {
             />
           </ErrorBoundary>
         );
-      case "live-mission":
+      case "mission-control":
         return (
           <ErrorBoundary>
-            <LiveMission
+            <MissionControl
               selectedId={activeMissionId}
               onSelectId={setActiveMissionId}
               ucids={ucids}
@@ -241,42 +266,6 @@ export default function App() {
             />
           </ErrorBoundary>
         );
-      case "reports":
-        return (
-          <ErrorBoundary>
-            <ReportsView
-              ucids={ucids}
-              setUcids={setUcids}
-              vendors={vendors}
-              setVendors={setVendors}
-              catalogSkus={catalogSkus}
-            />
-          </ErrorBoundary>
-        );
-      case "cleansing":
-        return (
-          <ErrorBoundary>
-            <CleansingView
-              forensicIssues={forensicIssues}
-              setForensicIssues={setForensicIssues}
-              catalogSkus={catalogSkus}
-              ucids={ucids}
-            />
-          </ErrorBoundary>
-        );
-      case "taxonomy":
-        return (
-          <ErrorBoundary>
-            <TaxonomyGraphEditor
-              ucids={ucids}
-              setUcids={setUcids}
-              catalogSkus={catalogSkus}
-              setCatalogSkus={setCatalogSkus}
-              activeMissionId={activeMissionId}
-              setActiveMissionId={setActiveMissionId}
-            />
-          </ErrorBoundary>
-        );
       case "solution-builder":
         return (
           <ErrorBoundary>
@@ -300,6 +289,12 @@ export default function App() {
               setForensicIssues={setForensicIssues}
               setVendors={setVendors}
             />
+          </ErrorBoundary>
+        );
+      case "taxonomy-graph":
+        return (
+          <ErrorBoundary>
+            <TaxonomyGraphView />
           </ErrorBoundary>
         );
       case "search":
@@ -333,7 +328,7 @@ export default function App() {
   return (
     <div
       className="flex h-screen overflow-hidden text-content-primary font-sans antialiased relative"
-      style={{ backgroundColor: "#06080e" }}
+      style={{ backgroundColor: tokens.colors.background.appHeader }} 
     >
       <Sidebar
         activeView={view}

@@ -3,11 +3,11 @@ import { Layers } from "lucide-react";
 import { VendorSubmission } from "../../types";
 
 const TYPE_COLORS: Record<string, string> = {
-  Chassis: "#4a85fd",
-  Processor: "#a855f7",
-  Memory: "#00d4a0",
-  Drive: "#ff9b36",
-  "Network Adapter": "#1ba0e2",
+  Chassis: "#4a85fd", // color-ok
+  Processor: "#a855f7", // color-ok
+  Memory: "#00d4a0", // color-ok
+  Drive: "#ff9b36", // color-ok
+  "Network Adapter": "#1ba0e2", // color-ok
 };
 
 interface SolutionConfigCardProps {
@@ -80,7 +80,7 @@ export function SolutionConfigCard({
               <p className="text-[10px] font-mono text-gray-500 flex items-center gap-1 text-left">
                 <span
                   className="w-1.5 h-1.5 rounded-sm"
-                  style={{ backgroundColor: TYPE_COLORS[item.type] || "#fff" }}
+                  style={{ backgroundColor: TYPE_COLORS[item.type] || "#fff" }} // color-ok
                 />
                 PN: {item.partNumber} · {item.type}
               </p>

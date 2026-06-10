@@ -485,7 +485,7 @@ export function HybridPortfolioOrchestration({
 
       {/* Consolidated status board info table */}
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-4 text-left">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[#818cf8]">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400"> 
           Portfolio Consensus Status Board
         </h3>
         <p className="text-gray-400 text-[11px] leading-relaxed">
@@ -548,7 +548,7 @@ export function HybridPortfolioOrchestration({
               </tr>
 
               <tr className="hover:bg-white/[0.01] transition-all text-left">
-                <td className="py-3 font-bold font-mono text-[#d1d5db] text-left">
+                <td className="py-3 font-bold font-mono text-gray-300 text-left"> 
                   UCID-2026-1702 (HPE)
                 </td>
                 <td className="py-3 text-gray-400 font-mono">
@@ -590,7 +590,7 @@ export function HybridPortfolioOrchestration({
               </tr>
 
               <tr className="hover:bg-white/[0.01] transition-all text-left">
-                <td className="py-3 font-bold font-mono text-[#d1d5db] text-left">
+                <td className="py-3 font-bold font-mono text-gray-300 text-left"> 
                   UCID-2026-1703 (Cisco)
                 </td>
                 <td className="py-3 text-gray-400 font-mono">

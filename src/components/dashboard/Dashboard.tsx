@@ -1,3 +1,4 @@
+import { tokens } from "../../styles/tokens";
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Globe,
@@ -35,13 +36,6 @@ export function Dashboard({
   forensicIssues,
 }: DashboardProps) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 250);
-    return () => clearTimeout(timer);
-  }, []);
-
   const areaChart = useChartDimensions();
   const pieChart = useChartDimensions();
 
@@ -73,6 +67,32 @@ export function Dashboard({
       return activeUCIDs.length > 0 ? activeUCIDs[0].displayId : "No active missions";
     }, [activeUCIDs]);
 
+  const syncStatusInfo = useMemo(() => {
+    const hasError = vendors.some((v) => v.status === "error");
+    const hasSyncing = vendors.some((v) => v.status === "syncing");
+    const countConnected = vendors.filter((v) => v.status === "connected" || v.status === "syncing").length;
+    
+    let value = "Synced";
+    let delta = "Healthy";
+    let color = tokens.colors.status.success; 
+    if (hasError) {
+      value = "Error";
+      delta = "Check APIs";
+      color = tokens.colors.status.error; 
+    } else if (hasSyncing) {
+      value = "Syncing";
+      delta = "Optimizing";
+      color = tokens.colors.status.warning; 
+    }
+    
+    return {
+      value,
+      sub: `${countConnected} of ${vendors.length} online`,
+      delta,
+      color,
+    };
+  }, [vendors]);
+
   const KPI_CARDS = useMemo(() => [
     {
       id: "vendor-portal",
@@ -80,7 +100,7 @@ export function Dashboard({
       value: `${connectedVendors}`,
       sub: `of ${vendors.length} total`,
       icon: Globe,
-      color: "#4a85fd",
+      color: tokens.colors.accent.indigo, 
       delta: "",
       up: true,
     },
@@ -90,17 +110,17 @@ export function Dashboard({
       value: totalCatalog.toLocaleString(),
       sub: `across ${vendors.length} vendors`,
       icon: Database,
-      color: "#00d4a0",
+      color: tokens.colors.status.success, 
       delta: "",
       up: true,
     },
     {
-      id: "live-mission",
+      id: "mission-control",
       label: "Active UCIDs",
       value: `${activeUCIDs.length}`,
       sub: `${ucids.length} total missions`,
       icon: Target,
-      color: "#ff9b36",
+      color: tokens.colors.status.warning, 
       delta: "",
       up: true,
     },
@@ -110,39 +130,135 @@ export function Dashboard({
       value: `${forensicIssues.filter((f) => f.status !== "resolved").length}`,
       sub: `${criticalIssues} critical`,
       icon: Activity,
-      color: "#ff3d5a",
+      color: tokens.colors.status.error, 
       delta: "",
       up: false,
     },
     {
-      id: "live-mission",
+      id: "mission-control",
       label: "Active Pipeline",
       value: `${averagePipeline}%`,
       sub: `${recentMission} processing`,
       icon: Zap,
-      color: "#a855f7",
+      color: tokens.colors.accent.violet, 
       delta: "Live",
       up: true,
     },
     {
       id: "catalog",
       label: "Last Sync Status",
-      value: "Syncing",
-      sub: "Vendor APIs online",
+      value: syncStatusInfo.value,
+      sub: syncStatusInfo.sub,
       icon: RefreshCw,
-      color: "#00d4a0",
-      delta: "Healthy",
-      up: true,
+      color: syncStatusInfo.color,
+      delta: syncStatusInfo.delta,
+      up: syncStatusInfo.value !== "Error",
     },
-  ], [connectedVendors, vendors.length, totalCatalog, activeUCIDs.length, ucids.length, forensicIssues, criticalIssues, averagePipeline, recentMission]);
+  ], [connectedVendors, vendors.length, totalCatalog, activeUCIDs.length, ucids.length, forensicIssues, criticalIssues, averagePipeline, recentMission, syncStatusInfo]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
+  // Memoized Render for Pipeline Loop
+  const renderedUcids = useMemo(() => {
+    if (ucids.length === 0) {
+      return (
+        <div className="p-8 text-center text-gray-500">
+          <Target className="w-8 h-8 text-indigo-500/40 m-auto mb-2" />
+          <p className="font-bold text-gray-400">
+            No Active Mission Workflows
+          </p>
+          <p className="text-[10px] text-gray-600 mt-1 max-w-xs m-auto">
+            Upload a Bill of Quantities workbook inside Ingestion Hub or
+            use Solution Builder to spin up dual-sourcing cards.
+          </p>
+        </div>
+      );
+    }
+    return ucids.map((u) => {
+      const stepIdx = UCID_STEPS.findIndex(
+        (s) => s.id === u.currentStep,
+      );
+      const pct = Math.round(
+        (stepIdx / (UCID_STEPS.length - 1)) * 100,
+      );
+      const PRIORITY_COLOR: Record<string, string> = {
+        critical: tokens.colors.status.error,
+        high: tokens.colors.status.warning,
+        medium: tokens.colors.accent.indigo,
+        low: tokens.colors.text.muted,
+      };
+      return (
+        <button
+          key={u.id}
+          onClick={() => onNavigate("mission-control")}
+          className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <span
+                className="w-1.5 h-1.5 rounded-full shrink-0"
+                style={{ background: PRIORITY_COLOR[u.priority] }}
+              />
+              <span
+                className="text-xs font-semibold"
+                style={{ color: tokens.colors.text.primary }}
+              >
+                {u.displayId}
+              </span>
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
+                style={{
+                  background: "rgba(74, 133, 253,0.1)",
+                  color: tokens.colors.text.secondary,
+                }}
+              >
+                {u.priority}
+              </span>
+            </div>
+            <span
+              className="text-[11px]"
+              style={{
+                color:
+                  u.currentStep === "snapshot"
+                    ? tokens.colors.status.success
+                    : tokens.colors.status.warning,
+              }}
+            >
+              {UCID_STEPS.find((s) => s.id === u.currentStep)
+                ?.label || u.currentStep}
+            </span>
+          </div>
+          <p
+            className="text-[11px] mb-2 text-left"
+            style={{ color: tokens.colors.text.muted }}
+          >
+            {u.name}
+          </p>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex-1 h-1 rounded-full overflow-hidden"
+              style={{ background: "rgba(74, 133, 253,0.1)" }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${pct}%`,
+                  background:
+                    u.currentStep === "snapshot"
+                      ? tokens.colors.status.success
+                      : `linear-gradient(90deg, ${tokens.colors.accent.indigo}, ${tokens.colors.status.success})`,
+                }}
+              />
+            </div>
+            <span
+              className="text-[10px] shrink-0"
+              style={{ color: tokens.colors.text.tertiary }}
+            >
+              {pct}%
+            </span>
+          </div>
+        </button>
+      );
+    });
+  }, [ucids, onNavigate]);
 
   return (
     <ErrorBoundary>
@@ -159,11 +275,11 @@ export function Dashboard({
         <div>
           <p
             className="text-base"
-            style={{ color: "#dde6ff", fontWeight: 500 }}
+            style={{ color: tokens.colors.text.primary, fontWeight: 500 }} 
           >
             Procurement Intelligence Hub
           </p>
-          <p className="text-sm mt-0.5" style={{ color: "#5d7899" }}>
+          <p className="text-sm mt-0.5" style={{ color: tokens.colors.text.muted }}> 
             {activeUCIDs.length} active UCIDs in pipeline · {connectedVendors}{" "}
             vendors live · {criticalIssues} critical issues awaiting review
           </p>
@@ -173,16 +289,16 @@ export function Dashboard({
             <button
               onClick={() => onNavigate("forensic")}
               className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer border border-status-error/30"
-              style={{ background: "#ff3d5a", color: "#fff" }}
+              style={{ background: tokens.colors.status.error, color: tokens.colors.text.primary }} 
             >
               <AlertTriangle className="w-3.5 h-3.5 animate-bounce" />
               Resolve {criticalIssues} Critical
             </button>
           )}
           <button
-            onClick={() => onNavigate("live-mission")}
+            onClick={() => onNavigate("mission-control")}
             className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer"
-            style={{ background: "#4a85fd", color: "#fff" }}
+            style={{ background: tokens.colors.accent.indigo, color: tokens.colors.text.primary }} 
           >
             <Target className="w-3.5 h-3.5" />
             Live Mission Control
@@ -242,11 +358,11 @@ export function Dashboard({
             className="flex items-center justify-between px-4 py-3 border-b"
             style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
           >
-            <p className="text-sm font-semibold" style={{ color: "#dde6ff" }}>
+            <p className="text-sm font-semibold" style={{ color: tokens.colors.text.primary }}> 
               UCID Mission Pipeline
             </p>
             <button
-              onClick={() => onNavigate("live-mission")}
+              onClick={() => onNavigate("mission-control")}
               className="flex items-center gap-1 text-xs text-brand-indigo hover:underline cursor-pointer"
             >
               Open Live Mission <ChevronRight className="w-3 h-3" />
@@ -256,105 +372,7 @@ export function Dashboard({
             className="divide-y"
             style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
           >
-            {ucids.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Target className="w-8 h-8 text-indigo-500/40 m-auto mb-2" />
-                <p className="font-bold text-gray-400">
-                  No Active Mission Workflows
-                </p>
-                <p className="text-[10px] text-gray-600 mt-1 max-w-xs m-auto">
-                  Upload a Bill of Quantities workbook inside Ingestion Hub or
-                  use Solution Builder to spin up dual-sourcing cards.
-                </p>
-              </div>
-            ) : (
-              ucids.map((u) => {
-                const stepIdx = UCID_STEPS.findIndex(
-                  (s) => s.id === u.currentStep,
-                );
-                const pct = Math.round(
-                  (stepIdx / (UCID_STEPS.length - 1)) * 100,
-                );
-                const PRIORITY_COLOR: Record<string, string> = {
-                  critical: "#ff3d5a",
-                  high: "#ff9b36",
-                  medium: "#4a85fd",
-                  low: "#5d7899",
-                };
-                return (
-                  <button
-                    key={u.id}
-                    onClick={() => onNavigate("live-mission")}
-                    className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block"
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ background: PRIORITY_COLOR[u.priority] }}
-                        />
-                        <span
-                          className="text-xs font-semibold"
-                          style={{ color: "#dde6ff" }}
-                        >
-                          {u.displayId}
-                        </span>
-                        <span
-                          className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
-                          style={{
-                            background: "rgba(74, 133, 253,0.1)",
-                            color: "#8ba4cc",
-                          }}
-                        >
-                          {u.priority}
-                        </span>
-                      </div>
-                      <span
-                        className="text-[11px]"
-                        style={{
-                          color:
-                            u.currentStep === "snapshot"
-                              ? "#00d4a0"
-                              : "#ff9b36",
-                        }}
-                      >
-                        {UCID_STEPS.find((s) => s.id === u.currentStep)
-                          ?.label || u.currentStep}
-                      </span>
-                    </div>
-                    <p
-                      className="text-[11px] mb-2 text-left"
-                      style={{ color: "#5d7899" }}
-                    >
-                      {u.name}
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex-1 h-1 rounded-full overflow-hidden"
-                        style={{ background: "rgba(74, 133, 253,0.1)" }}
-                      >
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${pct}%`,
-                            background:
-                              u.currentStep === "snapshot"
-                                ? "#00d4a0"
-                                : "linear-gradient(90deg, #4a85fd, #00d4a0)",
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[10px] shrink-0"
-                        style={{ color: "#3a5070" }}
-                      >
-                        {pct}%
-                      </span>
-                    </div>
-                  </button>
-                );
-              })
-            )}
+            {renderedUcids}
           </div>
         </div>
 

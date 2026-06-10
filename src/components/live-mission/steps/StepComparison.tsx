@@ -148,7 +148,7 @@ export function StepComparison({
           <button
             type="button"
             onClick={onCommitSnapshot}
-            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-status-success text-gray-950 font-extrabold hover:opacity-90 transition-all cursor-pointer shadow-lg shadow-[#00d4a0]/10"
+            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-status-success text-gray-950 font-extrabold hover:opacity-90 transition-all cursor-pointer shadow-lg shadow-[#00d4a0]/10" // color-ok
           >
             <CheckCircle className="w-4 h-4 text-gray-950" /> Freeze & Commit
             Design Snapshot

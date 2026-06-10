@@ -80,7 +80,7 @@ export function BoqIngestWorkbook({
       {/* Main Upload / API workspace */}
       <div className="lg:col-span-2 space-y-4">
         <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-6">
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
               <StatusBadge status="Step 1: Input Specifications" variant="info" />
               <h3 className="text-sm font-semibold text-white mt-1.5 animate-fadeIn">
@@ -93,7 +93,7 @@ export function BoqIngestWorkbook({
             </div>
 
             {/* Selector for Presets */}
-            <div className="flex flex-col items-end gap-1 shrink-0 w-64">
+            <div className="flex flex-col items-start sm:items-end gap-1 shrink-0 w-full sm:w-64">
               <span className="text-[10px] text-gray-400 font-mono">
                 Simulate Document Profile:
               </span>
@@ -102,9 +102,9 @@ export function BoqIngestWorkbook({
                 value={selectedPreset}
                 onChange={(e) => setSelectedPreset(e.target.value as any)}
               >
-                <option value="hpe-legacy" className="bg-[#0b1220] text-white">HPE Legacy 6130 EOL</option>
-                <option value="dell-overcharge" className="bg-[#0b1220] text-white">Dell Premier Markup</option>
-                <option value="cisco-asymmetry" className="bg-[#0b1220] text-white">Cisco Asymmetry Layout</option>
+                <option value="hpe-legacy" className="bg-surface-elevated text-white">HPE Legacy 6130 EOL</option>
+                <option value="dell-overcharge" className="bg-surface-elevated text-white">Dell Premier Markup</option>
+                <option value="cisco-asymmetry" className="bg-surface-elevated text-white">Cisco Asymmetry Layout</option>
               </Select>
             </div>
           </div>

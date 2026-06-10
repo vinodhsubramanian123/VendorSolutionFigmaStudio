@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { StatusBadge } from "./StatusBadge";
 import { Copy } from "lucide-react";
 import type { CatalogSKU } from "../../types";
+import { tokens } from "../../styles/tokens";
 
 interface SKUCardProps {
   sku: CatalogSKU;
@@ -17,10 +18,15 @@ export const SKUCard: React.FC<SKUCardProps> = ({
   onClick
 }) => {
   const isEol = sku.status === "eol";
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div
       onClick={onClick}
-      className={`bg-surface-elevated border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${onClick ? "cursor-pointer hover:border-brand-indigo/50 hover:bg-[#141e33] transition-all" : ""} ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`bg-surface-elevated border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${onClick ? "cursor-pointer hover:border-brand-indigo/50 transition-all" : ""} ${className}`}
+      style={isHovered && onClick ? { backgroundColor: "rgba(74, 133, 253, 0.1)" } : undefined}
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">

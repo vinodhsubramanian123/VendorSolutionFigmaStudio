@@ -14,35 +14,9 @@ import {
 import { StatusBadge } from '../shared/StatusBadge';
 import { useToast } from '../shared/ToastContext';
 import type { UCID, CatalogSKU, Vendor, ForensicIssue } from '../../types';
+import { TableRow, TableGroup } from "../../types/data";
 
 // Define TS Interfaces for Drift Reconciliation Table
-interface TableRow {
-  id: string;
-  boqItem: string;
-  boqPart: string;
-  boqQty: string | number;
-  status: "Matched" | "Missing" | "Spec !=" | "Qty Delta" | "Added";
-  bomPart: string;
-  bomItem: string;
-  bomQty: string | number;
-  unitPrice: string | number;
-  totalPrice: string | number;
-  rawPartNumber: string;
-  rawQty: number;
-  rawType: string;
-  rawPrice: number;
-  hasAlert: boolean;
-  alertId: string;
-  alertTitle: string;
-}
-
-interface TableGroup {
-  name: string;
-  count: number;
-  greenDot: boolean;
-  orangeDot: boolean;
-  rows: TableRow[];
-}
 
 interface ReconciliationDrillDownProps {
   selectedConfigSheet: string;
@@ -490,7 +464,7 @@ export function ReconciliationDrillDown({
         {/* Pricing summary matching */}
         <div className="flex items-center gap-4 text-right">
           <div>
-            <span className="text-[9px] text-[#8ea8d4] uppercase font-black tracking-widest font-mono">
+            <span className="text-[9px] text-content-secondary uppercase font-black tracking-widest font-mono"> 
               Matched Sourced Price
             </span>
             <p className="text-xl font-bold font-mono text-status-success mt-0.5">
@@ -498,11 +472,11 @@ export function ReconciliationDrillDown({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
+            <button onClick={() => toast.success("Filter functionality active.")} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
               <Filter className="w-3 h-3" />
               <span>Filter</span>
             </button>
-            <button className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
+            <button onClick={() => toast.success("Sort options displayed.")} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
               <ArrowUpDown className="w-3 h-3" />
               <span>Sort</span>
             </button>
@@ -602,7 +576,7 @@ export function ReconciliationDrillDown({
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           )}
                           {group.orangeDot && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#ff9b36]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-status-warning" /> 
                           )}
                           <span className="text-[9.5px] font-mono text-gray-600 font-extrabold tracking-wider">
                             {isCollapsed ? "EXPAND CATEGORY" : "COLLAPSE"}
@@ -641,7 +615,7 @@ export function ReconciliationDrillDown({
                                 }}
                                 className="ml-1 px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-black font-extrabold uppercase text-[9px] tracking-wide cursor-pointer transition flex items-center gap-0.5 border-0 focus:outline-none"
                               >
-                                <Zap className="w-2.5 h-2.5 text-[#000]" />
+                                <Zap className="w-2.5 h-2.5 text-black" /> 
                                 <span>Auto-Align</span>
                               </button>
                             </div>

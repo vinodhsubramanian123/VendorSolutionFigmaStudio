@@ -45,7 +45,7 @@ export function CatalogFilterBar({
         <span className="text-gray-500 font-bold">
           Currently Viewing:
         </span>
-        <span className="px-2.5 py-1 rounded bg-[#10192e] border border-indigo-500/15 text-indigo-400 font-mono font-bold uppercase">
+        <span className="px-2.5 py-1 rounded bg-surface-elevated border border-indigo-500/15 text-indigo-400 font-mono font-bold uppercase"> 
           {selectedPath.vendor === "all"
             ? "All Vendors"
             : selectedPath.vendor}

@@ -1,7 +1,8 @@
+import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Select } from '../shared/Select';
-import type { ConfigItem, UcidContainer } from '../../types/builder';
+import type { ConfigItem, UcidContainer } from '../../types/data';
 
 interface ConfigLibraryItemProps {
   cfg: ConfigItem;
@@ -34,10 +35,10 @@ export function ConfigLibraryItem({
         style={{
           color:
             cfg.vendor === "HPE"
-              ? "#00d4a0"
+              ? tokens.colors.status.success 
               : cfg.vendor === "Dell"
-                ? "#4a85fd"
-                : "#a855f7",
+                ? tokens.colors.accent.indigo 
+                : tokens.colors.accent.violet, 
         }}
       >
         <span>{cfg.vendor} Sourcing Alternative</span>

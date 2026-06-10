@@ -1,3 +1,4 @@
+import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Target } from 'lucide-react';
@@ -21,11 +22,11 @@ export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, cha
     >
       <p
         className="text-sm font-semibold mb-0.5"
-        style={{ color: "#dde6ff" }}
+        style={{ color: tokens.colors.text.primary }} 
       >
         Catalog by Vendor
       </p>
-      <p className="text-xs mb-3" style={{ color: "#5d7899" }}>
+      <p className="text-xs mb-3" style={{ color: tokens.colors.text.muted }}> 
         {totalCatalog.toLocaleString()} total SKUs
       </p>
       <div
@@ -71,11 +72,11 @@ export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, cha
                 className="w-2 h-2 rounded-sm"
                 style={{ background: d.color }}
               />
-              <span className="text-[11px]" style={{ color: "#8ba4cc" }}>
+              <span className="text-[11px]" style={{ color: tokens.colors.text.secondary }}> 
                 {d.name}
               </span>
             </div>
-            <span className="text-[11px]" style={{ color: "#dde6ff" }}>
+            <span className="text-[11px]" style={{ color: tokens.colors.text.primary }}> 
               {d.value.toLocaleString()}
             </span>
           </div>

@@ -46,7 +46,7 @@ export function ForensicHeader({
         <button
           onClick={runAuditScanner}
           disabled={scanning}
-          className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg bg-status-error text-white hover:bg-status-error/90 font-bold disabled:opacity-50 cursor-pointer shadow-lg shadow-[#ff3d5a]/10 shrink-0 transition"
+          className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg bg-status-error text-white hover:bg-status-error/90 font-bold disabled:opacity-50 cursor-pointer shadow-lg shadow-status-error/10 shrink-0 transition" 
         >
           <RefreshCw
             className={`w-3.5 h-3.5 ${scanning ? "animate-spin" : ""}`}
@@ -73,8 +73,8 @@ export function ForensicHeader({
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-64">
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-64">
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider whitespace-nowrap">
                 Switch Context:
               </span>
               <Select
@@ -85,7 +85,7 @@ export function ForensicHeader({
                   <option 
                     key={u.id} 
                     value={u.id}
-                    className="bg-[#0b1220] text-white py-2"
+                    className="bg-surface-elevated text-white py-2"
                   >
                     {u.displayId} — {u.name.length > 24 ? u.name.substring(0, 24) + "..." : u.name}
                   </option>
@@ -94,12 +94,12 @@ export function ForensicHeader({
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-between w-full animate-pulse">
+          <div className="flex items-center justify-between w-full animate-pulse flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
               <div className="w-2.5 h-2.5 rounded-full bg-gray-700 shrink-0" />
-              <div className="h-4 w-48 bg-gray-800 rounded" />
+              <div className="h-4 w-48 bg-gray-800 rounded max-w-full" />
             </div>
-            <div className="h-8 w-64 bg-gray-800 rounded" />
+            <div className="h-8 w-full sm:w-64 bg-gray-800 rounded" />
           </div>
         )}
       </div>

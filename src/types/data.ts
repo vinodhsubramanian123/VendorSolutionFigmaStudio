@@ -1,3 +1,13 @@
+import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphAPISchema } from "./zodSchemas";
+import { z } from "zod";
+
+
+
+
+
+
+
+
 /**
  * ============================================================================
  * ENTERPRISE PROCUREMENT INTEGRITY PLATFORM - DATA CONTRACTS
@@ -446,3 +456,361 @@ export interface UpdateUCIDStepResponse {
   success: boolean;
   ucid: UCID;
 }
+
+export interface SourcingRule {
+  id: string;
+  ruleType: "substitution" | "price_cap" | "symmetry" | "api_gateway";
+  partNumber: string;
+  mappedOutput: string;
+  label: string;
+  vendor: string;
+  status: "active" | "draft";
+}
+
+export interface IngestRequest {
+  fileName: string;
+  presetType: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
+  rawText?: string;
+}
+
+export interface IngestResponse {
+  success: boolean;
+  message: string;
+  sourceFile: string;
+  ucid: string;
+  timestamp: string;
+  parsedSummary: {
+    vendorBrand: string;
+    detectedChassis: string;
+    itemsCount: number;
+    initialConfidenceScore: number;
+  };
+  solutions: any[]; // List of structured parallel alternative designs generated
+}
+
+export interface ReconciliationRequest {
+  solutions: Array<{
+    id: string;
+    vendor: string;
+    items: Array<{
+      partNumber: string;
+      quantity: number;
+      unitPrice: number;
+      type: string;
+    }>;
+  }>;
+}
+
+export interface ReconciliationResponse {
+  comparisonHash: string;
+  calculatedAt: string;
+  metrics: {
+    cheapestSolutionId: string;
+    highestComplianceId: string;
+    totalSavingsUSD: number;
+    optimumHybridAlternative: {
+      totalCost: number;
+      chassisVendor: string;
+      componentsCount: number;
+    };
+  };
+  matrix: Array<{
+    solutionId: string;
+    vendor: string;
+    baseCost: number;
+    negotiatedContractCost: number;
+    variancePercentage: number;
+    leadTimeBottleneckDays: number;
+    deliveryConfidenceRating: number; // 0-100%
+  }>;
+}
+
+export interface ConstraintCheckRequest {
+  chassisSKU: string;
+  cpuSKU: string;
+  ramQuantity: number;
+  psuWattsCount: number;
+}
+
+export interface ConstraintCheckResponse {
+  isCompliant: boolean;
+  socketMatch: {
+    status: "compatible" | "asymmetric" | "blocked";
+    chassisSocket: string;
+    cpuSocket: string;
+    description: string;
+  };
+  powerLimitTest: {
+    passed: boolean;
+    estimatedTdpWatts: number;
+    maxSupportedWatts: number;
+    marginWatts: number;
+  };
+  memoryBalanceCheck: {
+    passed: boolean;
+    quantity: number;
+    optimalLayoutSymmetry: number; // e.g. multiples of 8 for Xeon 4th-Gen
+    recommendsCorrection: boolean;
+    message: string;
+  };
+}
+
+export interface WebhookDispatchRequest {
+  endpointUrl: string;
+  secretToken: string;
+  ucidRef: string;
+  payloadData: {
+    snapshotHash: string;
+    committedValue: number;
+    winnerSolution: string;
+    timestamp: string;
+  };
+}
+
+export interface WebhookDispatchResponse {
+  dispatchId: string;
+  status: "delivered" | "retrying" | "endpoint_unreachable";
+  cryptographicSignature: string; // HMAC-SHA256 of the payload body using client secretToken
+  auditLog: Array<{
+    attemptNumber: number;
+    timestamp: string;
+    httpStatusCode: number;
+    responseBody: string;
+  }>;
+}
+
+export interface PlaywrightRunRequest {
+  agentName: "AribaScraper" | "HPEMarketplace" | "DellPremierPortal";
+  ucidRef: string;
+  targetPortalUrl: string;
+  bypassCaptchas: boolean;
+}
+
+export interface PlaywrightRunResponse {
+  taskId: string;
+  status: "idle" | "running" | "success" | "failed";
+  executionTimeMs: number;
+  crawledItemsExtracted: number;
+  logTrail: Array<{
+    timestamp: string;
+    level: "info" | "debug" | "warning" | "error";
+    message: string;
+  }>;
+}
+
+export type AppView =
+  | "dashboard"
+  | "ingestion-hub"
+  | "mission-control"
+  | "catalog"
+  | "vendor-portal"
+  | "forensic"
+  | "solution-builder"
+  | "reconciliation"
+  | "search"
+  | "taxonomy-graph";
+
+export type UCIDStep =
+  | "boq-intake"
+  | "pre-intelligence"
+  | "solution-design"
+  | "vendor-provisioning"
+  | "post-intelligence"
+  | "comparison"
+  | "snapshot";
+
+export interface WorkflowStep {
+  id: string;
+  label: string;
+  status: WorkflowStepStatus;
+}
+
+export type WorkflowStepStatus = "idle" | "in-progress" | "completed" | "error";
+
+export interface ConfigItem {
+  id: string;
+  name: string;
+  targetUcidId: string;
+  vendor: "HPE" | "Dell" | "Cisco";
+  totalPrice: number;
+  originalPrice: number;
+  items: BOMItem[];
+}
+
+export interface UcidContainer {
+  id: string; // e.g. UCID-2026-1699
+  name: string;
+  reasoning: string;
+  locked: boolean;
+  syncStatus?: "Pending" | "Synced" | "Out-of-Sync";
+}
+
+export interface TaxonomyGraphNode {
+  id: string;
+  type: "product" | "subproduct" | "category" | "subcategory" | "sku";
+  label: string;
+  sublabel?: string;
+  constraints?: string[];
+  dependencies?: string[];
+  x?: number;
+  y?: number;
+}
+
+export interface TaxonomyGraphEdge {
+  id: string;
+  from: string;
+  to: string;
+  type: "contains" | "requires" | "exclusive";
+}
+
+export interface TaxonomyGraphPayload {
+  nodes: TaxonomyGraphNode[];
+  edges: TaxonomyGraphEdge[];
+  unmappedIds: string[];
+}
+
+export type GraphMetadata = z.infer<typeof GraphMetadataSchema>;
+
+export type GraphNode = z.infer<typeof GraphNodeSchema>;
+
+export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
+
+export type GraphAPIResponse = z.infer<typeof GraphAPISchema>;
+
+export interface TableRow {
+  id: string;
+  boqItem: string;
+  boqPart: string;
+  boqQty: string | number;
+  status: "Matched" | "Missing" | "Spec !=" | "Qty Delta" | "Added";
+  bomPart: string;
+  bomItem: string;
+  bomQty: string | number;
+  unitPrice: string | number;
+  totalPrice: string | number;
+  rawPartNumber: string;
+  rawQty: number;
+  rawType: string;
+  rawPrice: number;
+  hasAlert: boolean;
+  alertId: string;
+  alertTitle: string;
+}
+
+export interface TableGroup {
+  name: string;
+  count: number;
+  greenDot: boolean;
+  orangeDot: boolean;
+  rows: TableRow[];
+}
+
+export type BadgeVariant = "success" | "warning" | "error" | "info" | "default";
+
+export type BadgeSize = "sm" | "md";
+
+export interface Toast {
+  id: string;
+  message: string;
+  type: "success" | "warn" | "error";
+}
+
+export interface ToastContextType {
+  toast: (message: string, type?: "success" | "warn" | "error") => void;
+  success: (message: string) => void;
+  warn: (message: string) => void;
+  error: (message: string) => void;
+}
+
+export type JobType = 'ingest' | 'config_process' | 'reconciliation' | 'forensics';
+export type JobStatus = 'queued' | 'processing' | 'completed' | 'failed' | 'cancelled';
+export type UCIDStatus = 'active' | 'archived' | 'pending';
+
+export interface JobContext {
+    ucid: string;
+    config_id: string;
+    solution_id: string;
+}
+
+export interface Job {
+    job_id: string;
+    type: JobType;
+    status: JobStatus;
+    progress: number;
+    context: JobContext;
+    parent_job_id?: string;
+    child_jobs?: string[];
+    result?: Record<string, any>;
+    error?: string;
+}
+
+export interface Invoice {
+    id: string;
+    vendorId: string;
+    amount: number;
+    status: string;
+    date: string;
+}
+
+export interface ForensicAnomaly {
+    id: string;
+    type: string;
+    severity: 'high' | 'medium' | 'low';
+    description: string;
+    detectedAt: string;
+}
+
+export interface ReconciliationDiff {
+    id: string;
+    mismatchLevel: string;
+    fields: string[];
+}
+
+export interface MissionScenario {
+    id: string;
+    name: string;
+    target: string;
+}
+
+export interface KPI {
+    id: string;
+    label: string;
+    current: number;
+    target: number;
+}
+
+export interface VendorHealth {
+    vendorId: string;
+    status: 'healthy' | 'degraded' | 'down';
+    latency: number;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

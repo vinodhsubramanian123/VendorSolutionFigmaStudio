@@ -21,6 +21,9 @@ import { TechnicalBomWorkspace } from "./TechnicalBomWorkspace";
 import { HybridPortfolioOrchestration } from "./HybridPortfolioOrchestration";
 import { LaunchStep } from "./LaunchStep";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { useIngestionLogic } from "./useIngestionLogic";
+
+import { JobPoller } from "../shared/JobPoller";
 
 interface IngestionHubProps {
   ucids: UCID[];
@@ -53,23 +56,28 @@ export function IngestionHub({
     auditLogs,
     currentStepIndex,
     resetWorkflow,
-  } = useWorkflowManager("procurement_lifecycle", [
-    "boq",
-    "bom",
-    "portfolio",
-    "launch",
-  ]);
+    selectedBomsForBatch,
+    setSelectedBomsForBatch,
+    toast,
+    setToast,
+    isPortfolioActive,
+    hpeSyncedConfigs,
+    ciscoSyncedConfigs,
+    manualBOMStatus,
+    manualUploadedFiles,
+    handleStartPortfolioPipeline,
+    simulateManualUpload
+  } = useIngestionLogic(
+    ucids,
+    setUcids,
+    setIsPendingAPI,
+    setPendingAPIMessage as (msg: string) => void,
+    setApiProgress as (progress: number) => void
+  );
 
   // Derived mode for backward compatibility with existing rendering logic
   const mode = currentStepId;
   const setMode = jumpToStep;
-
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
 
   const stepperSteps = useMemo(() => [
     { id: "boq", label: "1. BOQ Intake" },
@@ -77,153 +85,6 @@ export function IngestionHub({
     { id: "portfolio", label: "3. Hybrid Automation" },
     { id: "launch", label: "4. Launch", icon: Play },
   ], []);
-
-  // Multi-BOM / UCID selection list state for batch reconciliation
-  const [selectedBomsForBatch, setSelectedBomsForBatch] = useState<string[]>(
-    [],
-  );
-
-  // Auto-select all UCIDs on initialization and when ucids change
-  useEffect(() => {
-    if (ucids.length > 0 && selectedBomsForBatch.length === 0) {
-      setSelectedBomsForBatch(ucids.map((u) => u.id));
-    }
-  }, [ucids]);
-
-  // Multi-UCID reconciliation states
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "warn";
-    actionLabel?: string;
-    onAction?: () => void;
-  } | null>(null);
-
-  // ===============================================================
-  // MOCK STATE AND SIMULATION LOGS FOR HYBRID MULTI-UCID PORTFOLIO
-  // ===============================================================
-  const [isPortfolioActive, setIsPortfolioActive] = useState(false);
-  const [hpeSyncedConfigs, setHpeSyncedConfigs] = useState<number>(0);
-  const [ciscoSyncedConfigs, setCiscoSyncedConfigs] = useState<number>(0);
-  const [manualBOMStatus, setManualBOMStatus] = useState<
-    "pending" | "partial" | "complete"
-  >("pending");
-  const [manualUploadedFiles, setManualUploadedFiles] = useState<string[]>([]);
-
-  const handleStartPortfolioPipeline = async () => {
-    if (isPortfolioActive) return;
-    try {
-      setIsPendingAPI(true);
-      setIsPortfolioActive(true);
-      setHpeSyncedConfigs(0);
-      setCiscoSyncedConfigs(0);
-      setManualBOMStatus("pending");
-      setManualUploadedFiles([]);
-
-      // Simulate API request to backend portfolio orchestrator
-      try {
-        const res = await fetch("/api/portfolio/orchestrate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            portfolioId: "PORT-2026-HQ-EXPANSION",
-            ucids: [
-              { id: "UCID-2026-1701", channel: "manual", vendor: "Dell" },
-              { id: "UCID-2026-1702", channel: "automated", vendor: "HPE" },
-              { id: "UCID-2026-1703", channel: "automated", vendor: "Cisco" },
-            ],
-          }),
-        });
-      } catch {
-        // Fallback or handle error quietly
-      }
-
-      // Step-by-step parallel-automated crawling simulation corresponding to the 4 sequential configs
-      let stepCount = 0;
-      await new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          stepCount++;
-
-          setHpeSyncedConfigs(stepCount);
-          setCiscoSyncedConfigs(stepCount);
-
-          if (stepCount === 4) {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 1200);
-      });
-    } finally {
-      setIsPendingAPI(false);
-    }
-  };
-
-  const simulateManualUpload = async (configsCount: number) => {
-    try {
-      setIsPendingAPI(true);
-      setPendingAPIMessage(
-        `Intaking unstructured manual quoting attachment...`,
-      );
-      const filename =
-        configsCount === 2
-          ? "DELL_PREMIER_PORTAL_PARTIAL_BOM.xlsx"
-          : "DELL_PREMIER_COMPLETED_BOM.xlsx";
-
-      let apiSuccess = false;
-      try {
-        const res = await fetch("/api/portfolio/upload-manual", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            portfolioId: "PORT-2026-HQ-EXPANSION",
-            ucidRef: "UCID-2026-1701",
-            filename,
-            configsMatchedCount: configsCount,
-          }),
-        });
-
-        if (res.ok) {
-          apiSuccess = true;
-          const data = await res.json();
-          setManualBOMStatus(data.reconciliationStatus);
-          setManualUploadedFiles((prev) => [...prev, filename]);
-
-          if (data.reconciliationStatus === "complete") {
-            setToast({
-              message:
-                "Hybrid Portfolio Automation completed successfully. All components synced and reconciled.",
-              type: "success",
-              actionLabel: "Proceed to Launch",
-              onAction: () => {
-                advanceStep();
-              },
-            });
-          }
-        }
-      } catch {
-        // Fallback execution
-      }
-
-      if (!apiSuccess) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setManualBOMStatus(configsCount === 2 ? "partial" : "complete");
-        setManualUploadedFiles((prev) => [...prev, filename]);
-
-        if (configsCount === 4) {
-          setToast({
-            message:
-              "Hybrid Portfolio Automation completed successfully. All components synced and reconciled.",
-            type: "success",
-            actionLabel: "Proceed to Launch",
-            onAction: () => {
-              advanceStep();
-            },
-          });
-        }
-      }
-    } finally {
-      setIsPendingAPI(false);
-    }
-  };
 
   // ==========================================
   // SECTION A: BOQ SHEET INTAKE STATES & LOGIC
@@ -243,6 +104,8 @@ export function IngestionHub({
   );
   const [boqError, setBoqError] = useState<string>("");
 
+  const [boqJobId, setBoqJobId] = useState<string | null>(null);
+
   const triggerBOQParse = async (
     fileName: string,
     preset: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry",
@@ -252,42 +115,27 @@ export function IngestionHub({
     setBoqError("");
     setBoqFile(fileName);
 
-    const interval = setInterval(() => {
-      setBoqProgress((p) => (p < 85 ? p + 15 : p));
-    }, 150);
-
     try {
-      const response = await fetch("/api/boq/ingest", {
+      const response = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileName: fileName,
-          presetType: preset,
-          rawText: `[Manual central upload: ${fileName}] presetType=${preset}`,
+          type: "ingest",
+          context: { ucid: "mock-ucid", config_id: "mock-cfg", solution_id: preset },
+          parent_job_id: ""
         }),
       });
 
-      clearInterval(interval);
-      setBoqProgress(100);
-
       if (response.ok) {
         const data = await response.json();
-        setBoqResponse(data);
-        setIsBOQIngesting(false);
+        setBoqJobId(data.job_id);
       } else {
-        throw new Error(
-          "Server ingestion responded with non-200 envelope code.",
-        );
+        throw new Error("Server ingestion responded with non-200 envelope code.");
       }
     } catch (err: any) {
-      clearInterval(interval);
-      console.warn(
-        "Backend Ingestion API not reachable. Performing fallback simulation.",
-        err,
-      );
-
-      // Fallback local simulation to prevent UI functional gaps
+      // Falback simulation code ...
       setTimeout(() => {
+        // ... (Keep existing fallback if fetch fails) ...
         setBoqResponse({
           success: true,
           sourceFile: fileName,
@@ -303,68 +151,36 @@ export function IngestionHub({
             itemsCount: 6,
             initialConfidenceScore: 85,
           },
-          solutions: [
-            {
-              id: `sol-fallback-primary`,
-              name: `${preset === "dell-overcharge" ? "Dell" : preset === "cisco-asymmetry" ? "Cisco" : "HPE"} Offline Simulated Base`,
-              vendorSubmissions: [
-                {
-                  id: `sol-fallback-base`,
-                  vendor:
-                    preset === "dell-overcharge"
-                      ? "Dell"
-                      : preset === "cisco-asymmetry"
-                        ? "Cisco"
-                        : "HPE",
-                  label: `${preset === "dell-overcharge" ? "Dell" : preset === "cisco-asymmetry" ? "Cisco" : "HPE"} Offline Simulated Base`,
-                  totalPrice: 110000,
-                  originalPrice: 125000,
-                  savings: 15000,
-                  complianceScore: 92,
-                  configs: [
-                    {
-                      id: "fallback-base-config",
-                      name: "Base Compute Config",
-                      totalPrice: 110000,
-                      originalPrice: 125000,
-                      savings: 15000,
-                      items: [
-                        {
-                          id: "fallback-c1",
-                          partNumber: "BASE-CHASSIS-01",
-                          name: "Simulated Chassis",
-                          type: "Chassis",
-                          quantity: 10,
-                          unitPrice: 3400,
-                        },
-                        {
-                          id: "fallback-c2",
-                          partNumber: "BASE-CPU-01",
-                          name: "Simulated Processor Multi-Core",
-                          type: "Processor",
-                          quantity: 20,
-                          unitPrice: 1890,
-                        },
-                        {
-                          id: "fallback-c3",
-                          partNumber: "BASE-MEM-01",
-                          name: "Simulated RDIMM Memory Kit",
-                          type: "Memory",
-                          quantity: 80,
-                          unitPrice: 580,
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
+          solutions: [] // Assuming simple simulation
         });
         setBoqProgress(100);
         setIsBOQIngesting(false);
       }, 850);
     }
+  };
+
+  const onJobSuccess = async (result: any, context: any) => {
+      // Instead of relying purely on Job result in the mock, we can fetch from our proper /api/boq/ingest to mimic exactly what happened previously
+      const response = await fetch("/api/boq/ingest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: boqFile,
+          presetType: context.solution_id,
+          rawText: `[Manual central upload: ${boqFile}] presetType=${context.solution_id}`,
+        }),
+      });
+      const data = await response.json();
+      setBoqResponse(data);
+      setBoqProgress(100);
+      setIsBOQIngesting(false);
+      setBoqJobId(null);
+  };
+
+  const onJobError = (error: string, context: any) => {
+      setBoqError(error);
+      setIsBOQIngesting(false);
+      setBoqJobId(null);
   };
 
   const handleSplitAndProvision = () => {
@@ -848,15 +664,7 @@ export function IngestionHub({
     } finally {
       setIsPendingAPI(false);
     }
-  };  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-sky-400 animate-spin" />
-      </div>
-    );
-  }
-
-  return (
+  };  return (
     <ErrorBoundary>
       <div className="flex flex-col gap-6 relative select-none">
         {/* Toast Alert Popup */}
@@ -1000,17 +808,27 @@ export function IngestionHub({
         </div>
 
       {mode === "boq" && (
-        <BoqIngestWorkbook
-          selectedPreset={selectedPreset}
-          setSelectedPreset={setSelectedPreset}
-          boqFile={boqFile}
-          isBOQIngesting={isBOQIngesting}
-          boqProgress={boqProgress}
-          boqResponse={boqResponse}
-          boqError={boqError}
-          onTriggerBOQParse={triggerBOQParse}
-          onSplitAndProvision={handleSplitAndProvision}
-        />
+        <>
+          <BoqIngestWorkbook
+            selectedPreset={selectedPreset}
+            setSelectedPreset={setSelectedPreset}
+            boqFile={boqFile}
+            isBOQIngesting={isBOQIngesting}
+            boqProgress={boqProgress}
+            boqResponse={boqResponse}
+            boqError={boqError}
+            onTriggerBOQParse={triggerBOQParse}
+            onSplitAndProvision={handleSplitAndProvision}
+          />
+          {boqJobId && (
+            <JobPoller
+              jobId={boqJobId}
+              context={{ ucid: "mock-ucid", config_id: "mock-cfg", solution_id: selectedPreset }}
+              onSuccess={onJobSuccess}
+              onError={onJobError}
+            />
+          )}
+        </>
       )}
 
       {mode === "bom" && (

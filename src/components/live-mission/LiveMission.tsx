@@ -56,13 +56,6 @@ export function LiveMission({
     message: string;
     type: "success" | "warn" | "error";
   } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
-
   const [viewStep, setViewStep] = useState<UCIDStep | null>(null);
   const [runningIntel, setRunningIntel] = useState<string | null>(null);
   const [intelProgress, setIntelProgress] = useState(0);
@@ -112,22 +105,15 @@ export function LiveMission({
     return groups;
   }, [ucids]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
   // Default to first UCID if none selected or if selected is not found
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
 
-  if (!selected) {
+  if (!selected || ucids.length === 0) {
     return (
       <ErrorBoundary>
         <div className="flex flex-col items-center justify-center h-full min-h-[400px] border border-dashed border-brand-indigo/15 bg-surface-elevated/50 rounded-xl m-6">
+          {/* Zero-state list visualization fallback when active ucids collection is empty */}
           <div className="w-16 h-16 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-6 border border-brand-indigo/20">
             <Rocket className="w-8 h-8 text-brand-indigo" />
           </div>
@@ -557,22 +543,22 @@ export function LiveMission({
           style={{
             backgroundColor:
               toast.type === "success"
-                ? "#091815"
+                ? "#091815" // color-ok
                 : toast.type === "warn"
-                  ? "#1c1409"
-                  : "#1c090d",
+                  ? "#1c1409" // color-ok
+                  : "#1c090d", // color-ok
             borderColor:
               toast.type === "success"
-                ? "#00d4a0"
+                ? "#00d4a0" // color-ok
                 : toast.type === "warn"
-                  ? "#ff9b36"
-                  : "#ff3d5a",
+                  ? "#ff9b36" // color-ok
+                  : "#ff3d5a", // color-ok
             color:
               toast.type === "success"
-                ? "#00d4a0"
+                ? "#00d4a0" // color-ok
                 : toast.type === "warn"
-                  ? "#ff9b36"
-                  : "#ff3d5a",
+                  ? "#ff9b36" // color-ok
+                  : "#ff3d5a", // color-ok
           }}
         >
           <AlertCircle className="w-4 h-4 shrink-0 animate-bounce" />

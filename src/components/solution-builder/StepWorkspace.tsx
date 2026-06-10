@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { Select } from "../shared/Select";
+import { useToast } from "../shared/ToastContext";
 import type { UCID } from "../../types";
-import type { ConfigItem, UcidContainer } from "../../types/builder";
+import type { ConfigItem, UcidContainer } from "../../types/data";
 import { ConfigLibraryItem } from "./ConfigLibraryItem";
 
 interface StepWorkspaceProps {
@@ -29,7 +30,7 @@ interface StepWorkspaceProps {
   updateContainerReasoning: (id: string, reasoning: string) => void;
   toggleContainerLock: (id: string) => void;
   ucids: UCID[];
-  handleDeployToLiveMission: () => void;
+  handleDeployToMissionControl: () => void;
 }
 
 export function StepWorkspace({
@@ -47,8 +48,9 @@ export function StepWorkspace({
   updateContainerReasoning,
   toggleContainerLock,
   ucids,
-  handleDeployToLiveMission,
+  handleDeployToMissionControl,
 }: StepWorkspaceProps) {
+  const toast = useToast();
   const activePromoConfig =
     configs.find((c) => c.id === selectedConfigId) || configs[0];
 
@@ -128,7 +130,7 @@ export function StepWorkspace({
                 <p className="text-[10px] text-content-muted max-w-[200px] mb-4">
                   Construct components or import an approved BOM.
                 </p>
-                <button className="px-4 py-2 rounded-lg bg-surface-card border border-white/10 text-white font-bold tracking-wide text-[10px] cursor-pointer hover:bg-white/5 transition-all">
+                <button onClick={() => toast.success("Opening component library...")} className="px-4 py-2 rounded-lg bg-surface-card border border-white/10 text-white font-bold tracking-wide text-[10px] cursor-pointer hover:bg-white/5 transition-all">
                   Add First Component
                 </button>
               </div>
@@ -390,7 +392,7 @@ export function StepWorkspace({
         {/* Glowing grand CTA block to Deploy to Live Parallel Control pipeline */}
         <div className="flex justify-end pt-3">
           <button
-            onClick={handleDeployToLiveMission}
+            onClick={handleDeployToMissionControl}
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 text-white font-black uppercase text-xs tracking-wider shadow-lg shadow-indigo-500/25 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer focus:outline-none"
           >
             <Sparkles className="w-4.5 h-4.5 text-white animate-pulse" />
