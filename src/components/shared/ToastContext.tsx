@@ -20,9 +20,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const toast = useCallback(
-    (message: string, type: "success" | "warn" | "error" = "success") => {
+    (message: string, type: "success" | "warn" | "error" = "success", actionLabel?: string, onAction?: () => void) => {
       const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, message, type }]);
+      setToasts((prev) => [...prev, { id, message, type, actionLabel, onAction }]);
 
       // Auto remove after 4.5 seconds
       setTimeout(() => {
@@ -91,8 +91,21 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   <XCircle className="w-4.5 h-4.5 shrink-0 mt-0.5 text-rose-400" />
                 )}
 
-                <div className="flex-1 text-[11px] text-gray-200 font-medium font-sans leading-normal">
-                  {t.message}
+                <div className="flex-1 min-w-0 pr-4">
+                  <p className="text-[11px] font-medium text-white leading-snug">
+                    {t.message}
+                  </p>
+                  {t.actionLabel && t.onAction && (
+                    <button
+                      onClick={() => {
+                        t.onAction?.();
+                        setToasts((prev) => prev.filter((toastItem) => toastItem.id !== t.id));
+                      }}
+                      className="mt-2 text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-wider cursor-pointer"
+                    >
+                      {t.actionLabel} →
+                    </button>
+                  )}
                 </div>
 
                 <button

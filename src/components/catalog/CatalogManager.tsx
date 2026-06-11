@@ -1,8 +1,9 @@
 import { tokens } from "../../styles/tokens";
 import React, { useState, useMemo, useEffect } from "react";
+import { apiClient } from "../../services/apiClient";
 import { motion } from "motion/react";
 import { Info, Loader2, Network } from "lucide-react";
-import type { CatalogSKU } from "../../types";
+import type { CatalogSKU, Vendor } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 import { CatalogHeader } from "./CatalogHeader";
@@ -11,11 +12,50 @@ import { CatalogFilterBar } from "./CatalogFilterBar";
 import { CatalogCardsList } from "./CatalogCardsList";
 import { CatalogPagination } from "./CatalogPagination";
 import { CatalogTypeFilters } from "./CatalogTypeFilters";
+import { CatalogTaxonomyTree } from "./CatalogTaxonomyTree";
 
 interface CatalogManagerProps {
   catalogSkus: CatalogSKU[];
   setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
-  vendors?: any[];
+  vendors?: Vendor[];
+}
+
+function matchesDeepPath(sku: CatalogSKU, selectedPath: any): boolean {
+  if (selectedPath.vendor !== "all" && sku.vendor.toLowerCase() !== selectedPath.vendor.toLowerCase()) {
+    return false;
+  }
+
+  if (selectedPath.solution !== "all") {
+    if (selectedPath.solution === "Server" && sku.solution !== "Server") return false;
+    if (selectedPath.solution === "Storage" && sku.solution !== "Storage") return false;
+    if (selectedPath.solution === "Networking" && sku.solution !== "Networking") return false;
+
+    if (selectedPath.product !== "all") {
+      const p = selectedPath.product.toLowerCase();
+      const family = sku.productFamily?.toLowerCase();
+      if (p === "dl380a" && family !== "dl380a") return false;
+      if (p === "dl380" && family !== "dl380") return false;
+      if (p === "dl80" && family !== "dl80") return false;
+      if (p === "msa" && family !== "msa") return false;
+      if (p === "aruba" && family !== "aruba") return false;
+      if (p === "r760" && family !== "r760") return false;
+      if (p === "ucs" && family !== "ucs") return false;
+      if (p === "qfx" && family !== "qfx") return false;
+
+      if (selectedPath.generation !== "all") {
+        const gen = selectedPath.generation.toLowerCase();
+        if (sku.generation?.toLowerCase() !== gen) return false;
+      }
+    }
+
+    if (selectedPath.chassis === "all") {
+      if (sku.type !== "Chassis") return false;
+    } else {
+      const activeChassisId = selectedPath.chassis;
+      if (sku.chassisRef !== activeChassisId && sku.id !== activeChassisId) return false;
+    }
+  }
+  return true;
 }
 
 export function CatalogManager({
@@ -23,11 +63,9 @@ export function CatalogManager({
   setCatalogSkus,
   vendors,
 }: CatalogManagerProps) {
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "warn" | "error";
-  } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const deferredSearchTerm = React.useDeferredValue(searchTerm);
+
   const totalCatalogItems = useMemo(() => {
     if (!vendors || vendors.length === 0) return 16625;
     return vendors.reduce((acc, v) => acc + (v.catalogItems || 0), 0);
@@ -94,85 +132,22 @@ export function CatalogManager({
   const filteredSkus = useMemo(() => {
     return catalogSkus.filter((sku) => {
       const matchesSearch =
-        sku.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sku.name.toLowerCase().includes(searchTerm.toLowerCase());
+        sku.partNumber.toLowerCase().includes(deferredSearchTerm.toLowerCase()) ||
+        sku.name.toLowerCase().includes(deferredSearchTerm.toLowerCase());
 
-      if (searchTerm) {
-        return matchesSearch;
+      if (deferredSearchTerm) return matchesSearch;
+
+      if (typeFilter !== "all" && sku.type.toLowerCase() !== typeFilter.toLowerCase()) {
+        return false;
       }
 
-      // Top horizontal chips quick filtering option
-      if (typeFilter !== "all") {
-        if (sku.type.toLowerCase() !== typeFilter.toLowerCase()) {
-          return false;
-        }
-      }
-
-      // Direct tree node deep path filter
       if (selectedPath.vendor !== "all") {
-        if (sku.vendor.toLowerCase() !== selectedPath.vendor.toLowerCase()) {
-          return false;
-        }
-
-        if (selectedPath.solution !== "all") {
-          // 1. Solution Catalog Slicing
-          if (selectedPath.solution === "Server") {
-            if (sku.solution !== "Server") return false;
-          } else if (selectedPath.solution === "Storage") {
-            if (sku.solution !== "Storage") return false;
-          } else if (selectedPath.solution === "Networking") {
-            if (sku.solution !== "Networking") return false;
-          }
-
-          // 2. Product Family level
-          if (selectedPath.product !== "all") {
-            const p = selectedPath.product.toLowerCase();
-
-            if (p === "dl380a") {
-              if (sku.productFamily?.toLowerCase() !== "dl380a") return false;
-            } else if (p === "dl380") {
-              if (sku.productFamily?.toLowerCase() !== "dl380") return false;
-            } else if (p === "dl80") {
-              if (sku.productFamily?.toLowerCase() !== "dl80") return false;
-            } else if (p === "msa") {
-              if (sku.productFamily?.toLowerCase() !== "msa") return false;
-            } else if (p === "aruba") {
-              if (sku.productFamily?.toLowerCase() !== "aruba") return false;
-            } else if (p === "r760") {
-              if (sku.productFamily?.toLowerCase() !== "r760") return false;
-            } else if (p === "ucs") {
-              if (sku.productFamily?.toLowerCase() !== "ucs") return false;
-            } else if (p === "qfx") {
-              if (sku.productFamily?.toLowerCase() !== "qfx") return false;
-            }
-
-            // 3. Generation Slicing
-            if (selectedPath.generation !== "all") {
-              const gen = selectedPath.generation.toLowerCase();
-              if (sku.generation?.toLowerCase() !== gen) return false;
-            }
-          }
-
-          // 4. Hierarchical Level Isolation
-          if (selectedPath.chassis === "all") {
-            if (sku.type !== "Chassis") {
-              return false;
-            }
-          } else {
-            const activeChassisId = selectedPath.chassis;
-            if (
-              sku.chassisRef !== activeChassisId &&
-              sku.id !== activeChassisId
-            ) {
-              return false;
-            }
-          }
-        }
+        if (!matchesDeepPath(sku, selectedPath)) return false;
       }
 
       return matchesSearch;
     });
-  }, [catalogSkus, searchTerm, typeFilter, selectedPath]);
+  }, [catalogSkus, deferredSearchTerm, typeFilter, selectedPath]);
 
   // Pagination State and Logic (Page Size = 24)
   const [currentPage, setCurrentPage] = useState(1);
@@ -181,7 +156,7 @@ export function CatalogManager({
   // Reset page when filtering criteria or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, selectedPath]);
+  }, [deferredSearchTerm, typeFilter, selectedPath]);
 
   const paginatedSkus = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
@@ -205,17 +180,25 @@ export function CatalogManager({
     setEditedPrice(sku.price.toString());
   }
 
-  function savePrice(skuId: string) {
+  async function savePrice(skuId: string) {
     const parsedPrice = parseFloat(editedPrice);
     if (isNaN(parsedPrice) || parsedPrice <= 0) return;
 
+    // Optimistic UI Update
     setCatalogSkus((prev) =>
       prev.map((s) => (s.id === skuId ? { ...s, price: parsedPrice } : s)),
     );
     setEditingSkuId(null);
+    
+    // Background API call
+    try {
+      await apiClient.put(`/api/catalog/${skuId}`, { price: parsedPrice });
+    } catch (e) {
+      console.error("Failed to sync price with API");
+    }
   }
 
-  function handleAddSku(e: React.FormEvent) {
+  async function handleAddSku(e: React.FormEvent) {
     e.preventDefault();
     const parsedPrice = parseFloat(newPrice);
     const parsedLead = parseInt(newLeadTime, 10);
@@ -233,13 +216,27 @@ export function CatalogManager({
       status: "active",
     };
 
+    // Optimistic Update
     setCatalogSkus((prev) => [...prev, newSku]);
     setShowAddForm(false);
-
-    // clear fields
     setNewPartNo("");
     setNewName("");
     setNewPrice("");
+
+    try {
+      await apiClient.post("/api/catalog", newSku);
+    } catch(err) {
+      console.error("Failed to add new SKU via API");
+    }
+  }
+
+  function deleteSku(skuId: string) {
+    setCatalogSkus((prev) => prev.filter((s) => s.id !== skuId));
+    try {
+      apiClient.delete(`/api/catalog/${skuId}`);
+    } catch(err) {
+      console.error("Failed to delete SKU via API");
+    }
   }
 
   return (
@@ -287,10 +284,12 @@ export function CatalogManager({
             </span>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center items-center opacity-50 p-4 border border-dashed border-white/10 rounded-lg">
-             <Network className="w-8 h-8 text-indigo-500 mb-2" />
-             <p className="text-center text-gray-500 text-[10px]">Taxonomy node engine retired. Filtering operates via search.</p>
-          </div>
+          <CatalogTaxonomyTree 
+            expandedNodes={expandedNodes} 
+            toggleNode={toggleNode} 
+            selectPathFn={selectPathFn} 
+            selectedPath={selectedPath} 
+          />
         </div>
 
         {/* RIGHT COLUMN: INTERACTIVE SKU CARDS GRID */}
@@ -322,6 +321,7 @@ export function CatalogManager({
             startEditing={startEditing}
             savePrice={savePrice}
             setEditingSkuId={setEditingSkuId}
+            deleteSku={deleteSku}
             onClearFilters={() => {
               setSelectedPath({
                 vendor: "all",
@@ -364,42 +364,6 @@ export function CatalogManager({
         />
       )}
 
-      {/* Elegant Toast notification overlay */}
-      {toast && (
-        <div
-          className="fixed bottom-4 right-4 z-50 flex items-center gap-2.5 p-3.5 rounded-lg border shadow-xl animate-fadeIn text-[11px] font-medium leading-none"
-          style={{
-            backgroundColor:
-              toast.type === "success"
-                ? `${tokens.colors.status.success}1a` 
-                : toast.type === "warn"
-                  ? `${tokens.colors.status.warning}1a` 
-                  : `${tokens.colors.status.error}1a`, 
-            borderColor:
-              toast.type === "success"
-                ? tokens.colors.status.success 
-                : toast.type === "warn"
-                  ? tokens.colors.status.warning 
-                  : tokens.colors.status.error, 
-            color:
-              toast.type === "success"
-                ? tokens.colors.status.success 
-                : toast.type === "warn"
-                  ? tokens.colors.status.warning 
-                  : tokens.colors.status.error, 
-          }}
-        >
-          <Info className="w-4 h-4 shrink-0" />
-          <span className="text-white font-sans">{toast.message}</span>
-          <button
-            type="button"
-            onClick={() => setToast(null)}
-            className="ml-1 hover:text-white text-gray-500 font-bold cursor-pointer text-sm font-mono"
-          >
-            ×
-          </button>
-        </div>
-      )}
       </motion.div>
     </ErrorBoundary>
   );

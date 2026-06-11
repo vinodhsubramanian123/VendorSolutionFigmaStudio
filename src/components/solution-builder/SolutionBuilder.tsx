@@ -1,21 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from "motion/react";
 import { Hammer, Check, Loader2 } from 'lucide-react';
-import type { UCID, Solution, VendorSubmission } from '../../types';
+import type { UCID, Solution, VendorSubmission, AppView } from '../../types';
 import type { ConfigItem, UcidContainer } from '../../types/data';
 import { StepIntake } from './StepIntake';
 import { StepWorkspace } from './StepWorkspace';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { apiClient } from '../../services/apiClient';
 
 interface SolutionBuilderProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  onNavigate: (view: any) => void;
-  setDeployedSolution: React.Dispatch<React.SetStateAction<any>>;
+  onNavigate: (view: AppView) => void;
+  setDeployedSolution: React.Dispatch<React.SetStateAction<{ name: string; ucidCount: number; timestamp: number } | null>>;
   onSelectMission: (id: string) => void;
 }
 
-export function SolutionBuilder({
+export const SolutionBuilder = React.memo(function SolutionBuilder({
   ucids,
   setUcids,
   onNavigate,
@@ -28,79 +29,32 @@ export function SolutionBuilder({
   const [isMultiUcid, setIsMultiUcid] = useState(false);
 
   // Sourcing containers state
-  const [ucidsList, setUcidsList] = useState<UcidContainer[]>([
-    {
-      id: 'UCID-2026-1699',
-      name: 'Primary deployment',
-      reasoning: 'Selected HPE architecture to leverage pre-negotiated volume agreement.',
-      locked: false,
-      syncStatus: 'Synced'
-    }
-  ]);
+  const [ucidsList, setUcidsList] = useState<UcidContainer[]>([]);
 
   // Sourcing configurations from Sheet Parser
-  const [configs, setConfigs] = useState<ConfigItem[]>([
-    {
-      id: 'cfg-1',
-      name: 'Primary Compute Node - DL380',
-      targetUcidId: 'UCID-2026-1699',
-      vendor: "HPE",
-      totalPrice: 244800,
-      originalPrice: 261000,
-      items: [
-        { id: 'bi-1', partNumber: 'P40411-B21', name: 'HPE ProLiant DL380 Gen11 8SFF Chassis', type: 'Chassis', quantity: 24, unitPrice: 3400 },
-        { id: 'bi-2', partNumber: 'P40424-B21', name: 'Intel Xeon Gold 6430 32-Core CPU', type: 'Processor', quantity: 48, unitPrice: 2150 },
-        { id: 'bi-3', partNumber: 'P38454-B21', name: 'HPE 64GB Dual Rank DDR5-4800 Memory', type: 'Memory', quantity: 192, unitPrice: 580 },
-        { id: 'bi-4', partNumber: 'P40483-B21', name: 'HPE 3.84TB NVMe SSD SFF', type: 'Drive', quantity: 96, unitPrice: 1220 }
-      ]
-    },
-    {
-      id: 'cfg-2',
-      name: 'Database Core - PowerEdge',
-      targetUcidId: 'UCID-2026-1699',
-      vendor: "Dell",
-      totalPrice: 165200,
-      originalPrice: 179000,
-      items: [
-        { id: 'bi-15', partNumber: '210-BFXS', name: 'Dell PowerEdge R760 8SFF Chassis', type: 'Chassis', quantity: 16, unitPrice: 3250 },
-        { id: 'bi-16', partNumber: '338-CHYT', name: 'Intel Xeon Gold 6430 CPU Dell Equivalent', type: 'Processor', quantity: 32, unitPrice: 2190 },
-        { id: 'bi-17', partNumber: '370-AHFF', name: 'Dell 64GB RDIMM 4800MT/s RAM module', type: 'Memory', quantity: 128, unitPrice: 595 }
-      ]
-    },
-    {
-      id: 'cfg-3',
-      name: 'Edge Switch Overhaul',
-      targetUcidId: 'UCID-2026-1699',
-      vendor: 'Cisco',
-      totalPrice: 108000,
-      originalPrice: 115000,
-      items: [
-        { id: 'bi-20', partNumber: 'UCSC-C240-M7S', name: 'Cisco UCS C240 M7 Rack Server Chassis', type: 'Chassis', quantity: 12, unitPrice: 4100 },
-        { id: 'bi-21', partNumber: 'UCS-CPU-I6430', name: 'UCS Intel Xeon Gold 6430 32-Core CPU', type: 'Processor', quantity: 24, unitPrice: 2280 },
-        { id: 'bi-22', partNumber: 'UCS-MR-64G2ED-E', name: 'UCS 64GB DDR5 memory module RDIMM', type: 'Memory', quantity: 96, unitPrice: 610 }
-      ]
-    }
-  ]);
+  const [configs, setConfigs] = useState<ConfigItem[]>([]);
 
   const [selectedConfigId, setSelectedConfigId] = useState<string>('cfg-1');
   const [isIngested, setIsIngested] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Memoized calculations on configurations list for performance optimization
-  const { totalConfigPrice, totalOriginalConfigPrice, uniqueVendorsCount } = useMemo(() => {
-    let totalPriceSum = 0;
-    let originalPriceSum = 0;
-    const vendorsSet = new Set<string>();
-    configs.forEach(c => {
-      totalPriceSum += c.totalPrice;
-      originalPriceSum += c.originalPrice;
-      vendorsSet.add(c.vendor);
-    });
-    return {
-      totalConfigPrice: totalPriceSum,
-      totalOriginalConfigPrice: originalPriceSum,
-      uniqueVendorsCount: vendorsSet.size
-    };
-  }, [configs]);
+  useEffect(() => {
+    async function fetchInitialData() {
+      try {
+        const res = await apiClient.get<{ ucidsList: UcidContainer[], configs: ConfigItem[] }>("/api/solution-builder/init");
+        if (res.success && res.data) {
+          setUcidsList(res.data.ucidsList);
+          setConfigs(res.data.configs);
+        }
+      } catch (err) {
+        console.error("Failed to load initial solution builder mock data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchInitialData();
+  }, []);
+
 
   // Switch configs across UCID boxes
   const assignConfigToUcid = (configId: string, ucidId: string) => {
@@ -235,6 +189,15 @@ export function SolutionBuilder({
     onSelectMission(generatedUcids[0].id);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+        <p className="text-xs text-gray-500 font-mono">Loading builder mock data...</p>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <motion.div 
@@ -304,5 +267,5 @@ export function SolutionBuilder({
         )}
       </motion.div>
   </ErrorBoundary>
-);
-}
+  );
+});

@@ -1,9 +1,7 @@
 import React, { SelectHTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  // You can add custom props here if needed later
-}
+type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
 
 export const Select: React.FC<SelectProps & { wrapperClassName?: string }> = ({
   className = "",

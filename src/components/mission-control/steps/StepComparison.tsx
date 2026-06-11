@@ -29,7 +29,8 @@ export function StepComparison({
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {ucid.solutions[0]?.vendorSubmissions?.map((sol, solIdx) => {
-          const isActiveChoice = solIdx === 0;
+        const activeId = ucid.solutions[0]?.selectedVendorSubmissionId ?? ucid.solutions[0]?.vendorSubmissions?.[0]?.id;
+          const isActiveChoice = sol.id === activeId;
           return (
             <div
               key={sol.id}
@@ -91,28 +92,16 @@ export function StepComparison({
                   <button
                     type="button"
                     onClick={() => {
-                      if (!ucid.solutions[0]?.vendorSubmissions) return;
-                      const idx = ucid.solutions[0].vendorSubmissions.findIndex(
-                        (s) => s.id === sol.id,
+                      onUpdateSolutions([
+                        {
+                          ...ucid.solutions[0],
+                          selectedVendorSubmissionId: sol.id,
+                        },
+                      ]);
+                      appendLogEvent(
+                        "ok",
+                        `Set ${sol.vendor} submission as active sourcing winner.`,
                       );
-                      if (idx !== -1) {
-                        const reordered = [
-                          ...ucid.solutions[0].vendorSubmissions,
-                        ];
-                        const selectedSol = reordered[idx];
-                        reordered.splice(idx, 1);
-                        reordered.unshift(selectedSol);
-                        onUpdateSolutions([
-                          {
-                            ...ucid.solutions[0],
-                            vendorSubmissions: reordered,
-                          },
-                        ]);
-                        appendLogEvent(
-                          "ok",
-                          `Set ${sol.vendor} alternative to active choice.`,
-                        );
-                      }
                     }}
                     className="px-2.5 py-1 text-[9px] uppercase font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 rounded cursor-pointer transition"
                   >

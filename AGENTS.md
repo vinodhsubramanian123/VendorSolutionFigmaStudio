@@ -90,6 +90,10 @@ To prevent repeating historical regressions, strictly observe the following guid
 ### 3.5 High-volume Ingestion and Exporter Pipelines
 *   **Rule**: When downloading or compiling large PDF or spreadsheet lists, avoid dummy empty placeholders. Implement actual downloadable outputs (such as structured, neat CSV or formatted rich text files) using a clean, transient hidden `<a>` blob element to support client-only environments gracefully.
 
+### 3.6 Human-in-the-Loop (HITL) Semantic Boundaries & Guardrails
+*   **Issue**: Semantic rules added via natural language (Learning Loops) can easily bleed and corrupt unintended components if the schema doesn't lock the mapping level.
+*   **Solution**: All Intelligence Injectors must enforce **Strict Scoping Fallbacks**. Never parse a raw string directly to a universal taxonomy target. Always engage in a UI Clarification Loop to demand the exact scope (e.g., "Global Brand", "Specific Category Only", "Exact SKU Match Only") before pushing the rule into a Draft/Quarantine state for blast radius simulation.
+
 ---
 
 ## 4. Visual Regression Gate

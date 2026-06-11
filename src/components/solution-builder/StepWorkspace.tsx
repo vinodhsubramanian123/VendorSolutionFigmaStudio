@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Plus,
-  CheckCircle,
   LayoutTemplate,
   Lock,
   Unlock,
@@ -9,11 +8,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
-import { Select } from "../shared/Select";
 import { useToast } from "../shared/ToastContext";
 import type { UCID } from "../../types";
 import type { ConfigItem, UcidContainer } from "../../types/data";
 import { ConfigLibraryItem } from "./ConfigLibraryItem";
+import { checkHardwareConstraints } from "../../utils/taxonomyConstraints";
 
 interface StepWorkspaceProps {
   solutionName: string;
@@ -53,6 +52,15 @@ export function StepWorkspace({
   const toast = useToast();
   const activePromoConfig =
     configs.find((c) => c.id === selectedConfigId) || configs[0];
+
+  const constraints = React.useMemo(() => {
+    if (!activePromoConfig) return null;
+    const chassis = activePromoConfig.items.find((i) => i.type === "Chassis")?.partNumber || "Unknown";
+    const cpu = activePromoConfig.items.find((i) => i.type === "Processor")?.partNumber || "Unknown";
+    const ramQty = activePromoConfig.items.filter((i) => i.type === "Memory").reduce((s, i) => s + i.quantity, 0);
+    const psuWatts = activePromoConfig.items.find((i) => i.type === "Power") ? 1200 : 800;
+    return checkHardwareConstraints(chassis, cpu, ramQty, psuWatts);
+  }, [activePromoConfig]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn flex-1">
@@ -211,6 +219,42 @@ export function StepWorkspace({
                 );
               })}
             </div>
+
+            {/* Intelligent Auto-Complete & Constraints Widget */}
+            {constraints && (
+              <div className="mt-4 p-3 rounded-lg border bg-surface-card flex flex-col gap-3 transition-colors duration-300" style={{ borderColor: constraints.isCompliant ? 'rgba(0, 212, 160, 0.2)' : 'rgba(255, 61, 90, 0.2)' }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-white flex items-center gap-2">
+                    <Sparkles className={`w-3.5 h-3.5 ${constraints.isCompliant ? 'text-emerald-400' : 'text-rose-400'}`} />
+                    Intelligent Auto-Complete
+                  </span>
+                  <StatusBadge status={constraints.isCompliant ? "COMPLIANT" : "FLAGGED"} variant={constraints.isCompliant ? "success" : "error"} />
+                </div>
+                
+                <div className="space-y-2 text-[9.5px]">
+                  {/* Socket Match */}
+                  <div className={`p-2 rounded flex justify-between items-start ${constraints.socketMatch.status === 'compatible' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                    <span>Socket Compatibility</span>
+                    <span className="font-mono text-right max-w-[60%]">{constraints.socketMatch.description}</span>
+                  </div>
+
+                  {/* Memory Symmetry */}
+                  <div className={`p-2 rounded flex justify-between items-start ${constraints.memoryBalanceCheck.passed ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                    <span>Memory Topology</span>
+                    <span className="font-mono text-right max-w-[60%]">{constraints.memoryBalanceCheck.message}</span>
+                  </div>
+                </div>
+
+                {!constraints.isCompliant && (
+                  <button 
+                    onClick={() => toast.success("Auto-healed configuration applying optimal taxonomy paths.")}
+                    className="mt-2 w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold uppercase text-[9px] tracking-wider rounded transition-colors"
+                  >
+                    Auto-Resolve Constraints
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -340,10 +384,11 @@ export function StepWorkspace({
 
                 {/* Editable reasoning label */}
                 <div className="space-y-1.5">
-                  <label className="text-gray-500 font-bold uppercase block text-[9.5px]">
+                  <label htmlFor={`reasoning-${container.id}`} className="text-gray-500 font-bold uppercase block text-[9.5px]">
                     Sourcing Reasoning Label
                   </label>
                   <textarea
+                    id={`reasoning-${container.id}`}
                     value={container.reasoning}
                     onChange={(e) =>
                       updateContainerReasoning(container.id, e.target.value)

@@ -10,7 +10,14 @@ interface CatalogTrendAnalyzerProps {
   chartRef: React.RefObject<HTMLDivElement>;
 }
 
-export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnalyzerProps) {
+export const CatalogTrendAnalyzer = React.memo(function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnalyzerProps) {
+  const growthPercent = React.useMemo(() => {
+    if (CATALOG_TREND.length < 2) return 0;
+    const first = CATALOG_TREND[0].items;
+    const last = CATALOG_TREND[CATALOG_TREND.length - 1].items;
+    return Math.round(((last - first) / first) * 100);
+  }, []);
+
   return (
     <div
       className="lg:col-span-2 p-4 rounded-xl font-sans min-w-0"
@@ -30,9 +37,9 @@ export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnaly
         </div>
         <span
           className="flex items-center gap-1 text-xs px-2 py-1 rounded-full"
-          style={{ background: "rgba(0,212,160,0.1)", color: tokens.colors.status.success }} 
+          style={{ background: growthPercent >= 0 ? "rgba(0,212,160,0.1)" : "rgba(255,61,90,0.1)", color: growthPercent >= 0 ? tokens.colors.status.success : tokens.colors.status.error }} 
         >
-          <TrendingUp className="w-3 h-3" /> +59%
+          <TrendingUp className="w-3 h-3" /> {growthPercent >= 0 ? "+" : ""}{growthPercent}%
         </span>
       </div>
       <div
@@ -104,4 +111,4 @@ export function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnaly
       </div>
     </div>
   );
-}
+});

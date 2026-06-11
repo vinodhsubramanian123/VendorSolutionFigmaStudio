@@ -38,7 +38,8 @@ export interface Config {
   name: string; // E.g. "Primary Compute Node - DL380"
   totalPrice: number;
   originalPrice: number;
-  savings: number;
+  savings?: number;
+  vendor?: string;
   items: BOMItem[];
 }
 
@@ -62,6 +63,7 @@ export interface Solution {
   name: string; // E.g. "Core Spine Upgrade"
   targetUcidId: string;
   vendorSubmissions: VendorSubmission[]; // The alternatives
+  selectedVendorSubmissionId?: string; // ID of the actively chosen winner submission
 }
 
 /**
@@ -85,11 +87,11 @@ export interface Snapshot {
   winnerSolution: string; // The selected solution architecture (ID or Name)
   totalValue: number; // Absolute order layout cost (USD)
   notes: string; // Administrative notes or auditing justifications
-  payload?: any; // The configuration payload state at the time of the snapshot
+  payload?: Solution[]; // The configuration payload state at the time of the snapshot
   version: number; // Snapshot version number
   timestamp: string; // Real-time timestamp of creation
   locked: boolean; // Indicates if snapshot is locked
-  bomSnapshot?: any; // Full config BOM snapshot representing the reconciled state
+  bomSnapshot?: Config[]; // Full config BOM snapshot representing the reconciled state
 }
 
 /**
@@ -144,6 +146,11 @@ export interface Vendor {
   apiEndpoint: string; // Direct OAuth URL to supplier inventory system
   syncInterval: string; // Recurrence cron schedule/expression config
   lastSync: string; // Latest ingestion timestamp
+  credentials?: {
+    username: string;
+    passwordHash: string;
+    mfaToken: string;
+  };
 }
 
 /**
@@ -470,6 +477,42 @@ export interface SourcingRule {
   label: string;
   vendor: string;
   status: "active" | "draft";
+  // Learning loop metadata (optional for backwards compat with existing rules)
+  learnedAt?: string;        // ISO timestamp when this rule was auto-generated
+  sourceIssueId?: string;    // ForensicIssue ID that triggered this learning
+  isAutoLearned?: boolean;   // true = auto-heal generated, false = manual override
+  preventedMismatchCount?: number; // telemetry: how many times this rule intercepted a mismatch
+}
+
+/**
+ * Represents a single intelligence learning event — emitted whenever Auto-Heal
+ * fires, creating a transparent audit trail of what the system has learned.
+ */
+export interface LearningEvent {
+  id: string;                // Unique event UUID
+  timestamp: string;         // ISO-8601 when the learning was captured
+  sourceIssueId: string;     // The ForensicIssue that triggered the learning
+  ruleType: "substitution" | "price_cap" | "symmetry" | "api_gateway";
+  partNumber: string;        // The SKU or parameter that was learned about
+  action: string;            // Human-readable description of what was learned
+  confidenceScore: number;   // 0–100 confidence in this learned knowledge
+  vendor: string;            // Associated vendor brand
+  preventedMismatchCount: number; // Running counter of prevented mismatches
+}
+
+/**
+ * Represents a SKU-level error surfaced by a partner portal Playwright run.
+ * Used by the CLIC error resolution panel in the Vendor Portal.
+ */
+export interface PortalErrorItem {
+  id: string;
+  skuRef: string;            // The SKU that caused the error
+  errorType: "unbuildable" | "discontinued" | "not_found" | "constraint_violation";
+  errorMessage: string;      // Raw error message from the portal log
+  vendor: string;
+  suggestedAlternatePartNumber?: string; // Catalog lookup result
+  suggestedAlternateName?: string;
+  resolved: boolean;
 }
 
 export interface IngestRequest {
@@ -482,7 +525,7 @@ export interface IngestResponse {
   success: boolean;
   message: string;
   sourceFile: string;
-  ucid: string;
+  ucid: UCID;
   timestamp: string;
   parsedSummary: {
     vendorBrand: string;
@@ -490,7 +533,6 @@ export interface IngestResponse {
     itemsCount: number;
     initialConfidenceScore: number;
   };
-  solutions: any[]; // List of structured parallel alternative designs generated
 }
 
 export interface ReconciliationRequest {
@@ -528,6 +570,7 @@ export interface ReconciliationResponse {
     leadTimeBottleneckDays: number;
     deliveryConfidenceRating: number; // 0-100%
   }>;
+  discrepancyCount?: number; // Number of cost discrepancies found during reconciliation
 }
 
 export interface ConstraintCheckRequest {
@@ -613,7 +656,9 @@ export type AppView =
   | "solution-builder"
   | "reconciliation"
   | "search"
-  | "taxonomy-graph";
+  | "taxonomy-graph"
+  | "cleansing"
+  | "telemetry";
 
 export type UCIDStep =
   | "boq-intake"
@@ -642,6 +687,14 @@ export interface ConfigItem {
   items: BOMItem[];
 }
 
+export interface TaxonomyPath {
+  vendor: string;
+  solution: string;
+  product: string;
+  generation: string;
+  chassis: string;
+}
+
 export interface UcidContainer {
   id: string; // e.g. UCID-2026-1699
   name: string;
@@ -650,29 +703,7 @@ export interface UcidContainer {
   syncStatus?: "Pending" | "Synced" | "Out-of-Sync";
 }
 
-export interface TaxonomyGraphNode {
-  id: string;
-  type: "product" | "subproduct" | "category" | "subcategory" | "sku";
-  label: string;
-  sublabel?: string;
-  constraints?: string[];
-  dependencies?: string[];
-  x?: number;
-  y?: number;
-}
 
-export interface TaxonomyGraphEdge {
-  id: string;
-  from: string;
-  to: string;
-  type: "contains" | "requires" | "exclusive";
-}
-
-export interface TaxonomyGraphPayload {
-  nodes: TaxonomyGraphNode[];
-  edges: TaxonomyGraphEdge[];
-  unmappedIds: string[];
-}
 
 export type GraphMetadata = z.infer<typeof GraphMetadataSchema>;
 
@@ -718,10 +749,12 @@ export interface Toast {
   id: string;
   message: string;
   type: "success" | "warn" | "error";
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export interface ToastContextType {
-  toast: (message: string, type?: "success" | "warn" | "error") => void;
+  toast: (message: string, type?: "success" | "warn" | "error", actionLabel?: string, onAction?: () => void) => void;
   success: (message: string) => void;
   warn: (message: string) => void;
   error: (message: string) => void;
@@ -745,7 +778,7 @@ export interface Job {
     context: JobContext;
     parent_job_id?: string;
     child_jobs?: string[];
-    result?: Record<string, any>;
+    result?: Record<string, unknown>;
     error?: string;
 }
 
@@ -790,32 +823,22 @@ export interface VendorHealth {
     latency: number;
 }
 
+export interface ApiResponse<T> {
+  success: true;
+  data: T;
+  meta?: {
+    requestId: string;
+    timestamp: string;
+  };
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, string[]>;
+  };
+}
 
 

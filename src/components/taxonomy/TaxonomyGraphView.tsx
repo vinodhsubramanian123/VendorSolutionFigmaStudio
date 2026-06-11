@@ -1,228 +1,271 @@
-import React, { useState } from 'react';
-import { Share2, Network, RefreshCw, ZoomIn, Filter, CheckCircle2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { 
+  Network, 
+  RefreshCw, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw, 
+  Filter, 
+  AlertTriangle, 
+  Plus
+} from 'lucide-react';
 import { motion, AnimatePresence } from "motion/react";
+import { useCatalogGraphData } from "../../hooks/useCatalogGraphData";
+import type { Config, CatalogSKU, Vendor } from "../../types";
+import { TaxonomyGraphSidebar } from "./TaxonomyGraphSidebar";
+import { TaxonomyCategoryTree } from "./TaxonomyCategoryTree";
+import { TaxonomyOrphanBox } from "./TaxonomyOrphanBox";
+import { ErrorBoundary } from "../shared/ErrorBoundary";
 
-export function TaxonomyGraphView() {
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [nodesResolved, setNodesResolved] = useState(false);
-  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+const DEFAULT_CONFIGS = [{ id: "cfg-base", vendor: "HPE" } as Config];
+
+interface TaxonomyGraphViewProps {
+  catalogSkus: CatalogSKU[];
+  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
+  vendors: Vendor[];
+}
+
+export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: TaxonomyGraphViewProps) {
+  const { data, isLoading, mapNode, refresh } = useCatalogGraphData(
+    "cfg-base", 
+    DEFAULT_CONFIGS, 
+    catalogSkus
+  );
+
+  // States
   const [expandedNode, setExpandedNode] = useState<string | null>(null);
+  const [filterOrphansOnly, setFilterOrphansOnly] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  
+  const [activeTab, setActiveTab] = useState<"constraints" | "orphans">("constraints");
+  const [selectedOrphanToMap, setSelectedOrphanToMap] = useState<string | null>(null);
 
-  const handleSimulate = () => {
-    setIsSimulating(true);
-    setTimeout(() => {
-      setIsSimulating(false);
-      setNodesResolved(true);
-    }, 2000);
+  // Zoom & Pan functions
+  const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.8));
+  const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
+  const handleResetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest(".node-card") || (e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("select")) {
+      return;
+    }
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPan({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   const toggleNode = (nodeId: string) => {
     setExpandedNode(prev => prev === nodeId ? null : nodeId);
   };
 
+  // Filter lists of nodes
+  const rootNodes = useMemo(() => data.nodes.filter(n => n.type === "product"), [data.nodes]);
+  const categories = useMemo(() => data.nodes.filter(n => n.type === "category"), [data.nodes]);
+  const skus = useMemo(() => data.nodes.filter(n => n.type === "sku"), [data.nodes]);
+
+  // Chassis & Processor options for constraint validator dropdowns
+  const chassisOptions = useMemo(() => catalogSkus.filter(s => s.type === "Chassis" && s.status === "active"), [catalogSkus]);
+  const cpuOptions = useMemo(() => catalogSkus.filter(s => s.type === "Processor" && s.status === "active"), [catalogSkus]);
+
+
+
   return (
-    <motion.div 
-      className="flex flex-col gap-6 w-full h-full max-w-7xl mx-auto"
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
-    >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
-            <Network className="w-6 h-6 text-indigo-400" />
-            Taxonomy Graph & Cleansing Workshop
-          </h1>
-          <p className="text-sm text-gray-400">
-            Interactive visual validation of hardware hierarchy and socket compatibility.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-surface-header border border-white/5 rounded-lg text-sm text-gray-300 hover:text-white transition">
-            <Filter className="w-4 h-4" /> Filter Orphans
-          </button>
-          <button 
-            onClick={handleSimulate}
-            disabled={isSimulating}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 border border-indigo-400/30 rounded-lg text-sm font-bold text-white transition disabled:opacity-50"
-          >
-            {isSimulating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-            Auto-Repair Graph
-          </button>
-        </div>
-      </div>
+    <ErrorBoundary>
+      <div className="flex flex-col lg:flex-row gap-6 w-full h-full max-w-7xl mx-auto text-white">
+        {/* LEFT: Interactive Taxonomy Tree Graph Canvas */}
+      <div className="flex-1 flex flex-col gap-4">
+        {/* Header Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-surface-card border border-white/5 rounded-xl">
+          <div>
+            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+              <Network className="w-4 h-4 text-indigo-400" />
+              Taxonomy Graph Canvas
+            </h2>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              Drag to pan. Scroll or use buttons to zoom. Click nodes to inspect constraints.
+            </p>
+          </div>
 
-      {/* Main Canvas Area */}
-      <div className="flex-1 w-full bg-surface-card border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden min-h-[500px]">
-        {/* Background grid */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
-        
-        {/* Mock Graphic */}
-        <div className="z-10 text-center flex flex-col items-center">
-          <div className="relative mb-8">
-            {/* Server Node */}
-            <motion.div 
-              className={`w-32 h-16 rounded-lg flex items-center justify-center shadow-lg transition-all cursor-pointer relative z-20 ${expandedNode === 'base' ? 'bg-indigo-500/20 border-2 border-indigo-400 shadow-indigo-500/40' : 'bg-surface-elevated border-2 border-indigo-500/50 shadow-indigo-500/20'} mx-auto`}
-              onMouseEnter={() => setHoveredNode('base')}
-              onMouseLeave={() => setHoveredNode(null)}
-              onClick={() => toggleNode('base')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button 
+              onClick={() => setFilterOrphansOnly(!filterOrphansOnly)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all cursor-pointer ${filterOrphansOnly ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold' : 'bg-surface-elevated border-white/5 text-gray-400 hover:text-white'}`}
             >
-              <span className="font-mono text-xs font-bold text-indigo-300">Base Chassis</span>
-              
-              <AnimatePresence>
-                {hoveredNode === 'base' && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: -5 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black border border-white/20 shadow-xl text-white text-[10px] whitespace-nowrap px-3 py-1.5 rounded z-50 pointer-events-none"
-                  >
-                    HPE ProLiant DL380 Gen10
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <Filter className="w-3.5 h-3.5" />
+              <span>{filterOrphansOnly ? 'Showing Orphans' : 'Filter Orphans'}</span>
+            </button>
 
-              <AnimatePresence>
-                {expandedNode === 'base' && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="absolute top-16 left-1/2 -translate-x-1/2 mt-2 w-48 bg-surface-elevated border border-indigo-500/30 rounded-lg overflow-hidden text-left p-3 z-40 shadow-2xl cursor-default"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="text-[10px] text-indigo-300 font-bold mb-1 uppercase tracking-wider font-mono">Attributes</div>
-                    <ul className="text-[10px] text-gray-300 space-y-1">
-                      <li className="flex justify-between"><span>Form Factor:</span> <span className="text-white">2U Rack</span></li>
-                      <li className="flex justify-between"><span>Drive Bays:</span> <span className="text-white">8 SFF</span></li>
-                      <li className="flex justify-between"><span>Max Memory:</span> <span className="text-white">3.0 TB</span></li>
-                    </ul>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-            
-            {/* Edges */}
-            <div className="absolute top-16 left-1/2 w-[2px] h-8 bg-indigo-500/30 -translate-x-1/2" />
-            <div className="absolute top-20 left-1/2 w-48 h-[2px] bg-indigo-500/30 -translate-x-1/2" />
-            
-            <div className="absolute top-20 left-1/2 w-[2px] h-6 bg-indigo-500/30 -translate-x-24" />
-            <div className="absolute top-20 left-1/2 w-[2px] h-6 bg-indigo-500/30 translate-x-24" />
-
-            <div className="flex gap-16 justify-center mt-8">
-              {/* CPU Node */}
-              <motion.div 
-                className={`w-24 h-12 rounded flex items-center justify-center cursor-pointer relative transition-colors ${expandedNode === 'cpu' ? 'bg-indigo-500/20 border border-indigo-400' : 'bg-surface-header border border-white/10 hover:border-white/20'}`}
-                onMouseEnter={() => setHoveredNode('cpu')}
-                onMouseLeave={() => setHoveredNode(null)}
-                onClick={() => toggleNode('cpu')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="font-mono text-[10px] text-gray-400">Processor</span>
-                
-                <AnimatePresence>
-                  {hoveredNode === 'cpu' && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: -5 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black border border-white/20 text-white text-[10px] whitespace-nowrap px-3 py-1.5 rounded z-50 pointer-events-none shadow-xl"
-                    >
-                      Sockets: 2 • Intel Xeon
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {expandedNode === 'cpu' && (
-                     <motion.div 
-                       initial={{ opacity: 0, height: 0 }}
-                       animate={{ opacity: 1, height: 'auto' }}
-                       exit={{ opacity: 0, height: 0 }}
-                       className="absolute top-12 left-1/2 -translate-x-1/2 mt-2 w-48 bg-surface-elevated border border-white/10 rounded-lg overflow-hidden text-left p-3 z-40 shadow-2xl cursor-default"
-                       onClick={(e) => e.stopPropagation()}
-                     >
-                       <div className="text-[10px] text-gray-400 mb-2 uppercase tracking-wider font-mono">Compatible SKUs</div>
-                       <ul className="text-[10px] text-white space-y-2 font-mono">
-                         <li className="flex items-start gap-2 bg-black/20 p-1.5 rounded border border-white/5">
-                           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1 shrink-0" />
-                           <span>
-                             <span className="text-gray-300">P40424-B21</span>
-                             <span className="block text-[9px] text-gray-500 mt-0.5">Intel Xeon 4310 12-core</span>
-                           </span>
-                         </li>
-                       </ul>
-                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-              
-              {/* Orphans */}
-              <motion.div 
-                className={`w-28 h-12 flex items-center justify-center border-2 transition-all duration-700 rounded shadow-lg relative cursor-pointer ${nodesResolved ? "bg-emerald-500/10 border-emerald-500/50 shadow-emerald-500/20" : "bg-red-500/10 border-red-500/50 shadow-red-500/20"} ${expandedNode === 'ram' ? (nodesResolved ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-black' : 'ring-2 ring-red-400 ring-offset-2 ring-offset-black') : ''}`}
-                onMouseEnter={() => setHoveredNode('ram')}
-                onMouseLeave={() => setHoveredNode(null)}
-                onClick={() => toggleNode('ram')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className={`font-mono text-[10px] font-bold ${nodesResolved ? "text-emerald-400" : "text-red-400"}`}>
-                  {nodesResolved ? "Mapped: Memory" : "Orphan: RAMx8"}
-                </span>
-                {nodesResolved && <CheckCircle2 className="w-3 h-3 text-emerald-400 absolute -top-1 -right-1 bg-black rounded-full" />}
-
-                <AnimatePresence>
-                  {hoveredNode === 'ram' && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: -5 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black border border-white/20 text-white text-[10px] whitespace-nowrap px-3 py-1.5 rounded z-50 pointer-events-none shadow-xl"
-                    >
-                      {nodesResolved ? 'DIMM Slots: 24 • Validated' : 'Unrecognized parent relationship'}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {expandedNode === 'ram' && (
-                     <motion.div 
-                       initial={{ opacity: 0, height: 0 }}
-                       animate={{ opacity: 1, height: 'auto' }}
-                       exit={{ opacity: 0, height: 0 }}
-                       className="absolute top-12 left-1/2 -translate-x-1/2 mt-2 w-52 bg-surface-elevated border border-white/10 rounded-lg overflow-hidden text-left p-3 z-40 shadow-2xl cursor-default"
-                       onClick={(e) => e.stopPropagation()}
-                     >
-                       <div className="text-[10px] text-gray-400 mb-2 uppercase tracking-wider font-mono">Diagnostic Details</div>
-                       <div className="text-[10px] text-gray-300 bg-black/20 p-2 rounded border border-white/5 leading-relaxed">
-                         {nodesResolved ? 'Successfully mapped 8x 32GB RDIMM modules to the base chassis memory slots. Capacity constraints validated (Total: 256GB / 3.0TB Max).' : 'Failed to map P00924-B21. The SKU type does not match known memory taxonomy for this chassis. Manual review required.'}
-                       </div>
-                     </motion.div>
-                  )}
-                </AnimatePresence>
-
-              </motion.div>
-            </div>
-          </div>
-          
-          <div className="bg-black/50 backdrop-blur px-6 py-4 rounded-xl border border-white/5 inline-block text-left">
-            <h3 className="text-sm font-bold text-white mb-2">Knowledge Graph Linkages</h3>
-            <ul className="text-xs text-gray-400 space-y-1">
-              <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-indigo-500"></span> Validated hardware relationships</li>
-              <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Auto-resolved socket constraints</li>
-              <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500"></span> Detected 1 unmapped variant constraint</li>
-            </ul>
+            <button 
+              onClick={() => refresh()}
+              disabled={isLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-xs font-bold rounded-lg border border-indigo-400/20 transition cursor-pointer text-white"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh Topology</span>
+            </button>
           </div>
         </div>
 
-        {/* Tools floating */}
-        <div className="absolute bottom-6 right-6 flex items-center gap-2 bg-surface-header border border-white/10 p-1 rounded-lg shadow-2xl">
-          <button className="p-2 hover:bg-white/5 rounded transition focus:outline-none"><ZoomIn className="w-4 h-4 text-gray-400" /></button>
+        {/* Viewport Canvas Container */}
+        <div 
+          role="presentation"
+          className="relative flex-1 w-full bg-surface-card border border-indigo-500/10 rounded-xl overflow-hidden min-h-[560px] select-none cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          {/* Subtle Grid Background */}
+          <div 
+            className="absolute inset-0 opacity-[0.03]" 
+            style={{ 
+              backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", 
+              backgroundSize: "24px 24px" 
+            }} 
+          />
+
+          {/* Floating Zoom & Position Controls */}
+          <div className="absolute top-4 left-4 z-30 flex items-center gap-1 bg-black/60 border border-white/10 rounded-lg p-1">
+            <button 
+              onClick={handleZoomIn} 
+              className="p-1.5 hover:bg-white/10 text-gray-400 hover:text-white rounded transition cursor-pointer border-0" 
+              title="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={handleZoomOut} 
+              className="p-1.5 hover:bg-white/10 text-gray-400 hover:text-white rounded transition cursor-pointer border-0" 
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+            <button 
+              onClick={handleResetZoom} 
+              className="p-1.5 hover:bg-white/10 text-gray-400 hover:text-white rounded transition text-[10px] font-mono font-bold cursor-pointer border-0" 
+              title="Reset View"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[9px] font-mono text-gray-400 px-1">{Math.round(zoom * 100)}%</span>
+          </div>
+
+          {/* Transforming Graph Node Content */}
+          <div 
+            className="absolute inset-0 flex flex-col items-center justify-start p-16 transition-transform duration-75 ease-out origin-top-left"
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              width: "100%",
+              height: "100%"
+            }}
+          >
+            {isLoading ? (
+              <div className="m-auto flex flex-col items-center gap-3">
+                <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
+                <span className="text-xs font-mono text-indigo-300">Synchronizing Sourcing Tree...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-16 min-w-max p-12">
+                {/* Level 1: System Base configuration */}
+                <div className="flex justify-center">
+                  {rootNodes.map(node => (
+                    <motion.div 
+                      key={node.id}
+                      onClick={() => toggleNode(node.id)}
+                      className={`node-card p-4 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all shadow-lg w-56 bg-surface-elevated/90 relative ${
+                        expandedNode === node.id ? 'border-indigo-400 shadow-indigo-500/20 shadow-md scale-105' : 'border-indigo-500/30'
+                      }`}
+                      whileHover={{ y: -2 }}
+                    >
+                      <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase tracking-widest mb-1">Target Engine Base</span>
+                      <span className="text-xs font-bold text-white font-mono">{node.label}</span>
+                      <span className="text-[9px] text-gray-400 mt-1 max-w-[190px] truncate">{node.sublabel}</span>
+                      
+                      <AnimatePresence>
+                        {expandedNode === node.id && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute top-24 w-60 bg-black/95 border border-indigo-500/30 rounded-xl p-3 text-left shadow-2xl z-40"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <span className="text-[9px] font-bold text-indigo-300 block mb-1.5 uppercase font-mono">Structural Rules</span>
+                            <div className="space-y-1 text-[9px] text-gray-300">
+                              {node.constraints?.map((c, idx) => (
+                                <div key={idx} className="flex items-start gap-1">
+                                  <span className="text-indigo-400 font-bold">•</span>
+                                  <span>{c}</span>
+                                </div>
+                              )) || <div>No specific base rules.</div>}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Vertical Connector lines */}
+                {rootNodes.length > 0 && categories.length > 0 && (
+                  <div className="w-[1.5px] h-10 bg-indigo-500/20 -mt-16 z-0" />
+                )}                {/* Level 2 & 3: Category Nodes with children items grouped underneath */}
+                <TaxonomyCategoryTree
+                  categories={categories}
+                  skus={skus}
+                  data={data}
+                  filterOrphansOnly={filterOrphansOnly}
+                  expandedNode={expandedNode}
+                  toggleNode={toggleNode}
+                />
+
+                {/* Orphaned Box at bottom if not filtered out */}
+                <TaxonomyOrphanBox
+                  data={data}
+                  skus={skus}
+                  filterOrphansOnly={filterOrphansOnly}
+                  setSelectedOrphanToMap={setSelectedOrphanToMap}
+                  setActiveTab={setActiveTab}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </motion.div>
+
+      {/* RIGHT: Mechanical Validation & Orphan Repair Workshop */}
+      <TaxonomyGraphSidebar
+        catalogSkus={catalogSkus}
+        setCatalogSkus={setCatalogSkus}
+        data={data}
+        categories={categories}
+        mapNode={mapNode}
+        chassisOptions={chassisOptions}
+        cpuOptions={cpuOptions}
+        selectedOrphanToMap={selectedOrphanToMap}
+        setSelectedOrphanToMap={setSelectedOrphanToMap}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+    </div>
+    </ErrorBoundary>
   );
 }

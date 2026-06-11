@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { StatusBadge } from "./StatusBadge";
 import { Copy } from "lucide-react";
 import type { CatalogSKU } from "../../types";
-import { tokens } from "../../styles/tokens";
 
 interface SKUCardProps {
   sku: CatalogSKU;
@@ -22,6 +21,9 @@ export const SKUCard: React.FC<SKUCardProps> = ({
 
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(e) => { if (e.key === "Enter" && onClick) onClick(); }}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -41,7 +43,7 @@ export const SKUCard: React.FC<SKUCardProps> = ({
         {sku.name}
       </h4>
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-        <div className="text-[11px] font-mono text-content-muted flex items-center gap-1.5 cursor-pointer hover:text-white transition" onClick={(e) => {
+        <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" && onCopy) onCopy(sku.partNumber); }} className="text-[11px] font-mono text-content-muted flex items-center gap-1.5 cursor-pointer hover:text-white transition" onClick={(e) => {
           e.stopPropagation();
           onCopy?.(sku.partNumber);
         }}>

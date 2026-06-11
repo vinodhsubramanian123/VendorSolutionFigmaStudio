@@ -14,9 +14,12 @@ import { IngestionHub } from "./components/ingestion/IngestionHub";
 import { SearchView } from "./components/search/SearchView";
 import { ReconciliationView } from "./components/reconciliation/ReconciliationView";
 import { TaxonomyGraphView } from "./components/taxonomy/TaxonomyGraphView";
+import { CleansingView } from "./components/cleansing/CleansingView";
+import { SystemTelemetry } from "./components/telemetry/SystemTelemetry";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { DataPersistenceGate } from "./components/shared/DataPersistenceGate";
 import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
+import { GlobalApiErrorListener } from "./components/shared/GlobalApiErrorListener";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import type { AppView } from "./types";
 
@@ -27,6 +30,7 @@ import {
   CATALOG_SKUS as INITIAL_SKUS,
   FORENSIC_ISSUES as INITIAL_ISSUES,
 } from "./lib/mockData";
+import type { Config } from "./types";
 
 export default function App() {
   const [view, setView] = useLocalStorageState<AppView>(
@@ -66,7 +70,7 @@ export default function App() {
         const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
         const fallbackLocked = s.locked ?? true;
         
-        let fallbackBom: any[] = s.bomSnapshot;
+        let fallbackBom: Config[] = s.bomSnapshot as Config[];
         if (!fallbackBom) {
           if (s.payload && Array.isArray(s.payload)) {
             fallbackBom = s.payload[0]?.vendorSubmissions?.[0]?.configs || [];
@@ -279,6 +283,7 @@ export default function App() {
               setUcids={setUcids}
               deployedSolution={deployedSolution}
               setDeployedSolution={setDeployedSolution}
+              onNavigate={setView}
             />
           </ErrorBoundary>
         );
@@ -300,6 +305,7 @@ export default function App() {
               setVendors={setVendors}
               ucids={ucids}
               setUcids={setUcids}
+              catalogSkus={catalogSkus}
             />
           </ErrorBoundary>
         );
@@ -347,7 +353,23 @@ export default function App() {
       case "taxonomy-graph":
         return (
           <ErrorBoundary>
-            <TaxonomyGraphView />
+            <TaxonomyGraphView
+              catalogSkus={catalogSkus}
+              setCatalogSkus={setCatalogSkus}
+              vendors={vendors}
+            />
+          </ErrorBoundary>
+        );
+      case "cleansing":
+        return (
+          <ErrorBoundary>
+            <CleansingView catalogSkus={catalogSkus} />
+          </ErrorBoundary>
+        );
+      case "telemetry":
+        return (
+          <ErrorBoundary>
+            <SystemTelemetry />
           </ErrorBoundary>
         );
       case "search":
@@ -379,10 +401,12 @@ export default function App() {
   }
 
   return (
-    <div
-      className="flex h-screen overflow-hidden text-content-primary font-sans antialiased relative"
-      style={{ backgroundColor: tokens.colors.background.appHeader }} 
-    >
+    <>
+      <GlobalApiErrorListener />
+      <div
+        className="flex h-screen overflow-hidden text-content-primary font-sans antialiased relative"
+        style={{ backgroundColor: tokens.colors.background.appHeader }} 
+      >
       <Sidebar
         activeView={view}
         onNavigate={(newView) => {
@@ -447,5 +471,6 @@ export default function App() {
         </main>
       </div>
     </div>
+  </>
   );
 }

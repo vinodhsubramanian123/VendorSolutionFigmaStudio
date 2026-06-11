@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { tokens } from "../../styles/tokens";
 import {
   LayoutDashboard,
@@ -19,9 +20,10 @@ import {
   Activity,
   Book,
   Search,
+  Scissors,
+  Radio,
 } from "lucide-react";
-import { AppView } from "../../types";
-import { UCID } from "../../types";
+import { AppView, UCID, Vendor, ForensicIssue } from "../../types";
 
 interface SidebarProps {
   activeView: AppView;
@@ -31,8 +33,8 @@ interface SidebarProps {
   activeMissionId?: string;
   onSelectMission: (id: string) => void;
   ucids: UCID[];
-  vendors: any[];
-  forensicIssues: any[];
+  vendors: Vendor[];
+  forensicIssues: ForensicIssue[];
 }
 
 export function Sidebar({
@@ -46,13 +48,13 @@ export function Sidebar({
   vendors,
   forensicIssues,
 }: SidebarProps) {
-  const activeUCIDs = ucids.filter((u) => u.currentStep !== "snapshot");
-  const openIssues = forensicIssues.filter(
+  const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
+  const openIssues = useMemo(() => forensicIssues.filter(
     (f) => f.status !== "resolved",
-  ).length;
-  const connectedVendors = vendors.filter(
+  ).length, [forensicIssues]);
+  const connectedVendors = useMemo(() => vendors.filter(
     (v) => v.status === "connected" || v.status === "syncing",
-  ).length;
+  ).length, [vendors]);
 
   const navItems = [
     { view: "dashboard" as AppView, label: "Dashboard", icon: LayoutDashboard },
@@ -113,6 +115,18 @@ export function Sidebar({
       label: "Taxonomy Graph Editor",
       icon: Network,
       iconColor: tokens.colors.accent.indigo,
+    },
+    {
+      view: "cleansing" as AppView,
+      label: "Cleansing Workshop",
+      icon: Scissors,
+      iconColor: tokens.colors.accent.emerald,
+    },
+    {
+      view: "telemetry" as AppView,
+      label: "System Telemetry",
+      icon: Radio,
+      iconColor: tokens.colors.accent.violet,
     },
   ];
 

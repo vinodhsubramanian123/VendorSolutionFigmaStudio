@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ReconciliationEmpty } from "./ReconciliationEmpty";
 import { ReconciliationOverview } from "./ReconciliationOverview";
@@ -88,26 +88,45 @@ export function ReconciliationView({
         </div>
       </div>
 
-      {!selectedConfigSheet ? (
-        <ReconciliationOverview 
-          setHasDrift={setHasDrift} 
-          setSelectedConfigSheet={setSelectedConfigSheet} 
-          ucids={ucids}
-          setUcids={setUcids}
-          catalogSkus={catalogSkus}
-        />
-      ) : (
-        <ReconciliationDrillDown
-          selectedConfigSheet={selectedConfigSheet}
-          setSelectedConfigSheet={setSelectedConfigSheet}
-          ucids={ucids}
-          setUcids={setUcids}
-          catalogSkus={catalogSkus}
-          forensicIssues={forensicIssues}
-          setForensicIssues={setForensicIssues}
-          setVendors={setVendors}
-        />
-      )}
+      <ReconciliationOverview 
+        setHasDrift={setHasDrift} 
+        setSelectedConfigSheet={setSelectedConfigSheet} 
+        ucids={ucids}
+        setUcids={setUcids}
+        catalogSkus={catalogSkus}
+      />
+
+      <AnimatePresence>
+        {selectedConfigSheet && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              onClick={() => setSelectedConfigSheet(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-0 z-50 w-full h-full bg-surface-base shadow-2xl overflow-y-auto"
+            >
+              <ReconciliationDrillDown
+                selectedConfigSheet={selectedConfigSheet}
+                setSelectedConfigSheet={setSelectedConfigSheet}
+                ucids={ucids}
+                setUcids={setUcids}
+                catalogSkus={catalogSkus}
+                forensicIssues={forensicIssues}
+                setForensicIssues={setForensicIssues}
+                setVendors={setVendors}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <SnapshotsPanel
         isOpen={isSnapshotPanelOpen}

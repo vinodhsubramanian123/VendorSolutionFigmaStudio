@@ -1,10 +1,70 @@
-import { CatalogSKU, Config } from "../types";
-import { TaxonomyGraphNode, TaxonomyGraphEdge, TaxonomyGraphPayload } from "../types/data";
+import { CatalogSKU, Config, Snapshot } from "../types";
+import { GraphNode, GraphEdge, GraphAPIResponse } from "../types/data";
 
 // Simulated backend store for rules and manual links
 const serverState = {
   customRules: {} as Record<string, {type: "requires"|"exclusive", note: string}[]>,
-  manualLinks: [] as {childId: string, parentId: string, childInfo: any}[]
+  manualLinks: [] as {childId: string, parentId: string, childInfo: { partNumber: string; name: string }}[],
+  catalog: [] as CatalogSKU[],
+  snapshots: [] as Snapshot[]
+};
+
+// Seed catalog
+serverState.catalog = [
+  {
+    id: "sku-seed-1",
+    vendor: "HPE",
+    partNumber: "P40411-B21",
+    name: "HPE ProLiant DL380 Gen11 8SFF Chassis",
+    type: "Chassis",
+    price: 3400,
+    leadTimeDays: 14,
+    status: "active"
+  },
+  {
+    id: "sku-seed-2",
+    vendor: "Intel",
+    partNumber: "P40424-B21",
+    name: "Intel Xeon Gold 6430 32-Core CPU",
+    type: "Processor",
+    price: 2150,
+    leadTimeDays: 7,
+    status: "active"
+  }
+];
+
+export const MockCatalogApi = {
+  getCatalog: async (): Promise<CatalogSKU[]> => {
+    return [...serverState.catalog];
+  },
+  addCatalogSku: async (sku: CatalogSKU): Promise<CatalogSKU> => {
+    serverState.catalog.push(sku);
+    return sku;
+  },
+  updateCatalogSku: async (id: string, updates: Partial<CatalogSKU>): Promise<CatalogSKU> => {
+    const idx = serverState.catalog.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      serverState.catalog[idx] = { ...serverState.catalog[idx], ...updates };
+      return serverState.catalog[idx];
+    }
+    throw new Error("SKU not found");
+  },
+  deleteCatalogSku: async (id: string): Promise<void> => {
+    serverState.catalog = serverState.catalog.filter(c => c.id !== id);
+  }
+};
+
+export const MockSnapshotApi = {
+  getSnapshots: async (): Promise<Snapshot[]> => {
+    return [...serverState.snapshots];
+  },
+  addSnapshot: async (snapshot: Snapshot): Promise<Snapshot> => {
+    serverState.snapshots.push(snapshot);
+    return snapshot;
+  },
+  deleteSnapshot: async (id: string): Promise<void> => {
+    serverState.snapshots = serverState.snapshots.filter(s => s.id !== id);
+  }
 };
 
 export const MockTaxonomyApi = {
@@ -13,11 +73,11 @@ export const MockTaxonomyApi = {
     config: Config,
     allSkus: CatalogSKU[],
     vendor?: string
-  ): Promise<TaxonomyGraphPayload> => {
+  ): Promise<GraphAPIResponse> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const nodes: TaxonomyGraphNode[] = [];
-        const edges: TaxonomyGraphEdge[] = [];
+        const nodes: GraphNode[] = [];
+        const edges: GraphEdge[] = [];
         const unmappedIds: string[] = [];
 
         // Realistic Sample Data for demonstration
@@ -65,7 +125,7 @@ export const MockTaxonomyApi = {
             label: `${cat} Subsystem`,
             sublabel: "Functional Group",
           });
-          edges.push({ id: `e-${prodId}-${catId}`, from: prodId, to: catId, type: "contains" });
+          edges.push({ id: `e-${prodId}-${catId}`, source: prodId, target: catId, relationship: "contains" });
 
           // Map items into this category
           const items = sampleBoqItems.filter(i => i.type === cat);
@@ -81,7 +141,7 @@ export const MockTaxonomyApi = {
               constraints: [`Component of ${cat}`, ...overrides],
               dependencies: ["System Integrity"]
             });
-            edges.push({ id: `e-${catId}-${item.partNumber}`, from: catId, to: item.partNumber, type: "requires" });
+            edges.push({ id: `e-${catId}-${item.partNumber}`, source: catId, target: item.partNumber, relationship: "requires" });
           });
         });
 
@@ -101,9 +161,9 @@ export const MockTaxonomyApi = {
           if (!edges.find(e => e.id === `e-${link.parentId}-${link.childId}`)) {
             edges.push({
               id: `e-${link.parentId}-${link.childId}`,
-              from: link.parentId,
-              to: link.childId,
-              type: "contains"
+              source: link.parentId,
+              target: link.childId,
+              relationship: "contains"
             });
           }
         });
@@ -118,7 +178,7 @@ export const MockTaxonomyApi = {
   },
 
   // CRUD endpoints for manual operations
-  mapOrphanNode: async (payload: { childId: string, parentId: string, childInfo: any }) => {
+  mapOrphanNode: async (payload: { childId: string, parentId: string, childInfo: { partNumber: string; name: string } }) => {
     return new Promise((resolve) => {
       setTimeout(() => {
         serverState.manualLinks.push(payload);
@@ -145,6 +205,68 @@ export const MockTaxonomyApi = {
         serverState.customRules[nodeId].push({ type, note });
         resolve({ success: true });
       }, 300);
+    });
+  }
+};
+
+export const MockSolutionApi = {
+  getSolutionBuilderInit: async () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          ucidsList: [
+            {
+              id: 'UCID-2026-1699',
+              name: 'Primary deployment',
+              reasoning: 'Selected HPE architecture to leverage pre-negotiated volume agreement.',
+              locked: false,
+              syncStatus: 'Synced'
+            }
+          ],
+          configs: [
+            {
+              id: 'cfg-1',
+              name: 'Primary Compute Node - DL380',
+              targetUcidId: 'UCID-2026-1699',
+              vendor: "HPE",
+              totalPrice: 244800,
+              originalPrice: 261000,
+              items: [
+                { id: 'bi-1', partNumber: 'P40411-B21', name: 'HPE ProLiant DL380 Gen11 8SFF Chassis', type: 'Chassis', quantity: 24, unitPrice: 3400 },
+                { id: 'bi-2', partNumber: 'P40424-B21', name: 'Intel Xeon Gold 6430 32-Core CPU', type: 'Processor', quantity: 48, unitPrice: 2150 },
+                { id: 'bi-3', partNumber: 'P38454-B21', name: 'HPE 64GB Dual Rank DDR5-4800 Memory', type: 'Memory', quantity: 192, unitPrice: 580 },
+                { id: 'bi-4', partNumber: 'P40483-B21', name: 'HPE 3.84TB NVMe SSD SFF', type: 'Drive', quantity: 96, unitPrice: 1220 }
+              ]
+            },
+            {
+              id: 'cfg-2',
+              name: 'Database Core - PowerEdge',
+              targetUcidId: 'UCID-2026-1699',
+              vendor: "Dell",
+              totalPrice: 165200,
+              originalPrice: 179000,
+              items: [
+                { id: 'bi-15', partNumber: '210-BFXS', name: 'Dell PowerEdge R760 8SFF Chassis', type: 'Chassis', quantity: 16, unitPrice: 3250 },
+                { id: 'bi-16', partNumber: '338-CHYT', name: 'Intel Xeon Gold 6430 CPU Dell Equivalent', type: 'Processor', quantity: 32, unitPrice: 2190 },
+                { id: 'bi-17', partNumber: '370-AHFF', name: 'Dell 64GB RDIMM 4800MT/s RAM module', type: 'Memory', quantity: 128, unitPrice: 595 }
+              ]
+            },
+            {
+              id: 'cfg-3',
+              name: 'Edge Switch Overhaul',
+              targetUcidId: 'UCID-2026-1699',
+              vendor: 'Cisco',
+              totalPrice: 108000,
+              originalPrice: 115000,
+              items: [
+                { id: 'bi-20', partNumber: 'UCSC-C240-M7S', name: 'Cisco UCS C240 M7 Rack Server Chassis', type: 'Chassis', quantity: 12, unitPrice: 4100 },
+                { id: 'bi-21', partNumber: 'UCS-CPU-I6430', name: 'UCS Intel Xeon Gold 6430 32-Core CPU', type: 'Processor', quantity: 24, unitPrice: 2280 },
+                { id: 'bi-22', partNumber: 'UCS-MR-64G2ED-E', name: 'UCS 64GB DDR5 memory module RDIMM', type: 'Memory', quantity: 96, unitPrice: 610 }
+              ]
+            }
+          ]
+        });
+      }, 500);
     });
   }
 };

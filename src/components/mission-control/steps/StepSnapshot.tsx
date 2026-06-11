@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CheckCircle, FileSpreadsheet, Download, Eye, Layers, ChevronDown, ChevronRight } from "lucide-react";
 import * as XLSX from "xlsx";
 import { motion, AnimatePresence } from "motion/react";
-import type { UCID, Snapshot } from "../../../types";
+import type { UCID, Snapshot, Solution, VendorSubmission, Config, BOMItem } from "../../../types";
 import { StatusBadge } from "../../shared/StatusBadge";
 
 interface StepSnapshotProps {
@@ -45,7 +45,7 @@ export function StepSnapshot({
               key={snap.id}
               className="text-[11px] space-y-1 bg-black/30 rounded-lg border border-white/5 overflow-hidden"
             >
-              <div 
+              <div
                 className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
                 onClick={() => toggleSnapshot(snap.id)}
               >
@@ -97,11 +97,52 @@ export function StepSnapshot({
                       </h4>
                     </div>
 
-                    {snap.payload && Array.isArray(snap.payload) && snap.payload.length > 0 ? (
+                    {/* bomSnapshot (current schema) — array of Config */}
+                    {snap.bomSnapshot && Array.isArray(snap.bomSnapshot) && snap.bomSnapshot.length > 0 ? (
                       <div className="space-y-3">
-                        {snap.payload.map((sol: any, solIdx: number) => (
+                        {snap.bomSnapshot.map((cfg: import('../../../types').Config, cfgIdx: number) => (
+                          <div key={cfg.id || cfgIdx} className="bg-surface-elevated border border-white/10 rounded-lg p-3">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-indigo-300 font-bold font-mono text-[10px]">{cfg.name || cfg.vendor || `Config ${cfgIdx + 1}`}</span>
+                              <span className="text-gray-400 font-mono text-[9px]">Value: ${(cfg.totalPrice || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-white/10 text-[9px] text-gray-500 uppercase font-mono">
+                                    <th className="py-1 px-2 font-normal">Part Number</th>
+                                    <th className="py-1 px-2 font-normal">Type</th>
+                                    <th className="py-1 px-2 font-normal">Description</th>
+                                    <th className="py-1 px-2 font-normal text-center">Qty</th>
+                                    <th className="py-1 px-2 font-normal text-right">Unit Price</th>
+                                    <th className="py-1 px-2 font-normal text-right">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                  {cfg.items?.map((item: import('../../../types').BOMItem, itIdx: number) => (
+                                    <tr key={item.id || itIdx} className="hover:bg-white/5 text-[10px] text-gray-300 transition-colors">
+                                      <td className="py-1.5 px-2 font-mono text-indigo-200">{item.partNumber}</td>
+                                      <td className="py-1.5 px-2 text-gray-400">{item.type}</td>
+                                      <td className="py-1.5 px-2 truncate max-w-[200px]" title={item.name}>{item.name}</td>
+                                      <td className="py-1.5 px-2 text-center font-mono">{item.quantity}</td>
+                                      <td className="py-1.5 px-2 text-right font-mono">${(item.unitPrice || 0).toLocaleString()}</td>
+                                      <td className="py-1.5 px-2 text-right font-mono">${((item.quantity || 0) * (item.unitPrice || 0)).toLocaleString()}</td>
+                                    </tr>
+                                  ))}
+                                  {(!cfg.items || cfg.items.length === 0) && (
+                                    <tr><td colSpan={6} className="py-4 text-center text-gray-500 text-[10px] italic">No items found in this config.</td></tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : snap.payload && Array.isArray(snap.payload) && snap.payload.length > 0 ? (
+                      <div className="space-y-3">
+                        {snap.payload.map((sol: Solution, solIdx: number) => (
                           <div key={sol.id || solIdx} className="space-y-2">
-                            {sol.vendorSubmissions?.map((vs: any, vsIdx: number) => (
+                            {sol.vendorSubmissions?.map((vs: VendorSubmission, vsIdx: number) => (
                               <div key={vs.id || vsIdx} className="bg-surface-elevated border border-white/10 rounded-lg p-3">
                                 <div className="flex justify-between items-center mb-2">
                                   <span className="text-indigo-300 font-bold font-mono text-[10px]">{vs.vendor} Configuration</span>
@@ -120,7 +161,7 @@ export function StepSnapshot({
                                       </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                      {vs.configs?.flatMap((c: any) => c.items)?.map((item: any, itIdx: number) => (
+                                      {vs.configs?.flatMap((c: Config) => c.items)?.map((item: BOMItem, itIdx: number) => (
                                         <tr key={item.id || itIdx} className="hover:bg-white/5 text-[10px] text-gray-300 transition-colors">
                                           <td className="py-1.5 px-2 font-mono text-indigo-200">{item.partNumber}</td>
                                           <td className="py-1.5 px-2 text-gray-400">{item.type}</td>
@@ -166,7 +207,7 @@ export function StepSnapshot({
               "success",
             );
             try {
-              const rows: any[] = [];
+              const rows: Record<string, unknown>[] = [];
 
               // Map active solutions and nested items into structured worksheet rows
               if (
@@ -226,9 +267,10 @@ export function StepSnapshot({
                 "Excel BOM spreadsheet successfully compiled and downloaded!",
                 "success",
               );
-            } catch (e: any) {
+            } catch (e: unknown) {
+              const errorObj = e as { message?: string };
               onShowToast(
-                `Failed to parse workbook layout: ${e.message}`,
+                `Failed to parse workbook layout: ${errorObj.message}`,
                 "error",
               );
             }
@@ -242,7 +284,7 @@ export function StepSnapshot({
           type="button"
           onClick={() => {
             onShowToast(
-              "Compiling and packaging high-fidelity PDF/HTML Proposal document...",
+              "Compiling and packaging text Proposal document...",
               "success",
             );
             try {
@@ -291,11 +333,11 @@ export function StepSnapshot({
                 `2. INTEGRITY VERIFICATION LOG & AUDIT EVENTS:\n\n` +
                 (ucid.events && ucid.events.length > 0
                   ? ucid.events
-                      .map(
-                        (ev) =>
-                          `[${ev.ts}] [${ev.level.toUpperCase()}] ${ev.msg}`,
-                      )
-                      .join("\n")
+                    .map(
+                      (ev) =>
+                        `[${ev.ts}] [${ev.level.toUpperCase()}] ${ev.msg}`,
+                    )
+                    .join("\n")
                   : "No events logged in the audit database.") +
                 "\n\n" +
                 `========================================================================\n` +
@@ -321,17 +363,17 @@ export function StepSnapshot({
                 "Proposal document compiled and downloaded successfully!",
                 "success",
               );
-            } catch (err: any) {
+            } catch (err: unknown) {
+              const errorObj = err as { message?: string };
               onShowToast(
-                `Failed to generate document: ${err.message}`,
+                `Failed to generate document: ${errorObj.message}`,
                 "error",
               );
             }
           }}
           className="flex items-center gap-1 text-xs px-3 py-2 bg-surface-card text-gray-300 hover:text-white rounded border border-white/5 cursor-pointer font-bold"
         >
-          <Download className="w-3.5 h-3.5 text-brand-indigo" /> Download PDF
-          Proposal
+          <Download className="w-3.5 h-3.5 text-brand-indigo" /> Download Proposal (TXT)
         </button>
       </div>
     </div>

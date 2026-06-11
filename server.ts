@@ -190,11 +190,52 @@ async function startServer() {
       ];
     }
 
+    // Build a full UCID object as required by the IngestResponse contract
+    const ucidId = "ucid_api_session_uuid_" + Date.now().toString(16);
+    const displayId = "UCID-2026-" + (1700 + Math.floor(Math.random() * 100));
+
     const response: IngestResponse = {
       success: true,
       message: "Sheet workbook parsed successfully across supplier heuristic rules.",
       sourceFile: fileName,
-      ucid: "ucid_api_session_uuid_" + Date.now().toString(16),
+      ucid: {
+        id: ucidId,
+        displayId: displayId,
+        name: `${vendor} Configuration — ${fileName}`,
+        priority: "high",
+        projectRef: "PRJ-INGEST-API",
+        createdAt: new Date().toISOString(),
+        currentStep: "solution-design",
+        completedSteps: ["boq-intake", "pre-intelligence"],
+        rawBOM: rawText || `Ingested from ${fileName}`,
+        solutions: solutions.map((sol: any) => ({
+          id: sol.id,
+          name: sol.label || sol.vendor + " Solution",
+          targetUcidId: ucidId,
+          vendorSubmissions: [{
+            id: "vs-" + sol.id,
+            vendor: sol.vendor,
+            label: sol.label,
+            totalPrice: sol.totalPrice,
+            originalPrice: sol.originalPrice,
+            savings: sol.savings,
+            complianceScore: sol.complianceScore,
+            configs: [{
+              id: "cfg-" + sol.id,
+              name: sol.label || sol.vendor + " Config",
+              totalPrice: sol.totalPrice,
+              originalPrice: sol.originalPrice,
+              savings: sol.savings,
+              items: sol.items
+            }]
+          }]
+        })),
+        events: [
+          { ts: new Date().toISOString(), level: "info" as const, msg: `Ingestion triggered for file: ${fileName}` },
+          { ts: new Date().toISOString(), level: "ok" as const, msg: `Workbook processed. Confidence: ${confidence}%` }
+        ],
+        snapshots: []
+      },
       timestamp: new Date().toISOString(),
       parsedSummary: {
         vendorBrand: vendor,
@@ -202,7 +243,6 @@ async function startServer() {
         itemsCount: solutions[0]?.items?.reduce((cur: number, i: any) => cur + i.quantity, 0) || 5,
         initialConfidenceScore: confidence
       },
-      solutions: solutions
     };
 
     res.status(200).json(response);

@@ -1,5 +1,5 @@
 import React from "react";
-import { Layers } from "lucide-react";
+import { Layers, Trash2 } from "lucide-react";
 import { VendorSubmission } from "../../types";
 import { tokens } from "../../styles/tokens";
 
@@ -26,11 +26,41 @@ export function SolutionConfigCard({
     if (newQty < 1) return;
 
     // deeply update the quantity inside the specific config
-    const nextConfigs = submission.configs.map((cfg) => {
+    const nextConfigs = (submission.configs || []).map((cfg) => {
       const nextItems = cfg.items.map((item) => {
         if (item.id === itemId) return { ...item, quantity: newQty };
         return item;
       });
+      const cfgTotalValue = nextItems.reduce(
+        (acc, current) => acc + current.quantity * current.unitPrice,
+        0,
+      );
+      const diff = cfg.originalPrice - cfg.totalPrice;
+      return {
+        ...cfg,
+        items: nextItems,
+        totalPrice: cfgTotalValue,
+        originalPrice: cfgTotalValue + diff,
+        savings: diff,
+      };
+    });
+
+    const vTotalPrice = nextConfigs.reduce((s, c) => s + c.totalPrice, 0);
+    const vOrgPrice = nextConfigs.reduce((s, c) => s + c.originalPrice, 0);
+
+    onUpdate({
+      ...submission,
+      configs: nextConfigs,
+      totalPrice: vTotalPrice,
+      originalPrice: vOrgPrice,
+      savings: vOrgPrice - vTotalPrice,
+    });
+  }
+
+  function handleDeleteItem(itemId: string) {
+    // deeply filter out the specific item inside the configs
+    const nextConfigs = (submission.configs || []).map((cfg) => {
+      const nextItems = cfg.items.filter((item) => item.id !== itemId);
       const cfgTotalValue = nextItems.reduce(
         (acc, current) => acc + current.quantity * current.unitPrice,
         0,
@@ -72,49 +102,73 @@ export function SolutionConfigCard({
       </div>
 
       <div className="space-y-2 mt-1">
-        {allItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5"
-          >
-            <div className="min-w-0 pr-2">
-              <p className="text-[10px] font-mono text-gray-500 flex items-center gap-1 text-left">
-                <span
-                  className="w-1.5 h-1.5 rounded-sm"
-                  style={{ backgroundColor: TYPE_COLORS[item.type] || tokens.colors.text.primary }} 
-                />
-                PN: {item.partNumber} · {item.type}
-              </p>
-              <p className="text-[11px] text-white font-medium truncate mt-0.5 text-left">
-                {item.name}
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-[10px] text-gray-400 font-mono">
-                ${item.unitPrice.toLocaleString()}/ea
-              </span>
-              <div className="flex items-center gap-1 bg-white/5 rounded border border-white/10 pr-1">
-                <button
-                  type="button"
-                  onClick={() => handleQtyChange(item.id, item.quantity - 1)}
-                  className="px-2 py-0.5 text-[11px] hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
-                >
-                  -
-                </button>
-                <span className="text-[11px] font-bold font-mono text-white text-center w-5 select-none">
-                  {item.quantity}
+        {allItems.length === 0 ? (
+          <div className="text-[10px] text-gray-500 italic py-4 text-center">
+            No items in this configuration.
+          </div>
+        ) : (
+          allItems.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between p-2 rounded bg-black/40 border border-white/5"
+            >
+              <div className="min-w-0 pr-2">
+                <p className="text-[10px] font-mono text-gray-500 flex items-center gap-1 text-left">
+                  <span
+                    className="w-1.5 h-1.5 rounded-sm"
+                    style={{ backgroundColor: TYPE_COLORS[item.type] || tokens.colors.text.primary }} 
+                  />
+                  PN: {item.partNumber} · {item.type}
+                </p>
+                <p className="text-[11px] text-white font-medium truncate mt-0.5 text-left">
+                  {item.name}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-[10px] text-gray-400 font-mono">
+                  ${item.unitPrice.toLocaleString()}/ea
                 </span>
+                <div className="flex items-center gap-1 bg-white/5 rounded border border-white/10 pr-1">
+                  <button
+                    type="button"
+                    onClick={() => handleQtyChange(item.id, item.quantity - 1)}
+                    className="px-2 py-0.5 text-[11px] hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val) && val >= 1) {
+                        handleQtyChange(item.id, val);
+                      }
+                    }}
+                    className="w-8 text-[11px] font-bold font-mono text-white bg-transparent text-center focus:outline-none focus:bg-white/5 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleQtyChange(item.id, item.quantity + 1)}
+                    className="px-2 py-0.5 text-[11px] hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => handleQtyChange(item.id, item.quantity + 1)}
-                  className="px-2 py-0.5 text-[11px] hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
+                  onClick={() => handleDeleteItem(item.id)}
+                  className="p-1 hover:bg-red-500/10 text-gray-500 hover:text-red-400 rounded transition cursor-pointer"
+                  title="Remove item from this BOM"
                 >
-                  +
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className="border-t pt-3 flex items-center justify-between border-indigo-500/10">
@@ -131,7 +185,7 @@ export function SolutionConfigCard({
             Est. Lead Time
           </p>
           <span className="text-[11px] font-mono font-bold text-indigo-400 mt-1 inline-block">
-            7–12 Business Days
+            {submission.vendor === "HPE" ? "10–14 Business Days" : "7–12 Business Days"}
           </span>
         </div>
       </div>

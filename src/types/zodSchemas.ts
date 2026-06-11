@@ -19,13 +19,14 @@ export const BOMItemSchema = z.object({
   unitPrice: z.number().nonnegative("Unit price must be non-negative (denominated in USD)"),
 });
 
-// 2. Config Zod Schema
 export const ConfigSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Configuration layout name cannot be empty"),
   totalPrice: z.number().nonnegative("Total price must be non-negative"),
   originalPrice: z.number().nonnegative("Original price must be non-negative"),
-  savings: z.number(),"items": z.array(BOMItemSchema),
+  savings: z.number().optional(),
+  vendor: z.string().optional(),
+  items: z.array(BOMItemSchema),
 });
 
 // 3. VendorSubmission Zod Schema
@@ -63,11 +64,11 @@ export const SnapshotSchema = z.object({
   winnerSolution: z.string(),
   totalValue: z.number().nonnegative(),
   notes: z.string(),
-  payload: z.any().optional(),
-  version: z.number().int().nonnegative().optional(),
-  timestamp: z.string().optional(),
-  locked: z.boolean().optional(),
-  bomSnapshot: z.any().optional(),
+  payload: z.array(SolutionSchema).optional(),
+  version: z.number().int().nonnegative(),
+  timestamp: z.string(),
+  locked: z.boolean(),
+  bomSnapshot: z.array(ConfigSchema).optional(),
 });
 
 // 7. UCID Zod Schema
@@ -167,6 +168,85 @@ export const ReconciliationSessionSchema = z.object({
   diffs: z.array(LineReconciliationDiffSchema),
 });
 
+// 13. SourcingRule Zod Schema
+export const SourcingRuleSchema = z.object({
+  id: z.string(),
+  ruleType: z.enum(["substitution", "price_cap", "symmetry", "api_gateway"]),
+  partNumber: z.string().min(1),
+  mappedOutput: z.string().min(1),
+  label: z.string(),
+  vendor: z.string(),
+  status: z.enum(["active", "draft"]),
+  learnedAt: z.string().optional(),
+  sourceIssueId: z.string().optional(),
+  isAutoLearned: z.boolean().optional(),
+  preventedMismatchCount: z.number().int().nonnegative().optional(),
+});
+
+// 14. LearningEvent Zod Schema
+export const LearningEventSchema = z.object({
+  id: z.string(),
+  timestamp: z.string(),
+  sourceIssueId: z.string(),
+  ruleType: z.enum(["substitution", "price_cap", "symmetry", "api_gateway"]),
+  partNumber: z.string(),
+  action: z.string(),
+  confidenceScore: z.number().min(0).max(100),
+  vendor: z.string(),
+  preventedMismatchCount: z.number().int().nonnegative(),
+});
+
+// 15. PortalErrorItem Zod Schema
+export const PortalErrorItemSchema = z.object({
+  id: z.string(),
+  skuRef: z.string(),
+  errorType: z.enum(["unbuildable", "discontinued", "not_found", "constraint_violation"]),
+  errorMessage: z.string(),
+  vendor: z.string(),
+  suggestedAlternatePartNumber: z.string().optional(),
+  suggestedAlternateName: z.string().optional(),
+  resolved: z.boolean(),
+});
+
+// 16. PlaywrightAgentConfig Zod Schema
+export const PlaywrightAgentConfigSchema = z.object({
+  targetUrl: z.string().url(),
+  headless: z.boolean(),
+  viewportWidth: z.number().int().positive(),
+  viewportHeight: z.number().int().positive(),
+  timeoutMs: z.number().int().positive(),
+  maxRetries: z.number().int().nonnegative(),
+  proxyRotation: z.boolean(),
+});
+
+// 17. PlaywrightExecutionLog Zod Schema
+export const PlaywrightExecutionLogSchema = z.object({
+  timestamp: z.string(),
+  level: z.enum(["info", "debug", "screenshot", "error"]),
+  message: z.string(),
+  screenshotUrl: z.string().optional(),
+});
+
+// 18. PlaywrightAgentTask Zod Schema
+export const PlaywrightAgentTaskSchema = z.object({
+  taskId: z.string(),
+  agentName: z.enum(["AribaScraper", "HPEMarketplace", "DellPremierPortal"]),
+  ucidRef: z.string(),
+  startedAt: z.string(),
+  completedAt: z.string().optional(),
+  status: z.enum(["idle", "running", "success", "failed", "rate-limited"]),
+  config: PlaywrightAgentConfigSchema,
+  logs: z.array(PlaywrightExecutionLogSchema),
+  metrics: z.object({
+    pagesNavigated: z.number().int().nonnegative(),
+    selectorsResolved: z.number().int().nonnegative(),
+    bandwidthBytes: z.number().nonnegative(),
+    durationMs: z.number().nonnegative(),
+  }),
+  extractedItemsCount: z.number().int().nonnegative(),
+});
+
+
 // Helper validation assertions for enterprise safety
 export const validators = {
   validateBOMItem: (data: unknown) => BOMItemSchema.parse(data),
@@ -181,6 +261,9 @@ export const validators = {
   validateForensicIssue: (data: unknown) => ForensicIssueSchema.parse(data),
   validateLineReconciliationDiff: (data: unknown) => LineReconciliationDiffSchema.parse(data),
   validateReconciliationSession: (data: unknown) => ReconciliationSessionSchema.parse(data),
+  validateSourcingRule: (data: unknown) => SourcingRuleSchema.parse(data),
+  validateLearningEvent: (data: unknown) => LearningEventSchema.parse(data),
+  validatePortalErrorItem: (data: unknown) => PortalErrorItemSchema.parse(data),
 };
 
 // ============================================================================
@@ -402,18 +485,24 @@ export const GraphMetadataSchema = z.object({
 export const GraphNodeSchema = z.object({
   id: z.string(),
   label: z.string(),
-  type: z.enum(["Product", "Sub-product", "Category", "Sub-category", "SKU"] as [string, ...string[]]),
+  sublabel: z.string().optional(),
+  type: z.enum(["product", "subproduct", "category", "subcategory", "sku"] as [string, ...string[]]),
+  constraints: z.array(z.string()).optional(),
+  dependencies: z.array(z.string()).optional(),
+  x: z.number().optional(),
+  y: z.number().optional(),
   properties: z.record(z.string(), z.unknown()).optional(),
 });
 export const GraphEdgeSchema = z.object({
   id: z.string(),
   source: z.string(),
   target: z.string(),
-  relationship: z.enum(["depends on", "mutually exclusive", "hierarchy"] as [string, ...string[]]),
+  relationship: z.enum(["depends on", "mutually exclusive", "hierarchy", "contains", "requires", "exclusive"] as [string, ...string[]]),
 });
 export const GraphAPIResponseSchema = z.object({
-  metadata: GraphMetadataSchema,
+  metadata: GraphMetadataSchema.optional(),
   nodes: z.array(GraphNodeSchema),
   edges: z.array(GraphEdgeSchema),
+  unmappedIds: z.array(z.string()),
 });
 export const GraphAPISchema = GraphAPIResponseSchema; // Alias for compatibility

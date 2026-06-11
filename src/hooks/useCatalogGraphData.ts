@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { MockTaxonomyApi } from "../lib/api-mock";
-import { TaxonomyGraphNode, TaxonomyGraphEdge, TaxonomyGraphPayload } from "../types/data";
+import { GraphEdge, GraphAPIResponse } from "../types/data";
 import { Config, CatalogSKU } from "../types";
+import { apiClient } from "../services/apiClient";
 
-export function useCatalogGraphData(configId: string | null, allConfigs: (Config & {vendor?: string})[], catalogSkus: CatalogSKU[]) {
-  const [data, setData] = useState<TaxonomyGraphPayload>({ nodes: [], edges: [], unmappedIds: [] });
+export interface MapNodeRequest {
+  partNumber?: string;
+  name: string;
+  type?: string;
+}
+
+export function useCatalogGraphData(configId: string | null, allConfigs: Config[], catalogSkus: CatalogSKU[]) {
+  const [data, setData] = useState<GraphAPIResponse>({ nodes: [], edges: [], unmappedIds: [] });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,14 +27,15 @@ export function useCatalogGraphData(configId: string | null, allConfigs: (Config
     setError(null);
 
     try {
-      const res = await MockTaxonomyApi.getGraphForConfig(
-        config,
-        catalogSkus,
-        config.vendor
-      );
+      const res = await apiClient.get<GraphAPIResponse>(`/api/taxonomy/graph/${configId}`);
       if (isCancelled && isCancelled()) return;
-      setData(res);
+      if (res.success) {
+        setData(res.data);
+      } else {
+        throw new Error("Failed to fetch topology");
+      }
     } catch (err) {
+      console.error(err);
       if (isCancelled && isCancelled()) return;
       setError("Failed to fetch topology for the selected configuration.");
       setData({ nodes: [], edges: [], unmappedIds: [] });
@@ -37,18 +44,19 @@ export function useCatalogGraphData(configId: string | null, allConfigs: (Config
         setIsLoading(false);
       }
     }
-  }, [configId, allConfigs, catalogSkus]);
+  }, [configId, allConfigs]);
 
   useEffect(() => {
     let cancel = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchGraph(() => cancel);
     return () => {
       cancel = true;
     };
   }, [fetchGraph]);
 
-  const mapNode = async (childId: string, parentId: string, childInfo: any) => {
-    await MockTaxonomyApi.mapOrphanNode({ childId, parentId, childInfo });
+  const mapNode = async (childId: string, parentId: string, childInfo: MapNodeRequest) => {
+    await apiClient.post("/api/taxonomy/map", { childId, targetParentId: parentId, properties: childInfo });
     // Optimistic Update
     setData(prev => {
       const newNodes = [...prev.nodes];
@@ -62,24 +70,24 @@ export function useCatalogGraphData(configId: string | null, allConfigs: (Config
           dependencies: ["Graph Integrity Verified"]
         });
       }
-      const newEdges: TaxonomyGraphEdge[] = [...prev.edges.filter(e => e.to !== childId), { id: `e-${parentId}-${childId}`, from: parentId, to: childId, type: "contains" }];
+      const newEdges: GraphEdge[] = [...prev.edges.filter(e => e.target !== childId), { id: `e-${parentId}-${childId}`, source: parentId, target: childId, relationship: "contains" }];
       const newUnmapped = prev.unmappedIds.filter(id => id !== childId);
       return { nodes: newNodes, edges: newEdges, unmappedIds: newUnmapped };
     });
   };
 
   const unmapNode = async (nodeId: string) => {
-     await MockTaxonomyApi.unmapNode(nodeId);
+     await apiClient.get(`/api/taxonomy/map/${nodeId}`, { method: 'DELETE' });
      setData(prev => ({
        ...prev,
-       edges: prev.edges.filter(e => e.to !== nodeId),
+       edges: prev.edges.filter(e => e.target !== nodeId),
        nodes: prev.nodes.filter(n => n.id !== nodeId),
        unmappedIds: [...prev.unmappedIds, nodeId]
      }));
   };
 
   const addRule = async (nodeId: string, type: "requires"|"exclusive", note: string) => {
-     await MockTaxonomyApi.addRule(nodeId, type, note);
+     await apiClient.post("/api/taxonomy/rules", { sourceId: nodeId, ruleType: type, explanation: note });
      setData(prev => {
         const newNodes = prev.nodes.map(n => {
           if (n.id === nodeId) {

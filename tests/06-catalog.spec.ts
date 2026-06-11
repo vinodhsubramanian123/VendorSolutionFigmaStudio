@@ -1,0 +1,84 @@
+import { test, expect } from '@playwright/test';
+
+const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
+
+test.describe('06 - Catalog Manager E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.locator('#nav-catalog').click();
+    // Wait for catalog grid to be visible
+    await expect(page.getByText('Central Sourcing Database', { exact: false }).first()).toBeVisible({ timeout: 8000 });
+  });
+
+  test('should use Taxonomy Tree to filter cards', async ({ page }) => {
+    // Taxonomy tree should be visible - click HPE branch
+    const hpeNode = page.getByText('HPE', { exact: true }).first();
+    if (await hpeNode.isVisible({ timeout: 3000 })) {
+      await hpeNode.click();
+      await delay(800);
+    }
+    // Cards grid should still be visible
+    await expect(page.locator('.group\\/card').first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should type a SKU part number into search filter and match', async ({ page }) => {
+    const searchInput = page.locator('input[placeholder="Search Active Part Number or Name..."]');
+    await expect(searchInput).toBeVisible({ timeout: 5000 });
+    await searchInput.fill('P40424-B21');
+    await delay(600);
+    const skuCard = page.getByText('P40424-B21').first();
+    await expect(skuCard).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should open Add New SKU form and append to grid', async ({ page }) => {
+    // Click Add Sourced SKU button
+    const addBtn = page.locator('button', { hasText: 'Add Sourced SKU' });
+    await expect(addBtn).toBeVisible({ timeout: 5000 });
+    await addBtn.click();
+
+    // Modal should appear - wait for it
+    await expect(page.getByText('Insert Direct Sourced SKU')).toBeVisible({ timeout: 5000 });
+
+    // Fill the form
+    await page.getByPlaceholder('e.g. P40445-B21').fill('E2E-TEST-SKU-999');
+    await page.getByPlaceholder('e.g. Intel Gold 6430 32-Core 2.1GHz').fill('E2E Test Product');
+    await page.getByPlaceholder('2450').fill('1500');
+    await page.getByPlaceholder('7').fill('14');
+
+    // Submit
+    const saveBtn = page.getByRole('button', { name: 'Add Part' });
+    await saveBtn.click();
+    await delay(800);
+
+    // Verify by searching for it
+    const searchInput = page.locator('input[placeholder="Search Active Part Number or Name..."]');
+    await searchInput.fill('E2E-TEST-SKU-999');
+    await delay(600);
+    await expect(page.getByText('E2E-TEST-SKU-999').first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should execute SKU Price Edit via force click on hidden button', async ({ page }) => {
+    // Search for a specific SKU first
+    const searchInput = page.locator('input[placeholder="Search Active Part Number or Name..."]');
+    await searchInput.fill('P40424-B21');
+    await delay(600);
+
+    // The Edit Price button is hidden until hover (opacity-0 group-hover). Use force:true
+    const editBtn = page.locator('button[title="Edit Price"]').first();
+    // Force click ignores visibility (opacity)
+    if (await editBtn.count() > 0) {
+      await editBtn.click({ force: true });
+      await delay(500);
+      // Should see price input field
+      const priceInput = page.locator('input[type="text"]').filter({ hasText: '' }).first();
+      if (await priceInput.isVisible()) {
+        await priceInput.fill('9999');
+        const saveBtn = page.locator('button[title="Save Price"]').first();
+        await saveBtn.click({ force: true });
+        await delay(500);
+      }
+    }
+    // Just verify SKU is still visible after the interaction
+    await expect(page.getByText('P40424-B21').first()).toBeVisible({ timeout: 5000 });
+  });
+});

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Search, X } from 'lucide-react';
 
+import type { TaxonomyPath } from "../../types";
+
 interface CatalogFilterBarProps {
   searchTerm: string;
   setSearchTerm: (val: string) => void;
-  selectedPath: any;
-  setSelectedPath: (val: any) => void;
+  selectedPath: TaxonomyPath | null;
+  setSelectedPath: (val: TaxonomyPath | null) => void;
   setVendorFilter: (val: string) => void;
   setTypeFilter: (val: string) => void;
 }

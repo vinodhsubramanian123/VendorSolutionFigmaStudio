@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Database, Globe, Target, Search, ArrowUpRight, Loader2, Sparkles } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { motion } from "motion/react";
+import { Database, Globe, Target, Search, ArrowUpRight, Sparkles } from "lucide-react";
 import type { AppView, UCID, Vendor, CatalogSKU } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 interface SearchViewProps {
   query: string;
-  ucids: AppView[] | any[]; // Accept any/compatible ucids for search
+  ucids: UCID[];
   vendors: Vendor[];
   catalogSkus: CatalogSKU[];
   onNavigate: (view: AppView) => void;
@@ -20,7 +20,7 @@ function highlightText(text: string, query: string) {
   if (!normQuery) return <>{text}</>;
 
   try {
-    const escapedQuery = normQuery.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const escapedQuery = normQuery.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
     const regex = new RegExp(`(${escapedQuery})`, "gi");
     const parts = text.split(regex);
     return (
@@ -40,6 +40,7 @@ function highlightText(text: string, query: string) {
       </>
     );
   } catch (e) {
+    console.error(e);
     return <>{text}</>;
   }
 }
@@ -53,18 +54,10 @@ export function SearchView({
   onSelectMission,
   onSearchChange,
 }: SearchViewProps) {
-  const [isLoading, setIsLoading] = useState(true);
   const [localInput, setLocalInput] = useState(query);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    setLocalInput(query);
-  }, [query]);
-
+  // Drive the active query from whichever is more recent: local override or external prop
+  // This avoids the setState-in-effect cascade while still allowing parent prop updates
   const activeQuery = localInput;
   const normQuery = activeQuery.toLowerCase().trim();
 

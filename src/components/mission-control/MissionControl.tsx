@@ -6,11 +6,12 @@ import {
   GitCompare,
   Clock,
   AlertCircle,
-  SkipForward,
   Rocket,
   Loader2,
 } from "lucide-react";
-import type { UCID, UCIDStep, Solution, Snapshot } from "../../types";
+import { apiClient } from "../../services/apiClient";
+import type { UCID, UCIDStep, Solution, Snapshot, VendorSubmission } from "../../types";
+import { useToast } from "../shared/ToastContext";
 import { STEP_ORDER } from "../../lib/mockData";
 
 // Split sub-components
@@ -27,13 +28,14 @@ import { generateDefaultSolutions } from "../../lib/demoDataBuilder";
 import { PRIORITY_COLOR } from "../../lib/constants";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
-import { JobPoller } from "../shared/JobPoller";
+import { JobStreamer } from "../shared/JobStreamer";
 
 interface MissionControlProps {
   selectedId?: string;
   onSelectId: (id: string | undefined) => void;
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
+  onNavigate: (view: import("../../types").AppView) => void;
   deployedSolution?: {
     name: string;
     ucidCount: number;
@@ -48,18 +50,16 @@ interface MissionControlProps {
   >;
 }
 
-export function MissionControl({
+export const MissionControl = React.memo(function MissionControl({
   selectedId,
   onSelectId,
   ucids,
   setUcids,
+  onNavigate,
   deployedSolution,
   setDeployedSolution,
 }: MissionControlProps) {
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "warn" | "error";
-  } | null>(null);
+  const { toast } = useToast();
   const [viewStep, setViewStep] = useState<UCIDStep | null>(null);
   const [runningIntel, setRunningIntel] = useState<string | null>(null);
   const [intelProgress, setIntelProgress] = useState(0);
@@ -186,38 +186,22 @@ export function MissionControl({
     setIntelProgress(0);
 
     try {
-      const response = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "config_process",
-          context: { ucid: ucidId, config_id: "intel-scan", solution_id: "baseline" },
-          parent_job_id: ""
-        }),
+      const response = await apiClient.post<{ job_id: string }>("/api/jobs", {
+        type: "config_process",
+        context: { ucid: ucidId, config_id: "intel-scan", solution_id: "baseline" },
+        parent_job_id: ""
       });
-      if (response.ok) {
-        const data = await response.json();
-        setActiveJobId(data.job_id);
-      }
-    } catch (e) {
-      // Falback simulation if api fail
-      const interval = setInterval(() => {
-        setIntelProgress((p) => {
-          if (p >= 100) {
-            clearInterval(interval);
-            onIntelSuccess({ success: true }, { ucid: ucidId, config_id: "intel-scan", solution_id: "baseline" });
-            return 100;
-          }
-          return p + 15;
-        });
-      }, 150);
+      setActiveJobId(response.data.job_id);
+    } catch (e: unknown) {
+      toast("Failed to initiate intelligence scan: " + (e as Error).message, "error");
+      setRunningIntel(null);
     }
   }
 
-  function onIntelSuccess(result: any, context: any) {
+  function onIntelSuccess(result: unknown, context: unknown) {
     setActiveJobId(null);
     setRunningIntel(null);
-    const ucidId = context.ucid;
+    const ucidId = (context as { ucid: string }).ucid;
     setUcids((prev) => {
       const match = prev.find((u) => u.id === ucidId);
       if (match) {
@@ -260,13 +244,10 @@ export function MissionControl({
           });
   }
 
-  function onIntelError(error: string, context: any) {
+  function onIntelError(error: string, context: unknown) {
     setActiveJobId(null);
     setRunningIntel(null);
-    setToast({
-      message: error,
-      type: "error"
-    });
+    toast(error, "error");
   }
 
   function advanceStep(ucidId: string) {
@@ -288,70 +269,123 @@ export function MissionControl({
           ...u,
           completedSteps: [...u.completedSteps, u.currentStep],
           currentStep: next,
+          events: [
+            ...u.events,
+            {
+              ts: new Date().toLocaleTimeString(),
+              level: "info",
+              msg: `Step advanced from ${u.currentStep} to ${next}.`,
+            },
+          ],
         };
       });
     });
     setViewStep(null);
   }
 
-  function commitSnapshot(ucidId: string) {
+  function regressStep(ucidId: string) {
+    setUcids((prev) => {
+      const match = prev.find((u) => u.id === ucidId);
+      if (match) {
+        const idx = STEP_ORDER.indexOf(match.currentStep);
+        const prevStep = STEP_ORDER[idx - 1];
+        if (prevStep) {
+          recordAuditLog(match.currentStep, prevStep, "MANUAL_STEP_REGRESS");
+        }
+      }
+      return prev.map((u) => {
+        if (u.id !== ucidId) return u;
+        const idx = STEP_ORDER.indexOf(u.currentStep);
+        const prevStep = STEP_ORDER[idx - 1];
+        if (!prevStep) return u;
+        return {
+          ...u,
+          completedSteps: u.completedSteps.filter((s) => s !== prevStep),
+          currentStep: prevStep,
+          events: [
+            ...u.events,
+            {
+              ts: new Date().toLocaleTimeString(),
+              level: "info",
+              msg: `Step regressed from ${u.currentStep} to ${prevStep}.`,
+            },
+          ],
+        };
+      });
+    });
+    setViewStep(null);
+  }
+
+  async function commitSnapshot(ucidId: string) {
     setCommittingSnapshot(true);
-    setTimeout(() => {
+    
+    const ucid = ucids.find((u) => u.id === ucidId);
+    if (!ucid) {
       setCommittingSnapshot(false);
+      return;
+    }
+
+    const prizeSol = ucid.solutions[0]?.vendorSubmissions?.[0] ?? {
+      label: "Dual-sourced solution",
+      totalPrice: 244000,
+      vendor: "Unknown",
+      originalPrice: 244000,
+      savings: 0,
+      complianceScore: 100,
+      configs: [],
+    } as VendorSubmission;
+
+    const newSnapshot: Snapshot = {
+      id: "snap-" + Date.now(),
+      version: ucid.snapshots.length + 1,
+      timestamp: new Date().toISOString(),
+      label: "Mission Control Milestone Lock",
+      committedAt: new Date().toISOString().replace("T", " ").substring(0, 19) + " UTC",
+      winnerSolution: prizeSol?.label || "Consolidated Execution",
+      totalValue: prizeSol.totalPrice,
+      notes: "Contract locked & archived automatically in secure compliance ledger.",
+      payload: ucid.solutions,
+      locked: true,
+      bomSnapshot: prizeSol.configs || []
+    };
+
+    try {
+      await apiClient.post(`/api/ucids/${ucidId}/snapshots`, { snapshot: newSnapshot });
       setUcids((prev) => {
         const match = prev.find((u) => u.id === ucidId);
         if (match) {
           recordAuditLog(
             match.currentStep,
-            "snapshot",
-            "SNAPSHOT_COMMIT_EXECUTE",
+            match.currentStep,
+            "SNAPSHOT_LOCKED",
           );
         }
         return prev.map((u) => {
-          if (u.id !== ucidId) return u;
-          const prizeSol =
-            u.solutions[0]?.vendorSubmissions?.[0] ??
-            ({
-              label: "Dual-sourced solution",
-              totalPrice: 244000,
-              vendor: "Unknown",
-              originalPrice: 244000,
-              savings: 0,
-              complianceScore: 100,
-              configs: [],
-            } as any);
-          const snap: Snapshot = {
-            id: `snap-${Date.now()}`,
-            label: `Snapshot v${u.snapshots.length + 1}.0 — Committed`,
-            committedAt:
-              new Date().toISOString().replace("T", " ").substring(0, 19) +
-              " UTC",
-            winnerSolution: prizeSol?.name || prizeSol?.label || "",
-            totalValue: prizeSol.totalPrice,
-            notes:
-              "Contract locked & archived automatically in secure compliance ledger.",
-            version: u.snapshots.length + 1,
-            timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-            locked: true,
-            bomSnapshot: prizeSol.configs || []
-          };
-          return {
-            ...u,
-            completedSteps: [...u.completedSteps, "comparison" as UCIDStep],
-            currentStep: "snapshot" as UCIDStep,
-            snapshots: [...u.snapshots, snap],
-            events: [
-              ...u.events,
-              {
-                ts: new Date().toLocaleTimeString(),
-                level: "ok",
-                msg: `Snapshot locked successfully: ${prizeSol.label}`,
-              },
-            ],
-          };
+          if (u.id === ucidId) {
+            return {
+              ...u,
+              completedSteps: [...u.completedSteps, "comparison" as UCIDStep],
+              currentStep: "snapshot" as UCIDStep,
+              snapshots: [...u.snapshots, newSnapshot],
+              events: [
+                ...u.events,
+                {
+                  ts: new Date().toLocaleTimeString(),
+                  level: "ok",
+                  msg: "Snapshot securely committed to immutable ledger.",
+                },
+              ],
+            };
+          }
+          return u;
         });
       });
-    }, 1500);
+      toast("Snapshot securely locked and persisted to ledger.", "success");
+    } catch (e) {
+      toast("Failed to commit snapshot to the server.", "error");
+    } finally {
+      setCommittingSnapshot(false);
+    }
   }
 
   function appendLogEvent(
@@ -375,6 +409,20 @@ export function MissionControl({
     );
   }
 
+  function clearLogEvents(ucidId: string) {
+    setUcids((prev) =>
+      prev.map((u) => {
+        if (u.id === ucidId) {
+          return {
+            ...u,
+            events: [],
+          };
+        }
+        return u;
+      }),
+    );
+  }
+
   return (
     <ErrorBoundary>
       <motion.div 
@@ -384,7 +432,7 @@ export function MissionControl({
         transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
       >
         {activeJobId && (
-          <JobPoller
+          <JobStreamer
             jobId={activeJobId}
             context={{ ucid: runningIntel || "none", config_id: "intel-scan", solution_id: "baseline" }}
             onSuccess={onIntelSuccess}
@@ -404,6 +452,7 @@ export function MissionControl({
         {/* Left column: parallel active tickets */}
         <MissionControlSidebar 
           ucids={ucids}
+          setUcids={setUcids}
           selectedId={selectedId}
           hierarchyTab={hierarchyTab}
           setHierarchyTab={setHierarchyTab}
@@ -512,15 +561,6 @@ export function MissionControl({
                       <span className="text-xs text-gray-500 font-mono flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" /> Ingested 2026-06
                       </span>
-                      {selected.currentStep !== "snapshot" && (
-                        <button
-                          type="button"
-                          onClick={() => advanceStep(selected.id)}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-bold bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/15 border border-indigo-500/20 transition-all cursor-pointer"
-                        >
-                          Advance Step <SkipForward className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -544,6 +584,7 @@ export function MissionControl({
                       committingSnapshot={committingSnapshot}
                       onRunIntel={() => runIntelligence(selected.id)}
                       onAdvance={() => advanceStep(selected.id)}
+                      onRegress={() => regressStep(selected.id)}
                       onCommitSnapshot={() => commitSnapshot(selected.id)}
                       appendLogEvent={(level, msg) =>
                         appendLogEvent(selected.id, level, msg)
@@ -567,13 +608,14 @@ export function MissionControl({
                         );
                       }}
                       onShowToast={(msg, type) =>
-                        setToast({ message: msg, type })
+                        toast(msg, type)
                       }
+                      onNavigate={onNavigate}
                     />
                   </div>
                 </div>
 
-                <UCIDEventLedger ucid={selected} />
+                <UCIDEventLedger ucid={selected} onClear={() => clearLogEvents(selected.id)} />
               </div>
             )}
           </div>
@@ -590,44 +632,7 @@ export function MissionControl({
           }}
         />
       )}
-
-      {/* Elegant Toast notification overlay */}
-      {toast && (
-        <div
-          className="fixed bottom-4 right-4 z-50 flex items-center gap-2.5 p-3.5 rounded-lg border shadow-xl animate-fadeIn text-[11px] font-medium leading-none"
-          style={{
-            backgroundColor:
-              toast.type === "success"
-                ? `${tokens.colors.status.success}1a` 
-                : toast.type === "warn"
-                  ? `${tokens.colors.status.warning}1a` 
-                  : `${tokens.colors.status.error}1a`, 
-            borderColor:
-              toast.type === "success"
-                ? tokens.colors.status.success 
-                : toast.type === "warn"
-                  ? tokens.colors.status.warning 
-                  : tokens.colors.status.error, 
-            color:
-              toast.type === "success"
-                ? tokens.colors.status.success 
-                : toast.type === "warn"
-                  ? tokens.colors.status.warning 
-                  : tokens.colors.status.error, 
-          }}
-        >
-          <AlertCircle className="w-4 h-4 shrink-0 animate-bounce" />
-          <span className="text-white font-sans">{toast.message}</span>
-          <button
-            type="button"
-            onClick={() => setToast(null)}
-            className="ml-1 hover:text-white text-gray-500 font-bold cursor-pointer text-sm font-mono focus:outline-none"
-          >
-            ×
-          </button>
-        </div>
-      )}
     </motion.div>
     </ErrorBoundary>
   );
-}
+});

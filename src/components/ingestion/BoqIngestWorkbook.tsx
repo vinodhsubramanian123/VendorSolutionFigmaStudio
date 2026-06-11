@@ -11,6 +11,17 @@ import {
 import { StatusBadge } from "../shared/StatusBadge";
 import { Select } from "../shared/Select";
 import { Button } from "../shared/Button";
+import type { Solution, Config } from "../../types";
+
+interface BoqResponsePayload {
+  ucid: string;
+  solutions?: Solution[];
+  parsedSummary?: {
+    vendorBrand: string;
+    detectedChassis: string;
+    initialConfidenceScore: number;
+  };
+}
 
 interface BoqIngestWorkbookProps {
   selectedPreset: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
@@ -20,7 +31,7 @@ interface BoqIngestWorkbookProps {
   boqFile: string;
   isBOQIngesting: boolean;
   boqProgress: number;
-  boqResponse: any;
+  boqResponse: BoqResponsePayload | null;
   boqError: string;
   onTriggerBOQParse: (
     fileName: string,
@@ -100,7 +111,7 @@ export function BoqIngestWorkbook({
               <Select
                 id="doc-profile-selector"
                 value={selectedPreset}
-                onChange={(e) => setSelectedPreset(e.target.value as any)}
+                onChange={(e) => setSelectedPreset(e.target.value as "dell-overcharge" | "hpe-legacy" | "cisco-asymmetry")}
               >
                 <option value="hpe-legacy" className="bg-surface-elevated text-white">HPE Legacy 6130 EOL</option>
                 <option value="dell-overcharge" className="bg-surface-elevated text-white">Dell Premier Markup</option>
@@ -239,10 +250,10 @@ export function BoqIngestWorkbook({
                   extricated pipeline configs list
                 </p>
                 <div className="space-y-2 pt-1">
-                  {boqResponse.solutions?.map((sol: any, idx: number) => {
+                  {(boqResponse?.solutions)?.map((sol: Solution, idx: number) => {
                     const firstVs = sol.vendorSubmissions?.[0];
                     const items =
-                      firstVs?.configs?.flatMap((c: any) => c.items) || [];
+                      firstVs?.configs?.flatMap((c: Config) => c.items) || [];
                     return (
                       <div
                         key={idx}

@@ -1,45 +1,116 @@
-import React from "react";
-import { Radio } from "lucide-react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Radio, Trash2, Filter } from "lucide-react";
 import type { UCID } from "../../types";
 
 interface UCIDEventLedgerProps {
   ucid: UCID;
+  onClear: () => void;
 }
 
-export function UCIDEventLedger({ ucid }: UCIDEventLedgerProps) {
+type LogLevel = "all" | "ok" | "warn" | "err" | "info";
+
+export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
+  const [filter, setFilter] = useState<LogLevel>("all");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Filter events based on selected level
+  const filteredEvents = useMemo(() => {
+    if (filter === "all") return ucid.events;
+    return ucid.events.filter((ev) => ev.level === filter);
+  }, [ucid.events, filter]);
+
+  // Auto-scroll to bottom on new events
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [filteredEvents]);
+
   return (
     <div className="p-4 rounded-xl border space-y-3 bg-surface-elevated border-indigo-500/10">
-      <div className="flex items-center justify-between px-1">
-        <span className="text-xs text-white font-semibold flex items-center gap-1.5">
-          <Radio className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />{" "}
-          Live Verification Event Ledger
-        </span>
-        <span className="text-[10px] text-gray-500 font-mono">
-          Channel: UCID-{ucid.displayId}
-        </span>
-      </div>
-      <div className="rounded-lg p-3 font-mono text-[10px] space-y-1.5 bg-surface-card text-left">
-        {ucid.events.map((ev, i) => (
-          <div key={i} className="flex gap-3 items-start line-clamp-2">
-            <span className="text-gray-600 shrink-0">{ev.ts}</span>
-            <span
-              className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase ${
-                ev.level === "ok"
-                  ? "bg-status-success/15 text-status-success"
-                  : ev.level === "warn"
-                    ? "bg-status-warning/15 text-status-warning" 
-                    : ev.level === "err"
-                      ? "bg-status-error/15 text-status-error"
-                      : "bg-white/10 text-gray-300"
-              }`}
-            >
-              {ev.level}
-            </span>
-            <span className="text-gray-300 flex-1 leading-normal">
-              {ev.msg}
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-500/10 pb-2.5">
+        <div className="flex items-center gap-2">
+          <Radio className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+          <span className="text-xs text-white font-semibold">
+            Live Verification Event Ledger
+          </span>
+          <span className="text-[9px] bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 text-indigo-400 font-mono">
+            UCID-{ucid.displayId}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Level Filter Chips */}
+          <div className="flex items-center bg-black/40 p-0.5 rounded-lg border border-white/5 gap-0.5">
+            {(["all", "ok", "warn", "err"] as const).map((lvl) => {
+              const isActive = filter === lvl;
+              const label = lvl.toUpperCase();
+              let activeClass = "bg-indigo-600 text-white";
+              if (lvl === "ok") activeClass = "bg-emerald-500/25 text-emerald-400 border border-emerald-500/30";
+              if (lvl === "warn") activeClass = "bg-amber-500/25 text-amber-400 border border-amber-500/30";
+              if (lvl === "err") activeClass = "bg-red-500/25 text-red-400 border border-red-500/30";
+
+              return (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => setFilter(lvl)}
+                  className={`text-[8.5px] px-2 py-0.5 rounded font-bold transition-all cursor-pointer ${
+                    isActive ? activeClass : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
-        ))}
+          
+          {/* Clear Button */}
+          <button
+            type="button"
+            onClick={onClear}
+            className="flex items-center gap-1 text-[8.5px] px-2 py-1 rounded-md bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/20 text-gray-400 hover:text-red-400 font-bold transition-all cursor-pointer"
+            title="Clear all events from this ledger"
+          >
+            <Trash2 className="w-2.5 h-2.5" />
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="rounded-lg p-3 font-mono text-[10px] space-y-1.5 bg-surface-card text-left max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scroll-smooth"
+      >
+        {filteredEvents.length === 0 ? (
+          <div className="text-gray-500 text-center py-4 italic select-none">
+            No events match the selected filter.
+          </div>
+        ) : (
+          filteredEvents.map((ev, i) => {
+            const stableKey = `${ev.ts}-${ev.level}-${ev.msg.substring(0, 10)}-${i}`;
+            return (
+              <div key={stableKey} className="flex gap-3 items-start border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0">
+                <span className="text-gray-500 shrink-0 select-none font-semibold">{ev.ts}</span>
+                <span
+                  className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase select-none ${
+                    ev.level === "ok"
+                      ? "bg-status-success/15 text-status-success"
+                      : ev.level === "warn"
+                        ? "bg-status-warning/15 text-status-warning"
+                        : ev.level === "err"
+                          ? "bg-status-error/15 text-status-error"
+                          : "bg-indigo-500/15 text-indigo-400"
+                  }`}
+                >
+                  {ev.level === "info" ? "inf" : ev.level}
+                </span>
+                <span className="text-gray-300 flex-1 leading-normal break-all">
+                  {ev.msg}
+                </span>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

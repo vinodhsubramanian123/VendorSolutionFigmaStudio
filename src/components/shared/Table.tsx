@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { TableHTMLAttributes } from "react";
 
 export const Table: React.FC<TableHTMLAttributes<HTMLTableElement>> = ({

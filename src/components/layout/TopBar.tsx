@@ -68,6 +68,8 @@ export function TopBar({
     reconciliation: "BOM Reconciliation Drift Analyzer",
     search: "Cognitive Semantic NLP Query Search",
     "taxonomy-graph": "Taxonomy Graph Editor",
+    cleansing: "Interactive BOQ Cleansing & Mapping Workshop",
+    telemetry: "API Telemetry Webhook Monitor",
   };
 
   useEffect(() => {

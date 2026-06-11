@@ -5,7 +5,7 @@ interface CatalogTypeFiltersProps {
   projectTypes: string[];
   typeFilter: string;
   setTypeFilter: (val: string) => void;
-  setSelectedPath: (path: any) => void;
+  setSelectedPath: (path: { vendor: string, solution: string, product: string, generation: string, chassis: string }) => void;
   typeCounts: Record<string, number>;
 }
 

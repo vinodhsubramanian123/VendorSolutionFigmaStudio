@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 import { useToast } from '../shared/ToastContext';
 import { StatusBadge } from '../shared/StatusBadge';
-import { JobPoller } from '../shared/JobPoller';
+import { JobStreamer } from '../shared/JobStreamer';
 
-import type { UCID, CatalogSKU } from '../../types';
+import type { UCID, CatalogSKU, Snapshot } from '../../types';
 
 interface ReconciliationOverviewProps {
   setSelectedConfigSheet: (sheet: string | null) => void;
@@ -57,6 +57,10 @@ export function ReconciliationOverview({
   const estValue = useMemo(() => dynamicConfigs.reduce((acc, c) => acc + c.totalPrice, 0), [dynamicConfigs]);
 
   const [reconJobId, setReconJobId] = useState<string | null>(null);
+  
+  // Spares Pool State
+  const [unassignedSpares, setUnassignedSpares] = useState<{part: string; qty: number; name: string;}[]>([]);
+  const [assignedSpares, setAssignedSpares] = useState<{part: string; target: string; name: string;}[]>([]);
 
   const triggerReconJob = async () => {
     try {
@@ -79,20 +83,23 @@ export function ReconciliationOverview({
     }
   };
 
-  const onReconSuccess = (result: any, context: any) => {
+  const onReconSuccess = (result: unknown, context: unknown) => {
     toast.success("Reconciliation committed successfully! UCID status set to locked sync.");
     
     if (setUcids && activeUCID) {
       setUcids(prev => prev.map(u => {
         if (u.id === activeUCID.id) {
-          const newSnapshot: any = {
+          const newSnapshot: Snapshot = {
             id: `snap-${Date.now()}`,
             label: "Post-Reconciliation Lock",
             committedAt: new Date().toISOString().split("T")[0],
             winnerSolution: u.solutions?.[0]?.vendorSubmissions?.[0]?.label || "Consolidated Sourcing",
             totalValue: u.solutions?.[0]?.vendorSubmissions?.[0]?.totalPrice || 0,
             notes: "Automatic commit following drift reconciliation.",
-            payload: JSON.parse(JSON.stringify(u.solutions))
+            payload: JSON.parse(JSON.stringify(u.solutions)),
+            version: (u.snapshots?.length || 0) + 1,
+            timestamp: new Date().toISOString(),
+            locked: true
           };
           return {
             ...u,
@@ -109,7 +116,7 @@ export function ReconciliationOverview({
     setReconJobId(null);
   };
 
-  const onReconError = (error: string, context: any) => {
+  const onReconError = (error: string, context: unknown) => {
     toast.error(error);
     setReconJobId(null);
   };
@@ -126,25 +133,23 @@ export function ReconciliationOverview({
     );
   }
 
-  // Spares Pool State
-  const [unassignedSpares, setUnassignedSpares] = useState([
-    { part: "P08919-B21", qty: 4, name: "HPE ProLiant 1U Cable Guide" },
-    { part: "STACK-T1-50CM", qty: 8, name: "Stardust Stack Interconnect 0.5M" },
-    { part: "P40157-B21", qty: 4, name: "HPE ProLiant Gen11 Bezel Key" },
-    {
-      part: "PWR-C1-1100WAC",
-      qty: 2,
-      name: "Cisco Redundant 1100W power socket",
-    },
-  ]);
+  // Ensure BOM is uploaded
+  const isBomPending = activeUCID?.syncStatus === "Pending";
+  if (isBomPending) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[500px] border border-white/5 rounded-xl bg-surface-card animate-fadeIn text-center p-8">
+        <Database className="w-12 h-12 text-amber-500/30 mb-4 animate-pulse" />
+        <h3 className="text-base font-bold text-white mb-2">Awaiting BOM Validation</h3>
+        <p className="text-xs text-gray-400 max-w-md leading-relaxed">
+          The technical Bill of Materials has not been fully processed. Please complete the BOM compile step to enable reconciliation.
+        </p>
+      </div>
+    );
+  }
 
-  const [assignedSpares, setAssignedSpares] = useState([
-    {
-      part: "R0Q50A",
-      target: "Sheet 2: Primary Storage Array",
-      name: "HPE StoreEasy Support",
-    },
-  ]);
+
+
+
 
   const deleteAssignedSpare = (part: string) => {
     const spared = assignedSpares.find((s) => s.part === part);
@@ -268,7 +273,7 @@ export function ReconciliationOverview({
 
       {reconJobId && (
         <div className="lg:col-span-4 mb-4">
-          <JobPoller
+          <JobStreamer
             jobId={reconJobId}
             context={{ ucid: activeUCID?.id || "mock-ucid", config_id: "all", solution_id: "recon" }}
             onSuccess={onReconSuccess}

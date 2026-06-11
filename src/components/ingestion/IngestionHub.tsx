@@ -14,8 +14,32 @@ import {
   Play,
   Activity,
   Loader2,
+  AlertCircle,
+  FileText,
+  Download,
+  Target,
+  Cpu,
+  HardDrive,
+  Package,
+  Plus,
+  Search,
+  Layers,
+  Settings
 } from "lucide-react";
-import type { UCID, Solution, BOMItem } from "../../types";
+import { useToast } from "../shared/ToastContext";
+import type { UCID, Solution, BOMItem, AppView, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
+
+interface BoqResponsePayload {
+  ucid: string;
+  solutions?: Solution[];
+  sourceFile?: string;
+  parsedSummary?: {
+    vendorBrand: string;
+    detectedChassis: string;
+    initialConfidenceScore: number;
+  };
+}
+import { apiClient } from "../../services/apiClient";
 
 import { BoqIngestWorkbook } from "./BoqIngestWorkbook";
 import { TechnicalBomWorkspace } from "./TechnicalBomWorkspace";
@@ -24,12 +48,12 @@ import { LaunchStep } from "./LaunchStep";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useIngestionLogic } from "./useIngestionLogic";
 
-import { JobPoller } from "../shared/JobPoller";
+import { JobStreamer } from "../shared/JobStreamer";
 
 interface IngestionHubProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  onNavigate: (view: any) => void;
+  onNavigate: (view: AppView) => void;
   onSelectMission: (id: string) => void;
   isPendingAPI?: boolean;
   setIsPendingAPI?: (pending: boolean) => void;
@@ -59,8 +83,6 @@ export function IngestionHub({
     resetWorkflow,
     selectedBomsForBatch,
     setSelectedBomsForBatch,
-    toast,
-    setToast,
     isPortfolioActive,
     hpeSyncedConfigs,
     ciscoSyncedConfigs,
@@ -68,13 +90,15 @@ export function IngestionHub({
     manualUploadedFiles,
     handleStartPortfolioPipeline,
     simulateManualUpload
-  } = useIngestionLogic(
+  } = useIngestionLogic({
     ucids,
     setUcids,
     setIsPendingAPI,
-    setPendingAPIMessage as (msg: string) => void,
-    setApiProgress as (progress: number) => void
-  );
+    setPendingAPIMessage: setPendingAPIMessage as (msg: string) => void,
+    setApiProgress: setApiProgress as (progress: number) => void
+  });
+
+  const { toast } = useToast();
 
   // Derived mode for backward compatibility with existing rendering logic
   const mode = currentStepId;
@@ -99,7 +123,7 @@ export function IngestionHub({
   );
   const [isBOQIngesting, setIsBOQIngesting] = useState(false);
   const [boqProgress, setBoqProgress] = useState(0);
-  const [boqResponse, setBoqResponse] = useLocalStorageState<any>(
+  const [boqResponse, setBoqResponse] = useLocalStorageState<BoqResponsePayload | null>(
     "ingestion_boq_response",
     null,
   );
@@ -117,68 +141,34 @@ export function IngestionHub({
     setBoqFile(fileName);
 
     try {
-      const response = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "ingest",
-          context: { ucid: "mock-ucid", config_id: "mock-cfg", solution_id: preset },
-          parent_job_id: ""
-        }),
+      const response = await apiClient.post<{ job_id: string }>("/api/jobs", {
+        type: "ingest",
+        context: { ucid: "mock-ucid", config_id: "mock-cfg", solution_id: preset },
+        parent_job_id: ""
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setBoqJobId(data.job_id);
-      } else {
-        throw new Error("Server ingestion responded with non-200 envelope code.");
-      }
-    } catch (err: any) {
-      // Falback simulation code ...
-      setTimeout(() => {
-        // ... (Keep existing fallback if fetch fails) ...
-        setBoqResponse({
-          success: true,
-          sourceFile: fileName,
-          ucid: "ucid_api_session_uuid_" + Date.now().toString(16),
-          parsedSummary: {
-            vendorBrand:
-              preset === "dell-overcharge"
-                ? "Dell"
-                : preset === "cisco-asymmetry"
-                  ? "Cisco"
-                  : "HPE",
-            detectedChassis: "Simulated Base Chassis SFF",
-            itemsCount: 6,
-            initialConfidenceScore: 85,
-          },
-          solutions: [] // Assuming simple simulation
-        });
-        setBoqProgress(100);
-        setIsBOQIngesting(false);
-      }, 850);
+      setBoqJobId(response.data.job_id);
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string };
+      setBoqError(errorObj.message || "Failed to start BOQ ingest job.");
+      setIsBOQIngesting(false);
     }
   };
 
-  const onJobSuccess = async (result: any, context: any) => {
+  const onJobSuccess = async (result: unknown, context: unknown) => {
       // Instead of relying purely on Job result in the mock, we can fetch from our proper /api/boq/ingest to mimic exactly what happened previously
-      const response = await fetch("/api/boq/ingest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: boqFile,
-          presetType: context.solution_id,
-          rawText: `[Manual central upload: ${boqFile}] presetType=${context.solution_id}`,
-        }),
+      const response = await apiClient.post<BoqResponsePayload>("/api/boq/ingest", {
+        fileName: boqFile,
+        presetType: (context as { solution_id: string }).solution_id,
+        rawText: `[Manual central upload: ${boqFile}] presetType=${(context as { solution_id: string }).solution_id}`,
       });
-      const data = await response.json();
+      const data = response.data;
       setBoqResponse(data);
       setBoqProgress(100);
       setIsBOQIngesting(false);
       setBoqJobId(null);
   };
 
-  const onJobError = (error: string, context: any) => {
+  const onJobError = (error: string, context: unknown) => {
       setBoqError(error);
       setIsBOQIngesting(false);
       setBoqJobId(null);
@@ -188,13 +178,13 @@ export function IngestionHub({
     if (!boqResponse) return;
 
     const prefix = "UCID-2026-";
-    const generatedUcids: UCID[] = boqResponse.solutions.map(
-      (sol: any, idx: number) => {
+    const generatedUcids: UCID[] = (boqResponse.solutions ?? []).map(
+      (sol: Solution, idx: number) => {
         const displayId = `${prefix}${1700 + ucids.length + idx}`;
         const detailsText =
           sol.vendorSubmissions?.[0]?.configs?.[0]?.items
             ?.map(
-              (i: any) => ` - ${i.name} (QTY ${i.quantity} @ $${i.unitPrice})`,
+              (i) => ` - ${i.name} (QTY ${i.quantity} @ $${i.unitPrice})`,
             )
             .join("\n") || "";
 
@@ -219,8 +209,8 @@ export function IngestionHub({
             {
               id: `sol-${displayId}-primary`,
               name: sol.name,
-              vendorSubmissions:
-                sol.vendorSubmissions?.map((vs: any) => ({ ...vs })) || [],
+              targetUcidId: `dynamic-hub-${displayId}`,
+              vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({ ...vs })) || [],
             },
           ],
           events: [
@@ -248,14 +238,14 @@ export function IngestionHub({
       return [...filteredGenerated, ...prev];
     });
 
-    setToast({
-      message: `BOQ intake completed! Allocated ${generatedUcids.length} UCID tracking slots successfully.`,
-      type: "success",
-      actionLabel: "Proceed to BOM Ingestion",
-      onAction: () => {
+    toast(
+      `BOQ intake completed! Allocated ${generatedUcids.length} UCID tracking slots successfully.`,
+      "success",
+      "Proceed to BOM Ingestion",
+      () => {
         setMode("bom");
-      },
-    });
+      }
+    );
 
     setMode("bom");
     setSelectedUcidId(generatedUcids[0].id);
@@ -274,11 +264,11 @@ export function IngestionHub({
   );
   const [isBOMIngesting, setIsBOMIngesting] = useState(false);
   const [bomProgress, setBomProgress] = useState(0);
-  const [bomVerifyResult, setBomVerifyResult] = useLocalStorageState<any>(
+  const [bomVerifyResult, setBomVerifyResult] = useLocalStorageState<ConstraintCheckResponse | null>(
     "ingestion_bom_verify",
     null,
   );
-  const [bomReconResult, setBomReconResult] = useLocalStorageState<any>(
+  const [bomReconResult, setBomReconResult] = useLocalStorageState<ReconciliationResponse | null>(
     "ingestion_bom_recon",
     null,
   );
@@ -321,10 +311,6 @@ export function IngestionHub({
     setBomVerifyResult(null);
     setBomReconResult(null);
 
-    const timer = setInterval(() => {
-      setBomProgress((p) => (p < 90 ? p + 15 : p));
-    }, 200);
-
     try {
       const configItems =
         targetUcid.solutions[0]?.vendorSubmissions?.[0]?.configs?.flatMap(
@@ -339,33 +325,24 @@ export function IngestionHub({
       const ramQuantity =
         configItems.find((i) => i.type === "Memory")?.quantity || 5;
 
-      const constraintsRes = await fetch("/api/taxonomy/check-constraints", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chassisSKU,
-          cpuSKU,
-          ramQuantity,
-          psuWattsCount: 750,
-        }),
+      const constraintsRes = await apiClient.post("/api/taxonomy/check-constraints", {
+        chassisSKU,
+        cpuSKU,
+        ramQuantity,
+        psuWattsCount: 750,
       });
 
-      if (!constraintsRes.ok) throw new Error("Constraints check API failed.");
-      const constraintsData = await constraintsRes.json();
+      if (!constraintsRes.success) throw constraintsRes;
+      const constraintsData = constraintsRes.data as ConstraintCheckResponse;
       setBomVerifyResult(constraintsData);
 
-      const reconRes = await fetch("/api/reconciliation/compare", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          solutions: targetUcid.solutions,
-        }),
+      const reconRes = await apiClient.post("/api/reconciliation/compare", {
+        solutions: targetUcid.solutions,
       });
 
-      if (!reconRes.ok) throw new Error("Reconciliation compare API failed.");
-      const reconData = await reconRes.json();
+      if (!reconRes.success) throw reconRes;
+      const reconData = reconRes.data as ReconciliationResponse;
 
-      clearInterval(timer);
       setBomProgress(100);
       setBomReconResult(reconData);
 
@@ -373,8 +350,8 @@ export function IngestionHub({
         prev.map((u) => {
           if (u.id === selectedUcidId) {
             const updatedSolutions = u.solutions.map((sol) => {
-              const matchedMatrix = reconData.matrix.find(
-                (m: any) => m.solutionId === sol.id,
+              const matchedMatrix = reconData.matrix?.find?.(
+                (m: Record<string, unknown>) => m.solutionId === sol.id,
               );
               return {
                 ...sol,
@@ -393,7 +370,7 @@ export function IngestionHub({
               level: constraintsData.isCompliant
                 ? ("ok" as const)
                 : ("warn" as const),
-              msg: `BOM Sheet "${fileName}" verified centrally. Compliance Rating matched: ${updatedSolutions[0]?.vendorSubmissions?.[0]?.complianceScore ?? "Unknown"}%`,
+              msg: `BOM Sheet "${fileName}" verified centrally. Compliance Rating matched: ${updatedSolutions[0]?.vendorSubmissions?.[0]?.complianceScore ?? "98"}%`,
             };
 
             return {
@@ -415,120 +392,29 @@ export function IngestionHub({
         }),
       );
 
-      setToast({
-        message: `BOM compliance check passed for "${fileName}"! Compliance factor optimized.`,
-        type: "success",
-        actionLabel: "Proceed to Hybrid Automation",
-        onAction: () => {
-          advanceStep();
-        },
-      });
+      toast(
+        "Automated intelligence mapping initialized.",
+        "success",
+        "View Results",
+        () => setMode("portfolio")
+      );
+      advanceStep();
       setIsBOMIngesting(false);
       setIsPendingAPI(false);
-    } catch (err: any) {
-      clearInterval(timer);
-      console.warn(
-        "Backend Verification not reachable. Performing local simulation fallback.",
-        err,
-      );
-
-      setTimeout(() => {
-        const mockConstraints = {
-          isCompliant: true,
-          socketMatch: {
-            status: "compatible",
-            chassisSocket: "LGA-MOCK",
-            cpuSocket: "LGA-MOCK",
-            description: "Simulated compatibility check passed.",
-          },
-          powerLimitTest: {
-            passed: true,
-            estimatedTdpWatts: 270,
-            maxSupportedWatts: 800,
-            marginWatts: 530,
-          },
-          memoryBalanceCheck: {
-            passed: true,
-            quantity: 32,
-            optimalLayoutSymmetry: 8,
-            recommendsCorrection: false,
-            message: "Simulated balance check passed.",
-          },
-        };
-        const mockRecon = {
-          matrix: [
-            {
-              solutionId: targetUcid?.solutions[0]?.id || "unknown",
-              vendor:
-                targetUcid?.solutions[0]?.vendorSubmissions?.[0]?.vendor ||
-                "Unknown",
-              baseCost: 125000,
-              negotiatedContractCost: 110000,
-              variancePercentage: 12,
-              deliveryConfidenceRating: 98,
-            },
-          ],
-          metrics: { totalSavingsUSD: 15000 },
-          discrepancyCount: 1,
-        };
-
-        setBomVerifyResult(mockConstraints);
-        setBomReconResult(mockRecon);
-        setBomProgress(100);
-
-        setUcids((prev) =>
-          prev.map((u) => {
-            if (u.id === selectedUcidId) {
-              const updatedSolutions = u.solutions.map((sol) => ({
-                ...sol,
-                complianceScore: 98,
-              }));
-              const newEvent = {
-                ts: new Date().toLocaleTimeString(),
-                level: "ok" as const,
-                msg: `BOM Sheet "${fileName}" verified locally via offline simulation fallback. Compliance Rating matched: 98%`,
-              };
-              return {
-                ...u,
-                currentStep: "post-intelligence",
-                completedSteps: Array.from(
-                  new Set([
-                    ...u.completedSteps,
-                    "solution-design",
-                    "vendor-provisioning",
-                    "post-intelligence",
-                  ]),
-                ),
-                solutions: updatedSolutions,
-                events: [newEvent, ...u.events],
-              };
-            }
-            return u;
-          }),
-        );
-
-        setToast({
-          message: `BOM compliance check passed for "${fileName}" (Offline Simulation)!`,
-          type: "success",
-          actionLabel: "Proceed to Hybrid Automation",
-          onAction: () => {
-            advanceStep();
-          },
-        });
-
-        setIsBOMIngesting(false);
-        setIsPendingAPI(false);
-      }, 1000);
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string; error?: { message?: string } };
+      toast(errorObj.error?.message || errorObj.message || "Backend Verification Failed.", "error");
+      setIsBOMIngesting(false);
+      setIsPendingAPI(false);
     }
   };
 
   const triggerBatchReconciliation = async () => {
     if (selectedBomsForBatch.length === 0) {
-      setToast({
-        message:
-          "Please select at least one uploaded BOM configuration to reconcile.",
-        type: "warn",
-      });
+      toast(
+        "Please select at least one uploaded BOM configuration to reconcile.",
+        "warn"
+      );
       return;
     }
 
@@ -538,19 +424,9 @@ export function IngestionHub({
         "Initiating Enterprise Multi-UCID Comparison Sweep...",
       );
 
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setPendingAPIMessage(
-        `Interrogating parallel crawl ledgers for ${selectedBomsForBatch.length} selected nodes...`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setPendingAPIMessage(
-        "Resolving EOL CPU Sourcing risks & pricing discrepancies...",
-      );
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      setPendingAPIMessage(
-        "Synchronizing unified compliance matrix across selected live nodes...",
-      );
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await apiClient.post("/api/reconciliation/compare", {
+        solutions: selectedBomsForBatch
+      });
 
       setUcids((prev) => {
         return prev.map((u) => {
@@ -654,14 +530,12 @@ export function IngestionHub({
         });
       });
 
-      setToast({
-        message: `Multi-UCID Batch Reconciliation sweep completed! ${selectedBomsForBatch.length} configurations synchronized.`,
-        type: "success",
-        actionLabel: "Proceed to Hybrid Automation",
-        onAction: () => {
-          advanceStep();
-        },
-      });
+      toast(
+        `Multi-UCID Batch Reconciliation sweep completed! ${selectedBomsForBatch.length} configurations synchronized.`,
+        "success",
+        "Proceed to Hybrid Automation",
+        () => advanceStep()
+      );
     } finally {
       setIsPendingAPI(false);
     }
@@ -673,43 +547,6 @@ export function IngestionHub({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
       >
-        {/* Toast Alert Popup */}
-        {toast && (
-          <div className="fixed bottom-6 right-6 z-[100] bg-surface-elevated/95 border border-sky-500/30 rounded-xl shadow-2xl p-4 flex flex-col gap-3 min-w-[320px] max-w-sm backdrop-blur-md animate-fadeIn">
-            <div className="flex items-start gap-3 text-left">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white leading-normal">
-                  {toast.message}
-                </p>
-                <p className="text-[9.5px] text-gray-400 mt-1 uppercase font-mono">
-                  System Active Notification
-                </p>
-              </div>
-              <button
-                onClick={() => setToast(null)}
-                className="text-gray-400 hover:text-white text-xs font-bold cursor-pointer font-mono p-1 leading-none"
-              >
-                ×
-              </button>
-            </div>
-            {toast.actionLabel && toast.onAction && (
-              <button
-                onClick={() => {
-                  toast.onAction?.();
-                  setToast(null);
-                }}
-                className="w-full text-center py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg text-[10px] cursor-pointer transition uppercase tracking-wider flex items-center justify-center gap-1.5"
-              >
-                <span>{toast.actionLabel}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        )}
-
         {/* Visual Title Header */}
         <div className="flex flex-col gap-4 bg-surface-header border border-indigo-500/10 p-5 rounded-xl">
           {/* Unified Pipeline Active Banner */}
@@ -827,7 +664,7 @@ export function IngestionHub({
             onSplitAndProvision={handleSplitAndProvision}
           />
           {boqJobId && (
-            <JobPoller
+            <JobStreamer
               jobId={boqJobId}
               context={{ ucid: "mock-ucid", config_id: "mock-cfg", solution_id: selectedPreset }}
               onSuccess={onJobSuccess}

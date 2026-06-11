@@ -9,6 +9,7 @@ interface StepBoqIntakeProps {
   appendLogEvent: (level: "info" | "warn" | "ok" | "err", msg: string) => void;
   onShowToast: (msg: string, type: "success" | "warn" | "error") => void;
   onAdvance: () => void;
+  onNavigate: (view: import("../../../types").AppView) => void;
 }
 
 export function StepBoqIntake({
@@ -18,6 +19,7 @@ export function StepBoqIntake({
   appendLogEvent,
   onShowToast,
   onAdvance,
+  onNavigate,
 }: StepBoqIntakeProps) {
   const handleSimulateIntake = async (
     fileName: string,
@@ -450,12 +452,7 @@ export function StepBoqIntake({
 
             <button
               type="button"
-              onClick={() => {
-                const sidebarBtn = document.getElementById("nav-ingestion-hub");
-                if (sidebarBtn) {
-                  sidebarBtn.click();
-                }
-              }}
+              onClick={() => onNavigate("ingestion-hub")}
               className="mt-1 text-[9px] bg-sky-500/10 hover:bg-sky-500/15 text-sky-400 font-mono font-bold px-3 py-1.5 rounded cursor-pointer border border-sky-500/20 hover:border-sky-500/40 uppercase tracking-wide inline-block transition focus:outline-none"
             >
               📥 Open BOQ & BOM Ingest Hub
@@ -580,12 +577,19 @@ export function StepBoqIntake({
             </ul>
           )}
         </div>
-        <div className="flex flex-col justify-end">
+        <div className="flex flex-col justify-end gap-1">
+          {(!ucid.rawBOM.trim() && ucid.solutions.length === 0) && (
+            <p className="text-[10px] text-amber-400 font-semibold text-right flex items-center justify-end gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+              Load a preset or paste specification text to continue.
+            </p>
+          )}
           <button
             id="btn-advance-to-scan"
             type="button"
             onClick={onAdvance}
-            className="w-full md:w-auto self-end flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-all cursor-pointer shadow-lg shadow-indigo-500/10 uppercase tracking-wide"
+            disabled={!ucid.rawBOM.trim() && ucid.solutions.length === 0}
+            className="w-full md:w-auto self-end flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg transition-all cursor-pointer shadow-lg shadow-indigo-500/10 uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed bg-indigo-500 text-white hover:bg-indigo-600"
           >
             Launch Intelligence Scan{" "}
             <ArrowRight className="w-4 h-4 text-white" />

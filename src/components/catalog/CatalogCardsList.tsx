@@ -12,6 +12,7 @@ interface CatalogCardsListProps {
   startEditing: (sku: CatalogSKU) => void;
   savePrice: (id: string) => void;
   setEditingSkuId: (id: string | null) => void;
+  deleteSku: (id: string) => void;
   onClearFilters: () => void;
 }
 
@@ -23,6 +24,7 @@ export function CatalogCardsList({
   startEditing,
   savePrice,
   setEditingSkuId,
+  deleteSku,
   onClearFilters,
 }: CatalogCardsListProps) {
 
@@ -157,6 +159,13 @@ export function CatalogCardsList({
                           title="Edit Price"
                         >
                           <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => deleteSku(sku.id)}
+                          className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-red-500/10 rounded text-gray-500 hover:text-red-400 transition cursor-pointer shrink-0"
+                          title="Delete SKU"
+                        >
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     )}

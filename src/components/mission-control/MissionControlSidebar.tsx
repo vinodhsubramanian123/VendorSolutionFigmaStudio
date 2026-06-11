@@ -1,5 +1,19 @@
-import React from "react";
-import { Sparkles, Layers, FileSpreadsheet, Plus } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { 
+  Sparkles, 
+  Layers, 
+  FileSpreadsheet, 
+  Plus, 
+  MoreVertical, 
+  Edit2, 
+  Trash2, 
+  Copy, 
+  Search, 
+  FolderOpen, 
+  BarChart2, 
+  X, 
+  AlertTriangle 
+} from "lucide-react";
 import type { UCID, UCIDStep } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { PRIORITY_COLOR } from "../../lib/constants";
@@ -8,6 +22,7 @@ import { tokens } from "../../styles/tokens";
 
 interface MissionControlSidebarProps {
   ucids: UCID[];
+  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   selectedId?: string;
   hierarchyTab: "visual" | "faq";
   setHierarchyTab: (tab: "visual" | "faq") => void;
@@ -21,6 +36,7 @@ interface MissionControlSidebarProps {
 
 export function MissionControlSidebar({
   ucids,
+  setUcids,
   selectedId,
   hierarchyTab,
   setHierarchyTab,
@@ -31,6 +47,67 @@ export function MissionControlSidebar({
   setViewStep,
   getSolutionName,
 }: MissionControlSidebarProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeMenuUcidId, setActiveMenuUcidId] = useState<string | null>(null);
+  const [editingUcid, setEditingUcid] = useState<UCID | null>(null);
+  const [confirmDeleteUcid, setConfirmDeleteUcid] = useState<UCID | null>(null);
+
+  // Close menus on outside click
+  useEffect(() => {
+    function handleOutsideClick() {
+      setActiveMenuUcidId(null);
+    }
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, []);
+
+  // Filter grouped UCIDs based on search term
+  const filteredGroupedUcids = useMemo(() => {
+    if (!searchTerm.trim()) return groupedUcids;
+    const term = searchTerm.toLowerCase().trim();
+    const result: Record<string, UCID[]> = {};
+
+    for (const [group, items] of Object.entries(groupedUcids)) {
+      const matched = items.filter(
+        (u) =>
+          u.displayId.toLowerCase().includes(term) ||
+          u.name.toLowerCase().includes(term) ||
+          u.projectRef.toLowerCase().includes(term)
+      );
+      if (matched.length > 0) {
+        result[group] = matched;
+      }
+    }
+    return result;
+  }, [groupedUcids, searchTerm]);
+
+  // Total parallel pipelines count after filtering
+  const filteredCount = useMemo(() => {
+    return Object.values(filteredGroupedUcids).reduce((sum, items) => sum + items.length, 0);
+  }, [filteredGroupedUcids]);
+
+  function handleDuplicate(u: UCID) {
+    const displayNum = Math.floor(1000 + Math.random() * 9000);
+    const duplicated: UCID = {
+      ...u,
+      id: `u-${Date.now()}`,
+      displayId: `UCID-2026-${displayNum}`,
+      name: `${u.name} (Copy)`,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+      currentStep: "boq-intake",
+      completedSteps: [],
+      snapshots: [],
+      events: [
+        {
+          ts: new Date().toLocaleTimeString(),
+          level: "info",
+          msg: `Cloned from parallel flow ${u.displayId}.`,
+        },
+      ],
+    };
+    setUcids((prev) => [...prev, duplicated]);
+  }
+
   return (
     <div className="xl:col-span-1 flex flex-col gap-3">
       {/* Mapping Hierarchy Clarity Panel */}
@@ -125,8 +202,8 @@ export function MissionControlSidebar({
                 ▲ (Consolidated Deals) ▲
               </div>
 
-              <div className="text-center text-white font-bold bg-indigo-900/40 py-1.5 rounded border border-indigo-400/20 text-[8.5px]">
-                📂 UMBRELLA: CAMPAIGN GROUP DEALS
+              <div className="text-center text-white font-bold bg-indigo-900/40 py-1.5 rounded border border-indigo-400/20 text-[8.5px] flex items-center justify-center gap-1.5">
+                <FolderOpen className="w-3 h-3 text-indigo-400" /> UMBRELLA: CAMPAIGN GROUP DEALS
               </div>
             </div>
           </div>
@@ -177,28 +254,57 @@ export function MissionControlSidebar({
         )}
       </div>
 
-      <div className="flex items-center justify-between px-1 mt-1">
-        <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider text-left">
-          Parallel Pipelines ({ucids.length})
-        </span>
-        <button
-          type="button"
-          onClick={() => setShowNewUCID(true)}
-          className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-bold text-white transition-all cursor-pointer shadow-lg shadow-indigo-500/10"
-        >
-          <Plus className="w-3.5 h-3.5" /> Direct Ingest
-        </button>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1 mt-1">
+          <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider text-left">
+            Parallel Pipelines ({filteredCount})
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowNewUCID(true)}
+            className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-bold text-white transition-all cursor-pointer shadow-lg shadow-indigo-500/10"
+          >
+            <Plus className="w-3.5 h-3.5" /> Direct Ingest
+          </button>
+        </div>
+
+        {/* GAP-16: Search Bar */}
+        <div className="px-1">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by ID, name, or project..."
+              className="w-full pl-8 pr-2.5 py-1.5 rounded-lg bg-black/40 border border-white/5 text-[11px] text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition-all font-sans"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="pr-1 space-y-4">
-        {Object.entries(groupedUcids).map(([solutionGroup, groupItems]) => {
+        {Object.entries(filteredGroupedUcids).map(([solutionGroup, groupItems]) => {
           return (
             <div
               key={solutionGroup}
               className="space-y-2 border border-white/5 p-2 rounded-xl bg-black/10"
             >
               {/* Parent Solution/Group Section Header */}
+              {/* GAP-18: Keyboard Accessibility for group headers */}
               <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setWorkspaceMode("consolidation");
+                    if (groupItems[0]) {
+                      onSelectId(groupItems[0].id);
+                      setViewStep(null);
+                    }
+                  }
+                }}
                 onClick={() => {
                   setWorkspaceMode("consolidation");
                   if (groupItems[0]) {
@@ -206,7 +312,7 @@ export function MissionControlSidebar({
                     setViewStep(null);
                   }
                 }}
-                className="flex items-center justify-between px-2 py-1 bg-surface-elevated hover:bg-surface-card rounded-lg border border-indigo-500/10 text-[9.5px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none cursor-pointer transition text-left"
+                className="flex items-center justify-between px-2 py-1 bg-surface-elevated hover:bg-surface-card rounded-lg border border-indigo-500/10 text-[9.5px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none cursor-pointer transition text-left focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 title="Click to open Campaign Consolidation Hub for this group"
               >
                 <span className="flex items-center gap-1.5 truncate">
@@ -220,8 +326,8 @@ export function MissionControlSidebar({
                 </span>
                 <span className="text-[8.5px] bg-indigo-500/10 px-1.5 py-0.5 rounded border border-white/5 text-gray-400 shrink-0 font-bold flex items-center gap-1">
                   <span>{groupItems.length} P</span>
-                  <span className="text-[7.5px] text-indigo-400 font-extrabold uppercase">
-                    📊 Hub
+                  <span className="text-[7.5px] text-indigo-400 font-extrabold uppercase flex items-center gap-0.5">
+                    <BarChart2 className="w-2.5 h-2.5" /> Hub
                   </span>
                 </span>
               </div>
@@ -244,15 +350,27 @@ export function MissionControlSidebar({
                       : u.name;
 
                   return (
-                    <button
+                    <div
                       key={u.id}
-                      type="button"
-                      onClick={() => {
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          if ((e.target as HTMLElement).tagName === "BUTTON") return;
+                          e.preventDefault();
+                          onSelectId(u.id);
+                          setViewStep(null);
+                          setWorkspaceMode("individual");
+                        }
+                      }}
+                      onClick={(e) => {
+                        // Prevent selection if clicking nested buttons
+                        if ((e.target as HTMLElement).closest(".nested-action")) return;
                         onSelectId(u.id);
                         setViewStep(null);
                         setWorkspaceMode("individual");
                       }}
-                      className="w-full text-left p-3 rounded-lg border transition-all duration-200 block cursor-pointer"
+                      className="w-full text-left p-3 rounded-lg border transition-all duration-200 block cursor-pointer relative group focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       style={{
                         backgroundColor: isSelected
                           ? "rgba(74, 133, 253,0.12)"
@@ -264,7 +382,8 @@ export function MissionControlSidebar({
                             : "rgba(74, 133, 253,0.06)",
                       }}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
+                      {/* GAP-01: Action Menu and Top Header Row */}
+                      <div className="flex items-center justify-between mb-1.5 pr-6 relative">
                         <div className="flex items-center gap-2">
                           <span
                             className="w-1.5 h-1.5 rounded-full"
@@ -287,6 +406,61 @@ export function MissionControlSidebar({
                           <span className="text-[9.5px] text-gray-500 font-semibold">
                             {pct}% Complete
                           </span>
+                        )}
+
+                        {/* Three-dot Trigger */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuUcidId(activeMenuUcidId === u.id ? null : u.id);
+                          }}
+                          className="nested-action absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-white hover:bg-white/10 rounded cursor-pointer transition"
+                          title="Actions"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Kebab Menu Dropdown */}
+                        {activeMenuUcidId === u.id && (
+                          <div 
+                            className="nested-action absolute right-0 top-6 w-28 bg-surface-header border border-indigo-500/20 rounded-lg shadow-2xl py-1 z-30 font-sans"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingUcid(u);
+                                setActiveMenuUcidId(null);
+                              }}
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-white/5 text-[10px] text-gray-300 hover:text-white flex items-center gap-1.5 cursor-pointer font-bold"
+                            >
+                              <Edit2 className="w-3 h-3 text-indigo-400" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleDuplicate(u);
+                                setActiveMenuUcidId(null);
+                              }}
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-white/5 text-[10px] text-gray-300 hover:text-white flex items-center gap-1.5 cursor-pointer font-bold"
+                            >
+                              <Copy className="w-3 h-3 text-emerald-400" />
+                              Duplicate
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setConfirmDeleteUcid(u);
+                                setActiveMenuUcidId(null);
+                              }}
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-red-500/10 text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1.5 cursor-pointer font-bold"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
                         )}
                       </div>
 
@@ -371,7 +545,7 @@ export function MissionControlSidebar({
                           </div>
                         </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -379,6 +553,166 @@ export function MissionControlSidebar({
           );
         })}
       </div>
+
+      {/* Edit UCID Modal */}
+      {editingUcid && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-[60] select-none leading-normal">
+          <div
+            onClick={() => setEditingUcid(null)}
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+          />
+          <div className="w-full max-w-md rounded-xl border p-5 space-y-4 bg-surface-header border-indigo-500/20 shadow-2xl shadow-black/50 relative z-10 text-xs text-left">
+            <div className="flex items-center justify-between pb-2 border-b border-indigo-500/10">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Edit2 className="w-4 h-4 text-indigo-400" /> Edit Parallel Flow ({editingUcid.displayId})
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingUcid(null)}
+                className="text-gray-500 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!editingUcid.name.trim()) return;
+                setUcids((prev) =>
+                  prev.map((u) => (u.id === editingUcid.id ? editingUcid : u))
+                );
+                setEditingUcid(null);
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1">
+                <label className="text-gray-400 font-semibold uppercase">Workspace Title</label>
+                <input
+                  type="text"
+                  value={editingUcid.name}
+                  onChange={(e) => setEditingUcid({ ...editingUcid, name: e.target.value })}
+                  className="w-full p-2.5 rounded bg-black/30 border border-white/10 text-white"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-gray-400 font-semibold uppercase">Project Code Ref</label>
+                  <input
+                    type="text"
+                    value={editingUcid.projectRef}
+                    onChange={(e) => setEditingUcid({ ...editingUcid, projectRef: e.target.value })}
+                    className="w-full p-2.5 rounded bg-black/30 border border-white/10 text-white"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-400 font-semibold uppercase">Priority</label>
+                  <select
+                    value={editingUcid.priority}
+                    onChange={(e) =>
+                      setEditingUcid({
+                        ...editingUcid,
+                        priority: e.target.value as "critical" | "high" | "medium" | "low",
+                      })
+                    }
+                    className="w-full p-2.5 rounded bg-black/30 border border-white/10 text-white"
+                  >
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t flex justify-end gap-2 border-indigo-500/10">
+                <button
+                  type="button"
+                  onClick={() => setEditingUcid(null)}
+                  className="px-3 py-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white font-bold transition-all cursor-pointer font-sans"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-bold text-white transition-all cursor-pointer font-sans"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteUcid && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-[60] select-none leading-normal">
+          <div
+            onClick={() => setConfirmDeleteUcid(null)}
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+          />
+          <div className="w-full max-w-md rounded-xl border p-5 space-y-4 bg-surface-header border-red-500/20 shadow-2xl shadow-black/50 relative z-10 text-xs text-left">
+            <div className="flex items-center gap-2 pb-2 border-b border-red-500/10 text-red-400">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              <h3 className="text-sm font-bold uppercase tracking-wider">
+                Confirm Deletion
+              </h3>
+            </div>
+
+            <div className="space-y-3 text-gray-300">
+              <p>
+                Are you sure you want to permanently delete the pipeline{" "}
+                <strong className="text-white">
+                  {confirmDeleteUcid.displayId} ({confirmDeleteUcid.name})
+                </strong>
+                ?
+              </p>
+
+              {confirmDeleteUcid.snapshots && confirmDeleteUcid.snapshots.length > 0 && (
+                <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/30 text-red-300 space-y-1">
+                  <span className="font-bold block uppercase tracking-wider text-[10px]">
+                    ⚠️ Warning: Locked Snapshots Detected
+                  </span>
+                  <p className="leading-relaxed text-[11px]">
+                    This pipeline has {confirmDeleteUcid.snapshots.length} locked snapshots. Deleting it will permanently destroy all historical audit trails.
+                  </p>
+                </div>
+              )}
+
+              <p className="text-gray-500 text-[10px]">
+                This action cannot be undone. All related log events and design proposals will be lost.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t flex justify-end gap-2 border-red-500/10">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteUcid(null)}
+                className="px-3 py-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white font-bold transition-all cursor-pointer font-sans"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUcids((prev) => prev.filter((u) => u.id !== confirmDeleteUcid.id));
+                  if (selectedId === confirmDeleteUcid.id) {
+                    onSelectId(undefined);
+                  }
+                  setConfirmDeleteUcid(null);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 font-bold text-white transition-all cursor-pointer font-sans"
+              >
+                Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

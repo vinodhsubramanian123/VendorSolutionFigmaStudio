@@ -26,6 +26,8 @@ export function BreadcrumbNav({
     reconciliation: "BOM Reconciliation Diff",
     search: "Semantic NLP Search",
     "taxonomy-graph": "Taxonomy Graph Editor",
+    cleansing: "Interactive Cleansing Workshop",
+    telemetry: "System Telemetry & Logs",
   };
 
   const activeMission =

@@ -77,6 +77,7 @@ export const UCID_STEPS: {
   },
 ];
 
+/* eslint-disable sonarjs/no-hardcoded-passwords */
 export const VENDORS: Vendor[] = [
   {
     id: "v1",
@@ -88,7 +89,12 @@ export const VENDORS: Vendor[] = [
     apiHealth: 99.4,
     apiEndpoint: "https://api.hpe.com/v2/pricing/instant",
     syncInterval: "Every 4 Hours",
-    lastSync: "10 min ago",
+    lastSync: "10 mins ago",
+    credentials: {
+      username: "enterprise_sourcing_hpe_prod",
+      passwordHash: "HPE-S0urcing-2026!",
+      mfaToken: "RO7K-9154-A24B"
+    }
   },
   {
     id: "v2",
@@ -98,9 +104,14 @@ export const VENDORS: Vendor[] = [
     color: tokens.colors.accent.indigo, 
     catalogItems: 4831,
     apiHealth: 98.7,
-    apiEndpoint: "https://direct.dell.com/oem/api/v1/quotes",
-    syncInterval: "Every 6 Hours",
-    lastSync: "25 min ago",
+    apiEndpoint: "https://b2b.dell.com/api/catalog/v3",
+    syncInterval: "Every 12 Hours",
+    lastSync: "2 hours ago",
+    credentials: {
+      username: "dell_premier_procurement_lead",
+      passwordHash: "DellAdminSecure3902!!",
+      mfaToken: "DL-9824-MFA-X2"
+    }
   },
   {
     id: "v3",
@@ -113,6 +124,11 @@ export const VENDORS: Vendor[] = [
     apiEndpoint: "https://commerce.cisco.com/api/v3/solutions",
     syncInterval: "Every 12 Hours",
     lastSync: "1 min ago",
+    credentials: {
+      username: "cisco_commerce_workspace_api",
+      passwordHash: "Cisco#CCW#Tunnel99",
+      mfaToken: "CSCO-AUTH-9999"
+    }
   },
   {
     id: "v4",

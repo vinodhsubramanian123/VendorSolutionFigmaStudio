@@ -16,7 +16,8 @@ import {
   HeartCrack,
 } from "lucide-react";
 import { useToast } from "../shared/ToastContext";
-import type { UCID, Snapshot } from "../../types";
+import type { UCID, Snapshot, Config, BOMItem } from "../../types";
+import { apiClient } from "../../services/apiClient";
 
 interface SnapshotManagerProps {
   activeUCID: UCID | undefined;
@@ -110,20 +111,8 @@ export function SnapshotManager({
     toast.success(`Snapshot v${nextVersion} locked & archived in CRM register (optimistic).`);
     setIsCreateOpen(false);
 
-    // Call POST /api/ucids/:unit/snapshots to sync backend
-    fetch(`/api/ucids/${activeUCID.id}/snapshots`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ snapshot: createdSnapshot }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("HTTP error " + response.status);
-        }
-        return response.json();
-      })
+    // Call POST /api/snapshots to sync backend
+    apiClient.post("/api/snapshots", createdSnapshot)
       .then((data) => {
         console.log("[SYNC] Snapshot synchronized successfully with server backend:", data);
       })
@@ -190,7 +179,13 @@ export function SnapshotManager({
       })
     );
 
-    toast.success("Snapshot successfully deleted.");
+    apiClient.delete(`/api/snapshots/${snapId}`)
+      .then(() => {
+        toast.success("Snapshot successfully deleted.");
+      })
+      .catch(() => {
+        toast.error("Failed to delete snapshot on server.");
+      });
   };
 
   const getBomConfigs = (snap: Snapshot) => {
@@ -467,7 +462,7 @@ export function SnapshotManager({
                               <span>No underlying SKU assets cached in snapshot.</span>
                             </div>
                           ) : (
-                            configs.map((cfg: any, cIdx: number) => (
+                            configs.map((cfg: Config, cIdx: number) => (
                               <div
                                 key={cfg.id || cIdx}
                                 className="space-y-2 border-b border-white/5 pb-2 last:border-0 last:pb-0"
@@ -482,7 +477,7 @@ export function SnapshotManager({
                                   </span>
                                 </div>
                                 <div className="space-y-1.5 pl-2 text-[9px] text-gray-450">
-                                  {(cfg.items || []).map((it: any, iIdx: number) => (
+                                  {(cfg.items || []).map((it: BOMItem, iIdx: number) => (
                                     <div key={it.id || iIdx} className="flex justify-between gap-3 text-left">
                                       <span className="truncate max-w-[200px]" title={`${it.partNumber} - ${it.name}`}>
                                         {it.quantity}x <b className="text-gray-300">{it.partNumber}</b> ({it.name})

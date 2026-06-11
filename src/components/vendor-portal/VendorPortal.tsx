@@ -1,53 +1,38 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "motion/react";
 import {
   Globe,
   RefreshCw,
-  AlertCircle,
-  CheckCircle,
-  Loader2,
 } from "lucide-react";
-import type { Vendor, UCID } from "../../types";
+import type { Vendor, UCID, CatalogSKU } from "../../types";
+import { useToast } from "../shared/ToastContext";
 import { VendorIngestionDesk } from "./VendorIngestionDesk";
 import { VendorGateways } from "./VendorGateways";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
-import { tokens } from "../../styles/tokens";
+import { apiClient } from "../../services/apiClient";
 
 interface VendorPortalProps {
   vendors: Vendor[];
   setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
+  catalogSkus?: CatalogSKU[];
 }
 
-export function VendorPortal({
+export const VendorPortal = React.memo(function VendorPortal({
   vendors,
   setVendors,
   ucids,
   setUcids,
+  catalogSkus = [],
 }: VendorPortalProps) {
   const [syncingAll, setSyncingAll] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "warn" | "error";
-  } | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, []);
+  const { toast } = useToast();
 
   // Memoized lists calculations for UI sorting optimization & reactive reactivity
   const sortedVendors = useMemo(() => {
     return [...vendors].sort((a, b) => a.name.localeCompare(b.name));
   }, [vendors]);
-
-  // Trigger Toast Notification
-  function showToast(message: string, type: "success" | "warn" | "error") {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  }
 
   function handleToggleStatus(vendorId: string) {
     setVendors((prev) =>
@@ -55,14 +40,14 @@ export function VendorPortal({
         if (v.id === vendorId) {
           const isConnected =
             v.status === "connected" || v.status === "syncing";
-          const nextStatus = isConnected ? "disconnected" : "connected";
+          const nextStatus: Vendor['status'] = isConnected ? "disconnected" : "connected";
           const nextHealth = isConnected
             ? 0
             : Math.round(92 + Math.random() * 7);
 
           return {
             ...v,
-            status: nextStatus as any,
+            status: nextStatus,
             apiHealth: nextHealth,
             lastSync: nextStatus === "connected" ? "Just now" : v.lastSync,
           };
@@ -70,14 +55,13 @@ export function VendorPortal({
         return v;
       }),
     );
-    showToast("Vendor system status altered successfully.", "success");
+    toast("Vendor system status altered successfully.", "success");
   }
 
-  function handleSyncAll() {
+  async function handleSyncAll() {
     setSyncingAll(true);
-
-    setTimeout(() => {
-      setSyncingAll(false);
+    try {
+      await apiClient.post("/api/vendors/sync", {});
       setVendors((prev) =>
         prev.map((v) => {
           if (v.status !== "disconnected") {
@@ -91,11 +75,16 @@ export function VendorPortal({
           return v;
         }),
       );
-      showToast(
+      toast(
         "All Direct APIS polled with latest contract pricing metrics.",
         "success",
       );
-    }, 1000);
+    } catch (e: unknown) {
+      console.error(e);
+      toast("Failed to sync vendor APIs.", "error");
+    } finally {
+      setSyncingAll(false);
+    }
   }
 
   if (vendors.length === 0) {
@@ -121,42 +110,6 @@ export function VendorPortal({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
       >
-      {/* Toast Alert overlay */}
-      {toast && (
-        <div
-          className="fixed bottom-6 right-6 z-50 p-3.5 rounded-xl border shadow-2xl flex items-center gap-3 animate-slideIn"
-          style={{
-            backgroundColor:
-              toast.type === "success"
-                ? `${tokens.colors.status.success}1a`
-                : toast.type === "error"
-                  ? `${tokens.colors.status.error}1a`
-                  : `${tokens.colors.status.warning}1a`,
-            borderColor:
-              toast.type === "success"
-                ? tokens.colors.status.success
-                : toast.type === "error"
-                  ? tokens.colors.status.error
-                  : tokens.colors.status.warning,
-          }}
-        >
-          <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-white/5">
-            {toast.type === "success" && (
-              <CheckCircle className="w-3.5 h-3.5 text-status-success" />
-            )}
-            {toast.type === "error" && (
-              <AlertCircle className="w-3.5 h-3.5 text-status-error" />
-            )}
-            {toast.type === "warn" && (
-              <AlertCircle className="w-3.5 h-3.5 text-status-warning" />
-            )}
-          </div>
-          <span className="text-xs text-white font-medium">
-            {toast.message}
-          </span>
-        </div>
-      )}
-
       {/* Overview Head */}
       <div
         className="p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4"
@@ -207,11 +160,12 @@ export function VendorPortal({
           <VendorIngestionDesk
             ucids={ucids}
             setUcids={setUcids}
-            showToast={showToast}
+            showToast={toast}
+            catalogSkus={catalogSkus}
           />
         </div>
       </div>
     </motion.div>
     </ErrorBoundary>
   );
-}
+});

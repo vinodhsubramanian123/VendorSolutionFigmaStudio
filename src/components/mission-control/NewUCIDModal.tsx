@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Radio, X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { UCID } from "../../types";
 import { Select } from "../shared/Select";
 import { Button } from "../shared/Button";
@@ -16,18 +17,36 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
     "critical" | "high" | "medium" | "low"
   >("high");
   const [rawBOMText, setRawBOMText] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [refError, setRefError] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!ucidName.trim()) return;
+    let hasError = false;
+
+    if (!ucidName.trim()) {
+      setNameError("Workspace Title / Brief Target is required.");
+      hasError = true;
+    } else {
+      setNameError("");
+    }
+
+    if (!ucidRef.trim()) {
+      setRefError("Project Code Ref is required.");
+      hasError = true;
+    } else {
+      setRefError("");
+    }
+
+    if (hasError) return;
 
     const displayNum = Math.floor(1000 + Math.random() * 9000);
     const newUCID: UCID = {
       id: `u-${Date.now()}`,
       displayId: `UCID-2026-${displayNum}`,
-      name: ucidName,
+      name: ucidName.trim(),
       priority,
-      projectRef: ucidRef.trim() || `PRJ-INGEST-${displayNum}`,
+      projectRef: ucidRef.trim(),
       createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
       currentStep: "boq-intake",
       completedSteps: [],
@@ -47,8 +66,21 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-50 animate-fadeIn select-none leading-normal">
-      <div className="w-full max-w-lg rounded-xl border p-5 space-y-4 bg-surface-header border-indigo-500/20 shadow-2xl shadow-black/50">
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-50 select-none leading-normal">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="w-full max-w-lg rounded-xl border p-5 space-y-4 bg-surface-header border-indigo-500/20 shadow-2xl shadow-black/50 relative z-10"
+      >
         <div className="flex items-center justify-between pb-2 border-b border-indigo-500/10">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <Radio className="w-4 h-4 text-indigo-400 animate-pulse" /> Register
@@ -71,11 +103,29 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
             <input
               type="text"
               value={ucidName}
-              onChange={(e) => setUcidName(e.target.value)}
+              onChange={(e) => {
+                setUcidName(e.target.value);
+                if (e.target.value.trim()) {
+                  setNameError("");
+                }
+              }}
               placeholder="e.g. HPC Core Virtualization — 24 Node Cluster Gen11"
-              className="w-full p-2.5 rounded bg-black/30 border border-white/10 text-white"
-              required
+              className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
+                nameError ? "border-[#ff3d5a]" : "border-white/10"
+              }`}
             />
+            <AnimatePresence>
+              {nameError && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
+                >
+                  {nameError}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -86,10 +136,28 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               <input
                 type="text"
                 value={ucidRef}
-                onChange={(e) => setUcidRef(e.target.value)}
-                className="w-full p-2.5 rounded bg-black/30 border border-white/10 text-white"
-                required
+                onChange={(e) => {
+                  setUcidRef(e.target.value);
+                  if (e.target.value.trim()) {
+                    setRefError("");
+                  }
+                }}
+                className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
+                  refError ? "border-[#ff3d5a]" : "border-white/10"
+                }`}
               />
+              <AnimatePresence>
+                {refError && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
+                  >
+                    {refError}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
             <div className="space-y-1 text-left">
               <label className="text-gray-400 font-semibold uppercase">
@@ -97,7 +165,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               </label>
               <Select
                 value={priority}
-                onChange={(e: any) => setPriority(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPriority(e.target.value as 'critical' | 'high' | 'medium' | 'low')}
               >
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
@@ -135,7 +203,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
             </Button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

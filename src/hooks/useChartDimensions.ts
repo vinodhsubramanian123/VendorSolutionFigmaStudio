@@ -11,9 +11,11 @@ export function useChartDimensions() {
       if (entry) {
         const { width, height } = entry.contentRect;
         if (width > 0 && height > 0) {
-          // Use requestAnimationFrame to avoid "ResizeObserver loop limit exceeded" warning
           window.requestAnimationFrame(() => {
-            setDimensions({ width, height });
+            setDimensions((prev) => {
+              if (prev.width === width && prev.height === height) return prev;
+              return { width, height };
+            });
           });
         }
       }
@@ -24,7 +26,10 @@ export function useChartDimensions() {
     // Initial measure
     const rect = ref.current.getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) {
-      setDimensions({ width: rect.width, height: rect.height });
+      setDimensions((prev) => {
+        if (prev.width === rect.width && prev.height === rect.height) return prev;
+        return { width: rect.width, height: rect.height };
+      });
     }
 
     return () => observer.disconnect();

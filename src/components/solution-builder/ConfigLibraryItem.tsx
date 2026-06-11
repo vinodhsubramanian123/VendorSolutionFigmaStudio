@@ -23,6 +23,9 @@ export function ConfigLibraryItem({
 }: ConfigLibraryItemProps) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter") onSelect(); }}
       onClick={onSelect}
       className={`p-3 rounded-lg border transition duration-150 cursor-pointer text-left block ${
         isSelected

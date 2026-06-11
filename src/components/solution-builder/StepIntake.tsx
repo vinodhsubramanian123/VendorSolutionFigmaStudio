@@ -8,6 +8,7 @@ import {
   Check,
 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
+import { apiClient } from "../../services/apiClient";
 
 interface StepIntakeProps {
   activeUcidsCount: number;
@@ -26,23 +27,25 @@ export function StepIntake({
   const [isIngested, setIsIngested] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
 
-  const handleFileUpload = (fileName: string) => {
+  const handleFileUpload = async (fileName: string) => {
     setIsIngesting(true);
     setUploadedFileName(fileName);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 20;
-      setIngestProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsIngesting(false);
-        setIsIngested(true);
-        // Parent component hook if needed, but we can keep it local until proceed
-        if (onSimulationLoad) {
-          onSimulationLoad(fileName);
-        }
+    setIngestProgress(10);
+    try {
+      await apiClient.post("/api/boq/ingest", {
+        fileName,
+        presetType: "hpe-legacy"
+      });
+      setIngestProgress(100);
+      setIsIngesting(false);
+      setIsIngested(true);
+      if (onSimulationLoad) {
+        onSimulationLoad(fileName);
       }
-    }, 200);
+    } catch (err) {
+      setIsIngesting(false);
+      console.error("Ingestion error:", err);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -140,6 +143,7 @@ export function StepIntake({
             </div>
 
             <div
+              role="presentation"
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -182,6 +186,9 @@ export function StepIntake({
                 </div>
               ) : (
                 <div
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter") triggerPicker(); }}
                   className="flex flex-col items-center text-center gap-2 cursor-pointer w-full"
                   onClick={triggerPicker}
                 >

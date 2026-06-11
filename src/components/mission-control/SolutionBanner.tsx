@@ -3,6 +3,7 @@ import { Network } from "lucide-react";
 import { UCID } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { tokens } from "../../styles/tokens";
+import { motion } from "motion/react";
 
 interface SolutionBannerProps {
   ucids: UCID[];
@@ -52,16 +53,22 @@ export function SolutionBanner({
   }[solutionState];
 
   return (
-    <div
-      className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-5 rounded-xl border relative overflow-hidden shadow-2xl transition duration-300"
-      style={{
+    <motion.div
+      animate={{
         background: `linear-gradient(135deg, ${stateCfg.bg} 0%, rgba(11,18,32,0.98) 100%)`,
-        borderColor: deployedSolution ? tokens.colors.accent.indigo : stateCfg.border, 
+        borderColor: deployedSolution ? tokens.colors.accent.indigo : stateCfg.border,
       }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
+      className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-5 rounded-xl border relative overflow-hidden shadow-2xl transition duration-300"
     >
       {/* Visual background ambient glow overlay for freshly deployed campaign */}
       {deployedSolution && (
-        <span className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none animate-pulse" />
+        <motion.span 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" 
+        />
       )}
 
       <div className="flex items-center gap-4">
@@ -129,6 +136,6 @@ export function SolutionBanner({
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,6 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface KpiCardProps {
   id: string;
@@ -31,7 +32,9 @@ export function KpiCard({
   onClick,
 }: KpiCardProps) {
   return (
-    <button
+    <motion.button
+      whileHover={{ y: -2, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -39,6 +42,7 @@ export function KpiCard({
       style={{
         background: hovered ? "rgba(74, 133, 253,0.08)" : tokens.colors.background.elevated, 
         border: `1px solid ${hovered ? color + "40" : "rgba(74, 133, 253,0.1)"}`,
+        boxShadow: hovered ? `0 4px 12px ${color}10` : 'none',
       }}
     >
       <div className="flex items-center justify-between mb-2">
@@ -78,6 +82,6 @@ export function KpiCard({
       >
         {sub}
       </p>
-    </button>
+    </motion.button>
   );
 }

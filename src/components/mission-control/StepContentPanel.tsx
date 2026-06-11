@@ -3,7 +3,8 @@ import {
   UCID,
   UCIDStep,
   Solution,
-  Snapshot,
+  AppView,
+  SourcingRule,
 } from "../../types";
 import { StepBoqIntake } from "./steps/StepBoqIntake";
 import { StepPreIntelligence } from "./steps/StepPreIntelligence";
@@ -21,11 +22,14 @@ interface StepContentPanelProps {
   committingSnapshot: boolean;
   onRunIntel: () => void;
   onAdvance: () => void;
+  onRegress: () => void;
   onCommitSnapshot: () => void;
   appendLogEvent: (level: "info" | "warn" | "ok" | "err", msg: string) => void;
   onUpdateSolutions: (sols: Solution[]) => void;
   onUpdateBOM: (rawText: string) => void;
   onShowToast: (msg: string, type: "success" | "warn" | "error") => void;
+  onNavigate: (view: AppView) => void;
+  sourcingRules?: SourcingRule[];
 }
 
 export function StepContentPanel({
@@ -36,11 +40,14 @@ export function StepContentPanel({
   committingSnapshot,
   onRunIntel,
   onAdvance,
+  onRegress,
   onCommitSnapshot,
   appendLogEvent,
   onUpdateSolutions,
   onUpdateBOM,
   onShowToast,
+  onNavigate,
+  sourcingRules = [],
 }: StepContentPanelProps) {
   const isRunning = runningIntel === uucidId(ucid);
 
@@ -58,6 +65,7 @@ export function StepContentPanel({
           appendLogEvent={appendLogEvent}
           onShowToast={onShowToast}
           onAdvance={onAdvance}
+          onNavigate={onNavigate}
         />
       );
 
@@ -69,6 +77,9 @@ export function StepContentPanel({
           intelProgress={intelProgress}
           onAdvance={onAdvance}
           onRunIntel={onRunIntel}
+          appliedRulesCount={sourcingRules.filter((r) => r.status === "active").length}
+          substitutionRulesCount={sourcingRules.filter((r) => r.ruleType === "substitution" && r.status === "active").length}
+          priceCapRulesCount={sourcingRules.filter((r) => r.ruleType === "price_cap" && r.status === "active").length}
         />
       );
 
@@ -77,17 +88,25 @@ export function StepContentPanel({
         <StepSolutionDesign
           ucid={ucid}
           onAdvance={onAdvance}
+          onRegress={onRegress}
           onUpdateSolutions={onUpdateSolutions}
           appendLogEvent={appendLogEvent}
         />
       );
 
     case "vendor-provisioning":
-      return <StepVendorProvisioning onAdvance={onAdvance} />;
+      return (
+        <StepVendorProvisioning 
+          ucid={ucid}
+          onAdvance={onAdvance}
+          appendLogEvent={appendLogEvent}
+        />
+      );
 
     case "post-intelligence":
       return (
         <StepPostIntelligence
+          ucid={ucid}
           onAdvance={onAdvance}
           appendLogEvent={appendLogEvent}
         />

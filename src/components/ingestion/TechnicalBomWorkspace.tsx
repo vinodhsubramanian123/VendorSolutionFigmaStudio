@@ -17,16 +17,16 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { Select } from "../shared/Select";
-import type { UCID } from "../../types";
+import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
 
 interface TechnicalBomWorkspaceProps {
   ucids: UCID[];
   selectedUcidId: string;
   setSelectedUcidId: (id: string) => void;
-  bomVerifyResult: any;
-  setBomVerifyResult: (res: any) => void;
-  bomReconResult: any;
-  setBomReconResult: (res: any) => void;
+  bomVerifyResult: ConstraintCheckResponse | null;
+  setBomVerifyResult: (res: ConstraintCheckResponse | null) => void;
+  bomReconResult: ReconciliationResponse | null;
+  setBomReconResult: (res: ReconciliationResponse | null) => void;
   activeBOMFile: string;
   setActiveBOMFile: (file: string) => void;
   isBOMIngesting: boolean;
@@ -576,7 +576,7 @@ export function TechnicalBomWorkspace({
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
                           {bomReconResult.matrix?.map(
-                            (row: any, idx: number) => (
+                            (row: NonNullable<ReconciliationResponse['matrix']>[0], idx: number) => (
                               <tr
                                 key={idx}
                                 className="font-mono text-gray-300 hover:text-white"

@@ -6,8 +6,9 @@ import {
   Radio,
   FileSpreadsheet,
   Loader2,
+  Printer,
 } from "lucide-react";
-import { UCID, Snapshot } from "../../types";
+import type { UCID, Snapshot, VendorSubmission } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
@@ -171,7 +172,7 @@ export function CampaignConsolidationHub({
           version: u.snapshots.length + 1,
           timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
           locked: true,
-          bomSnapshot: (winningSol as any).configs || []
+          bomSnapshot: (winningSol as VendorSubmission).configs || []
         };
 
         return {
@@ -192,6 +193,27 @@ export function CampaignConsolidationHub({
         };
       }),
     );
+  }
+
+  function handleExportCSV() {
+    let csv = "Sheet / Workspace Ref,Winner Vendor,Selected Cost,HPE Option Quote,Dell Option Quote,Step State\n";
+    campaignUcids.forEach(u => {
+      const masterSolution = u.solutions[0];
+      const currentSelected = masterSolution?.vendorSubmissions?.[0];
+      const hpeS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "HPE") ?? masterSolution?.vendorSubmissions?.[0];
+      const dellS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "Dell") ?? masterSolution?.vendorSubmissions?.[0];
+
+      csv += `"${u.displayId} - ${u.name}","${currentSelected?.vendor || 'Unassigned'}","${currentSelected?.totalPrice || 0}","${hpeS?.totalPrice || 0}","${dellS?.totalPrice || 0}","${u.currentStep}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Campaign_Consolidation_${campaignName}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   // Calculate homogenous totals of campaign portfolio
@@ -595,6 +617,13 @@ export function CampaignConsolidationHub({
                 </span>
               </p>
             </div>
+
+            <button
+              onClick={handleExportCSV}
+              className="mt-4 py-2 px-4 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[10px] font-mono uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/20"
+            >
+              <FileSpreadsheet className="w-4 h-4" /> Export Campaign CSV
+            </button>
           </div>
         ) : (
           <div className="space-y-3.5">

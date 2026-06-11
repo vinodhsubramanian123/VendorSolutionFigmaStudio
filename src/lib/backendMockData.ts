@@ -338,13 +338,14 @@ export function runIntegrationDiagnosticTestSuite(): { passed: boolean; reports:
   const reports: string[] = [];
   let passed = true;
 
-  const runTest = (name: string, schema: any, data: any) => {
+  const runTest = (name: string, schema: import("zod").ZodTypeAny, data: unknown) => {
     const res = schema.safeParse(data);
     if (res.success) {
       reports.push(`✓ [PASSED COMPLIANCE CHECK]: ${name}`);
     } else {
       passed = false;
-      reports.push(`✗ [FAILED COMPLIANCE CHECK]: ${name} - Errors: ${res.error.issues.map((i: any) => `${i.path.join(".")}: ${i.message}`).join(", ")}`);
+      const errStr = res.error?.issues.map((i: any) => i.path.join(".") + ": " + i.message).join(", ");
+      reports.push(`✗ [FAILED COMPLIANCE CHECK]: ${name} - Errors: ` + errStr);
     }
   };
 
@@ -364,9 +365,9 @@ export function runIntegrationDiagnosticTestSuite(): { passed: boolean; reports:
     runTest("PRD Webhook Dispatch Request", WebhookDispatchRequestSchema, SAMPLE_WEBHOOK_DISPATCH_REQUEST);
     runTest("PRD Webhook Dispatch Response", WebhookDispatchResponseSchema, SAMPLE_WEBHOOK_DISPATCH_RESPONSE);
     runTest("PRD Taxonomy Graph API Response", GraphAPIResponseSchema, SAMPLE_GRAPH_API_RESPONSE);
-  } catch (e: any) {
-    passed = false;
-    reports.push(`💥 [TEST CRASHED]: ${e.message}`);
+  } catch (e: unknown) {
+    const errorObj = e as { message?: string };
+    reports.push(`✗ [FATAL DIAGNOSTIC ERROR]: Runtime exception during schema validation suite: ${errorObj.message}`);
   }
 
   return { passed, reports };
