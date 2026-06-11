@@ -45,7 +45,7 @@ The platform is structured into twelve unified navigation views, preserving a co
 +------------------------------------------------------------------------------------------------------+
 |                                          App Nav Rail                                                |
 | Overview (Dashboard) | Quote Compile (Solution Builder)  | BOM Ingest (Ingestion Hub)                |
-| Live Mission         | Forensic Audit (Forensic View)    | Interactive Cleansing (Cleansing View)    |
+| Mission Control      | Forensic Audit (Forensic View)    | Interactive Cleansing (Cleansing View)    |
 | Taxonomy Graph       | Catalog Manager                   | External Suppliers (Vendor Portal)        |
 | Premium Showcase     | Reports & Analytics               | System Telemetry (API & Logs monitor)     |
 +------------------------------------------------------------------------------------------------------+
@@ -57,12 +57,12 @@ The platform is structured into twelve unified navigation views, preserving a co
 *   **Objective**: Executive macro-level status of portfolio values, active UCID missions, margin capture estimations, and recent forensic alerts.
 
 #### 3.2 Quote Compile & Mapping (Solution Builder)
-*   **Objective**: Act as an interactive mapping architecture where parsed source sheets are visually assigned to logical deployment blocks (UCIDs), and finally pushed to Live Mission control. Evaluates multi-UCID and single-UCID portfolio architectures.
+*   **Objective**: Act as an interactive mapping architecture where parsed source sheets are visually assigned to logical deployment blocks (UCIDs), and finally pushed to Mission Control. Evaluates multi-UCID and single-UCID portfolio architectures.
 
 #### 3.3 BOM Ingest (Ingestion Hub)
 *   **Objective**: Centralized drop-zone portal for raw Excel sheets of multi-tab sourcing documents, transforming them into internal schema arrays using specific backend ingestion microservices.
 
-#### 3.4 Parallel UCID Processing Line (Live Mission)
+#### 3.4 Parallel UCID Processing Line (Mission Control)
 *   **Objective**: Act as the master cockpit for tracking a particular UCID’s seven stages:
     1.  *BOQ Ingestion*: Parse CSV raw material rows.
     2.  *Pre-Intelligence*: Execute initial heuristics.
@@ -78,7 +78,7 @@ The platform is structured into twelve unified navigation views, preserving a co
 #### 3.6 Interactive Splicing & Mapping Workshop (Cleansing View)
 *   **Objective**: Resolve bad or corrupted supplier quote entries natively within the interface (handling spelling mistakes, incomplete tags).
 
-#### 3.7 Taxonomic Procurement Knowledge Graph (Taxonomy Graph Editor)
+#### 3.7 Taxonomic Procurement Knowledge Graph (Taxonomy Graph View)
 *   **Objective**: Interact with physically-binding server configurations to prevent installing incompatible parts (e.g., non-LGA4677 CPUs inside an LGA1700 chassis) using SVG/node visual validation. Provides a graphical interface and an automated diagnostic side-panel to resolve unmapped/orphaned hierarchical BOQ components utilizing user-guided Drag & Drop or Auto-Fix resolution paths. Also supports drag-and-drop reassignment of existing mapped elements to correct faulty topological branches manually.
 
 #### 3.8 Central SKU Library (Catalog Manager)

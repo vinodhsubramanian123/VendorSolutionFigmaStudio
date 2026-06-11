@@ -17,7 +17,7 @@ The platform is compiled as a Single-Page Application (SPA) utilizing a high-per
  |                                                                                                    |
  |  [Sidebar Navigation]              [Active Workspace Content Area]                                 |
  |  - Dashboard / Overview             - Solutions Workspace / Canvas                                 |
- |  - Ingestion Hub (BOM / BOQ)        - Live Parallel Cockpits / Step Stages                         |
+ |  - Ingestion Hub (BOM / BOQ)        - Mission Control Cockpits / Step Stages                       |
  |  - Vendor Portal & Scrapers         - Diagnostics Sandbox (Anomaly Repricers)                      |
  |  - Cleansing Workshop               - Taxonomy Rules Graph / SVG Constraints Checker               |
  |  - Catalog Library Manager          - System Logs, Cryptographic Webhook Telemetry                 |
@@ -45,25 +45,25 @@ To preserve pristine UI/UX code hygiene:
 
 Below is an exhaustive breakdown of the functional scope, user interactions, and exact file definitions supporting each of the active workspace modules.
 
-### 2.1 Overview & Executive Dashboard (`/src/components/Dashboard.tsx`)
+### 2.1 Overview & Executive Dashboard (`/src/components/dashboard/Dashboard.tsx`)
 - **Visuals**: Premium bento-grid layout showcasing metrics: Active UCIDs, Portfolio Value ($M), Cleansing Completion (%), and Active Scrapers.
 - **Atomic Actions**:
-  - *Click 'Select Active UCID'*: Triggers navigation directly to the selected Live Mission line.
+  - *Click 'Select Active UCID'*: Triggers navigation directly to the selected Mission Control line.
   - *Click 'Inspect Forensic Flag'*: Opens the Forensic View filtered by that specific anomalous SKU.
 
-### 2.2 Quote Compile & Mapping (`/src/components/SolutionBuilder.tsx`)
+### 2.2 Quote Compile & Mapping (`/src/components/solution-builder/SolutionBuilder.tsx`)
 - **Visuals**: Parallel multi-column arrangement panels where uploaded BOQ spreadsheets are grouped into logical deployment blocks.
 - **Atomic Actions**:
   - *Add Custom Solution Block*: Allows on-the-fly logical aggregation of parts.
   - *Validate Synergy Weights*: Compares combined item power/rack footprints against predefined limits before saving.
 
-### 2.3 BOM / BOQ Ingest Zone (`/src/components/IngestionHub.tsx`)
+### 2.3 BOM / BOQ Ingest Zone (`/src/components/ingestion/IngestionHub.tsx`)
 - **Visuals**: A drop-zone framework mimicking secure portal file uploads (drag-and-drop or manual trigger). Displays live parsing metrics (items extracted, sheet index, metadata hashes).
 - **Atomic Actions**:
   - *Upload Spreadsheet File*: Parses structural inputs and converts columns like `Part No`, `Description`, `Qty`, `Price` into memory arrays.
   - *Configure Preset Mapping Type*: Direct dropdown selector (`hpe-legacy`, `dell-overcharge`, `cisco-asymmetry`) ensuring target parser knows how to handle layout variances.
 
-### 2.4 Parallel UCID Cockpit (`/src/components/LiveMission.tsx`)
+### 2.4 Parallel UCID Cockpit (`/src/components/mission-control/MissionControl.tsx`)
 - **Visuals**: Step-by-step parallel tracking wizard mapping out the seven progressive stages of configuration compile.
 - **Stage Progression Flow**:
   1. `BOQ Ingestion`: Confirms parsing status and counts.
@@ -74,41 +74,44 @@ Below is an exhaustive breakdown of the functional scope, user interactions, and
   6. `Comparison Matrix`: Provides interactive multi-vendor side-by-side matrices.
   7. `Snapshot Lock`: Seals the configuration sequence as immutable.
 
-### 2.5 Sourcing Integrity Sandbox (`/src/components/ForensicView.tsx`)
+### 2.5 Sourcing Integrity Sandbox (`/src/components/forensics/ForensicView.tsx`)
 - **Visuals**: Alert feeds displaying pricing anomalies, overcharges, and component lifecycle EOL warnings.
 - **Diagnostic Repair Controls**:
   - *Recalculate OEM Standard Reference Margin*: Overrides Distributor-provided markups with vendor-direct contracts, re-pricing item arrays on the fly.
   - *Replace Obsolete SKU*: Swaps flagged EOL chassis or processors with matching backward-compatible modern items suggested by the system.
 
-### 2.6 Splicing Workshop & Cleansing Center (`/src/components/CleansingView.tsx`)
+### 2.6 Splicing Workshop & Cleansing Center (`/src/components/cleansing/CleansingView.tsx`)
 - **Visuals**: Standard quarantine list flagging ambiguous suffix codes, conflicting vendor identities, and fuzzy SKU descriptions.
 - **Atomic Actions**:
   - *Select Quarantined Record*: Focuses on specific items to view BERT and Jaro-Winkler phonetics suggestion scores.
   - *Click 'Map to Catalog'*: Swaps the raw ambiguous string with standard system UCID values, instantly clearing the queue.
 
-### 2.7 Taxonomy Rules Graph (`/src/components/TaxonomyGraphEditor.tsx`)
+### 2.7 Taxonomy Rules Graph (`/src/components/taxonomy/TaxonomyGraphView.tsx`)
 - **Visuals**: Interactive tree/flow SVG layout showing `Vendor` -> `Solution` -> `Product` -> `Chassis` -> `SKU` path relationships. Direct rule validator card panel for assessing physical constraints.
 - **Atomic Actions**:
   - *Toggle Connect Mode*: Allows adding virtual lines linking parent categories to children.
   - *Inspect Chassis Rules*: Triggers automated memory controller/power checks showing real-time socket compatibility (LGA4677 warnings).
 
-### 2.8 Central Item Library (`/src/components/CatalogManager.tsx`)
+### 2.8 Central Item Library (`/src/components/catalog/CatalogManager.tsx`)
 - **Visuals**: Tabular inventory editor of canonical Stock Keeping Units with live filters for CPU, Memory, Chassis, Network cards, and Licenses.
 - **Atomic Actions**:
   - *Create Canonical Part*: Inputs verified parts to enrich mapping matching capabilities.
 
-### 2.9 Headless Scraper Execution Cockpit (`/src/components/VendorPortal.tsx`)
+### 2.9 Headless Scraper Execution Cockpit (`/src/components/vendor-portal/VendorPortal.tsx`)
 - **Visuals**: Crawler console showcasing live automation state. Shows visual terminal trace outputs simulating browser commands (e.g. `Navigate`, `Bypass SSO`, `Fetch Unit Cost`).
 - **Atomic Actions**:
   - *Spawn Automated Portal Crawler*: Sends instructions triggering behind-the-scenes scraping modules.
 
-### 2.10 System Telemetry Monitor (`/src/components/SystemTelemetry.tsx`)
+### 2.10 System Telemetry Monitor (`/src/components/telemetry/SystemTelemetry.tsx`)
 - **Visuals**: Split console demonstrating outbound webhook dispatches and event logs. It includes a reactive payload testing validation panel.
 - **Atomic Actions**:
   - *Test Webhook Endpoint*: Validates endpoint schemas down to custom HMAC signature verification.
 
-### 2.11 State Consistency Debugger (`/src/components/StateConsistencyMonitor.tsx`)
+### 2.11 State Consistency Debugger (`/src/components/shared/DataPersistenceGate.tsx`)
 - **Visuals**: Floating inspector that lets developers browse and debug granular UCID storage, catalog variables, and memory-sync offsets in real-time.
+
+### 2.12 Premium Showcase & Reporting Hub (`/src/components/search/SearchView.tsx`)
+- **Visuals**: Omnibar-powered global queries across vendors, hardware, and configurations with advanced analytical report exporting functionality (utilizing powerful charts).
 
 ---
 
@@ -255,7 +258,36 @@ Enforces mathematical bounds over complex hardware chassis builds to prevent inv
 
 ---
 
-### 3.4 Cryptographic Dispatch webhook (`POST /api/integrations/dispatch`)
+### 3.4 Outbound Reconciliation comparison Endpoint (`POST /api/reconciliation/compare`)
+Identifies optimal configurations by crossing vendor attributes. Detects best potential hybrid scenarios (e.g., combining Chassis from HPE but drives from generic).
+
+#### Input Contract:
+```json
+{
+  "type": "object",
+  "properties": {
+    "submissions": { "type": "array" }
+  },
+  "required": ["submissions"]
+}
+```
+
+#### Output Contract:
+```json
+{
+  "type": "object",
+  "properties": {
+    "comparisonHash": { "type": "string" },
+    "calculatedAt": { "type": "string" },
+    "metrics": { "type": "object" },
+    "matrix": { "type": "array" }
+  }
+}
+```
+
+---
+
+### 3.5 Cryptographic Dispatch webhook (`POST /api/integrations/dispatch`)
 Publishes frozen snapshot JSONs to enterprise ledger software with a SHA256-HMAC signature header.
 
 #### Input Contract:
