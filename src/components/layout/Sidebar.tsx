@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { tokens } from "../../styles/tokens";
 import {
   LayoutDashboard,
@@ -23,11 +24,9 @@ import {
   Scissors,
   Radio,
 } from "lucide-react";
-import { AppView, UCID, Vendor, ForensicIssue } from "../../types";
+import { UCID, Vendor, ForensicIssue } from "../../types";
 
 interface SidebarProps {
-  activeView: AppView;
-  onNavigate: (view: AppView) => void;
   collapsed: boolean;
   onToggle: () => void;
   activeMissionId?: string;
@@ -38,8 +37,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({
-  activeView,
-  onNavigate,
   collapsed,
   onToggle,
   activeMissionId,
@@ -48,6 +45,10 @@ export function Sidebar({
   vendors,
   forensicIssues,
 }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activePath = location.pathname;
+
   const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
   const openIssues = useMemo(() => forensicIssues.filter(
     (f) => f.status !== "resolved",
@@ -57,27 +58,27 @@ export function Sidebar({
   ).length, [vendors]);
 
   const navItems = [
-    { view: "dashboard" as AppView, label: "Dashboard", icon: LayoutDashboard },
+    { path: "/", label: "Dashboard", icon: LayoutDashboard },
     {
-      view: "ingestion-hub" as AppView,
+      path: "/ingestion-hub",
       label: "BOQ & BOM Ingest Hub",
       icon: UploadCloud,
       iconColor: tokens.colors.accent.sky, 
     },
     {
-      view: "reconciliation" as AppView,
+      path: "/reconciliation",
       label: "BOM Reconciliation Diff",
       icon: FolderSync,
       iconColor: tokens.colors.accent.violet, 
     },
     {
-      view: "search" as AppView,
+      path: "/search",
       label: "Semantic NLP Search",
       icon: Search,
       iconColor: tokens.colors.accent.emerald, 
     },
     {
-      view: "mission-control" as AppView,
+      path: "/mission-control",
       label: "Live Mission Control",
       icon: Target,
       badge: activeUCIDs.length > 0 ? activeUCIDs.length : undefined,
@@ -85,12 +86,12 @@ export function Sidebar({
       badgeTextColor: tokens.colors.status.warning, 
     },
     {
-      view: "catalog" as AppView,
+      path: "/catalog",
       label: "Catalog SKU Manager",
       icon: Database,
     },
     {
-      view: "vendor-portal" as AppView,
+      path: "/vendor-portal",
       label: "Vendor Portal & APIs",
       icon: Globe,
       badge: connectedVendors > 0 ? `${connectedVendors} Live` : undefined,
@@ -98,7 +99,7 @@ export function Sidebar({
       badgeTextColor: tokens.colors.status.success, 
     },
     {
-      view: "forensic" as AppView,
+      path: "/forensic",
       label: "Forensic Scan & Heal",
       icon: ShieldAlert,
       badge: openIssues > 0 ? openIssues : undefined,
@@ -106,24 +107,24 @@ export function Sidebar({
       badgeTextColor: tokens.colors.status.error, 
     },
     {
-      view: "solution-builder" as AppView,
+      path: "/solution-builder",
       label: "Solution Configurator",
       icon: Atom,
     },
     {
-      view: "taxonomy-graph" as AppView,
+      path: "/taxonomy-graph",
       label: "Taxonomy Graph Editor",
       icon: Network,
       iconColor: tokens.colors.accent.indigo,
     },
     {
-      view: "cleansing" as AppView,
+      path: "/cleansing",
       label: "Cleansing Workshop",
       icon: Scissors,
       iconColor: tokens.colors.accent.emerald,
     },
     {
-      view: "telemetry" as AppView,
+      path: "/telemetry",
       label: "System Telemetry",
       icon: Radio,
       iconColor: tokens.colors.accent.violet,
@@ -178,15 +179,15 @@ export function Sidebar({
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
         {navItems.map((item) => {
-          const isActive = activeView === item.view;
+          const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
           const IconComponent = item.icon;
           return (
             <button
-              id={`nav-${item.view}`}
-              key={item.view}
+              id={`nav-${item.path.replace('/', '') || 'dashboard'}`}
+              key={item.path}
               onClick={(e) => {
                 e.stopPropagation();
-                onNavigate(item.view);
+                navigate(item.path);
                 if (collapsed) onToggle();
               }}
               className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
@@ -255,7 +256,7 @@ export function Sidebar({
           <div className="space-y-1 overflow-y-auto flex-1 pr-1 scrollbar-thin">
             {activeUCIDs.map((ucid) => {
               const isActive =
-                activeMissionId === ucid.id && activeView === "mission-control";
+                activeMissionId === ucid.id && activePath.startsWith("/mission-control");
               return (
                 <button
                   id={`side-track-${ucid.id}`}

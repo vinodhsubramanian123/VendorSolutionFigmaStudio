@@ -3,40 +3,48 @@ import { tokens } from "../../styles/tokens";
 import { Database, X } from 'lucide-react';
 import { Select } from '../shared/Select';
 import { Button } from '../shared/Button';
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { CatalogSKU } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface CatalogAddFormProps {
-  onAddSku: (e: React.FormEvent) => void;
+  onAddSku: (data: Omit<CatalogSKU, "id" | "status">) => void;
   onClose: () => void;
-  newVendor: string;
-  setNewVendor: (val: string) => void;
-  newType: string;
-  setNewType: (val: string) => void;
-  newPartNo: string;
-  setNewPartNo: (val: string) => void;
-  newName: string;
-  setNewName: (val: string) => void;
-  newPrice: string;
-  setNewPrice: (val: string) => void;
-  newLeadTime: string;
-  setNewLeadTime: (val: string) => void;
 }
+
+const formSchema = z.object({
+  vendor: z.string().min(1, "Vendor is required"),
+  type: z.string().min(1, "Category is required"),
+  partNumber: z.string().min(1, "Part Number is required"),
+  name: z.string().min(1, "Description is required"),
+  price: z.number().min(0, "Price must be positive"),
+  leadTimeDays: z.number().min(0, "Lead time must be positive")
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export function CatalogAddForm({
   onAddSku,
-  onClose,
-  newVendor,
-  setNewVendor,
-  newType,
-  setNewType,
-  newPartNo,
-  setNewPartNo,
-  newName,
-  setNewName,
-  newPrice,
-  setNewPrice,
-  newLeadTime,
-  setNewLeadTime,
+  onClose
 }: CatalogAddFormProps) {
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      vendor: "HPE",
+      type: "Processor",
+      partNumber: "",
+      name: "",
+      price: 0,
+      leadTimeDays: 7
+    }
+  });
+
+  const onSubmit = (data: FormValues) => {
+    onAddSku(data);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-50 animate-fadeIn select-none leading-normal">
       <div
@@ -58,98 +66,153 @@ export function CatalogAddForm({
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-white cursor-pointer"
+            type="button"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={onAddSku} className="space-y-3.5 text-xs">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 text-xs">
           <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
+            <div className="space-y-1 text-left">
               <label className="text-gray-400 font-semibold uppercase">
                 Vendor
               </label>
-              <Select
-                value={newVendor}
-                onChange={(e) => setNewVendor(e.target.value)}
-              >
-                <option >HPE</option>
-                <option >Dell</option>
-                <option value="Cisco">Cisco</option>
-                <option value="Juniper">Juniper</option>
-              </Select>
+              <Controller
+                name="vendor"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onChange={field.onChange}>
+                    <option value="HPE">HPE</option>
+                    <option value="Dell">Dell</option>
+                    <option value="Cisco">Cisco</option>
+                    <option value="Juniper">Juniper</option>
+                  </Select>
+                )}
+              />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 text-left">
               <label className="text-gray-400 font-semibold uppercase">
                 Category
               </label>
-              <Select
-                value={newType}
-                onChange={(e) => setNewType(e.target.value)}
-              >
-                <option value="Processor">Processor</option>
-                <option value="Memory">Memory</option>
-                <option value="Drive">Drive</option>
-                <option value="Chassis">Chassis</option>
-                <option value="Network Adapter">Network Adapt.</option>
-              </Select>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onChange={field.onChange}>
+                    <option value="Processor">Processor</option>
+                    <option value="Memory">Memory</option>
+                    <option value="Drive">Drive</option>
+                    <option value="Chassis">Chassis</option>
+                    <option value="Network Adapter">Network Adapt.</option>
+                  </Select>
+                )}
+              />
             </div>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1 text-left">
             <label className="text-gray-400 font-semibold uppercase">
               Part Number ID
             </label>
             <input
               type="text"
-              value={newPartNo}
-              onChange={(e) => setNewPartNo(e.target.value)}
+              {...register("partNumber")}
               placeholder="e.g. P40445-B21"
-              className="w-full p-2.5 bg-black/30 border border-white/6 text-white font-mono uppercase"
-              required
+              className={`w-full p-2.5 bg-black/30 border text-white font-mono uppercase transition-colors duration-200 ${
+                errors.partNumber ? "border-[#ff3d5a]" : "border-white/6"
+              }`}
             />
+            <AnimatePresence>
+              {errors.partNumber && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
+                >
+                  {errors.partNumber.message}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1 text-left">
             <label className="text-gray-400 font-semibold uppercase">
               Part Description
             </label>
             <input
               type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              {...register("name")}
               placeholder="e.g. Intel Gold 6430 32-Core 2.1GHz"
-              className="w-full p-2.5 bg-black/30 border border-white/6 text-white"
-              required
+              className={`w-full p-2.5 bg-black/30 border text-white transition-colors duration-200 ${
+                errors.name ? "border-[#ff3d5a]" : "border-white/6"
+              }`}
             />
+            <AnimatePresence>
+              {errors.name && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
+                >
+                  {errors.name.message}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
+            <div className="space-y-1 text-left">
               <label className="text-gray-400 font-semibold uppercase">
                 Contract Rate ($)
               </label>
               <input
                 type="number"
-                value={newPrice}
-                onChange={(e) => setNewPrice(e.target.value)}
+                {...register("price", { valueAsNumber: true })}
                 placeholder="2450"
-                className="w-full p-2.5 bg-black/30 border border-white/6 text-white font-mono"
-                required
+                className={`w-full p-2.5 bg-black/30 border text-white font-mono transition-colors duration-200 ${
+                  errors.price ? "border-[#ff3d5a]" : "border-white/6"
+                }`}
               />
+              <AnimatePresence>
+                {errors.price && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
+                  >
+                    {errors.price.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 text-left">
               <label className="text-gray-400 font-semibold uppercase">
                 Lead Time (Days)
               </label>
               <input
                 type="number"
-                value={newLeadTime}
-                onChange={(e) => setNewLeadTime(e.target.value)}
+                {...register("leadTimeDays", { valueAsNumber: true })}
                 placeholder="7"
-                className="w-full p-2.5 bg-black/30 border border-white/6 text-white"
-                required
+                className={`w-full p-2.5 bg-black/30 border text-white transition-colors duration-200 ${
+                  errors.leadTimeDays ? "border-[#ff3d5a]" : "border-white/6"
+                }`}
               />
+              <AnimatePresence>
+                {errors.leadTimeDays && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
+                  >
+                    {errors.leadTimeDays.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 

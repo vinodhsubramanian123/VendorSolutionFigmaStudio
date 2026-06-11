@@ -7,7 +7,7 @@ This document serves as a comprehensive, end-to-end technical reference and revi
 
 ## 1. System Topology & Navigation Matrix
 
-The platform is compiled as a Single-Page Application (SPA) utilizing a high-performance **Cosmic Slate Dark Theme**. The main viewport routes between twelve distinctive views controlled by the `AppView` state type in `src/types.ts` and managed in `src/App.tsx`.
+The platform is compiled as a Single-Page Application (SPA) utilizing a high-performance **Cosmic Slate Dark Theme**. The main viewport routes between twelve distinctive views controlled by `react-router-dom` defined in `src/App.tsx`.
 
 ```
  +----------------------------------------------------------------------------------------------------+

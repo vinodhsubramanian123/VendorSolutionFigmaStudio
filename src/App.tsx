@@ -1,26 +1,15 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { tokens } from "./styles/tokens";
-import { RefreshCw } from "lucide-react";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
-import { Dashboard } from "./components/dashboard/Dashboard";
-import { MissionControl } from "./components/mission-control/MissionControl";
-import { CatalogManager } from "./components/catalog/CatalogManager";
-import { VendorPortal } from "./components/vendor-portal/VendorPortal";
-import { ForensicView } from "./components/forensics/ForensicView";
-import { SolutionBuilder } from "./components/solution-builder/SolutionBuilder";
-import { IngestionHub } from "./components/ingestion/IngestionHub";
-import { SearchView } from "./components/search/SearchView";
-import { ReconciliationView } from "./components/reconciliation/ReconciliationView";
-import { TaxonomyGraphView } from "./components/taxonomy/TaxonomyGraphView";
-import { CleansingView } from "./components/cleansing/CleansingView";
-import { SystemTelemetry } from "./components/telemetry/SystemTelemetry";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { DataPersistenceGate } from "./components/shared/DataPersistenceGate";
 import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
 import { GlobalApiErrorListener } from "./components/shared/GlobalApiErrorListener";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import { ShimmerBlock } from "./components/shared/ShimmerBlock";
 import type { AppView } from "./types";
 
 // Import baseline mock data
@@ -32,11 +21,24 @@ import {
 } from "./lib/mockData";
 import type { Config } from "./types";
 
+// Lazy-loaded Views
+const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard").then(m => ({ default: m.Dashboard })));
+const MissionControl = React.lazy(() => import("./components/mission-control/MissionControl").then(m => ({ default: m.MissionControl })));
+const CatalogManager = React.lazy(() => import("./components/catalog/CatalogManager").then(m => ({ default: m.CatalogManager })));
+const VendorPortal = React.lazy(() => import("./components/vendor-portal/VendorPortal").then(m => ({ default: m.VendorPortal })));
+const ForensicView = React.lazy(() => import("./components/forensics/ForensicView").then(m => ({ default: m.ForensicView })));
+const SolutionBuilder = React.lazy(() => import("./components/solution-builder/SolutionBuilder").then(m => ({ default: m.SolutionBuilder })));
+const IngestionHub = React.lazy(() => import("./components/ingestion/IngestionHub").then(m => ({ default: m.IngestionHub })));
+const SearchView = React.lazy(() => import("./components/search/SearchView").then(m => ({ default: m.SearchView })));
+const ReconciliationView = React.lazy(() => import("./components/reconciliation/ReconciliationView").then(m => ({ default: m.ReconciliationView })));
+const TaxonomyGraphView = React.lazy(() => import("./components/taxonomy/TaxonomyGraphView").then(m => ({ default: m.TaxonomyGraphView })));
+const CleansingView = React.lazy(() => import("./components/cleansing/CleansingView").then(m => ({ default: m.CleansingView })));
+const SystemTelemetry = React.lazy(() => import("./components/telemetry/SystemTelemetry").then(m => ({ default: m.SystemTelemetry })));
+
 export default function App() {
-  const [view, setView] = useLocalStorageState<AppView>(
-    "sys_active_view",
-    "dashboard",
-  );
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [collapsed, setCollapsed] = useLocalStorageState(
     "sys_sidebar_collapsed",
     false,
@@ -180,26 +182,26 @@ export default function App() {
   const [apiProgress, setApiProgress] = useState(0);
 
   // Tab Switch Navigation Interception
-  const [requestedView, setRequestedView] = useState<AppView | null>(null);
+  const [requestedPath, setRequestedPath] = useState<string | null>(null);
 
-  const handleNavigate = (newView: AppView) => {
+  const handleNavigate = (path: string) => {
     if (isPendingAPI) {
-      setRequestedView(newView);
+      setRequestedPath(path);
     } else {
-      setView(newView);
+      navigate(path);
     }
   };
 
   const confirmNavigation = () => {
-    if (requestedView) {
-      setView(requestedView);
-      setRequestedView(null);
+    if (requestedPath) {
+      navigate(requestedPath);
+      setRequestedPath(null);
       setIsPendingAPI(false);
     }
   };
 
   const cancelNavigation = () => {
-    setRequestedView(null);
+    setRequestedPath(null);
   };
 
   // Track deployed solution context to reflect on MissionControl with specific banners/pill
@@ -212,193 +214,37 @@ export default function App() {
   // High-level topbar search query strings
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Determine current "view" string based on pathname for backwards compatibility in components like Sidebar
+  const getCurrentViewString = (): AppView => {
+    const path = location.pathname;
+    if (path.startsWith("/mission-control")) return "mission-control";
+    if (path.startsWith("/catalog")) return "catalog";
+    if (path.startsWith("/vendor-portal")) return "vendor-portal";
+    if (path.startsWith("/forensic")) return "forensic";
+    if (path.startsWith("/solution-builder")) return "solution-builder";
+    if (path.startsWith("/ingestion-hub")) return "ingestion-hub";
+    if (path.startsWith("/search")) return "search";
+    if (path.startsWith("/reconciliation")) return "reconciliation";
+    if (path.startsWith("/taxonomy-graph")) return "taxonomy-graph";
+    if (path.startsWith("/cleansing")) return "cleansing";
+    if (path.startsWith("/telemetry")) return "telemetry";
+    return "dashboard";
+  };
 
-  // Deep link routing
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path.startsWith('/ucid/')) {
-      const id = path.split('/')[2];
-      if (id) {
-        setActiveMissionId(id);
-        setView('forensic'); // Prompt says "load ForensicView with UCID pre-selected"
-      }
-    } else if (path.startsWith('/config/')) {
-      const id = path.split('/')[2];
-      if (id) {
-        // Here we could set configs but we don't have a state for it
-        setView('solution-builder');
-      }
-    } else if (path.startsWith('/job/')) {
-      const id = path.split('/')[2];
-      if (id) {
-        // pass job_id, just set view to ingestion hub for now
-        setView('ingestion-hub');
-      }
-    }
-  }, []);
-
+  const currentViewString = getCurrentViewString();
 
   function handleSelectMission(missionId: string) {
     setActiveMissionId(missionId);
     setSearchQuery("");
-    setView("mission-control");
+    navigate(`/mission-control/${missionId}`);
   }
 
-  function renderView() {
-    switch (view) {
-      case "dashboard":
-        return (
-          <ErrorBoundary>
-            <Dashboard
-              onNavigate={setView}
-              ucids={ucids}
-              vendors={vendors}
-              forensicIssues={forensicIssues}
-            />
-          </ErrorBoundary>
-        );
-      case "ingestion-hub":
-        return (
-          <ErrorBoundary>
-            <IngestionHub
-              ucids={ucids}
-              setUcids={setUcids}
-              onNavigate={setView}
-              onSelectMission={handleSelectMission}
-              isPendingAPI={isPendingAPI}
-              setIsPendingAPI={setIsPendingAPI}
-              pendingAPIMessage={pendingAPIMessage}
-              setPendingAPIMessage={setPendingAPIMessage}
-              setApiProgress={setApiProgress}
-            />
-          </ErrorBoundary>
-        );
-      case "mission-control":
-        return (
-          <ErrorBoundary>
-            <MissionControl
-              selectedId={activeMissionId}
-              onSelectId={setActiveMissionId}
-              ucids={ucids}
-              setUcids={setUcids}
-              deployedSolution={deployedSolution}
-              setDeployedSolution={setDeployedSolution}
-              onNavigate={setView}
-            />
-          </ErrorBoundary>
-        );
-      case "catalog":
-        return (
-          <ErrorBoundary>
-            <CatalogManager
-              catalogSkus={catalogSkus}
-              setCatalogSkus={setCatalogSkus}
-              vendors={vendors}
-            />
-          </ErrorBoundary>
-        );
-      case "vendor-portal":
-        return (
-          <ErrorBoundary>
-            <VendorPortal
-              vendors={vendors}
-              setVendors={setVendors}
-              ucids={ucids}
-              setUcids={setUcids}
-              catalogSkus={catalogSkus}
-            />
-          </ErrorBoundary>
-        );
-      case "forensic":
-        return (
-          <ErrorBoundary>
-            <ForensicView
-              forensicIssues={forensicIssues}
-              setForensicIssues={setForensicIssues}
-              setVendors={setVendors}
-              setCatalogSkus={setCatalogSkus}
-              ucids={ucids}
-              setUcids={setUcids}
-              activeMissionId={activeMissionId}
-              setActiveMissionId={setActiveMissionId}
-              onNavigate={setView}
-            />
-          </ErrorBoundary>
-        );
-      case "solution-builder":
-        return (
-          <ErrorBoundary>
-            <SolutionBuilder
-              ucids={ucids}
-              setUcids={setUcids}
-              onNavigate={setView}
-              setDeployedSolution={setDeployedSolution}
-              onSelectMission={handleSelectMission}
-            />
-          </ErrorBoundary>
-        );
-      case "reconciliation":
-        return (
-          <ErrorBoundary>
-            <ReconciliationView
-              ucids={ucids}
-              setUcids={setUcids}
-              catalogSkus={catalogSkus}
-              forensicIssues={forensicIssues}
-              setForensicIssues={setForensicIssues}
-              setVendors={setVendors}
-            />
-          </ErrorBoundary>
-        );
-      case "taxonomy-graph":
-        return (
-          <ErrorBoundary>
-            <TaxonomyGraphView
-              catalogSkus={catalogSkus}
-              setCatalogSkus={setCatalogSkus}
-              vendors={vendors}
-            />
-          </ErrorBoundary>
-        );
-      case "cleansing":
-        return (
-          <ErrorBoundary>
-            <CleansingView catalogSkus={catalogSkus} />
-          </ErrorBoundary>
-        );
-      case "telemetry":
-        return (
-          <ErrorBoundary>
-            <SystemTelemetry />
-          </ErrorBoundary>
-        );
-      case "search":
-        return (
-          <ErrorBoundary>
-            <SearchView
-              query={searchQuery}
-              ucids={ucids}
-              vendors={vendors}
-              catalogSkus={catalogSkus}
-              onNavigate={handleNavigate}
-              onSelectMission={handleSelectMission}
-              onSearchChange={setSearchQuery}
-            />
-          </ErrorBoundary>
-        );
-      default:
-        return (
-          <ErrorBoundary>
-            <Dashboard
-              onNavigate={setView}
-              ucids={ucids}
-              vendors={vendors}
-              forensicIssues={forensicIssues}
-            />
-          </ErrorBoundary>
-        );
-    }
-  }
+  // legacy onNavigate fallback
+  const legacyNavigate = (viewStr: AppView) => {
+    let p = "/";
+    if (viewStr !== "dashboard") p = `/${viewStr}`;
+    handleNavigate(p);
+  };
 
   return (
     <>
@@ -408,11 +254,6 @@ export default function App() {
         style={{ backgroundColor: tokens.colors.background.appHeader }} 
       >
       <Sidebar
-        activeView={view}
-        onNavigate={(newView) => {
-          setSearchQuery(""); // reset search when shifting tabs
-          handleNavigate(newView);
-        }}
         collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)}
         activeMissionId={activeMissionId}
@@ -423,10 +264,10 @@ export default function App() {
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <TopBar
-          activeView={view}
+          activeView={currentViewString}
           onSearch={setSearchQuery}
           searchQuery={searchQuery}
-          onNavigate={handleNavigate}
+          onNavigate={legacyNavigate}
           apiProgress={apiProgress}
           isPendingAPI={isPendingAPI}
           ucids={ucids}
@@ -438,10 +279,10 @@ export default function App() {
         <main className="flex-1 overflow-auto p-4 md:p-5 lg:p-6 shrink-0">
           <div className="w-full flex flex-col min-h-full">
             <BreadcrumbNav
-              view={view}
+              view={currentViewString}
               activeMissionId={activeMissionId}
               ucids={ucids}
-              onNavigate={handleNavigate}
+              onNavigate={legacyNavigate}
             />
             <ErrorBoundary>
               <DataPersistenceGate
@@ -449,20 +290,37 @@ export default function App() {
                 vendors={vendors}
                 catalogSkus={catalogSkus}
                 isPendingAPI={isPendingAPI}
-                requestedView={requestedView}
+                requestedView={requestedPath as AppView}
                 onConfirmNavigation={confirmNavigation}
                 onCancelNavigation={cancelNavigation}
               >
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={view}
+                    key={location.pathname}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                     className="flex-1 flex flex-col min-h-full"
                   >
-                    {renderView()}
+                    <Suspense fallback={<ShimmerBlock />}>
+                      <Routes>
+                        <Route path="/" element={<Dashboard onNavigate={legacyNavigate} ucids={ucids} vendors={vendors} forensicIssues={forensicIssues} />} />
+                        <Route path="/ingestion-hub" element={<IngestionHub ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} onSelectMission={handleSelectMission} isPendingAPI={isPendingAPI} setIsPendingAPI={setIsPendingAPI} pendingAPIMessage={pendingAPIMessage} setPendingAPIMessage={setPendingAPIMessage} setApiProgress={setApiProgress} />} />
+                        <Route path="/mission-control/:id?" element={<MissionControl selectedId={activeMissionId} onSelectId={setActiveMissionId} ucids={ucids} setUcids={setUcids} deployedSolution={deployedSolution} setDeployedSolution={setDeployedSolution} onNavigate={legacyNavigate} />} />
+                        <Route path="/mission-control" element={<Navigate to={`/mission-control/${activeMissionId}`} replace />} />
+                        <Route path="/catalog" element={<CatalogManager catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} />} />
+                        <Route path="/vendor-portal" element={<VendorPortal vendors={vendors} setVendors={setVendors} ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} />} />
+                        <Route path="/forensic" element={<ForensicView forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} setCatalogSkus={setCatalogSkus} ucids={ucids} setUcids={setUcids} activeMissionId={activeMissionId} setActiveMissionId={setActiveMissionId} onNavigate={legacyNavigate} />} />
+                        <Route path="/solution-builder" element={<SolutionBuilder ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} setDeployedSolution={setDeployedSolution} onSelectMission={handleSelectMission} />} />
+                        <Route path="/reconciliation" element={<ReconciliationView ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} />} />
+                        <Route path="/taxonomy-graph" element={<TaxonomyGraphView catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} />} />
+                        <Route path="/cleansing" element={<CleansingView catalogSkus={catalogSkus} />} />
+                        <Route path="/telemetry" element={<SystemTelemetry />} />
+                        <Route path="/search" element={<SearchView query={searchQuery} ucids={ucids} vendors={vendors} catalogSkus={catalogSkus} onNavigate={legacyNavigate} onSelectMission={handleSelectMission} onSearchChange={setSearchQuery} />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </Suspense>
                   </motion.div>
                 </AnimatePresence>
               </DataPersistenceGate>

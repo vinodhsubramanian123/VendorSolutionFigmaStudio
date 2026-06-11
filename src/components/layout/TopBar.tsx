@@ -1,5 +1,6 @@
 import { tokens } from "../../styles/tokens";
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Command,
@@ -14,14 +15,14 @@ import {
   Globe,
   ArrowUpRight,
 } from "lucide-react";
-import { AppView, UCID, Vendor, CatalogSKU } from "../../types";
+import { UCID, Vendor, CatalogSKU } from "../../types";
 import { useToast } from "../shared/ToastContext";
 
 interface TopBarProps {
-  activeView: AppView;
+  activeView: string;
   onSearch: (query: string) => void;
   searchQuery?: string;
-  onNavigate?: (newView: AppView) => void;
+  onNavigate?: (newView: string) => void;
   apiProgress?: number;
   isPendingAPI?: boolean;
   syncHealth?: { status: "healthy" | "warning" | "error"; message: string };
@@ -44,6 +45,7 @@ export function TopBar({
   catalogSkus = [],
   onSelectMission,
 }: TopBarProps) {
+  const navigate = useNavigate();
   const toast = useToast();
   const [localQuery, setLocalQuery] = useState(searchQuery || "");
   const [timeStr, setTimeStr] = useState("2026-06-06 13:40:10 UTC");
@@ -57,7 +59,7 @@ export function TopBar({
   }, [searchQuery]);
 
   // Format the view name for elegant header reading
-  const viewTitles: Record<AppView, string> = {
+  const viewTitles: Record<string, string> = {
     dashboard: "Intelligence Dashboard Overview",
     "mission-control": "Live Parallel Mission Control",
     catalog: "Unified Vendor Catalog SKU Manager",
@@ -118,7 +120,7 @@ export function TopBar({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       setShowDropdown(false);
-      onNavigate && onNavigate("search");
+      navigate("/search");
     }
   };
 
@@ -151,7 +153,7 @@ export function TopBar({
         <button
           id="topbar-create-solution-btn"
           data-testid="create-solution-btn"
-          onClick={() => onNavigate && onNavigate("solution-builder")}
+          onClick={() => navigate("/solution-builder")}
           className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 transition shadow-md shadow-indigo-500/10 cursor-pointer flex items-center gap-1.5 focus:outline-none shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -215,7 +217,7 @@ export function TopBar({
                           key={m.id}
                           onClick={() => {
                             onSelectMission && onSelectMission(m.id);
-                            onNavigate && onNavigate("mission-control");
+                            navigate(`/mission-control/${m.id}`);
                             setShowDropdown(false);
                           }}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
@@ -239,7 +241,7 @@ export function TopBar({
                         <button
                           key={v.id}
                           onClick={() => {
-                            onNavigate && onNavigate("vendor-portal");
+                            navigate("/vendor-portal");
                             setShowDropdown(false);
                           }}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
@@ -263,7 +265,7 @@ export function TopBar({
                         <button
                           key={s.id}
                           onClick={() => {
-                            onNavigate && onNavigate("catalog");
+                            navigate("/catalog");
                             setShowDropdown(false);
                           }}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
@@ -290,12 +292,12 @@ export function TopBar({
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    onNavigate && onNavigate("search");
+                    navigate("/search");
                   }}
                   onMouseDown={(e) => {
                     e.preventDefault(); // Prevent blur
                     setShowDropdown(false);
-                    onNavigate && onNavigate("search");
+                    navigate("/search");
                   }}
                   className="text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5 font-bold cursor-pointer hover:underline"
                 >

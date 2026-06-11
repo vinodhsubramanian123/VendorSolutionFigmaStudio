@@ -81,12 +81,6 @@ export function CatalogManager({
 
   // New SKU creation variables
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newVendor, setNewVendor] = useState("HPE");
-  const [newPartNo, setNewPartNo] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState("Processor");
-  const [newPrice, setNewPrice] = useState("");
-  const [newLeadTime, setNewLeadTime] = useState("7");
 
   // Deep Nesting Multi-level Manufacturer Sourcing Taxonomy State
   const [selectedPath, setSelectedPath] = useState({
@@ -198,30 +192,16 @@ export function CatalogManager({
     }
   }
 
-  async function handleAddSku(e: React.FormEvent) {
-    e.preventDefault();
-    const parsedPrice = parseFloat(newPrice);
-    const parsedLead = parseInt(newLeadTime, 10);
-    if (!newPartNo || !newName || isNaN(parsedPrice) || isNaN(parsedLead))
-      return;
-
+  async function handleAddSku(data: Omit<CatalogSKU, "id" | "status">) {
     const newSku: CatalogSKU = {
       id: `sku-custom-${Date.now()}`,
-      vendor: newVendor,
-      partNumber: newPartNo,
-      name: newName,
-      type: newType,
-      price: parsedPrice,
-      leadTimeDays: parsedLead,
+      ...data,
       status: "active",
     };
 
     // Optimistic Update
     setCatalogSkus((prev) => [...prev, newSku]);
     setShowAddForm(false);
-    setNewPartNo("");
-    setNewName("");
-    setNewPrice("");
 
     try {
       await apiClient.post("/api/catalog", newSku);
@@ -349,18 +329,6 @@ export function CatalogManager({
         <CatalogAddForm
           onAddSku={handleAddSku}
           onClose={() => setShowAddForm(false)}
-          newVendor={newVendor}
-          setNewVendor={setNewVendor}
-          newType={newType}
-          setNewType={setNewType}
-          newPartNo={newPartNo}
-          setNewPartNo={setNewPartNo}
-          newName={newName}
-          setNewName={setNewName}
-          newPrice={newPrice}
-          setNewPrice={setNewPrice}
-          newLeadTime={newLeadTime}
-          setNewLeadTime={setNewLeadTime}
         />
       )}
 

@@ -1,56 +1,50 @@
-import React, { useState } from "react";
+import React from "react";
 import { Radio, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UCID } from "../../types";
 import { Select } from "../shared/Select";
 import { Button } from "../shared/Button";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 interface NewUCIDModalProps {
   onClose: () => void;
   onCreate: (ucid: UCID) => void;
 }
 
+const formSchema = z.object({
+  ucidName: z.string().min(1, "Workspace Title / Brief Target is required."),
+  ucidRef: z.string().min(1, "Project Code Ref is required."),
+  priority: z.enum(["critical", "high", "medium", "low"]),
+  rawBOMText: z.string()
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
-  const [ucidName, setUcidName] = useState("");
-  const [ucidRef, setUcidRef] = useState("PRJ-2026-");
-  const [priority, setPriority] = useState<
-    "critical" | "high" | "medium" | "low"
-  >("high");
-  const [rawBOMText, setRawBOMText] = useState("");
-  const [nameError, setNameError] = useState("");
-  const [refError, setRefError] = useState("");
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    let hasError = false;
-
-    if (!ucidName.trim()) {
-      setNameError("Workspace Title / Brief Target is required.");
-      hasError = true;
-    } else {
-      setNameError("");
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      ucidName: "",
+      ucidRef: "PRJ-2026-",
+      priority: "high",
+      rawBOMText: ""
     }
+  });
 
-    if (!ucidRef.trim()) {
-      setRefError("Project Code Ref is required.");
-      hasError = true;
-    } else {
-      setRefError("");
-    }
-
-    if (hasError) return;
-
+  const onSubmit = (data: FormValues) => {
     const displayNum = Math.floor(1000 + Math.random() * 9000);
     const newUCID: UCID = {
       id: `u-${Date.now()}`,
       displayId: `UCID-2026-${displayNum}`,
-      name: ucidName.trim(),
-      priority,
-      projectRef: ucidRef.trim(),
+      name: data.ucidName.trim(),
+      priority: data.priority,
+      projectRef: data.ucidRef.trim(),
       createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
       currentStep: "boq-intake",
       completedSteps: [],
-      rawBOM: rawBOMText.trim() || "Ingested raw constraints.",
+      rawBOM: data.rawBOMText.trim() || "Ingested raw constraints.",
       solutions: [],
       events: [
         {
@@ -63,7 +57,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
     };
 
     onCreate(newUCID);
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-50 select-none leading-normal">
@@ -95,34 +89,28 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 text-xs">
           <div className="space-y-1 text-left">
             <label className="text-gray-400 font-semibold uppercase">
               Workspace Title / Brief Target
             </label>
             <input
               type="text"
-              value={ucidName}
-              onChange={(e) => {
-                setUcidName(e.target.value);
-                if (e.target.value.trim()) {
-                  setNameError("");
-                }
-              }}
+              {...register("ucidName")}
               placeholder="e.g. HPC Core Virtualization — 24 Node Cluster Gen11"
               className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
-                nameError ? "border-[#ff3d5a]" : "border-white/10"
+                errors.ucidName ? "border-[#ff3d5a]" : "border-white/10"
               }`}
             />
             <AnimatePresence>
-              {nameError && (
+              {errors.ucidName && (
                 <motion.p
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
                 >
-                  {nameError}
+                  {errors.ucidName.message}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -135,26 +123,20 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               </label>
               <input
                 type="text"
-                value={ucidRef}
-                onChange={(e) => {
-                  setUcidRef(e.target.value);
-                  if (e.target.value.trim()) {
-                    setRefError("");
-                  }
-                }}
+                {...register("ucidRef")}
                 className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
-                  refError ? "border-[#ff3d5a]" : "border-white/10"
+                  errors.ucidRef ? "border-[#ff3d5a]" : "border-white/10"
                 }`}
               />
               <AnimatePresence>
-                {refError && (
+                {errors.ucidRef && (
                   <motion.p
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     className="text-[#ff3d5a] text-[11px] font-semibold mt-1"
                   >
-                    {refError}
+                    {errors.ucidRef.message}
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -163,15 +145,18 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               <label className="text-gray-400 font-semibold uppercase">
                 Workflow Priority
               </label>
-              <Select
-                value={priority}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPriority(e.target.value as 'critical' | 'high' | 'medium' | 'low')}
-              >
-                <option value="critical">Critical</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </Select>
+              <Controller
+                name="priority"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onChange={field.onChange}>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </Select>
+                )}
+              />
             </div>
           </div>
 
@@ -180,8 +165,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               BOQ Input Quantities / Raw Specification Text
             </label>
             <textarea
-              value={rawBOMText}
-              onChange={(e) => setRawBOMText(e.target.value)}
+              {...register("rawBOMText")}
               placeholder="Paste Bills of Materials, part lists, line requests..."
               className="w-full h-24 p-2.5 rounded bg-black/30 border border-white/10 text-white text-xs font-mono"
             />
