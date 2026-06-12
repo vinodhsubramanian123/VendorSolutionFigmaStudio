@@ -14,8 +14,13 @@ test.describe('05 - Mission Control E2E', () => {
     if (await wsBtn.isVisible()) {
         await wsBtn.click();
         await delay();
-        // Just verify a table exists
-        await expect(page.locator('table').first()).toBeVisible();
+        // Verify a table exists and contains real data rows, not just an empty layout
+        const table = page.locator('table').first();
+        await expect(table).toBeVisible();
+        const rows = table.locator('tr');
+        await expect(async () => {
+          expect(await rows.count()).toBeGreaterThan(1);
+        }).toPass();
     }
   });
 

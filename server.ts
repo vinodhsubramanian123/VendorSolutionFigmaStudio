@@ -478,9 +478,22 @@ async function startServer() {
     });
   });
 
+  // REST API: Endpoint 9: Vendor Portal Mock Adapter Gateway
+  app.post("/api/vendor/portal", (req, res) => {
+    const reqData = req.body;
+    console.log(`[VENDOR PORTAL API] Received request for ${reqData.vendor} action ${reqData.action}`);
+    
+    res.status(200).json({
+      success: true,
+      data: { mockResponse: true, timestamp: new Date().toISOString(), message: `Handled ${reqData.action} for ${reqData.vendor}` },
+      confidence: 0.95
+    });
+  });
+
   // Mount Vite Middleware for development OR serve built static assets in Production
+  let vite: any = null;
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+    vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
@@ -537,9 +550,24 @@ app.get("/api/jobs/:job_id/children", (req, res) => {
   res.json([]);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`[FULL-STACK ENGINE] Procurement Server running securely on http://localhost:${PORT}`);
   });
+
+  const gracefulShutdown = async () => {
+    console.log("Shutting down gracefully...");
+    server.close(() => {
+      console.log("HTTP server closed.");
+    });
+    if (vite) {
+      await vite.close();
+      console.log("Vite server closed.");
+    }
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", gracefulShutdown);
+  process.on("SIGINT", gracefulShutdown);
 }
 
 startServer();

@@ -22,6 +22,12 @@
   --color-content-primary: #dde6ff;
   --color-content-secondary: #8ba4cc;
   --color-content-muted: #5d7899;
+
+  /* Centralized Motion Tokens */
+  --motion-fast: 120ms;
+  --motion-medium: 200ms;
+  --motion-slow: 360ms;
+  --motion-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Custom Scrollbar */

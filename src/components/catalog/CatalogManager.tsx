@@ -10,7 +10,6 @@ import { CatalogHeader } from "./CatalogHeader";
 import { CatalogAddForm } from "./CatalogAddForm";
 import { CatalogFilterBar } from "./CatalogFilterBar";
 import { CatalogCardsList } from "./CatalogCardsList";
-import { CatalogPagination } from "./CatalogPagination";
 import { CatalogTypeFilters } from "./CatalogTypeFilters";
 import { CatalogTaxonomyTree } from "./CatalogTaxonomyTree";
 
@@ -143,19 +142,7 @@ export function CatalogManager({
     });
   }, [catalogSkus, deferredSearchTerm, typeFilter, selectedPath]);
 
-  // Pagination State and Logic (Page Size = 24)
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 24;
 
-  // Reset page when filtering criteria or search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [deferredSearchTerm, typeFilter, selectedPath]);
-
-  const paginatedSkus = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return filteredSkus.slice(startIndex, startIndex + pageSize);
-  }, [filteredSkus, currentPage, pageSize]);
 
   // Unique types inside active project cards
   const projectTypes = [
@@ -294,7 +281,7 @@ export function CatalogManager({
 
           {/* Hardware Sourcing Cards Grid */}
           <CatalogCardsList
-            paginatedSkus={paginatedSkus}
+            filteredSkus={filteredSkus}
             editingSkuId={editingSkuId}
             editedPrice={editedPrice}
             setEditedPrice={setEditedPrice}
@@ -314,13 +301,6 @@ export function CatalogManager({
               setTypeFilter("all");
               setSearchTerm("");
             }}
-          />
-
-          <CatalogPagination
-            filteredSkusLength={filteredSkus.length}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            pageSize={pageSize}
           />
         </div>
       </div>

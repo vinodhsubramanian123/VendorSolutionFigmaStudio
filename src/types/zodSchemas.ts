@@ -122,18 +122,41 @@ export const VendorSchema = z.object({
 // 9. CatalogSKU Zod Schema
 export const CatalogSKUSchema = z.object({
   id: z.string(),
+  ucidRef: z.string().optional(),
   vendor: z.string(),
+  vendorPortalId: z.string().optional(),
   partNumber: z.string(),
   name: z.string(),
   type: z.string(),
+  catalogTier: z.string().optional(),
   price: z.number().nonnegative(),
+  currency: z.enum(['USD', 'AED', 'INR']).optional(),
   leadTimeDays: z.number().int().nonnegative(),
-  status: z.enum(["active", "eol", "restricted"]),
+  status: z.enum([
+    'active',
+    'eol',
+    'restricted',
+    'discontinued',
+    'pending_review',
+    'approved',
+    'flagged'
+  ]),
+  complianceFlags: z.object({
+    taaCompliant: z.boolean().optional(),
+    clicWarning: z.boolean().optional(),
+    regionRestricted: z.boolean().optional(),
+  }).optional(),
   solution: z.string().optional(),
   productFamily: z.string().optional(),
   generation: z.string().optional(),
   chassisRef: z.string().optional(),
+  bomLineRef: z.string().optional(),
+  evidenceLinks: z.array(z.string().url().or(z.string())).optional(),
+  scrapedAt: z.string().optional(),
+  confidence: z.number().min(0).max(1).optional(),
 });
+
+export const VendorExtendedFieldsSchema = z.record(z.string(), z.unknown());
 
 // 10. ForensicIssue Zod Schema
 export const ForensicIssueSchema = z.object({

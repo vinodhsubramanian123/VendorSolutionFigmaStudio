@@ -1,4 +1,4 @@
-import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphAPISchema } from "./zodSchemas";
+import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphAPISchema, CatalogSKUSchema, VendorExtendedFieldsSchema } from "./zodSchemas";
 import { z } from "zod";
 
 
@@ -157,21 +157,8 @@ export interface Vendor {
  * Consolidated Central Inventory Stock Keeping Unit (SKU) record.
  * Leveraged by search indexes to match dirty descriptions and fulfill dynamic quotes.
  */
-export interface CatalogSKU {
-  id: string; // Internal Inventory SKU Primary Key
-  vendor: string; // Sourcing Brand Ref
-  partNumber: string; // True physical part identifier (e.g. "HPE-DL380-CHASS")
-  name: string; // Formal description title
-  type: string; // Component type classification
-  price: number; // Sourced base list price (USD)
-  leadTimeDays: number; // Supplier estimated fulfillment duration
-  status: "active" | "eol" | "restricted"; // Lifecycle states
-  // Structured taxonomy attributes to prevent string-inferrence hardcoding
-  solution?: string; // Enterprise solution category e.g. "Server", "Storage"
-  productFamily?: string; // e.g. "DL380", "Synergy", "Alletra"
-  generation?: string; // e.g. "Gen11", "Gen10"
-  chassisRef?: string; // Direct relation to the chassis grouping ID
-}
+export type CatalogSKU = z.infer<typeof CatalogSKUSchema>;
+export type VendorExtendedFields = z.infer<typeof VendorExtendedFieldsSchema>;
 
 /**
  * Flagged forensic audit issue parsed from quotations or design configurations.
@@ -482,6 +469,9 @@ export interface SourcingRule {
   sourceIssueId?: string;    // ForensicIssue ID that triggered this learning
   isAutoLearned?: boolean;   // true = auto-heal generated, false = manual override
   preventedMismatchCount?: number; // telemetry: how many times this rule intercepted a mismatch
+  associatedSkus?: string;   // SKU combinations or companion accessories
+  cliScript?: string;        // CLI script / command snippet for auto-reconciliation
+  notes?: string;            // Human notes / custom rationale
 }
 
 /**

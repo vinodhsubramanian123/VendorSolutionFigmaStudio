@@ -11,8 +11,21 @@ test.describe('09 - Solution Builder E2E', () => {
 
   test('should load Schema Inspector matrix and trees', async ({ page }) => {
     await expect(page.getByText('Multi-Client Quote Compilation Desk')).toBeVisible();
-    // Trees should render schemas
-    await expect(page.getByText('UCID Assignment Map')).toBeVisible();
+    
+    // Validate actual data content instead of generic visibility
+    // First, we are at BOQ Intake Parse (Step 1). Proceed to Step 2.
+    const proceedBtn = page.getByText('Proceed to Assignment Map (Step 2)');
+    await expect(proceedBtn).toBeVisible();
+    await proceedBtn.click();
+    await delay();
+
+    // Verify configuration state data is properly loaded into view
+    await expect(page.getByText('UCID Deployment Containers Grid')).toBeVisible();
+    await expect(page.locator('.font-mono', { hasText: 'UCID-' }).first()).toBeVisible();
+    
+    // Check for exact state enums like "pending", "automated" or lock status
+    const statusText = await page.locator('text=/pending|automated|manual|Synced/i').first();
+    await expect(statusText).toBeVisible();
   });
 
   test('should switch target platform to VMware and assert active schema updates', async ({ page }) => {

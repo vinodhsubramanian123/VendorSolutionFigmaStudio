@@ -39,6 +39,9 @@ export function SourcingRulesVault({
   const [editLabel, setEditLabel] = useState("");
   const [editVendor, setEditVendor] = useState("");
   const [editStatus, setEditStatus] = useState<SourcingRule["status"]>("active");
+  const [editAssociatedSkus, setEditAssociatedSkus] = useState("");
+  const [editCliScript, setEditCliScript] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   useEffect(() => {
     if (prefillRule) {
@@ -103,6 +106,9 @@ export function SourcingRulesVault({
     setEditLabel(rule.label);
     setEditVendor(rule.vendor);
     setEditStatus(rule.status);
+    setEditAssociatedSkus(rule.associatedSkus || "");
+    setEditCliScript(rule.cliScript || "");
+    setEditNotes(rule.notes || "");
   };
 
   const handleSaveEdit = (ruleId: string) => {
@@ -121,6 +127,9 @@ export function SourcingRulesVault({
               label: editLabel.trim(),
               vendor: editVendor,
               status: editStatus,
+              associatedSkus: editAssociatedSkus.trim() || undefined,
+              cliScript: editCliScript.trim() || undefined,
+              notes: editNotes.trim() || undefined,
             }
           : r
       )
@@ -384,14 +393,74 @@ export function SourcingRulesVault({
 
                   <td className="p-3 text-gray-400">
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={editLabel}
-                        onChange={(e) => setEditLabel(e.target.value)}
-                        className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-indigo-500/40"
-                      />
+                      <div className="space-y-2 max-w-[280px]">
+                        <div>
+                          <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Label Narrative</label>
+                          <input
+                            type="text"
+                            value={editLabel}
+                            onChange={(e) => setEditLabel(e.target.value)}
+                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-indigo-500/40"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Combo SKUs</label>
+                            <input
+                              type="text"
+                              value={editAssociatedSkus}
+                              onChange={(e) => setEditAssociatedSkus(e.target.value)}
+                              placeholder="e.g. P47781-B21"
+                              className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">CLI Command</label>
+                            <input
+                              type="text"
+                              value={editCliScript}
+                              onChange={(e) => setEditCliScript(e.target.value)}
+                              placeholder="e.g. hpe-cli..."
+                              className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 font-mono"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Human Notes</label>
+                          <textarea
+                            value={editNotes}
+                            onChange={(e) => setEditNotes(e.target.value)}
+                            placeholder="Provide additional details..."
+                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 h-10 resize-none font-sans"
+                          />
+                        </div>
+                      </div>
                     ) : (
-                      rule.label
+                      <div className="space-y-1">
+                        <div className="text-gray-300 font-medium">{rule.label}</div>
+                        {(rule.associatedSkus || rule.cliScript || rule.notes) && (
+                          <div className="mt-1.5 p-2 rounded bg-black/30 border border-white/5 space-y-1.5 text-[10px] max-w-[280px]">
+                            {rule.associatedSkus && (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-gray-500 font-mono text-[9px] uppercase">Combo/Accessory SKUs:</span>
+                                <span className="text-indigo-300 font-mono font-bold break-all bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 w-fit">{rule.associatedSkus}</span>
+                              </div>
+                            )}
+                            {rule.cliScript && (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-gray-500 font-mono text-[9px] uppercase">CLI Automation Command:</span>
+                                <code className="bg-black/45 text-amber-400 px-1.5 py-0.5 rounded border border-white/5 font-mono select-all break-all">{rule.cliScript}</code>
+                              </div>
+                            )}
+                            {rule.notes && (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-gray-500 font-mono text-[9px] uppercase">Remedy Notes:</span>
+                                <span className="text-gray-400 italic bg-white/2 px-1.5 py-0.5 rounded border border-white/5 leading-relaxed">{rule.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </td>
 

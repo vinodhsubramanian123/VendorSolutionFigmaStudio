@@ -9,7 +9,7 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
     await page.locator('#nav-reconciliation').click();
     await delay(300);
     // Open Version Snapshots side panel
-    const snapshotsBtn = page.getByRole('button', { name: /Version Snapshots/i }).first();
+    const snapshotsBtn = page.locator('button', { hasText: 'Version Snapshots' }).first();
     await expect(snapshotsBtn).toBeVisible({ timeout: 5000 });
     await snapshotsBtn.click();
     await delay(500);
@@ -17,17 +17,17 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
 
   test('should open snapshot panel and see Capture Snapshot button', async ({ page }) => {
     // The panel should be open and show the header
-    await expect(page.getByText('Versioning Audit Log', { exact: false }).first()).toBeVisible({ timeout: 8000 });
-    const captureBtn = page.getByRole('button', { name: /Capture Snapshot/i }).first();
+    await expect(page.getByText('Historical Snapshots', { exact: false }).first()).toBeVisible({ timeout: 8000 });
+    const captureBtn = page.locator('button', { hasText: 'Capture Snapshot' }).first();
     await expect(captureBtn).toBeVisible({ timeout: 5000 });
   });
 
   test('should create a snapshot and see it listed', async ({ page }) => {
     // Make sure the panel is open
-    await expect(page.getByText('Versioning Audit Log', { exact: false }).first()).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Historical Snapshots', { exact: false }).first()).toBeVisible({ timeout: 8000 });
 
     // Click Capture Snapshot
-    const captureBtn = page.getByRole('button', { name: /Capture Snapshot/i }).first();
+    const captureBtn = page.locator('button', { hasText: 'Capture Snapshot' }).first();
     await captureBtn.click();
     await delay(500);
 
@@ -49,9 +49,9 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
   });
 
   test('should lock and unlock a snapshot', async ({ page }) => {
-    await expect(page.getByText('Versioning Audit Log', { exact: false }).first()).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Historical Snapshots', { exact: false }).first()).toBeVisible({ timeout: 8000 });
     // Look for any existing locked snapshot
-    const lockBtn = page.locator('button[title="Unlock Snapshot"], button[title="Lock Snapshot"]').first();
+    const lockBtn = page.locator('button[title="Unlock Snapshot"], button[title="Lock Snapshot"], button[title="Immutability Locked. Click to unlock"], button[title="Unsecured Draft. Click to lock baseline"]').first();
     if (await lockBtn.isVisible({ timeout: 3000 })) {
       await lockBtn.click();
       await delay(500);

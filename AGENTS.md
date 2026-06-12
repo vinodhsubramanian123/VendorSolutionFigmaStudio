@@ -84,7 +84,11 @@ To prevent repeating historical regressions, strictly observe the following guid
     }, [catalogSkus, searchTerm, selectedPath]);
     ```
 
-### 3.4 Infinite Loop Prevention in Hooks
+### 3.4 Virtualization & ESM CJS Interop (React 19 Compatibility)
+*   **Issue**: Previous projects failed in production or `npm run dev` because `react-window` used CommonJS wildcard imports (`import * as ReactWindow`) that crashed Vite ESBuild with "Cannot convert undefined or null to object" under React 19.
+*   **Solution**: Do not use `react-window` in new developments. Instead, implement virtualization using **`react-virtuoso`**. It is inherently ESM-friendly, has native support for dynamic item resizing (removing the need for complex `itemSize` calculations), and gracefully supports React 19. Use `VirtuosoGrid` for cards and `Virtuoso` for standard rows.
+
+### 3.5 Infinite Loop Prevention in Hooks
 *   **Constraint**: Never declare raw objects or deep arrays directly inside a `useEffect` dependency array. Prefer primitive type matching (numbers, booleans, strings) or stable refs.
 
 ### 3.5 High-volume Ingestion and Exporter Pipelines
@@ -124,3 +128,41 @@ Keep all modifications clean, explicit, and perfectly typed. Never leave danglin
 
 ## 7. Frontend Freeze Status
 **FRONTEND FROZEN — All PRD scenarios implemented, all hardcoding removed, ready for backend**
+
+---
+
+## 8. Multi-Sheet Validation & Intricate Override Rules (HPE CLIC / Dell Ingest)
+
+To ensure seamless coordination between frontend UI triage overlays and the backend parsing logic, observe the following engineering guidelines for workbook advice ingestion:
+
+### 8.1 Sheet Filtering & Exclusions
+*   **Behavior**: Validation workbooks (e.g., `CLIC_Advice_TempUCID.xlsx`) contain status summary sheets (e.g., `Information`) or taxonomy topology sheets. 
+*   **Rule**: Exclude sheets named `Information`, `Summary`, `Topology`, `Taxonomy`, or `Comparison` (or index-based summary sheets). The UI parses and displays only the true `Advice_Text` and `BOM` sheets, and logs bypassed sheets as `ignoredSheets` to prevent layout corruption.
+
+### 8.2 Heuristic Linking & Active BOM Indicators (Preventing Cross-Pollution)
+*   **Behavior**: Warnings are linked to specific configuration components inside a UCID by checking SKU occurrences. 
+*   **Rule**: Product Numbers parsed from advice warning logs must be cross-referenced case-insensitively with active BOM items. If the target warning SKU matches a part number in the active configuration, display a visual **"In Active BOM"** badge to establish direct context.
+
+### 8.3 "Advice within Advice" & AND/OR Operator Resolution
+*   **Behavior**: Validation messages frequently specify outer chassis rules that require selecting one or more options from a sub-list (e.g., choosing 1 Ambient Temperature Config Trk from 6 alternative SKUs, or adding both MR416i-o and MR416i-p controllers).
+*   **Rule**:
+    *   **Intricate Option Parsing**: Extract lines containing SKU patterns (`[a-zA-Z0-9]{5,8}-[a-zA-Z0-9]{3,4}`) and clean descriptions from advice message bodies.
+    *   **Logical Operators**: Provide the human with an operator selector to format combinations:
+        *   `OR` (Alternatives / Mutually Exclusive): Combines selected SKUs with pipe symbols (e.g., `SKU1 | SKU2 | SKU3`).
+        *   `AND` (Joint Requirements): Combines selected SKUs with commas (e.g., `SKU1, SKU2`).
+    *   **Zod Perfection**: Ensure all payloads, overrides, and CLI scripts conform strictly to TypeScript models and Zod schemas in `data.ts` and `zodSchemas.ts` without using raw `any` types.
+
+
+---
+
+## 9. Mandatory Pre-Flight Verification (Ownership & Quality Control)
+
+To prevent architectural regression, broken types, and memory leaks from bleeding into the master branch, all AI agents must assume full ownership of code quality by adhering to the following strict pre-flight protocols:
+
+### 9.1 Zero Tolerance for TypeScript Drift
+*   **Rule**: Never declare a task "complete" without running `npm run lint` (or `tsc --noEmit --skipLibCheck`) first.
+*   **Action**: If the linter reports any errors (e.g., missing props, incorrect schema derivations, or failed third-party imports), you must halt, fix the types, and re-run until it passes 100%.
+
+### 9.2 Comprehensive Test Harness Execution
+*   **Rule**: Code logic changes (especially to shared components like `CatalogManager` or `DataPersistenceGate`) require a functional test run.
+*   **Action**: Execute `npx vitest run` and `npx playwright test`. Any crash indicating "Element type is invalid", or failing component tests, MUST be analyzed and resolved (via JSDOM mocks in `tests/setup.ts` or component fixes).

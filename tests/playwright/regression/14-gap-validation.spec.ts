@@ -50,8 +50,8 @@ test.describe('14 - Gap UI/UX Resolution E2E', () => {
     await delay(300);
     
     // Count should be 0
-    await expect(page.getByText('Parallel Pipelines (0)')).toBeVisible();
-
+    await expect(page.getByText(/Parallel Pipelines \(0\)/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('div[role="button"]').filter({ hasText: 'UCID-2026' })).toHaveCount(0);
     // Clear search
     await searchInput.fill('');
     await delay(300);

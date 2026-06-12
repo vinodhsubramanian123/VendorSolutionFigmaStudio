@@ -1,13 +1,12 @@
 import { z } from "zod";
-import { ApiResponse, ApiErrorResponse, CatalogSKU, Snapshot, Config } from "../types";
-import { MockTaxonomyApi, MockCatalogApi, MockSnapshotApi, MockSolutionApi } from "../lib/api-mock";
+import { ApiResponse, ApiErrorResponse } from "../types";
 
 /**
  * Global API Client Boundary
  * 
- * In Phase 1/2, this intercepts simulated routes and connects them to mock data cleanly,
- * preserving exact PRD contracts (ApiResponse/ApiErrorResponse).
- * In Phase 3, this will be swapped for an actual Axios/fetch instance hitting the real remote server.
+ * In Phase 1/2, this used to contain hardcoded mocks.
+ * Now it is a pure fetch client. Network requests are intercepted by MSW
+ * if running in the browser with MSW started.
  */
 
 class ApiClient {
@@ -18,21 +17,6 @@ class ApiClient {
       return data as T;
     }
     return parsed.data;
-  }
-
-  private async simulateLatency(ms = 600) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  private wrapSuccess<T>(data: T): ApiResponse<T> {
-    return {
-      success: true,
-      data,
-      meta: {
-        requestId: `req_${Math.random().toString(36).substring(7)}`,
-        timestamp: new Date().toISOString()
-      }
-    };
   }
 
   private wrapError(message: string, code: string = 'SERVER_ERROR'): ApiErrorResponse {
@@ -48,174 +32,49 @@ class ApiClient {
     };
   }
 
-  async get<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    await this.simulateLatency();
-
-    // Simulated Router
-    if (endpoint.startsWith("/api/jobs/")) {
-      // Very basic job polling simulation (deprecated, prefer streamJob)
-      return this.wrapSuccess({
-        job_id: endpoint.split("/").pop(),
-        status: "completed",
-        progress: 100,
-        result: {
-          success: true,
-          reconciliationStatus: "complete"
+  private async fetchWithTimeout(endpoint: string, options?: RequestInit): Promise<Response> {
+    const res = await fetch(endpoint, options);
+    if (!res.ok) {
+      let errorMessage = "Failed to fetch";
+      try {
+        const errJson = await res.json();
+        if (errJson.error && errJson.error.message) {
+          errorMessage = errJson.error.message;
         }
-      } as unknown as T);
+      } catch (e) {
+        errorMessage = res.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
+    return res;
+  }
 
-    if (endpoint === "/api/catalog") {
-      const data = await MockCatalogApi.getCatalog();
-      return this.wrapSuccess(data as unknown as T);
-    }
-    
-    if (endpoint === "/api/snapshots") {
-      const data = await MockSnapshotApi.getSnapshots();
-      return this.wrapSuccess(data as unknown as T);
-    }
-
-    if (endpoint === "/api/solution-builder/init") {
-      const data = await MockSolutionApi.getSolutionBuilderInit();
-      return this.wrapSuccess(data as unknown as T);
-    }
-
-    if (endpoint.startsWith("/api/taxonomy/graph/")) {
-      const configId = endpoint.split("/").pop();
-      const mockConfig = { id: configId, vendor: "HPE" } as unknown as Config;
-      const res = await MockTaxonomyApi.getGraphForConfig(mockConfig, [], "HPE");
-      return this.wrapSuccess(res as unknown as T);
-    }
-
-    // Default fetch for actual local assets or unhandled endpoints
+  async get<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
     try {
-      const res = await fetch(endpoint, {
-        ...options,
-        // Since DELETE might be passed to fetch, handle it.
-      });
-      if (!res.ok) throw new Error("Failed to fetch");
+      const res = await this.fetchWithTimeout(endpoint, options);
       const data = await res.json();
-      return this.wrapSuccess(data);
+      return data as ApiResponse<T>;
     } catch (e: unknown) {
       throw this.wrapError((e as Error).message);
     }
   }
 
   async post<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<ApiResponse<T>> {
-    await this.simulateLatency(800);
-
-    if (endpoint === "/api/portfolio/orchestrate") {
-      return this.wrapSuccess({ status: "accepted", job_id: "job-portfolio-sync" } as unknown as T);
-    }
-
-    if (endpoint === "/api/jobs") {
-      return this.wrapSuccess({ status: "accepted", job_id: "job-mock-ingest-" + Date.now() } as unknown as T);
-    }
-
-    if (endpoint === "/api/portfolio/upload-manual") {
-      const b = body as Record<string, unknown>;
-      return this.wrapSuccess({ reconciliationStatus: b.configsMatchedCount === 4 ? "complete" : "partial" } as unknown as T);
-    }
-
-    if (endpoint === "/api/boq/ingest") {
-      return this.wrapSuccess({ 
-        ucid: "UCID-2026-NEW",
-        configsCreated: 2,
-        sourceFile: "mock-upload.xlsx",
-        parsedSummary: {
-          vendorBrand: "Consolidated",
-          detectedChassis: "Multi-Node",
-          initialConfidenceScore: 92
+    try {
+      const res = await this.fetchWithTimeout(endpoint, {
+        ...options,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...options?.headers
         },
-        solutions: [
-          {
-            name: "Target Architecture A",
-            vendorSubmissions: [
-              { id: "mock-vs-1", vendor: "HPE", label: "Primary Spec", totalPrice: 150000, originalPrice: 162000, savings: 12000, complianceScore: 98, configs: [
-                {
-                  id: "mock-cfg-1", name: "Mock Config", vendor: "HPE", totalPrice: 150000, originalPrice: 162000,
-                  items: [{ id: "m1", partNumber: 'P40411-B21', name: 'HPE ProLiant DL380 Gen11 8SFF Chassis', type: 'Chassis', quantity: 24, unitPrice: 3400 }]
-                }
-              ] }
-            ]
-          }
-        ]
-      } as unknown as T);
-    }
-
-    if (endpoint === "/api/reconciliation/compare") {
-      return this.wrapSuccess({
-        boqItems: 24,
-        bomItems: 24,
-        matchRate: 100,
-        anomalies: 0,
-      } as unknown as T);
-    }
-
-    if (endpoint === "/api/catalog") {
-      const data = await MockCatalogApi.addCatalogSku(body as CatalogSKU);
-      return this.wrapSuccess(data as unknown as T);
-    }
-
-    if (endpoint === "/api/snapshots") {
-      const data = await MockSnapshotApi.addSnapshot(body as Snapshot);
-      return this.wrapSuccess(data as unknown as T);
-    }
-
-    if (endpoint === "/api/vendors/sync") {
-      return this.wrapSuccess({ syncedCount: 4 } as unknown as T);
-    }
-
-    if (endpoint === "/api/agents/run") {
-      const b = body as { agentName?: string };
-      if (b?.agentName === "AribaScraper") {
-        throw new Error("CCW Authentication Session Expired. Rotating credentials required.");
-      }
-      return this.wrapSuccess({
-        taskId: "task-playwright-1",
-        status: "success",
-        executionTimeMs: 1200,
-        crawledItemsExtracted: 3,
-        logTrail: [
-          { timestamp: new Date().toISOString(), level: "info", message: "Agent started..." },
-          { timestamp: new Date().toISOString(), level: "info", message: "Logged in successfully." }
-        ]
-      } as unknown as T);
-    }
-
-    const taxonomyRes = await this.handleTaxonomyPost<T>(endpoint, body);
-    if (taxonomyRes !== undefined) return taxonomyRes;
-
-    throw this.wrapError(`Endpoint ${endpoint} not implemented in mock boundary.`, 'NOT_FOUND');
-  }
-
-  private async handleTaxonomyPost<T>(endpoint: string, body: unknown): Promise<ApiResponse<T> | undefined> {
-    if (endpoint === "/api/taxonomy/check-constraints") {
-      return this.wrapSuccess({
-        chassisSocket: "LGA-4677",
-        cpuSocket: "LGA-4677",
-        memoryChannels: "Validated",
-        storageController: "Tri-Mode Supported",
-      } as unknown as T);
-    }
-
-    if (endpoint === "/api/taxonomy/map") {
-      const b = body as Record<string, unknown>;
-      await MockTaxonomyApi.mapOrphanNode({
-        childId: b.childId as string,
-        parentId: b.targetParentId as string,
-        childInfo: b.properties as { partNumber: string; name: string }
+        body: JSON.stringify(body)
       });
-      return this.wrapSuccess({} as unknown as T);
+      const data = await res.json();
+      return data as ApiResponse<T>;
+    } catch (e: unknown) {
+      throw this.wrapError((e as Error).message);
     }
-
-    if (endpoint === "/api/taxonomy/rules") {
-      const b = body as Record<string, unknown>;
-      await MockTaxonomyApi.addRule(b.sourceId as string, b.ruleType as "requires" | "exclusive", b.explanation as string);
-      return this.wrapSuccess({} as unknown as T);
-    }
-
-    return undefined;
   }
 
   async put<T>(
@@ -223,36 +82,37 @@ class ApiClient {
     body: Record<string, unknown>,
     options?: RequestInit,
   ): Promise<ApiResponse<T>> {
-    await this.simulateLatency(600);
-
-    if (endpoint.startsWith("/api/catalog/")) {
-      const id = endpoint.split("/").pop();
-      const data = await MockCatalogApi.updateCatalogSku(id!, body as Partial<CatalogSKU>);
-      return this.wrapSuccess(data as unknown as T);
+    try {
+      const res = await this.fetchWithTimeout(endpoint, {
+        ...options,
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...options?.headers
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      return data as ApiResponse<T>;
+    } catch (e: unknown) {
+      throw this.wrapError((e as Error).message);
     }
-
-    throw this.wrapError(`Endpoint ${endpoint} not implemented in mock boundary.`, 'NOT_FOUND');
   }
 
   async delete<T>(
     endpoint: string,
     options?: RequestInit,
   ): Promise<ApiResponse<T>> {
-    await this.simulateLatency(600);
-
-    if (endpoint.startsWith("/api/catalog/")) {
-      const id = endpoint.split("/").pop();
-      await MockCatalogApi.deleteCatalogSku(id!);
-      return this.wrapSuccess({} as unknown as T);
+    try {
+      const res = await this.fetchWithTimeout(endpoint, {
+        ...options,
+        method: "DELETE"
+      });
+      const data = await res.json();
+      return data as ApiResponse<T>;
+    } catch (e: unknown) {
+      throw this.wrapError((e as Error).message);
     }
-    
-    if (endpoint.startsWith("/api/snapshots/")) {
-      const id = endpoint.split("/").pop();
-      await MockSnapshotApi.deleteSnapshot(id!);
-      return this.wrapSuccess({} as unknown as T);
-    }
-
-    throw this.wrapError(`Endpoint ${endpoint} not implemented in mock boundary.`, 'NOT_FOUND');
   }
 
   /**

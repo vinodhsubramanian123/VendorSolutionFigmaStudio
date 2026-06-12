@@ -19,6 +19,8 @@ interface ReconciliationOverviewProps {
   ucids?: UCID[];
   setUcids?: React.Dispatch<React.SetStateAction<UCID[]>>;
   catalogSkus?: CatalogSKU[];
+  initialUnassignedSpares?: {part: string; qty: number; name: string;}[];
+  initialAssignedSpares?: {part: string; target: string; name: string;}[];
 }
 
 export function ReconciliationOverview({
@@ -27,6 +29,8 @@ export function ReconciliationOverview({
   ucids,
   setUcids,
   catalogSkus,
+  initialUnassignedSpares,
+  initialAssignedSpares,
 }: ReconciliationOverviewProps) {
   const toast = useToast();
 
@@ -59,8 +63,12 @@ export function ReconciliationOverview({
   const [reconJobId, setReconJobId] = useState<string | null>(null);
   
   // Spares Pool State
-  const [unassignedSpares, setUnassignedSpares] = useState<{part: string; qty: number; name: string;}[]>([]);
-  const [assignedSpares, setAssignedSpares] = useState<{part: string; target: string; name: string;}[]>([]);
+  const [unassignedSpares, setUnassignedSpares] = useState<{part: string; qty: number; name: string;}[]>(
+    initialUnassignedSpares || []
+  );
+  const [assignedSpares, setAssignedSpares] = useState<{part: string; target: string; name: string;}[]>(
+    initialAssignedSpares || []
+  );
 
   const triggerReconJob = async () => {
     try {

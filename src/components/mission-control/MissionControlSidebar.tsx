@@ -489,42 +489,59 @@ export function MissionControlSidebar({
                           <div className="flex items-center justify-between text-[8px] text-gray-500 font-mono">
                             <span>CONFIG SEQUENCE</span>
                             <span className="text-gray-400 font-bold uppercase">
-                              {u.solutions.length} Sheets
+                              {(() => {
+                                const splitConfigs = u.solutions.flatMap(sol => sol.vendorSubmissions?.[0]?.configs || []);
+                                return splitConfigs.length > 0 ? splitConfigs.length : u.solutions.length;
+                              })()} Sheets
                             </span>
                           </div>
 
                           <div className="flex gap-1 items-center">
-                            {u.solutions.map((sol, index) => {
-                              const currentStepIndex = STEP_ORDER.indexOf(
-                                u.currentStep,
-                              );
-                              const isActive =
-                                index ===
-                                  currentStepIndex % u.solutions.length &&
-                                !isDone;
-                              const isCompleted =
-                                index <
-                                  currentStepIndex % u.solutions.length ||
-                                isDone;
-
-                              return (
-                                <div
-                                  key={sol.id}
-                                  className={`flex-1 h-1 rounded transition-all duration-300 relative ${
-                                    isActive
-                                      ? "bg-indigo-500 shadow-[0_0_8px_rgba(74, 133, 253,0.6)] animate-pulse"
-                                      : isCompleted
-                                        ? "bg-status-success"
-                                        : "bg-gray-800"
-                                  }`}
-                                  title={`${sol.name} (Value: $${sol.vendorSubmissions?.[0]?.totalPrice?.toLocaleString()})`}
-                                >
-                                  {isActive && (
-                                    <span className="absolute -inset-0.5 rounded bg-indigo-400/50 animate-ping opacity-75" />
-                                  )}
-                                </div>
-                              );
-                            })}
+                            {(() => {
+                              const splitConfigs = u.solutions.flatMap(sol => sol.vendorSubmissions?.[0]?.configs || []);
+                              if (splitConfigs.length === 0) {
+                                return u.solutions.map((sol, index) => {
+                                  const currentStepIndex = STEP_ORDER.indexOf(u.currentStep);
+                                  const isActive = index === currentStepIndex % u.solutions.length && !isDone;
+                                  const isCompleted = index < currentStepIndex % u.solutions.length || isDone;
+                                  return (
+                                    <div
+                                      key={sol.id}
+                                      className={`flex-1 h-1.5 rounded transition-all duration-300 relative ${
+                                        isActive ? "bg-indigo-500 shadow-[0_0_8px_rgba(74, 133, 253,0.6)] animate-pulse" : isCompleted ? "bg-status-success" : "bg-gray-800"
+                                      }`}
+                                      title={`${sol.name} (Value: $${sol.vendorSubmissions?.[0]?.totalPrice?.toLocaleString()})`}
+                                    >
+                                      {isActive && <span className="absolute -inset-0.5 rounded bg-indigo-400/50 animate-ping opacity-75" />}
+                                    </div>
+                                  );
+                                });
+                              }
+                              
+                              return splitConfigs.map((cfg, index) => {
+                                // Calculate individual config build status
+                                const hasIssue = cfg.items?.some(i => 
+                                  i.unitPrice > 1500 || 
+                                  i.partNumber.includes("P73283-B21") || 
+                                  i.partNumber.includes("P47781-B21")
+                                );
+                                const isClean = !hasIssue;
+                                
+                                return (
+                                  <div
+                                    key={cfg.id || `cfg-${index}`}
+                                    className={`flex-1 h-1.5 rounded transition-all duration-300 relative ${
+                                      isClean ? "bg-emerald-500 shadow-[0_0_8px_rgba(0,212,160,0.4)]" : "bg-red-500 shadow-[0_0_8px_rgba(255,61,90,0.6)]"
+                                    }`}
+                                    title={`${cfg.name} - ${isClean ? "Clean" : "Unbuildable / Markup Issue"}`}
+                                  >
+                                    {!isClean && (
+                                      <span className="absolute -inset-0.5 rounded bg-red-400/50 animate-ping opacity-75" />
+                                    )}
+                                  </div>
+                                );
+                              });
+                            })()}
                           </div>
 
                           {/* Live Telemetry Chips & glows */}
