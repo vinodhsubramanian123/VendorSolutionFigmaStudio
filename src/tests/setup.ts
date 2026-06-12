@@ -75,3 +75,31 @@ vi.mock('react-window', async () => {
     }
   };
 });
+
+// Mock react-virtuoso for testing to render all elements in JSDOM
+vi.mock('react-virtuoso', async () => {
+  return {
+    Virtuoso: ({ data, totalCount, itemContent }: any) => {
+      const items = [];
+      if (data) {
+        items.push(...data.map((item: any, index: number) => itemContent(index, item)));
+      } else if (totalCount !== undefined) {
+        for (let i = 0; i < totalCount; i++) {
+          items.push(itemContent(i));
+        }
+      }
+      return React.createElement('div', { 'data-testid': 'mock-virtuoso' }, items);
+    },
+    VirtuosoGrid: ({ data, totalCount, itemContent }: any) => {
+      const items = [];
+      if (data) {
+        items.push(...data.map((item: any, index: number) => itemContent(index, item)));
+      } else if (totalCount !== undefined) {
+        for (let i = 0; i < totalCount; i++) {
+          items.push(itemContent(i));
+        }
+      }
+      return React.createElement('div', { 'data-testid': 'mock-virtuoso-grid' }, items);
+    }
+  };
+});
