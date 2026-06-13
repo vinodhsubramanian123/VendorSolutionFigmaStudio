@@ -48,18 +48,18 @@ export function CatalogFilterBar({
           Currently Viewing:
         </span>
         <span className="px-2.5 py-1 rounded bg-surface-elevated border border-indigo-500/15 text-indigo-400 font-mono font-bold uppercase"> 
-          {selectedPath.vendor === "all"
+          {selectedPath?.vendor === "all"
             ? "All Vendors"
-            : selectedPath.vendor}
-          {selectedPath.solution !== "all" &&
-            ` > ${selectedPath.solution}`}
-          {selectedPath.product !== "all" && ` > ${selectedPath.product}`}
-          {selectedPath.generation !== "all" &&
-            ` > ${selectedPath.generation}`}
-          {selectedPath.chassis !== "all" && ` > CHASSIS`}
+            : selectedPath?.vendor}
+          {selectedPath?.solution !== "all" &&
+            ` > ${selectedPath?.solution}`}
+          {selectedPath?.product !== "all" && ` > ${selectedPath?.product}`}
+          {selectedPath?.generation !== "all" &&
+            ` > ${selectedPath?.generation}`}
+          {selectedPath?.chassis !== "all" && ` > CHASSIS`}
         </span>
-        {(selectedPath.vendor !== "all" ||
-          selectedPath.solution !== "all" ||
+        {(selectedPath?.vendor !== "all" ||
+          selectedPath?.solution !== "all" ||
           searchTerm) && (
           <button
             onClick={() => {

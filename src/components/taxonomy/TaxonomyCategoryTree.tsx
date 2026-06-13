@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from "motion/react";
 
+import { GraphNode, GraphAPIResponse } from "../../types/data";
+
 interface TaxonomyCategoryTreeProps {
-  categories: any[];
-  skus: any[];
-  data: any;
+  categories: GraphNode[];
+  skus: GraphNode[];
+  data: GraphAPIResponse;
   filterOrphansOnly: boolean;
   expandedNode: string | null;
   toggleNode: (nodeId: string) => void;
@@ -80,7 +82,7 @@ export function TaxonomyCategoryTree({
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           className="absolute top-14 left-0 right-0 bg-black/95 border border-indigo-500/30 rounded-xl p-3 text-left shadow-2xl z-40"
-                          onClick={e => e.stopPropagation()}
+                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
                         >
                           <span className="text-[9px] font-bold text-indigo-300 block mb-1 uppercase font-mono">Constraints</span>
                           <div className="space-y-1 text-[8.5px] text-gray-300 leading-snug">

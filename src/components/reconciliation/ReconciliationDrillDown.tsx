@@ -15,6 +15,7 @@ import { StatusBadge } from '../shared/StatusBadge';
 import { useToast } from '../shared/ToastContext';
 import type { UCID, CatalogSKU, Vendor, ForensicIssue } from '../../types';
 import { TableRow as TableRowType, TableGroup } from "../../types/data";
+import { ActiveSourcingRules } from "../../config/sourcingRules";
 
 const MemoizedRow = React.memo(function MemoizedRow({
   row,
@@ -141,9 +142,9 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
       }
 
       // Detect active forensic alerts from global issue register:
-      const hasEolAlert = item.partNumber === "815100-B21" && forensicIssues?.some(i => i.id === "iss-1" && i.status !== "resolved");
-      const hasPriceAlert = item.partNumber === "400-BPSB" && item.unitPrice > 1190 && forensicIssues?.some(i => i.id === "iss-2" && i.status !== "resolved");
-      const hasMemorySymmetryAlert = type === "Memory" && item.quantity % 8 !== 0 && forensicIssues?.some(i => i.id === "iss-3" && i.status !== "resolved");
+      const hasEolAlert = ActiveSourcingRules.legacySKUs.includes(item.partNumber) && forensicIssues?.some(i => i.id === "iss-1" && i.status !== "resolved");
+      const hasPriceAlert = item.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && item.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit && forensicIssues?.some(i => i.id === "iss-2" && i.status !== "resolved");
+      const hasMemorySymmetryAlert = type === "Memory" && item.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0 && forensicIssues?.some(i => i.id === "iss-3" && i.status !== "resolved");
 
       let hasAlert = false;
       let alertId = "";
@@ -208,7 +209,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
             const nextSolutions = u.solutions.map((sol) => {
               const matchedCPU = sol.vendorSubmissions?.some((vs) =>
                 vs.configs?.some((c) =>
-                  c.items?.some((it) => it.partNumber === "815100-B21"),
+                  c.items?.some((it) => ActiveSourcingRules.legacySKUs.includes(it.partNumber)),
                 ),
               );
               if (!matchedCPU) return sol;
@@ -219,7 +220,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
                     vs.configs?.map((c) => {
                       const repairedItems =
                         c.items?.map((it) => {
-                          if (it.partNumber === "815100-B21") {
+                          if (ActiveSourcingRules.legacySKUs.includes(it.partNumber)) {
                             return {
                               ...it,
                               partNumber: "P40424-B21",
@@ -290,7 +291,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
               const hasOverage = sol.vendorSubmissions?.some((vs) =>
                 vs.configs?.some((c) =>
                   c.items?.some(
-                    (it) => it.partNumber === "400-BPSB" && it.unitPrice > 1190,
+                    (it) => it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && it.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit,
                   ),
                 ),
               );
@@ -302,10 +303,10 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
                     vs.configs?.map((c) => {
                       const repairedItems =
                         c.items?.map((it) => {
-                          if (it.partNumber === "400-BPSB") {
+                          if (it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU) {
                             return {
                               ...it,
-                              unitPrice: 1190,
+                              unitPrice: ActiveSourcingRules.thresholds.dellOverchargeBaseLimit,
                               name: "Dell 3.84TB Enterprise NVMe SSD [ALIGNED]",
                             };
                           }
@@ -373,7 +374,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
                   vs.vendor === "Cisco" &&
                   vs.configs?.some((c) =>
                     c.items?.some(
-                      (it) => it.type === "Memory" && it.quantity % 8 !== 0,
+                      (it) => it.type === "Memory" && it.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0,
                     ),
                   ),
               );

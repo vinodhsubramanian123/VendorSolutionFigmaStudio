@@ -1,3 +1,5 @@
+import { ActiveSourcingRules } from "../config/sourcingRules";
+
 export interface SolutionItem {
   partNumber: string;
   type: string;
@@ -36,7 +38,7 @@ export function calculateReconciliation(solutions: SolutionInput[]) {
     let worstLeadTime = 7;
 
     sol.items.forEach((item) => {
-      if (item.partNumber === "815100-B21") {
+      if (ActiveSourcingRules.legacySKUs.includes(item.partNumber)) {
         compliance -= 22;
         worstLeadTime = Math.max(worstLeadTime, 45);
       }

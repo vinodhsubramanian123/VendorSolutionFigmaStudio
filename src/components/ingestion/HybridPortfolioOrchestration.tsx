@@ -12,7 +12,15 @@ import {
 import { StatusBadge } from "../shared/StatusBadge";
 import { UCID } from "../../types";
 
-const PortfolioMetricsHeader = ({ projectRefString, isPortfolioActive, onStartPortfolioPipeline }: any) => (
+const PortfolioMetricsHeader = ({
+  projectRefString,
+  isPortfolioActive,
+  onStartPortfolioPipeline
+}: {
+  projectRefString: string;
+  isPortfolioActive: boolean;
+  onStartPortfolioPipeline: () => void;
+}) => (
   <div className="bg-surface-elevated border border-indigo-500/10 rounded-xl p-6 relative overflow-hidden text-left">
     <div className="absolute top-0 right-0 p-8 opacity-5">
       <Network className="w-48 h-48 text-indigo-500" />
@@ -82,7 +90,17 @@ const PortfolioMetricsHeader = ({ projectRefString, isPortfolioActive, onStartPo
   </div>
 );
 
-const DellWorkspaceNode = ({ manualBOMStatus, isPortfolioActive, onSimulateManualUpload, manualUploadedFiles }: any) => (
+const DellWorkspaceNode = ({
+  manualBOMStatus,
+  isPortfolioActive,
+  onSimulateManualUpload,
+  manualUploadedFiles
+}: {
+  manualBOMStatus: "pending" | "partial" | "complete";
+  isPortfolioActive: boolean;
+  onSimulateManualUpload: (configsCount: number) => void;
+  manualUploadedFiles: string[];
+}) => (
   <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4 flex flex-col justify-between text-left">
     <div className="space-y-3 font-sans text-left">
       <div className="flex justify-between items-start text-left">
@@ -154,7 +172,11 @@ const DellWorkspaceNode = ({ manualBOMStatus, isPortfolioActive, onSimulateManua
   </div>
 );
 
-const HpeWorkspaceNode = ({ hpeSyncedConfigs }: any) => (
+const HpeWorkspaceNode = ({
+  hpeSyncedConfigs
+}: {
+  hpeSyncedConfigs: number;
+}) => (
   <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4 flex flex-col justify-between text-left">
     <div className="space-y-3 font-sans text-left">
       <div className="flex justify-between items-start text-left">
@@ -205,7 +227,11 @@ const HpeWorkspaceNode = ({ hpeSyncedConfigs }: any) => (
   </div>
 );
 
-const CiscoWorkspaceNode = ({ ciscoSyncedConfigs }: any) => (
+const CiscoWorkspaceNode = ({
+  ciscoSyncedConfigs
+}: {
+  ciscoSyncedConfigs: number;
+}) => (
   <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4 flex flex-col justify-between text-left font-sans">
     <div className="space-y-3 text-left">
       <div className="flex justify-between items-start text-left">
@@ -256,7 +282,19 @@ const CiscoWorkspaceNode = ({ ciscoSyncedConfigs }: any) => (
   </div>
 );
 
-const ConsolidatedStatusBoard = ({ manualBOMStatus, hpeSyncedConfigs, ciscoSyncedConfigs, projectRefString, isPortfolioActive }: any) => (
+const ConsolidatedStatusBoard = ({
+  manualBOMStatus,
+  hpeSyncedConfigs,
+  ciscoSyncedConfigs,
+  projectRefString,
+  isPortfolioActive
+}: {
+  manualBOMStatus: "pending" | "partial" | "complete";
+  hpeSyncedConfigs: number;
+  ciscoSyncedConfigs: number;
+  projectRefString: string;
+  isPortfolioActive: boolean;
+}) => (
   <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-4 text-left">
     <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400"> 
       Portfolio Consensus Status Board

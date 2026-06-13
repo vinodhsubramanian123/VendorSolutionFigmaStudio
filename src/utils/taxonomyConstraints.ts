@@ -1,5 +1,7 @@
+import { ActiveSourcingRules } from "../config/sourcingRules";
+
 export function checkHardwareConstraints(chassisSKU: string, cpuSKU: string, ramQuantity: number, psuWattsCount: number) {
-  const isEolCpu = cpuSKU === "815100-B21";
+  const isEolCpu = ActiveSourcingRules.legacySKUs.includes(cpuSKU);
   const isOddRam = ramQuantity % 8 !== 0;
   const isUnderpowered = psuWattsCount < 800;
 
@@ -8,7 +10,7 @@ export function checkHardwareConstraints(chassisSKU: string, cpuSKU: string, ram
     chassisSocket: "LGA4677",
     cpuSocket: isEolCpu ? "LGA3647 (Legacy)" : "LGA4677",
     description: isEolCpu 
-      ? "Mismatch identified: Gen11 chassis uses LGA4677 sockets, but legacy CPU 815100-B21 belongs to LGA3647." 
+      ? `Mismatch identified: Gen11 chassis uses LGA4677 sockets, but legacy CPU ${ActiveSourcingRules.legacySKUs[0]} belongs to LGA3647.` 
       : "Complete alignment: CPU model pin specifications pair natively with host system chassis sockets."
   };
 

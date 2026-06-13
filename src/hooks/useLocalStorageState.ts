@@ -54,13 +54,48 @@ export function useLocalStorageState<T>(
         window.localStorage.setItem(key, JSON.stringify(latestState.current));
       } catch (e) {
         console.error(e);
-        // Best-effort flush — nothing we can do if storage is full
+      }
+    };
+
+    const handleCustomStorage = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key: string, value: any }>;
+      if (customEvent.detail.key === key) {
+        setState(customEvent.detail.value);
+      }
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === key && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setState(parsed);
+        } catch (err) {
+          console.error(err);
+        }
       }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("vsip_localstorage_update", handleCustomStorage);
+    window.addEventListener("storage", handleStorage);
+    
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("vsip_localstorage_update", handleCustomStorage);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, [key]);
 
-  return [state, setState];
+  const setSynchronizedState = (val: T | ((prev: T) => T)) => {
+    setState((prev) => {
+      const nextVal = val instanceof Function ? val(prev) : val;
+      const event = new CustomEvent("vsip_localstorage_update", {
+        detail: { key, value: nextVal }
+      });
+      window.dispatchEvent(event);
+      return nextVal;
+    });
+  };
+
+  return [state, setSynchronizedState];
 }

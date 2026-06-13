@@ -3,10 +3,17 @@ import { z } from "zod";
 
 
 
+export enum SolutionBuilderStep {
+  INTAKE = 1,
+  WORKSPACE = 2,
+}
 
-
-
-
+export enum IngestionMode {
+  BOQ = "boq",
+  BOM = "bom",
+  PORTFOLIO = "portfolio",
+  LAUNCH = "launch",
+}
 
 /**
  * ============================================================================
@@ -687,6 +694,7 @@ export interface TaxonomyPath {
 
 export interface UcidContainer {
   id: string; // e.g. UCID-2026-1699
+  displayId?: string;
   name: string;
   reasoning: string;
   locked: boolean;

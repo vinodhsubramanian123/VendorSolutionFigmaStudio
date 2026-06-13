@@ -326,6 +326,7 @@ export const MissionControl = React.memo(function MissionControl({
     }
 
     const prizeSol = ucid.solutions[0]?.vendorSubmissions?.[0] ?? {
+      id: "vs-mock-fallback",
       label: "Dual-sourced solution",
       totalPrice: 244000,
       vendor: "Unknown",

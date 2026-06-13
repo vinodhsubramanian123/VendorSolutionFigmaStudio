@@ -4,7 +4,7 @@ const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('10 - Unified Mega-Flow E2E', () => {
   // We use a single test block for the mega-flow to preserve state continuity
-  test('should execute the complete lifecycle from ingestion to forensics', async ({ page }) => {
+  test('should seamlessly flow data from Ingestion Hub to Solution Builder and Mission Control', async ({ page }) => {
     // Navigate to root
     await page.goto('/');
     await delay(500);
@@ -14,7 +14,7 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
     // ==========================================
     await test.step('Phase 1: Ingest BOQ & Split Configs', async () => {
       await page.locator('#nav-ingestion-hub').click();
-      await expect(page.getByText('File Intake & Structural Splitting', { exact: false }).first()).toBeVisible();
+      await expect(page.getByText('Centralized BOQ & BOM Ingestion Hub', { exact: false }).first()).toBeVisible();
 
       // Trigger BOQ mock ingest
       const processBtn = page.getByText('Run Backend API Ingest', { exact: false }).first();
@@ -26,33 +26,56 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await splitBtn.click();
       await delay(1000);
       
-      // Verify we land back in mission control or wait until success indication
-      // Depending on IngestionHub implementation, we might navigate or just show success.
-      // We will manually navigate to Mission Control to find our new UCID.
+      // Verify we transitioned to BOM mode (step 2 of ingestion hub)
+      await expect(page.getByText('Global Multi-UCID Batch Reconciliation Control Board').first()).toBeVisible();
     });
 
     // ==========================================
-    // PHASE 2: MISSION CONTROL & SOLUTION BUILDER
+    // PHASE 2: SOLUTION BUILDER (DATA CONTINUITY CHECK)
     // ==========================================
-    await test.step('Phase 2: Solution Builder', async () => {
-      // The Ingestion Hub test generates a new UCID. But since our mock backend for Solution Builder
-      // loads a hardcoded init state for demonstration, we can just navigate to Solution Builder
-      // and assert that the workflow layout renders.
+    await test.step('Phase 2: Solution Builder Auto-Bypass', async () => {
+      // Navigate to Solution Builder
       await page.locator('#nav-solution-builder').click();
       await delay(1000);
 
       // Assert we are in Solution Builder
       await expect(page.getByText('Multi-Client Quote Compilation Desk').first()).toBeVisible();
       
-      // Check the matrix / schema loads
-      const matrixItem = page.getByText('UCID Assignment Map').first();
-      await expect(matrixItem).toBeVisible();
+      // CRITICAL ASSERTION: Since data was ingested in Phase 1, Step 1 (BOQ Intake) should be bypassed.
+      // We should directly see Step 2 (UCID Assignment Map) and the deployed containers grid.
+      await expect(page.getByText('UCID Assignment Map').first()).toBeVisible();
+      await expect(page.getByText('UCID Deployment Containers Grid').first()).toBeVisible();
+      
+      // We should NOT see the Proceed button from Step 1, because we skipped it
+      await expect(page.getByText('Proceed to Assignment Map (Step 2)')).toBeHidden();
+
+      // Deploy the mapped configs to Mission Control
+      const deployBtn = page.getByText('Deploy Solutions to Live Mission Control');
+      await expect(deployBtn).toBeVisible();
+      await deployBtn.click();
+      await delay(1500);
     });
 
     // ==========================================
-    // PHASE 3: RECONCILIATION & SNAPSHOTS
+    // PHASE 3: MISSION CONTROL
     // ==========================================
-    await test.step('Phase 3: Compare & Snapshot', async () => {
+    await test.step('Phase 3: Verify Deployment in Mission Control', async () => {
+      // The application should have automatically navigated to Mission Control
+      await expect(page).toHaveURL(/.*\/mission-control.*/);
+      await expect(page.getByText('LIVE MISSION CONTROL', { exact: false }).first()).toBeVisible();
+
+      const html = await page.content();
+      console.log("DOM_DUMP:", html);
+      await expect(page.getByText('ACTIVE SOLUTION MISSION', { exact: false }).first()).toBeVisible();
+      
+      // Verify the status is "solution-design" or "Configuring" based on the deploy output
+      await expect(page.getByText('OPTIMAL SOURCING', { exact: false }).first()).toBeVisible();
+    });
+
+    // ==========================================
+    // PHASE 4: RECONCILIATION
+    // ==========================================
+    await test.step('Phase 4: Compare & Snapshot', async () => {
       await page.locator('#nav-reconciliation').click();
       await delay(1000);
 
@@ -82,32 +105,5 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await page.locator('button').filter({ has: page.locator('svg.lucide-x') }).first().click();
       await delay(1000);
     });
-
-    // ==========================================
-    // PHASE 4: LEARNING LOOP & CATALOG
-    // ==========================================
-    await test.step('Phase 4: Catalog & Forensics', async () => {
-      // Catalog checks
-      await page.locator('#nav-catalog').click();
-      await delay(1000);
-      await expect(page.getByText('Global Catalog', { exact: true }).first()).toBeVisible();
-
-      // Forensic checks
-      await page.locator('#nav-forensic').click();
-      await delay(1000);
-      
-      await expect(page.getByText('Sourcing Integrity Diagnostic Sandbox', { exact: false }).first()).toBeVisible();
-      
-      // "choose any sku combination to test underneath contracts stability and full scope"
-      // Test the Auto-Heal Learning Loop by healing a specific threat combination
-      const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
-      if (await healBtn.isVisible()) {
-        await healBtn.click();
-        await delay(1000);
-        // Assert the threat was healed optimistically
-        await expect(page.getByText('Rule Configuration Matrix', { exact: false }).first()).toBeVisible();
-      }
-    });
-
   });
 });

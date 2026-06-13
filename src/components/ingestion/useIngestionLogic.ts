@@ -4,6 +4,7 @@ import { useWorkflowManager } from "../../hooks/useWorkflowManager";
 import { useToast } from "../shared/ToastContext";
 import type { UCID } from "../../types";
 import { apiClient } from "../../services/apiClient";
+import { IngestionMode } from "../../types/data";
 
 export interface IngestionLogicProps {
   ucids: UCID[];
@@ -28,10 +29,10 @@ export function useIngestionLogic({
     currentStepIndex,
     resetWorkflow,
   } = useWorkflowManager("procurement_lifecycle", [
-    "boq",
-    "bom",
-    "portfolio",
-    "launch",
+    IngestionMode.BOQ,
+    IngestionMode.BOM,
+    IngestionMode.PORTFOLIO,
+    IngestionMode.LAUNCH,
   ]);
 
   const [selectedBomsForBatch, setSelectedBomsForBatch] = useState<string[]>([]);

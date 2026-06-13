@@ -556,9 +556,13 @@ export function SnapshotDiffModal({
                                 {it.changeType === "removed" ? "—" : it.bQty}
                                 {it.changeType === "modified" && it.qtyDrift !== 0 && (
                                   <span className={`text-[8px] font-mono font-bold ml-1 px-1 py-0.2 rounded ${
-                                    it.qtyDrift > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                                    (it.qtyDrift ?? 0) > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
                                   }`}>
-                                    {it.qtyDrift > 0 ? "+" : ""}{it.qtyDrift}
+                                    {(() => {
+                                      const absoluteDrift = Math.abs(it.qtyDrift ?? 0);
+                                      const isQtyReduction = (it.qtyDrift ?? 0) < 0;
+                                      return `${isQtyReduction ? "-" : "+"}${absoluteDrift}`;
+                                    })()}
                                   </span>
                                 )}
                               </td>

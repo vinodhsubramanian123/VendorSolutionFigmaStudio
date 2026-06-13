@@ -26,12 +26,13 @@ import { LearningLoopFeed } from "./LearningLoopFeed";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import { useToast } from "../shared/ToastContext";
+import { ActiveSourcingRules } from "../../config/sourcingRules";
 
 const INITIAL_RULES: SourcingRule[] = [
   {
     id: "rule-1",
     ruleType: "substitution",
-    partNumber: "815100-B21",
+    partNumber: ActiveSourcingRules.legacySKUs[0],
     mappedOutput: "P40424-B21",
     label: "Obsolete Intel Xeon 6130 replacements mapping to Gen11 Gold 6430",
     vendor: "HPE",
@@ -41,8 +42,8 @@ const INITIAL_RULES: SourcingRule[] = [
   {
     id: "rule-2",
     ruleType: "price_cap",
-    partNumber: "400-BPSB",
-    mappedOutput: "1190",
+    partNumber: ActiveSourcingRules.thresholds.dellOverchargeSKU,
+    mappedOutput: ActiveSourcingRules.thresholds.dellOverchargeBaseLimit.toString(),
     label: "Locked premier contractual rate overcharge guard for Enterprise NVMe Read Intensive SSDs",
     vendor: "Dell",
     status: "active",
@@ -133,13 +134,13 @@ export function ForensicView({
     return {
       hasEolSourcingRisk: currUcid?.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
-          vs.configs?.some((c) => c.items?.some((it) => it.partNumber === "815100-B21"),),
+          vs.configs?.some((c) => c.items?.some((it) => ActiveSourcingRules.legacySKUs.includes(it.partNumber)),),
         ),
       ) || false,
       hasPriceVarianceRisk: currUcid?.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
           vs.configs?.some((c) =>
-            c.items?.some((it) => it.partNumber === "400-BPSB" && it.unitPrice > 1190,),
+            c.items?.some((it) => it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && it.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit,),
           ),
         ),
       ) || false,
@@ -147,7 +148,7 @@ export function ForensicView({
         sol.vendorSubmissions?.some((vs) =>
             vs.vendor === "Cisco" &&
             vs.configs?.some((c) =>
-              c.items?.some((it) => it.type === "Memory" && it.quantity % 8 !== 0,),
+              c.items?.some((it) => it.type === "Memory" && it.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0,),
             ),
         ),
       ) || false
@@ -292,7 +293,7 @@ export function ForensicView({
             const nextSolutions = u.solutions.map((sol) => {
               const matchedCPU = sol.vendorSubmissions?.some((vs) =>
                 vs.configs?.some((c) =>
-                  c.items?.some((it) => it.partNumber === "815100-B21"),
+                  c.items?.some((it) => ActiveSourcingRules.legacySKUs.includes(it.partNumber)),
                 ),
               );
               if (!matchedCPU) return sol;
@@ -303,7 +304,7 @@ export function ForensicView({
                     vs.configs?.map((c) => {
                       const repairedItems =
                         c.items?.map((it) => {
-                          if (it.partNumber === "815100-B21") {
+                          if (ActiveSourcingRules.legacySKUs.includes(it.partNumber)) {
                             return {
                               ...it,
                               partNumber: "P40424-B21",
@@ -372,7 +373,7 @@ export function ForensicView({
       // Update the status of the obsolete part in the Master Catalog to prevent future obsolete matches, and designate P40424-B21 as optimal
       setCatalogSkus((prev) =>
         prev.map((sku) => {
-          if (sku.partNumber === "815100-B21") {
+          if (ActiveSourcingRules.legacySKUs.includes(sku.partNumber)) {
             return {
               ...sku,
               status: "eol" as const,
@@ -391,12 +392,12 @@ export function ForensicView({
 
       // Auto-feed the intelligence override policy database
       setSourcingRules((prev) => {
-        const exists = prev.some((r) => r.partNumber === "815100-B21");
+        const exists = prev.some((r) => ActiveSourcingRules.legacySKUs.includes(r.partNumber));
         if (exists) return prev;
         const newLearned: SourcingRule = {
           id: `rule-${Date.now()}-eol`,
           ruleType: "substitution",
-          partNumber: "815100-B21",
+          partNumber: ActiveSourcingRules.legacySKUs[0],
           mappedOutput: "P40424-B21",
           label: "Auto-Learned: Obsolete HPE CPU mapped to high compliance Intel Gold 6430",
           vendor: "HPE",
@@ -413,7 +414,7 @@ export function ForensicView({
       emitLearningEvent(
         "iss-1",
         "substitution",
-        "815100-B21",
+        ActiveSourcingRules.legacySKUs[0],
         "Obsolete HPE Intel Xeon Gold 6130 CPU (815100-B21) auto-substituted to Gen11 Gold 6430 (P40424-B21). Sourcing lead-time risk eliminated and catalog EOL status updated.",
         "HPE",
         96
@@ -750,7 +751,7 @@ export function ForensicView({
     if (issue.id === "iss-1") {
       setPrefillRule({
         ruleType: "substitution",
-        partNumber: "815100-B21",
+        partNumber: ActiveSourcingRules.legacySKUs[0],
         mappedOutput: "P40424-B21",
         vendor: "HPE",
         label: "Manual Override: Map obsolete 815100-B21 to P40424-B21 CPU"
@@ -758,8 +759,8 @@ export function ForensicView({
     } else if (issue.id === "iss-2") {
       setPrefillRule({
         ruleType: "price_cap",
-        partNumber: "400-BPSB",
-        mappedOutput: "1190",
+        partNumber: ActiveSourcingRules.thresholds.dellOverchargeSKU,
+        mappedOutput: ActiveSourcingRules.thresholds.dellOverchargeBaseLimit.toString(),
         vendor: "Dell",
         label: "Manual Override: Cap Dell 400-BPSB at contract level of $1,190"
       });

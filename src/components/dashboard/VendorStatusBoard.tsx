@@ -8,7 +8,7 @@ interface VendorStatusBoardProps {
   totalCatalog: number;
   vendorPieData: { name: string; value: number; color: string }[];
   dimensions: { width: number; height: number };
-  chartRef: React.RefObject<HTMLDivElement>;
+  chartRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, chartRef }: VendorStatusBoardProps) {
@@ -54,7 +54,7 @@ export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, cha
             </Pie>
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(v: number) => [v.toLocaleString(), "SKUs"]}
+              formatter={(v: any) => [v.toLocaleString(), "Requests"]}
             />
           </PieChart>
         ) : (

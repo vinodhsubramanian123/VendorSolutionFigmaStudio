@@ -7,7 +7,7 @@ import { TOOLTIP_STYLE } from './DashboardTooltipStyle';
 
 interface CatalogTrendAnalyzerProps {
   dimensions: { width: number; height: number };
-  chartRef: React.RefObject<HTMLDivElement>;
+  chartRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const CatalogTrendAnalyzer = React.memo(function CatalogTrendAnalyzer({ dimensions, chartRef }: CatalogTrendAnalyzerProps) {
@@ -90,7 +90,7 @@ export const CatalogTrendAnalyzer = React.memo(function CatalogTrendAnalyzer({ d
             />
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(v: number) => [v.toLocaleString(), "SKUs"]}
+              formatter={(v: any) => [v.toLocaleString(), "SKUs"]}
             />
             <Area
               key="area"

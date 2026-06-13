@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from "motion/react";
 import { Hammer, Check, Loader2 } from 'lucide-react';
 import type { UCID, Solution, VendorSubmission, AppView } from '../../types';
+import { SolutionBuilderStep } from '../../types/data';
 import type { ConfigItem, UcidContainer } from '../../types/data';
 import { StepIntake } from './StepIntake';
 import { StepWorkspace } from './StepWorkspace';
@@ -24,7 +25,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   onSelectMission
 }: SolutionBuilderProps) {
   // Step 1: Intake | Step 2: Builder
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<SolutionBuilderStep>(SolutionBuilderStep.INTAKE);
   const [solutionName, setSolutionName] = useState('Project Horizon — UCID Solution v1');
   const [isMultiUcid, setIsMultiUcid] = useState(false);
 
@@ -39,22 +40,61 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchInitialData() {
-      try {
-        const res = await apiClient.get<{ ucidsList: UcidContainer[], configs: ConfigItem[] }>("/api/solution-builder/init");
-        if (res.success && res.data) {
-          setUcidsList(res.data.ucidsList);
-          setConfigs(res.data.configs);
-        }
-      } catch (err) {
-        console.error("Failed to load initial solution builder mock data", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchInitialData();
-  }, []);
+    // Derive local state from the global `ucids` context rather than isolated mocks.
+    // We run this once on mount so that if BOQs/BOMs were ingested elsewhere,
+    // this view smartly resumes from the configured state.
+    const derivedUcidsList: UcidContainer[] = [];
+    const derivedConfigs: ConfigItem[] = [];
 
+    // Filter UCIDs that have vendor configurations ready for mapping
+    // Only require basic ingestion to enter the workspace, rather than fully formed configs.
+    const activeUcids = ucids.filter(u => u.currentStep !== 'snapshot');
+
+    if (activeUcids.length > 0) {
+      activeUcids.forEach((u) => {
+        derivedUcidsList.push({
+          id: u.id,
+          displayId: u.displayId,
+          name: u.name,
+          reasoning: u.rawBOM ? u.rawBOM.split('\n')[0].substring(0, 80) : 'Sourced from external ingest.',
+          locked: (u.snapshots?.length ?? 0) > 0,
+          syncStatus: (u.syncStatus === 'Error' ? 'Out-of-Sync' : u.syncStatus) || 'Pending'
+        });
+
+        u.solutions.forEach(sol => {
+          sol.vendorSubmissions?.forEach(vs => {
+            vs.configs?.forEach((cfg) => {
+              derivedConfigs.push({
+                id: cfg.id,
+                name: cfg.name,
+                vendor: vs.vendor as "HPE" | "Dell" | "Cisco",
+                targetUcidId: u.id,
+                items: cfg.items,
+                totalPrice: cfg.totalPrice,
+                originalPrice: cfg.originalPrice
+              });
+            });
+          });
+        });
+      });
+
+      setUcidsList(derivedUcidsList);
+      setConfigs(derivedConfigs);
+      setStep(SolutionBuilderStep.WORKSPACE); // Auto-bypass BOQ intake (Step 1)
+      setIsIngested(true);
+      if (derivedUcidsList.length > 1) {
+        setIsMultiUcid(true);
+      }
+      setSelectedConfigId(derivedConfigs[0]?.id || 'cfg-1');
+    } else {
+      // Fallback for empty state (force Step 1 BOQ upload)
+      setUcidsList([]);
+      setConfigs([]);
+      setStep(SolutionBuilderStep.INTAKE);
+    }
+    
+    setIsLoading(false);
+  }, [ucids]); // Allow re-hydration if global state radically changes externally
 
   // Switch configs across UCID boxes
   const assignConfigToUcid = (configId: string, ucidId: string) => {
@@ -155,7 +195,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
 
       return {
         id: `dynamic-${container.id}`,
-        displayId: container.id,
+        displayId: container.displayId || (container.id.includes('UCID-') ? container.id.substring(container.id.indexOf('UCID-')) : `UCID-2026-${Math.floor(1000 + Math.random() * 9000)}`),
         name: `${solutionName} — ${container.name}`,
         solutionName: solutionName,
         priority: containerIdx === 0 ? 'high' : 'medium',
@@ -226,24 +266,24 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
               }`}>
                 {step > 1 || isIngested ? <Check className="w-3.5 h-3.5" /> : '1'}
               </div>
-              <span className={`font-semibold tracking-tight ${step === 1 ? 'text-indigo-400 font-bold' : 'text-gray-400'}`}>BOQ Intake Parse</span>
+              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.INTAKE ? 'text-indigo-400 font-bold' : 'text-gray-400'}`}>BOQ Intake Parse</span>
             </div>
             <div className="w-6 h-px bg-white/10" />
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-                step === 2 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
+                step === SolutionBuilderStep.WORKSPACE ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
               }`}>
                 2
               </div>
-              <span className={`font-semibold tracking-tight ${step === 2 ? 'text-indigo-400 font-bold' : 'text-gray-500'}`}>UCID Assignment Map</span>
+              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.WORKSPACE ? 'text-indigo-400 font-bold' : 'text-gray-500'}`}>UCID Assignment Map</span>
             </div>
           </div>
         </div>
 
-        {step === 1 ? (
+        {step === SolutionBuilderStep.INTAKE ? (
           <StepIntake
             activeUcidsCount={ucids.length}
-            onProceed={() => setStep(2)}
+            onProceed={() => setStep(SolutionBuilderStep.WORKSPACE)}
             onSimulationLoad={() => setIsIngested(true)}
           />
         ) : (

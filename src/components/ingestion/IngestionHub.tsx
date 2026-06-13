@@ -40,6 +40,7 @@ interface BoqResponsePayload {
   };
 }
 import { apiClient } from "../../services/apiClient";
+import { IngestionMode } from "../../types/data";
 
 import { BoqIngestWorkbook } from "./BoqIngestWorkbook";
 import { TechnicalBomWorkspace } from "./TechnicalBomWorkspace";
@@ -104,11 +105,12 @@ export function IngestionHub({
   const mode = currentStepId;
   const setMode = jumpToStep;
 
+
   const stepperSteps = useMemo(() => [
-    { id: "boq", label: "1. BOQ Intake" },
-    { id: "bom", label: "2. BOM Compile" },
-    { id: "portfolio", label: "3. Hybrid Automation" },
-    { id: "launch", label: "4. Launch", icon: Play },
+    { id: IngestionMode.BOQ, label: "1. BOQ Intake" },
+    { id: IngestionMode.BOM, label: "2. BOM Compile" },
+    { id: IngestionMode.PORTFOLIO, label: "3. Hybrid Automation" },
+    { id: IngestionMode.LAUNCH, label: "4. Launch", icon: Play },
   ], []);
 
   // ==========================================

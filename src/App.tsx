@@ -20,6 +20,7 @@ import {
   FORENSIC_ISSUES as INITIAL_ISSUES,
 } from "./lib/mockData";
 import type { Config } from "./types";
+import { ActiveSourcingRules } from "./config/sourcingRules";
 
 // Lazy-loaded Views
 const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -48,7 +49,7 @@ export default function App() {
   >("sys_active_mission", "u1");
 
   // Shared Global Reactive State Hub (Persisted)
-  const [ucids, setUcids] = useLocalStorageState("sys_ucids", INITIAL_UCIDS);
+  const [ucids, setUcids] = useLocalStorageState<typeof INITIAL_UCIDS>("sys_ucids", INITIAL_UCIDS);
   const [vendors, setVendors] = useLocalStorageState(
     "sys_vendors",
     INITIAL_VENDORS,
@@ -57,7 +58,7 @@ export default function App() {
     "sys_catalog_skus",
     INITIAL_SKUS,
   );
-  const [forensicIssues, setForensicIssues] = useLocalStorageState(
+  const [forensicIssues, setForensicIssues] = useLocalStorageState<typeof INITIAL_ISSUES>(
     "sys_forensic_issues",
     INITIAL_ISSUES,
   );
@@ -114,6 +115,7 @@ export default function App() {
     }
   }, [ucids, setUcids]);
 
+
   // Phase 3: The Forensic Auto-Heal Hook
   useEffect(() => {
     // EOL Risk
@@ -121,7 +123,7 @@ export default function App() {
       u.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
           vs.configs?.some((c) =>
-            c.items?.some((it) => it.partNumber === "815100-B21")
+            c.items?.some((it) => ActiveSourcingRules.legacySKUs.includes(it.partNumber))
           )
         )
       )
@@ -132,7 +134,7 @@ export default function App() {
       u.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
           vs.configs?.some((c) =>
-            c.items?.some((it) => it.partNumber === "400-BPSB" && it.unitPrice > 1190)
+            c.items?.some((it) => it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && it.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit)
           )
         )
       )
@@ -144,7 +146,7 @@ export default function App() {
         sol.vendorSubmissions?.some((vs) =>
           vs.vendor === "Cisco" &&
           vs.configs?.some((c) =>
-            c.items?.some((it) => it.type === "Memory" && it.quantity % 8 !== 0)
+            c.items?.some((it) => it.type === "Memory" && it.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0)
           )
         )
       )
@@ -267,7 +269,7 @@ export default function App() {
           activeView={currentViewString}
           onSearch={setSearchQuery}
           searchQuery={searchQuery}
-          onNavigate={legacyNavigate}
+          onNavigate={(v: string) => legacyNavigate(v as AppView)}
           apiProgress={apiProgress}
           isPendingAPI={isPendingAPI}
           ucids={ucids}
@@ -282,7 +284,7 @@ export default function App() {
               view={currentViewString}
               activeMissionId={activeMissionId}
               ucids={ucids}
-              onNavigate={legacyNavigate}
+              onNavigate={(v: string) => legacyNavigate(v as AppView)}
             />
             <ErrorBoundary>
               <DataPersistenceGate
@@ -304,7 +306,7 @@ export default function App() {
                     className="flex-1 flex flex-col min-h-full"
                   >
                     <Suspense fallback={<ShimmerBlock />}>
-                      <Routes>
+                      <Routes location={location}>
                         <Route path="/" element={<Dashboard onNavigate={legacyNavigate} ucids={ucids} vendors={vendors} forensicIssues={forensicIssues} />} />
                         <Route path="/ingestion-hub" element={<IngestionHub ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} onSelectMission={handleSelectMission} isPendingAPI={isPendingAPI} setIsPendingAPI={setIsPendingAPI} pendingAPIMessage={pendingAPIMessage} setPendingAPIMessage={setPendingAPIMessage} setApiProgress={setApiProgress} />} />
                         <Route path="/mission-control/:id?" element={<MissionControl selectedId={activeMissionId} onSelectId={setActiveMissionId} ucids={ucids} setUcids={setUcids} deployedSolution={deployedSolution} setDeployedSolution={setDeployedSolution} onNavigate={legacyNavigate} />} />

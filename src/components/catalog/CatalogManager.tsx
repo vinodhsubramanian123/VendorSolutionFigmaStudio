@@ -82,7 +82,7 @@ export function CatalogManager({
   const [showAddForm, setShowAddForm] = useState(false);
 
   // Deep Nesting Multi-level Manufacturer Sourcing Taxonomy State
-  const [selectedPath, setSelectedPath] = useState({
+  const [selectedPath, setSelectedPath] = useState<any>({
     vendor: "all",
     solution: "all",
     product: "all",

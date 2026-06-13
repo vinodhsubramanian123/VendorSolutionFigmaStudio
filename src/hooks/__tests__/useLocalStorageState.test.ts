@@ -134,4 +134,33 @@ describe('useLocalStorageState Hook', () => {
     setItemSpy.mockRestore();
     consoleSpy.mockRestore();
   });
+
+  it('synchronizes state across same tab when vsip_localstorage_update event fires', () => {
+    const { result } = renderHook(() => useLocalStorageState('test-key', 'default'));
+    expect(result.current[0]).toBe('default');
+
+    act(() => {
+      const event = new CustomEvent('vsip_localstorage_update', {
+        detail: { key: 'test-key', value: 'synced-value' }
+      });
+      window.dispatchEvent(event);
+    });
+
+    expect(result.current[0]).toBe('synced-value');
+  });
+
+  it('synchronizes state across tabs when native storage event fires', () => {
+    const { result } = renderHook(() => useLocalStorageState('test-key', 'default'));
+    expect(result.current[0]).toBe('default');
+
+    act(() => {
+      const event = new StorageEvent('storage', {
+        key: 'test-key',
+        newValue: JSON.stringify('cross-tab-value')
+      });
+      window.dispatchEvent(event);
+    });
+
+    expect(result.current[0]).toBe('cross-tab-value');
+  });
 });
