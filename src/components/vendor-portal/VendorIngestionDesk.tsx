@@ -21,6 +21,10 @@ interface VendorIngestionDeskProps {
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   showToast: (message: string, type: "success" | "warn" | "error") => void;
   catalogSkus?: CatalogSKU[];
+  sourcingRules: SourcingRule[];
+  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
+  learningEvents: LearningEvent[];
+  setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
 }
 
 export function VendorIngestionDesk({
@@ -28,6 +32,10 @@ export function VendorIngestionDesk({
   setUcids,
   showToast,
   catalogSkus = [],
+  sourcingRules,
+  setSourcingRules,
+  learningEvents,
+  setLearningEvents,
 }: VendorIngestionDeskProps) {
   const [selectedPortal, setSelectedPortal] = useState<"HPE" | "Dell" | "Cisco">("HPE");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,16 +50,6 @@ export function VendorIngestionDesk({
   ]);
   // CLIC error resolution state
   const [portalErrors, setPortalErrors] = useState<PortalErrorItem[]>([]);
-
-  const [, setSourcingRules] = useLocalStorageState<SourcingRule[]>(
-    "sys_sourcing_intel_rules",
-    []
-  );
-
-  const [, setLearningEvents] = useLocalStorageState<LearningEvent[]>(
-    "sys_learning_events",
-    []
-  );
 
   // Derive ALL credential config from selectedPortal synchronously — no useEffect needed.
   // This is the correct pattern per AGENTS.md §3.2: avoid setState in useEffect.

@@ -160,7 +160,7 @@ export function CampaignConsolidationHub({
         const hasSnapshot = u.snapshots.length > 0;
 
         const newSnapshot: Snapshot = {
-          id: "snap-" + Math.random().toString(36).substring(2, 9),
+          id: `snap-${crypto.randomUUID()}`,
           label: `Campaign Master Covenant Lock - Sourced via ${winningSol.vendor}`,
           committedAt: new Date()
             .toISOString()

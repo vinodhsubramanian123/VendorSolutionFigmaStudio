@@ -19,8 +19,9 @@ import {
   CATALOG_SKUS as INITIAL_SKUS,
   FORENSIC_ISSUES as INITIAL_ISSUES,
 } from "./lib/mockData";
-import type { Config } from "./types";
+import type { Config, SourcingRule, LearningEvent } from "./types";
 import { ActiveSourcingRules } from "./config/sourcingRules";
+import { INITIAL_RULES } from "./mocks/sourcingMocks";
 
 // Lazy-loaded Views
 const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -61,6 +62,14 @@ export default function App() {
   const [forensicIssues, setForensicIssues] = useLocalStorageState<typeof INITIAL_ISSUES>(
     "sys_forensic_issues",
     INITIAL_ISSUES,
+  );
+  const [sourcingRules, setSourcingRules] = useLocalStorageState<SourcingRule[]>(
+    "sys_sourcing_intel_rules",
+    INITIAL_RULES
+  );
+  const [learningEvents, setLearningEvents] = useLocalStorageState<LearningEvent[]>(
+    "sys_learning_events",
+    []
   );
 
   // Graceful Migration of Snapshot objects inside ucids
@@ -312,8 +321,8 @@ export default function App() {
                         <Route path="/mission-control/:id?" element={<MissionControl selectedId={activeMissionId} onSelectId={setActiveMissionId} ucids={ucids} setUcids={setUcids} deployedSolution={deployedSolution} setDeployedSolution={setDeployedSolution} onNavigate={legacyNavigate} />} />
                         <Route path="/mission-control" element={<Navigate to={`/mission-control/${activeMissionId}`} replace />} />
                         <Route path="/catalog" element={<CatalogManager catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} />} />
-                        <Route path="/vendor-portal" element={<VendorPortal vendors={vendors} setVendors={setVendors} ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} />} />
-                        <Route path="/forensic" element={<ForensicView forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} setCatalogSkus={setCatalogSkus} ucids={ucids} setUcids={setUcids} activeMissionId={activeMissionId} setActiveMissionId={setActiveMissionId} onNavigate={legacyNavigate} />} />
+                        <Route path="/vendor-portal" element={<VendorPortal vendors={vendors} setVendors={setVendors} ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} />} />
+                        <Route path="/forensic" element={<ForensicView forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} setCatalogSkus={setCatalogSkus} ucids={ucids} setUcids={setUcids} activeMissionId={activeMissionId} setActiveMissionId={setActiveMissionId} onNavigate={legacyNavigate} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} />} />
                         <Route path="/solution-builder" element={<SolutionBuilder ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} setDeployedSolution={setDeployedSolution} onSelectMission={handleSelectMission} />} />
                         <Route path="/reconciliation" element={<ReconciliationView ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} />} />
                         <Route path="/taxonomy-graph" element={<TaxonomyGraphView catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} />} />

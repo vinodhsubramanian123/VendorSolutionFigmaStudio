@@ -136,6 +136,7 @@ export interface UCID {
   events: LogEvent[]; // Forensic execution log trail
   snapshots: Snapshot[]; // Committed contract history
   syncStatus?: "Pending" | "Synced" | "Out-of-Sync" | "Error"; // Badges requested for Live Mission & Solution Builder consistency tracking
+  trackingRef?: string; // Tracks draft variant logic without breaking master identifier regex schemas
 }
 
 /**

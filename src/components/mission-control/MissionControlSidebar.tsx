@@ -87,7 +87,9 @@ export function MissionControlSidebar({
   }, [filteredGroupedUcids]);
 
   function handleDuplicate(u: UCID) {
-    const displayNum = Math.floor(1000 + Math.random() * 9000);
+    const randomVals = new Uint32Array(1);
+    crypto.getRandomValues(randomVals);
+    const displayNum = (randomVals[0] % 9000) + 1000;
     const duplicated: UCID = {
       ...u,
       id: `u-${Date.now()}`,

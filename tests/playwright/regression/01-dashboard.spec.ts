@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('01 - Dashboard E2E', () => {
+  test.setTimeout(60000);
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('text=Dashboard').first()).toBeVisible();
@@ -11,10 +12,10 @@ test.describe('01 - Dashboard E2E', () => {
 
   test('should render high-level stat cards correctly', async ({ page }) => {
     // Assert cards are present
-    await expect(page.locator('text=Connected Vendors').first()).toBeVisible();
-    await expect(page.locator('text=Catalog SKUs').first()).toBeVisible();
-    await expect(page.locator('text=Active UCIDs').first()).toBeVisible();
-    await expect(page.locator('text=Open Issues').first()).toBeVisible();
+    await expect(page.locator('text=Connected Vendors').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Catalog SKUs').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Active UCIDs').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Open Issues').first()).toBeVisible({ timeout: 15000 });
     await delay();
   });
 

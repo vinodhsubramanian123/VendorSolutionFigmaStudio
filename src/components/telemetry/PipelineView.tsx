@@ -21,38 +21,39 @@ export function PipelineView() {
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
 
   // Inject a mock job with animated progress
-  const startJobProcessing = useCallback((job: DocIngestionJob) => {
-    const stages: { progress: number; status: DocStatus; log: string; delay: number }[] = [
-      { progress: 15, status: "processing", log: `[INIT] Document received — ${formatBytes(job.fileSize)}`, delay: 0 },
-      { progress: 35, status: "processing", log: `[PARSE] Detecting document structure and encoding...`, delay: 900 },
-      { progress: 55, status: "processing", log: `[OCR] Extracting text layers and table structures...`, delay: 2000 },
-      { progress: 72, status: "extracting", log: `[EXTRACT] Matching part numbers against Master Catalog...`, delay: 3400 },
-      { progress: 88, status: "extracting", log: `[RULES] Generating sourcing intelligence rules from findings...`, delay: 4800 },
-      { progress: 100, status: "completed", log: `[DONE] ${Math.floor(Math.random() * 12) + 3} catalog rules extracted. Document intelligence ingested.`, delay: 6200 },
-    ];
+  const startJobProcessing = useCallback(async (job: DocIngestionJob) => {
+    const steps = ["init", "parse", "ocr", "extract", "rules", "complete"];
+    for (const step of steps) {
+      try {
+        const res = await fetch("/api/pipeline/step", {
+          method: "POST",
+          body: JSON.stringify({ jobId: job.id, step })
+        });
+        const json = await res.json();
+        const data = json.data;
 
-    stages.forEach(({ progress, status, log, delay }) => {
-      setTimeout(() => {
         setJobs((prev) =>
           prev.map((j) =>
             j.id === job.id
               ? {
                   ...j,
-                  progress,
-                  status,
-                  logLines: [...j.logLines, `[${new Date().toLocaleTimeString()}] ${log}`],
-                  ...(status === "completed" ? { completedAt: new Date().toISOString(), extractedCount: Math.floor(Math.random() * 12) + 3 } : {}),
-                  ...(delay === 0 ? { startedAt: new Date().toISOString() } : {}),
+                  progress: data.progress,
+                  status: data.status,
+                  logLines: [...j.logLines, `[${new Date().toLocaleTimeString()}] ${data.log}`],
+                  ...(data.status === "completed" ? { completedAt: new Date().toISOString(), extractedCount: data.extractedCount } : {}),
+                  ...(step === "init" ? { startedAt: new Date().toISOString() } : {}),
                 }
               : j
           )
         );
 
-        if (status === "completed") {
+        if (data.status === "completed") {
           toast(`Document "${job.filename}" processed — intelligence extracted!`, "success");
         }
-      }, delay);
-    });
+      } catch (err) {
+        console.error(err);
+      }
+    }
   }, [toast]);
 
   const processFiles = useCallback((files: File[]) => {
@@ -84,8 +85,8 @@ export function PipelineView() {
     setJobs((prev) => [...newJobs, ...prev]);
     toast(`${newJobs.length} document${newJobs.length > 1 ? "s" : ""} queued for processing.`, "success");
 
-    newJobs.forEach((job, idx) => {
-      setTimeout(() => startJobProcessing(job), idx * 400);
+    newJobs.forEach((job) => {
+      startJobProcessing(job);
     });
   }, [startJobProcessing, toast]);
 

@@ -103,6 +103,7 @@ export const UCIDSchema = z.object({
   events: z.array(LogEventSchema),
   snapshots: z.array(SnapshotSchema),
   syncStatus: z.enum(["Pending", "Synced", "Out-of-Sync", "Error"]).optional(),
+  trackingRef: z.string().optional(),
 });
 
 // 8. Vendor Zod Schema

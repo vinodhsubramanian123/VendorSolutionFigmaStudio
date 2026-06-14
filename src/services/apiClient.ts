@@ -33,7 +33,8 @@ class ApiClient {
   }
 
   private async fetchWithTimeout(endpoint: string, options?: RequestInit): Promise<Response> {
-    const res = await fetch(endpoint, options);
+    const url = endpoint.startsWith('/') ? `http://localhost:3000${endpoint}` : endpoint;
+    const res = await fetch(url, options);
     if (!res.ok) {
       let errorMessage = "Failed to fetch";
       try {
@@ -69,6 +70,20 @@ class ApiClient {
           ...options?.headers
         },
         body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      return data as ApiResponse<T>;
+    } catch (e: unknown) {
+      throw this.wrapError((e as Error).message);
+    }
+  }
+
+  async postForm<T>(endpoint: string, formData: FormData, options?: RequestInit): Promise<ApiResponse<T>> {
+    try {
+      const res = await this.fetchWithTimeout(endpoint, {
+        ...options,
+        method: "POST",
+        body: formData,
       });
       const data = await res.json();
       return data as ApiResponse<T>;

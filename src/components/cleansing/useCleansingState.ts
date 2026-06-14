@@ -1,68 +1,13 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import type { CatalogSKU } from "../../types";
 import { CleansingEntry, MatchStatus } from "./cleansingTypes";
 import { apiClient } from "../../services/apiClient";
 import { useToast } from "../shared/ToastContext";
 
-function generateMockEntries(catalogSkus: CatalogSKU[]): CleansingEntry[] {
-  const raws = [
-    { raw: "32-Core CPU HPE Gen11", part: "P40424-B21", vendor: "HPE" },
-    { raw: "Intel Xeon 6130 16-core legacy proc", part: "815100-B21", vendor: "HPE" },
-    { raw: "dell 3.84tb nvme ssd sff", part: "400-BPSB", vendor: "Dell" },
-    { raw: "Cisco UCS 64GB DDR5 memory dimm", part: "UCS-MR-64G1XS-E", vendor: "Cisco" },
-    { raw: "8x2.5 HDD SAS drive cage", part: undefined, vendor: "HPE" },
-    { raw: "Juniper QFX5120-48Y switch 1U", part: undefined, vendor: "Juniper" },
-    { raw: "P40424B21", part: "P40424-B21", vendor: "HPE" },   // missing hyphen
-    { raw: "400 BPSB 3.84TB", part: "400-BPSB", vendor: "Dell" }, // space instead of hyphen
-    { raw: "Xeon Gold 6430 Processor", part: "P40424-B21", vendor: "HPE" },
-    { raw: "HPE Gen 11 redundant power supply 800W", part: undefined, vendor: "HPE" },
-    { raw: "Cisco 9300-24UX Switch", part: undefined, vendor: "Cisco" },
-    { raw: "Dell PowerEdge RAID H755 controller", part: undefined, vendor: "Dell" },
-  ];
-
-  return raws.map((r, idx) => {
-    const catalogMatch = catalogSkus.find(
-      (sku) => sku.partNumber === r.part && sku.vendor === r.vendor
-    );
-
-    let status: MatchStatus;
-    let confidence: number;
-
-    if (catalogMatch && r.raw.toLowerCase().includes(r.part?.replace(/-/g, "").toLowerCase() || "")) {
-      status = "matched";
-      confidence = 98;
-    } else if (catalogMatch) {
-      status = "fuzzy";
-      confidence = Math.floor(Math.random() * 20) + 72;
-    } else if (r.part) {
-      status = "unmatched";
-      confidence = Math.floor(Math.random() * 30) + 40;
-    } else {
-      status = idx % 3 === 0 ? "quarantined" : "unmatched";
-      confidence = Math.floor(Math.random() * 35) + 15;
-    }
-
-    return {
-      id: `entry-${idx + 1}`,
-      rawValue: r.raw,
-      detectedPartNumber: r.part,
-      normalizedName: catalogMatch?.name,
-      matchStatus: status,
-      confidence,
-      matchedSkuId: catalogMatch?.id,
-      matchedPartNumber: catalogMatch?.partNumber,
-      vendor: r.vendor,
-      flagReason: status === "quarantined" ? "No SKU pattern detected — manual mapping required" : undefined,
-    };
-  });
-}
-
 export function useCleansingState(catalogSkus: CatalogSKU[]) {
   const { toast } = useToast();
 
-  const [entries, setEntries] = useState<CleansingEntry[]>(() =>
-    generateMockEntries(catalogSkus)
-  );
+  const [entries, setEntries] = useState<CleansingEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<MatchStatus | "all">("all");
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -113,45 +58,33 @@ export function useCleansingState(catalogSkus: CatalogSKU[]) {
       .slice(0, 8);
   }, [catalogSkus, skuSearchTerm]);
 
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await apiClient.get<CleansingEntry[]>("/api/cleansing/entries");
+        if (res.data) setEntries(res.data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    load();
+  }, []);
+
   // Auto-map runner
   const handleAutoMap = useCallback(async () => {
     setIsRunningAutoMap(true);
     try {
-      await apiClient.post("/api/taxonomy/rules", {
-        sourceId: "batch-cleansing",
-        ruleType: "substitution",
-        explanation: "Batch auto-cleansing run",
-      });
+      const res = await apiClient.post<any>("/api/cleansing/fuzzy-match", { entries });
+      if (res.data && res.data.entries) {
+        setEntries(res.data.entries);
+        toast(`Auto-mapping complete! ${res.data.resolvedCount} fuzzy entries resolved.`, "success");
+      }
     } catch {
-      // Mock: continue regardless
+      toast("Auto-mapping failed.", "error");
+    } finally {
+      setIsRunningAutoMap(false);
     }
-
-    // Promote fuzzy → matched + unmatched with detected part → fuzzy
-    setEntries((prev) =>
-      prev.map((e) => {
-        if (e.matchStatus === "fuzzy" && e.confidence >= 70) {
-          return { ...e, matchStatus: "matched", confidence: Math.min(e.confidence + 12, 99), reviewedAt: new Date().toISOString() };
-        }
-        if (e.matchStatus === "unmatched" && e.detectedPartNumber) {
-          const skuMatch = catalogSkus.find((s) => s.partNumber === e.detectedPartNumber);
-          if (skuMatch) {
-            return {
-              ...e,
-              matchStatus: "fuzzy",
-              matchedSkuId: skuMatch.id,
-              matchedPartNumber: skuMatch.partNumber,
-              normalizedName: skuMatch.name,
-              confidence: 74,
-            };
-          }
-        }
-        return e;
-      })
-    );
-
-    setIsRunningAutoMap(false);
-    toast(`Auto-mapping complete! ${stats.fuzzy} fuzzy entries resolved.`, "success");
-  }, [catalogSkus, stats.fuzzy, toast]);
+  }, [entries, toast]);
 
   // Manual map entry to a catalog SKU
   const handleManualMap = useCallback((entryId: string, sku: CatalogSKU) => {

@@ -113,6 +113,13 @@ To prevent repeating historical regressions, strictly observe the following guid
 *   **Issue**: `SolutionBuilder` strictly filtered out newly ingested BOQs because it checked if `configs.length > 0` (assuming step 1 was entirely processed). This led to missing active jobs visually.
 *   **Solution**: UI filters must broadly accept tracking arrays (e.g. allowing empty configurations if the tracking reference exists) so users can see work-in-progress items across all views seamlessly.
 
+### 3.10 No Artificial Delays or Frontend State Simulation
+*   **Issue**: UI components frequently used `setTimeout`, `Math.random()`, and massive inline Mock Arrays to simulate API delays, randomize telemetry progress, or fuzzy-match catalog parts. This made the frontend rigid, bloated, and untestable.
+*   **Solution**: **NEVER** use `Math.random()` or `setTimeout()` loops for progress tracking, ID generation, or API faking in the UI layer. 
+    - Standard UUIDs must use `crypto.randomUUID()`.
+    - Mock delays and progress simulations must be entirely delegated to the `apiClient` / MSW layer (`handlers.ts`).
+    - Complex parsing (like NLP semantic parsing or deep object overrides) belongs strictly in the backend boundary. The UI must remain a dumb visualization layer reacting to external streams.
+
 ---
 
 ## 4. Visual Regression Gate

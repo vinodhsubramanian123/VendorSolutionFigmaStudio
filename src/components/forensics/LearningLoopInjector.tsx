@@ -17,8 +17,8 @@ import {
   ListFilter,
   FileText
 } from "lucide-react";
+import { apiClient } from "../../services/apiClient";
 import type { SourcingRule } from "../../types";
-import * as XLSX from "xlsx";
 
 interface LearningLoopInjectorProps {
   onRuleDrafted: (rule: SourcingRule) => void;
@@ -131,57 +131,9 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // NLP Semantic Parser
-  const analyzeInitialInput = (text: string) => {
-    const lower = text.toLowerCase();
-    
-    // Heuristics parser
-    let ruleType: SourcingRule["ruleType"] = "substitution";
-    let vendor = "HPE";
-    let partNumber = "P73283-B21"; // Default fallback
-    let mappedOutput = "P40424-B21";
 
-    if (lower.includes("symmetry") || lower.includes("balance") || lower.includes("memory") || lower.includes("channel")) {
-      ruleType = "symmetry";
-      partNumber = "Memory";
-      mappedOutput = "multiple_of_8";
-    } else if (lower.includes("cap") || lower.includes("price") || lower.includes("$") || lower.includes("rate") || lower.includes("charge")) {
-      ruleType = "price_cap";
-      mappedOutput = "1190";
-    }
 
-    if (lower.includes("cisco")) vendor = "Cisco";
-    else if (lower.includes("dell")) vendor = "Dell";
-    else if (lower.includes("juniper")) vendor = "Juniper";
-    
-    // Scan for SKU codes (e.g., P73283-B21, 815100-B21)
-    const skuRegex = /[a-zA-Z0-9]{5,8}-[a-zA-Z0-9]{3,4}/;
-    const match = text.match(skuRegex);
-    if (match) {
-      partNumber = match[0];
-    }
-
-    setParsedIntent({
-      ruleType,
-      label: text,
-      vendor,
-      partNumber,
-      mappedOutput
-    });
-
-    setState("clarifying_target");
-    setMessages(prev => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        sender: "agent",
-        text: `I've mapped this as a "${ruleType.toUpperCase()}" rule for ${vendor}. I detected the target SKU "${partNumber}". Is this correct, or should we target a different SKU/parameter code?`,
-        isActionable: true,
-      }
-    ]);
-  };
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim() || state === "parsing" || state === "drafting") return;
 
     const userText = inputValue.trim();
@@ -190,11 +142,27 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
 
     if (state === "idle") {
       setState("parsing");
-      setTimeout(() => analyzeInitialInput(userText), 1200);
+      try {
+        const res = await apiClient.post<any>("/api/agents/semantic-map", { message: userText });
+        const intent = res.data || {};
+        setParsedIntent(intent);
+        
+        setState("clarifying_target");
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: "agent",
+            text: `I've mapped this as a "${(intent.ruleType || 'substitution').toUpperCase()}" rule for ${intent.vendor || 'HPE'}. I detected the target SKU "${intent.partNumber || 'Unknown'}". Is this correct, or should we target a different SKU/parameter code?`,
+            isActionable: true,
+          }
+        ]);
+      } catch (e) {}
     } else if (state === "clarifying_target") {
       setParsedIntent(prev => ({ ...prev, partNumber: userText }));
       setState("parsing");
-      setTimeout(() => {
+      try {
+        await apiClient.post("/api/agents/run", { message: userText });
         setState("clarifying_scope");
         setMessages(prev => [
           ...prev,
@@ -205,7 +173,7 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
             isActionable: true,
           }
         ]);
-      }, 1000);
+      } catch (e) {}
     } else if (state === "clarifying_scope") {
       const allowedScopes = ["Global Brand", "Specific Category Only", "Exact SKU Match Only"];
       const scopeMatch = allowedScopes.find(s => s.toLowerCase() === userText.toLowerCase());
@@ -224,11 +192,14 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
       }
 
       setState("parsing");
-      setTimeout(() => finalizeRule(scopeMatch), 1200);
+      try {
+        await apiClient.post("/api/agents/run", { message: scopeMatch });
+        await finalizeRule(scopeMatch);
+      } catch (e) {}
     }
   };
 
-  const finalizeRule = (scopeText: string) => {
+  const finalizeRule = async (scopeText: string) => {
     const rule: SourcingRule = {
       id: "rule-draft-" + Date.now(),
       ruleType: parsedIntent.ruleType || "substitution",
@@ -251,9 +222,10 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
       }
     ]);
 
-    setTimeout(() => {
+    try {
+      await apiClient.post("/api/taxonomy/rules", rule);
       onRuleDrafted(rule);
-    }, 1500);
+    } catch (e) {}
   };
 
   // Drag & Drop File Upload Handlers
@@ -285,132 +257,24 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
     }
   };
 
-  const processUpload = (file: File) => {
+  const processUpload = async (file: File) => {
     setUploadedFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: "binary" });
-        
-        const ignored: string[] = [];
-        let parsedAdvice: AdviceTriageItem[] = [];
-        let parsedBOM: Record<string, string | number | boolean | null>[] = [];
-        let parsedConfig: Record<string, string | number | boolean | null>[] = [];
+    const formData = new FormData();
+    formData.append("file", file);
 
-        workbook.SheetNames.forEach((sheetName, index) => {
-          const nameLower = sheetName.toLowerCase();
-          
-          // Topology/taxonomy or metadata sheets like Information/Summary should be ignored
-          const isTopologyOrTaxonomy = 
-            nameLower.includes("info") || 
-            nameLower.includes("summary") || 
-            nameLower.includes("topology") || 
-            nameLower.includes("taxonomy") || 
-            nameLower.includes("comparison") ||
-            (sheetName === "Information");
-
-          if (isTopologyOrTaxonomy) {
-            ignored.push(sheetName);
-            return;
-          }
-
-          const worksheet = workbook.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json<Record<string, string | number | boolean | null>>(worksheet);
-
-          const hasAdviceColumns = rows.length > 0 && Object.keys(rows[0]).some(k => 
-            k.toLowerCase().includes("advice") || 
-            k.toLowerCase().includes("message") || 
-            k.toLowerCase().includes("rule number") ||
-            k.toLowerCase().includes("severity")
-          );
-
-          const hasBOMColumns = rows.length > 0 && Object.keys(rows[0]).some(k => 
-            k.toLowerCase().includes("qty") || 
-            k.toLowerCase().includes("quantity") || 
-            k.toLowerCase().includes("unit price")
-          );
-
-          if (hasAdviceColumns || nameLower.includes("validation") || nameLower.includes("message") || nameLower.includes("advice")) {
-            const mapped: AdviceTriageItem[] = rows.map((row, idx) => {
-              const productNumber = String(row["Product Number"] || row["Product #"] || row["SKU"] || row["partNumber"] || "P73283-B21");
-              const adviceText = String(row["Advice Text"] || row["Message"] || row["Description"] || "No text advice provided.");
-              const severity = String(row["Severity"] || "warning").toLowerCase();
-              const ruleNumber = String(row["Rule Number"] || row["Rule ID"] || `rule-${idx}`);
-              const vendor = productNumber.startsWith("P") || productNumber.startsWith("R") ? "HPE" : "Dell";
-
-              return {
-                id: `advice-${idx}-${Date.now()}`,
-                ruleNumber,
-                productNumber,
-                adviceText,
-                severity: severity === "error" || severity === "critical" || severity === "unbuildable" ? "critical" : "warning",
-                vendor,
-              };
-            });
-            parsedAdvice = [...parsedAdvice, ...mapped];
-          } else if (hasBOMColumns || nameLower === "bom") {
-            parsedBOM = rows;
-          } else if (nameLower.includes("config") || nameLower.includes("trk")) {
-            parsedConfig = rows;
-          } else {
-            ignored.push(sheetName);
-          }
-        });
-
-        // Fail-safe if sheet detection falls back
-        if (parsedAdvice.length === 0) {
-          parsedAdvice = [
-            {
-              id: `advice-mock-1`,
-              ruleNumber: "81392356",
-              productNumber: "P73283-B21",
-              adviceText: "UNBUILDABLE CONFIGURATION: OVERRIDE REQUIRES FACTORY APPROVAL. DL380 Gen12 requires to be ordered with 1 qty of MR416i-o controller (P47781-B21) and 1 qty of MR416i-p (P47777-B21) controller.",
-              severity: "critical",
-              vendor: "HPE"
-            },
-            {
-              id: `advice-mock-2`,
-              ruleNumber: "81392920",
-              productNumber: "P73283-B21",
-              adviceText: "UNBUILDABLE CONFIGURATION: DL380 Gen12 with no other additional cage then only one of the controller-cable combination can be selected.",
-              severity: "critical",
-              vendor: "HPE"
-            }
-          ];
-        }
-
-        setAdviceItems(parsedAdvice);
-        setBomItems(parsedBOM);
-        setConfigRows(parsedConfig);
-        setIgnoredSheets(ignored);
+    try {
+      const res = await apiClient.postForm<any>("/api/agents/parse-advice-file", formData);
+      if (res.success && res.data) {
+        setAdviceItems(res.data.adviceItems || []);
+        setBomItems(res.data.bomItems || []);
+        setConfigRows(res.data.configRows || []);
+        setIgnoredSheets(res.data.ignoredSheets || []);
         setUploadSuccess(true);
         setFileSubTab("advice");
-      } catch (err) {
-        console.error("XLSX parsing failed, falling back to mock advice items:", err);
-        setAdviceItems([
-          {
-            id: `advice-mock-1`,
-            ruleNumber: "81392356",
-            productNumber: "P73283-B21",
-            adviceText: "UNBUILDABLE CONFIGURATION: OVERRIDE REQUIRES FACTORY APPROVAL. DL380 Gen12 requires to be ordered with 1 qty of MR416i-o controller (P47781-B21) and 1 qty of MR416i-p (P47777-B21) controller.",
-            severity: "critical",
-            vendor: "HPE"
-          },
-          {
-            id: `advice-mock-2`,
-            ruleNumber: "81392920",
-            productNumber: "P73283-B21",
-            adviceText: "UNBUILDABLE CONFIGURATION: DL380 Gen12 with no other additional cage then only one of the controller-cable combination can be selected.",
-            severity: "critical",
-            vendor: "HPE"
-          }
-        ]);
-        setIgnoredSheets(["Information"]);
-        setUploadSuccess(true);
       }
-    };
-    reader.readAsBinaryString(file);
+    } catch (err) {
+      console.error("API parsing failed:", err);
+    }
   };
 
   const handleDraftAdviceRule = (item: AdviceTriageItem) => {

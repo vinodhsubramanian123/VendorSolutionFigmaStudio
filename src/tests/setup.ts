@@ -59,24 +59,10 @@ HTMLCanvasElement.prototype.getContext = () => {
   } as any;
 };
 
-// Mock react-window for testing to prevent ESM default export crash in JSDOM
+// Mock react-virtuoso for testing to render all elements in JSDOM
 import React from 'react';
 import { vi } from 'vitest';
 
-vi.mock('react-window', async () => {
-  return {
-    FixedSizeList: ({ children, itemCount }: any) => {
-      const Comp = children;
-      const items = [];
-      for (let i = 0; i < itemCount; i++) {
-        items.push(React.createElement(Comp, { key: i, index: i, style: {} }));
-      }
-      return React.createElement('div', { 'data-testid': 'mock-fixed-size-list' }, items);
-    }
-  };
-});
-
-// Mock react-virtuoso for testing to render all elements in JSDOM
 vi.mock('react-virtuoso', async () => {
   return {
     Virtuoso: ({ data, totalCount, itemContent }: any) => {
@@ -103,3 +89,15 @@ vi.mock('react-virtuoso', async () => {
     }
   };
 });
+
+// Polyfill crypto.randomUUID for jsdom
+import { randomUUID } from 'crypto';
+if (typeof window.crypto === 'undefined') {
+  Object.defineProperty(window, 'crypto', {
+    value: {
+      randomUUID: () => randomUUID()
+    }
+  });
+} else if (typeof window.crypto.randomUUID === 'undefined') {
+  window.crypto.randomUUID = () => randomUUID() as any;
+}

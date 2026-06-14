@@ -24,42 +24,9 @@ import { ForensicSidebar } from "./ForensicSidebar";
 import { SourcingRulesVault } from "./SourcingRulesVault";
 import { LearningLoopFeed } from "./LearningLoopFeed";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
-import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import { useToast } from "../shared/ToastContext";
 import { ActiveSourcingRules } from "../../config/sourcingRules";
-
-const INITIAL_RULES: SourcingRule[] = [
-  {
-    id: "rule-1",
-    ruleType: "substitution",
-    partNumber: ActiveSourcingRules.legacySKUs[0],
-    mappedOutput: "P40424-B21",
-    label: "Obsolete Intel Xeon 6130 replacements mapping to Gen11 Gold 6430",
-    vendor: "HPE",
-    status: "active",
-    isAutoLearned: false,
-  },
-  {
-    id: "rule-2",
-    ruleType: "price_cap",
-    partNumber: ActiveSourcingRules.thresholds.dellOverchargeSKU,
-    mappedOutput: ActiveSourcingRules.thresholds.dellOverchargeBaseLimit.toString(),
-    label: "Locked premier contractual rate overcharge guard for Enterprise NVMe Read Intensive SSDs",
-    vendor: "Dell",
-    status: "active",
-    isAutoLearned: false,
-  },
-  {
-    id: "rule-3",
-    ruleType: "symmetry",
-    partNumber: "Memory",
-    mappedOutput: "multiple_of_8",
-    label: "Verify odd configuration lines check and rebalance into symmetric 8-channel modules",
-    vendor: "Cisco",
-    status: "active",
-    isAutoLearned: false,
-  },
-];
+import { RuleClarificationModal } from "./RuleClarificationModal";
 
 interface ForensicViewProps {
   forensicIssues: ForensicIssue[];
@@ -71,6 +38,10 @@ interface ForensicViewProps {
   activeMissionId?: string;
   setActiveMissionId: React.Dispatch<React.SetStateAction<string | undefined>>;
   onNavigate?: (view: AppView) => void;
+  sourcingRules: SourcingRule[];
+  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
+  learningEvents: LearningEvent[];
+  setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
 }
 
 export function ForensicView({
@@ -83,24 +54,19 @@ export function ForensicView({
   activeMissionId,
   setActiveMissionId,
   onNavigate,
+  sourcingRules,
+  setSourcingRules,
+  learningEvents,
+  setLearningEvents,
 }: ForensicViewProps) {
   const [scanning, setScanning] = useState(false);
   const [scanStdout, setScanStdout] = useState<string[]>([]);
   const [lastScanCount, setLastScanCount] = useState<number | null>(null);
   const { toast } = useToast();
-  // Persistence dataset of sourcing policies
-  const [sourcingRules, setSourcingRules] = useLocalStorageState<SourcingRule[]>(
-    "sys_sourcing_intel_rules",
-    INITIAL_RULES
-  );
 
   const [prefillRule, setPrefillRule] = useState<Partial<SourcingRule> | null>(null);
 
-  // Persisted learning events — the visible intelligence feed
-  const [learningEvents, setLearningEvents] = useLocalStorageState<LearningEvent[]>(
-    "sys_learning_events",
-    []
-  );
+  const [pendingHealIssueId, setPendingHealIssueId] = useState<string | null>(null);
 
   // Helper: emit a learning event and tag the corresponding rule as auto-learned
   function emitLearningEvent(
@@ -281,9 +247,16 @@ export function ForensicView({
     }
   }
 
+  // Intercept heal with Modal for strict scoping
+  function requestAutoHeal(issueId: string) {
+    setPendingHealIssueId(issueId);
+  }
+
   // High performance direct correction script mapping to state
-  function handleAutoHeal(issueId: string) {
-    if (!currUcid) return;
+  function confirmAutoHeal(scope: "Global" | "Brand" | "Exact") {
+    if (!pendingHealIssueId || !currUcid) return;
+    const issueId = pendingHealIssueId;
+    setPendingHealIssueId(null);
 
     if (issueId === "iss-1") {
       // HPE EOL repair script - replace obsolete legacy CPU with Xeon Gold 6430
@@ -399,8 +372,8 @@ export function ForensicView({
           ruleType: "substitution",
           partNumber: ActiveSourcingRules.legacySKUs[0],
           mappedOutput: "P40424-B21",
-          label: "Auto-Learned: Obsolete HPE CPU mapped to high compliance Intel Gold 6430",
-          vendor: "HPE",
+          label: `Auto-Learned (${scope} Scope): Obsolete HPE CPU mapped to high compliance Intel Gold 6430`,
+          vendor: scope === "Global" ? "ALL" : "HPE",
           status: "draft",
           learnedAt: new Date().toISOString(),
           sourceIssueId: "iss-1",
@@ -533,8 +506,8 @@ export function ForensicView({
           ruleType: "price_cap",
           partNumber: "400-BPSB",
           mappedOutput: "1190",
-          label: "Auto-Learned: Contract target Cap rate overcharge protection locked at $1,190",
-          vendor: "Dell",
+          label: `Auto-Learned (${scope} Scope): Contract target Cap rate overcharge protection locked at $1,190`,
+          vendor: scope === "Global" ? "ALL" : "Dell",
           status: "draft",
           learnedAt: new Date().toISOString(),
           sourceIssueId: "iss-2",
@@ -668,8 +641,8 @@ export function ForensicView({
           ruleType: "symmetry",
           partNumber: "Memory",
           mappedOutput: "multiple_of_8",
-          label: "Auto-Learned: Cisco UCS memory rebalanced to 8-channel socket layout symmetry",
-          vendor: "Cisco",
+          label: `Auto-Learned (${scope} Scope): Cisco UCS memory rebalanced to 8-channel socket layout symmetry`,
+          vendor: scope === "Global" ? "ALL" : "Cisco",
           status: "draft",
           learnedAt: new Date().toISOString(),
           sourceIssueId: "iss-3",
@@ -714,8 +687,8 @@ export function ForensicView({
           ruleType: "api_gateway",
           partNumber: "Juniper API",
           mappedOutput: "authorized_oauth_v1",
-          label: "Auto-Learned: Restored security tokens and partner gateway synchronization",
-          vendor: "Juniper",
+          label: `Auto-Learned (${scope} Scope): Restored security tokens and partner gateway synchronization`,
+          vendor: scope === "Global" ? "ALL" : "Juniper",
           status: "draft",
           learnedAt: new Date().toISOString(),
           sourceIssueId: "iss-4",
@@ -819,12 +792,12 @@ export function ForensicView({
 
           <div className="pr-1 space-y-3">
             {openIssues.length > 0 ? (
-              openIssues.map((issue) => (
+              openIssues.map((iss) => (
                 <ForensicIssueCard
-                  key={issue.id}
-                  issue={issue}
-                  onAutoHeal={handleAutoHeal}
-                  onManualPromote={handleManualPromote}
+                  key={iss.id}
+                  issue={iss}
+                  onAutoHeal={() => requestAutoHeal(iss.id)}
+                  onManualPromote={() => handleManualPromote(iss)}
                 />
               ))
             ) : (
@@ -868,7 +841,24 @@ export function ForensicView({
           triggerToast("Learning event acknowledged and archived.", "success");
         }}
       />
+
+      {pendingHealIssueId && (
+        <RuleClarificationModal
+          proposedVendor={
+            pendingHealIssueId === "iss-1" ? "HPE" :
+            pendingHealIssueId === "iss-2" ? "Dell" :
+            pendingHealIssueId === "iss-3" ? "Cisco" : "Juniper"
+          }
+          proposedPart={
+            pendingHealIssueId === "iss-1" ? ActiveSourcingRules.legacySKUs[0] :
+            pendingHealIssueId === "iss-2" ? "400-BPSB" :
+            pendingHealIssueId === "iss-3" ? "Memory" : "Juniper API"
+          }
+          onConfirm={confirmAutoHeal}
+          onCancel={() => setPendingHealIssueId(null)}
+        />
+      )}
     </motion.div>
-  </ErrorBoundary>
+    </ErrorBoundary>
   );
 }

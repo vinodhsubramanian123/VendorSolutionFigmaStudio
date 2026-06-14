@@ -76,13 +76,13 @@ function generateMockEntries(catalogSkus: CatalogSKU[]): CleansingEntry[] {
       confidence = 98;
     } else if (catalogMatch) {
       status = "fuzzy";
-      confidence = Math.floor(Math.random() * 20) + 72;
+      confidence = 85;
     } else if (r.part) {
       status = "unmatched";
-      confidence = Math.floor(Math.random() * 30) + 40;
+      confidence = 45;
     } else {
       status = idx % 3 === 0 ? "quarantined" : "unmatched";
-      confidence = Math.floor(Math.random() * 35) + 15;
+      confidence = 20;
     }
 
     return {

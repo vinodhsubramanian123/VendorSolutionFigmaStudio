@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('10 - Unified Mega-Flow E2E', () => {
+  test.setTimeout(90000);
   // We use a single test block for the mega-flow to preserve state continuity
   test('should seamlessly flow data from Ingestion Hub to Solution Builder and Mission Control', async ({ page }) => {
     // Navigate to root

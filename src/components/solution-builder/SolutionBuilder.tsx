@@ -194,8 +194,9 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       };
 
       return {
-        id: `dynamic-${container.id}`,
-        displayId: container.displayId || (container.id.includes('UCID-') ? container.id.substring(container.id.indexOf('UCID-')) : `UCID-2026-${Math.floor(1000 + Math.random() * 9000)}`),
+        id: crypto.randomUUID(),
+        trackingRef: `dynamic-${container.id}`,
+        displayId: container.displayId || (container.id.includes('UCID-') ? container.id.substring(container.id.indexOf('UCID-')) : `UCID-2026-${(crypto.getRandomValues(new Uint32Array(1))[0] % 9000) + 1000}`),
         name: `${solutionName} — ${container.name}`,
         solutionName: solutionName,
         priority: containerIdx === 0 ? 'high' : 'medium',

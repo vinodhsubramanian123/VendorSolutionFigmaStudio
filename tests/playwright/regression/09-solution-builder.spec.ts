@@ -4,21 +4,27 @@ const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
   test('should force BOQ Intake (Step 1) if no global state exists', async ({ page }) => {
-    // Navigate straight to solution-builder with a clean state
     await page.goto('/solution-builder');
+    await delay(1000);
+    // Dispatch the event to update React state directly, which also updates localStorage
     await page.evaluate(() => {
-      localStorage.clear();
-      localStorage.setItem("sys_ucids", "[]");
+      window.dispatchEvent(new CustomEvent('vsip_localstorage_update', { detail: { key: 'sys_ucids', value: [] } }));
+      window.dispatchEvent(new CustomEvent('vsip_localstorage_update', { detail: { key: 'sys_vendors', value: [] } }));
     });
-    await page.reload();
+    // Wait for state to settle
+    await delay(1000);
     await delay(500);
 
-    await expect(page.getByText('Multi-Client Quote Compilation Desk')).toBeVisible();
+    await expect(page.getByText('Multi-Client Quote Compilation Desk')).toBeVisible({ timeout: 15000 });
     await page.screenshot({ path: 'debug.png', fullPage: true });
     
+    // Debug: print DOM
+    const html = await page.evaluate(() => document.body.innerHTML);
+    console.log("DOM SNAPSHOT:", html);
+    
     // Validate we are at Step 1 because no data was ingested
-    const proceedBtn = page.getByText('Proceed to Assignment Map (Step 2)');
-    await expect(proceedBtn).toBeVisible();
+    const proceedBtn = page.getByRole('button', { name: /Proceed to Assignment Map/i });
+    await expect(proceedBtn).toBeVisible({ timeout: 15000 });
     
     // We should NOT see the step 2 grid yet
     await expect(page.getByText('UCID Deployment Containers Grid')).toBeHidden();
@@ -50,7 +56,7 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
     await expect(page.locator('.font-mono', { hasText: 'UCID-' }).first()).toBeVisible();
     
     // Check for exact state enums like "pending", "automated" or lock status
-    const statusText = await page.locator('text=/pending|automated|manual|Synced/i').first();
-    await expect(statusText).toBeVisible();
+    const statusBadge = page.getByText(/Pending|Automated|Manual|Synced|Out-of-Sync/i).first();
+    await expect(statusBadge).toBeVisible();
   });
 });

@@ -34,7 +34,10 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
   });
 
   const onSubmit = (data: FormValues) => {
-    const displayNum = Math.floor(1000 + Math.random() * 9000);
+    // Generate a secure display number 
+    const randomVals = new Uint32Array(1);
+    crypto.getRandomValues(randomVals);
+    const displayNum = (randomVals[0] % 9000) + 1000;
     const newUCID: UCID = {
       id: `u-${Date.now()}`,
       displayId: `UCID-2026-${displayNum}`,

@@ -45,7 +45,7 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
     await delay(1000);
 
     // Verify snapshot appears in the list
-    await expect(page.getByText('E2E-Test-Snapshot-AutoValidate')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('E2E-Test-Snapshot-AutoValidate').first()).toBeVisible({ timeout: 8000 });
   });
 
   test('should lock and unlock a snapshot', async ({ page }) => {

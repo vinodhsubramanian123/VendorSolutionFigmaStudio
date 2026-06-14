@@ -17,6 +17,10 @@ interface VendorPortalProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   catalogSkus?: CatalogSKU[];
+  sourcingRules: any[];
+  setSourcingRules: React.Dispatch<React.SetStateAction<any[]>>;
+  learningEvents: any[];
+  setLearningEvents: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 export const VendorPortal = React.memo(function VendorPortal({
@@ -25,6 +29,10 @@ export const VendorPortal = React.memo(function VendorPortal({
   ucids,
   setUcids,
   catalogSkus = [],
+  sourcingRules,
+  setSourcingRules,
+  learningEvents,
+  setLearningEvents,
 }: VendorPortalProps) {
   const [syncingAll, setSyncingAll] = useState(false);
   const { toast } = useToast();
@@ -34,41 +42,42 @@ export const VendorPortal = React.memo(function VendorPortal({
     return [...vendors].sort((a, b) => a.name.localeCompare(b.name));
   }, [vendors]);
 
-  function handleToggleStatus(vendorId: string) {
-    setVendors((prev) =>
-      prev.map((v) => {
-        if (v.id === vendorId) {
-          const isConnected =
-            v.status === "connected" || v.status === "syncing";
-          const nextStatus: Vendor['status'] = isConnected ? "disconnected" : "connected";
-          const nextHealth = isConnected
-            ? 0
-            : Math.round(92 + Math.random() * 7);
-
-          return {
-            ...v,
-            status: nextStatus,
-            apiHealth: nextHealth,
-            lastSync: nextStatus === "connected" ? "Just now" : v.lastSync,
-          };
-        }
-        return v;
-      }),
-    );
-    toast("Vendor system status altered successfully.", "success");
+  async function handleToggleStatus(vendorId: string) {
+    const targetVendor = vendors.find(v => v.id === vendorId);
+    if (!targetVendor) return;
+    const isConnected = targetVendor.status === "connected" || targetVendor.status === "syncing";
+    
+    try {
+      const res = await apiClient.post<{ status: Vendor["status"]; apiHealth: number }>("/api/vendors/toggle", { vendorId, connect: !isConnected });
+      setVendors((prev) =>
+        prev.map((v) => {
+          if (v.id === vendorId) {
+            return {
+              ...v,
+              status: res.data?.status || "disconnected",
+              apiHealth: res.data?.apiHealth || 0,
+              lastSync: res.data?.status === "connected" ? "Just now" : v.lastSync,
+            };
+          }
+          return v;
+        }),
+      );
+      toast("Vendor system status altered successfully.", "success");
+    } catch {
+      toast("Failed to toggle vendor status.", "error");
+    }
   }
 
   async function handleSyncAll() {
     setSyncingAll(true);
     try {
-      await apiClient.post("/api/vendors/sync", {});
+      const res = await apiClient.post<{ apiHealth: number }>("/api/vendors/sync", {});
       setVendors((prev) =>
         prev.map((v) => {
           if (v.status !== "disconnected") {
-            const extraHealth = Math.round(91 + Math.random() * 8);
             return {
               ...v,
-              apiHealth: extraHealth,
+              apiHealth: res.data?.apiHealth || 98,
               lastSync: "Just now",
             };
           }
@@ -162,6 +171,10 @@ export const VendorPortal = React.memo(function VendorPortal({
             setUcids={setUcids}
             showToast={toast}
             catalogSkus={catalogSkus}
+            sourcingRules={sourcingRules}
+            setSourcingRules={setSourcingRules}
+            learningEvents={learningEvents}
+            setLearningEvents={setLearningEvents}
           />
         </div>
       </div>
