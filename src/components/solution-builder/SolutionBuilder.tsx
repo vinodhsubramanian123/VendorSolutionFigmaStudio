@@ -285,7 +285,27 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           <StepIntake
             activeUcidsCount={ucids.length}
             onProceed={() => setStep(SolutionBuilderStep.WORKSPACE)}
-            onSimulationLoad={() => setIsIngested(true)}
+            onIntakeComplete={(newConfigs) => {
+              setConfigs(prev => [...prev, ...(newConfigs as ConfigItem[])]);
+              if (ucidsList.length === 0) {
+                // Generate a dummy UCID container to hold the parsed text configs
+                const prefix = 'UCID-2026-';
+                const nextNum = 1700;
+                const newId = `${prefix}${nextNum}`;
+                const newContainer: UcidContainer = {
+                  id: newId,
+                  displayId: newId,
+                  name: `Dynamic Ingestion`,
+                  reasoning: 'Assigned parsed configurations.',
+                  locked: false,
+                  syncStatus: 'Pending'
+                };
+                setUcidsList([newContainer]);
+                setConfigs(prev => prev.map(c => ({ ...c, targetUcidId: newId })));
+              }
+              setIsIngested(true);
+              setStep(SolutionBuilderStep.WORKSPACE);
+            }}
           />
         ) : (
           <StepWorkspace

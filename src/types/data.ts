@@ -1,4 +1,4 @@
-import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphAPISchema, CatalogSKUSchema, VendorExtendedFieldsSchema } from "./zodSchemas";
+import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphPathSchema, GraphAPISchema, CatalogSKUSchema, VendorExtendedFieldsSchema, AdviceResolutionSchema, RuleConflictSchema } from "./zodSchemas";
 import { z } from "zod";
 
 
@@ -710,7 +710,12 @@ export type GraphNode = z.infer<typeof GraphNodeSchema>;
 
 export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
 
+export type GraphPath = z.infer<typeof GraphPathSchema>;
+
 export type GraphAPIResponse = z.infer<typeof GraphAPISchema>;
+
+export type AdviceResolution = z.infer<typeof AdviceResolutionSchema>;
+export type RuleConflict = z.infer<typeof RuleConflictSchema>;
 
 export interface TableRow {
   id: string;

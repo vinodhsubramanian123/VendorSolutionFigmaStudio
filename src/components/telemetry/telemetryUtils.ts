@@ -71,7 +71,7 @@ export function makeMockApiLogs(): ApiLogEntry[] {
     endpoint: e.ep,
     method: e.method,
     statusCode: e.code,
-    durationMs: Math.floor(Math.random() * 400) + 12,
+    durationMs: (i * 37) % 400 + 12,
     level: e.code >= 500 ? "error" : e.code >= 400 ? "warn" : e.code >= 200 && e.code < 300 ? "success" : "info",
     payload: e.method === "POST" ? `{ "ucid": "u1", "config_id": "cfg-${i}" }` : undefined,
   }));

@@ -72,7 +72,7 @@ export function PipelineView() {
     }
 
     const newJobs: DocIngestionJob[] = validFiles.map((f) => ({
-      id: `job-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `job-${crypto.randomUUID()}`,
       filename: f.name,
       fileSize: f.size,
       category: getCategory(f.name),

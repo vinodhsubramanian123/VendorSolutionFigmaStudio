@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Radio,
@@ -62,40 +62,7 @@ interface WebhookEvent {
   retries: number;
 }
 
-// ─── Mock data generators ─────────────────────────────────────────────────────
-
-function makeMockApiLogs(): ApiLogEntry[] {
-  const endpoints = [
-    { ep: "/api/boq/ingest", method: "POST" as const, code: 200 },
-    { ep: "/api/taxonomy/check-constraints", method: "POST" as const, code: 200 },
-    { ep: "/api/taxonomy/rules", method: "POST" as const, code: 201 },
-    { ep: "/api/reconciliation/compare", method: "POST" as const, code: 200 },
-    { ep: "/api/jobs", method: "POST" as const, code: 202 },
-    { ep: "/api/jobs/j-1234", method: "GET" as const, code: 404 },
-    { ep: "/api/vendor/playwright/run", method: "POST" as const, code: 500 },
-    { ep: "/api/catalog/skus", method: "GET" as const, code: 200 },
-  ];
-
-  return endpoints.map((e, i) => ({
-    id: `log-${i + 1}`,
-    timestamp: new Date(Date.now() - (endpoints.length - i) * 45000).toISOString(),
-    endpoint: e.ep,
-    method: e.method,
-    statusCode: e.code,
-    durationMs: Math.floor(Math.random() * 400) + 12,
-    level: e.code >= 500 ? "error" : e.code >= 400 ? "warn" : e.code >= 200 && e.code < 300 ? "success" : "info",
-    payload: e.method === "POST" ? `{ "ucid": "u1", "config_id": "cfg-${i}" }` : undefined,
-  }));
-}
-
-function makeMockWebhooks(): WebhookEvent[] {
-  return [
-    { id: "wh-1", timestamp: new Date(Date.now() - 12000).toISOString(), event: "ucid.completed", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "ucid": "UCID-2026-1701", "status": "completed" }', retries: 0 },
-    { id: "wh-2", timestamp: new Date(Date.now() - 55000).toISOString(), event: "bom.reconciled", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "sessionId": "rec-001", "discrepancies": 0 }', retries: 0 },
-    { id: "wh-3", timestamp: new Date(Date.now() - 180000).toISOString(), event: "portal.playwright.failed", source: "Playwright-Agent", hmacVerified: false, statusCode: 401, payload: '{ "error": "HMAC mismatch" }', retries: 2 },
-    { id: "wh-4", timestamp: new Date(Date.now() - 360000).toISOString(), event: "catalog.sku.updated", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "partNumber": "P40424-B21", "change": "eol_status" }', retries: 0 },
-  ];
-}
+// ─── Mock data moved to MSW handlers ──────────────────────────────────────
 
 // ─── File type helpers ────────────────────────────────────────────────────────
 
@@ -146,8 +113,17 @@ export function SystemTelemetry() {
 
   const [activeTab, setActiveTab] = useState<"pipeline" | "api-logs" | "webhooks">("pipeline");
   const [jobs, setJobs] = useState<DocIngestionJob[]>([]);
-  const [apiLogs] = useState<ApiLogEntry[]>(makeMockApiLogs);
-  const [webhooks] = useState<WebhookEvent[]>(makeMockWebhooks);
+  const [apiLogs, setApiLogs] = useState<ApiLogEntry[]>([]);
+  const [webhooks, setWebhooks] = useState<WebhookEvent[]>([]);
+
+  useEffect(() => {
+    apiClient.get<ApiLogEntry[]>("/api/telemetry/logs")
+      .then(res => setApiLogs(res.data || []))
+      .catch(() => {});
+    apiClient.get<WebhookEvent[]>("/api/telemetry/webhooks")
+      .then(res => setWebhooks(res.data || []))
+      .catch(() => {});
+  }, []);
   const [hmacSecret, setHmacSecret] = useState("vsip-wh-secret-••••••••");
   const [isDragging, setIsDragging] = useState(false);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
@@ -205,7 +181,7 @@ export function SystemTelemetry() {
     }
 
     const newJobs: DocIngestionJob[] = validFiles.map((f) => ({
-      id: `job-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `job-${crypto.randomUUID()}`,
       filename: f.name,
       fileSize: f.size,
       category: getCategory(f.name),

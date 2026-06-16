@@ -13,21 +13,58 @@ import { apiClient } from "../../services/apiClient";
 interface StepIntakeProps {
   activeUcidsCount: number;
   onProceed: () => void;
-  onSimulationLoad: (fileName: string) => void;
+  onIntakeComplete: (parsedConfigs: unknown[]) => void;
 }
 
 export function StepIntake({
   activeUcidsCount,
   onProceed,
-  onSimulationLoad,
+  onIntakeComplete,
 }: StepIntakeProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isIngesting, setIsIngesting] = useState(false);
   const [ingestProgress, setIngestProgress] = useState(0);
   const [isIngested, setIsIngested] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [rawBoqText, setRawBoqText] = useState("");
 
-  const handleFileUpload = async (fileName: string) => {
+  const parseRawBoq = (text: string) => {
+    const lines = text.split('\n');
+    const items = [];
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      // Basic regex to find quantity and SKU (e.g. "2x P40424-B21" or "Qty: 2, Part: 400-BPSB")
+      const qtyMatch = line.match(/(?:^|\s)(?:qty:?\s*)?(\d+)(?:x|\s)/i);
+      const skuMatch = line.match(/[a-zA-Z0-9]{3,8}-[a-zA-Z0-9]{3,4}/);
+      
+      if (skuMatch) {
+        items.push({
+          id: `item-${Date.now()}-${items.length}`,
+          partNumber: skuMatch[0],
+          name: `Parsed Component: ${skuMatch[0]}`,
+          type: "Parsed Component",
+          quantity: qtyMatch ? parseInt(qtyMatch[1], 10) : 1,
+          unitPrice: 0
+        });
+      }
+    }
+    
+    if (items.length > 0) {
+      const newConfig = {
+        id: `cfg-parsed-${Date.now()}`,
+        name: `Dynamically Parsed Intake Config`,
+        vendor: "HPE",
+        targetUcidId: "",
+        items: items,
+        totalPrice: 0,
+        originalPrice: 0
+      };
+      return [newConfig];
+    }
+    return [];
+  };
+
+  const handleFileUpload = async (fileName: string, textContent?: string) => {
     setIsIngesting(true);
     setUploadedFileName(fileName);
     setIngestProgress(10);
@@ -39,14 +76,31 @@ export function StepIntake({
       setIngestProgress(100);
       setIsIngesting(false);
       setIsIngested(true);
-      if (onSimulationLoad) {
-        onSimulationLoad(fileName);
+      
+      let parsedConfigs = [];
+      if (textContent) {
+        parsedConfigs = parseRawBoq(textContent);
+      } else {
+        // Fallback demo config
+        parsedConfigs = [{
+          id: `cfg-demo-${Date.now()}`,
+          name: "Demo Enterprise Storage Config",
+          vendor: "HPE",
+          targetUcidId: "",
+          items: [
+            { id: "i1", partNumber: "P40424-B21", name: "Demo Processor", type: "Processor", quantity: 2, unitPrice: 2000 }
+          ],
+          totalPrice: 4000,
+          originalPrice: 4500
+        }];
       }
+      onIntakeComplete(parsedConfigs);
     } catch (err) {
       setIsIngesting(false);
       console.error("Ingestion error:", err);
     }
   };
+
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -216,6 +270,32 @@ export function StepIntake({
                   />
                 </div>
               )}
+            </div>
+
+            {/* Raw Text Input Section */}
+            <div className="pt-4 space-y-2">
+              <label className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                Or Paste Raw BOQ Text
+              </label>
+              <textarea
+                value={rawBoqText}
+                onChange={(e) => setRawBoqText(e.target.value)}
+                placeholder="E.g. 2x P40424-B21 Server Processor..."
+                className="w-full h-24 bg-surface-canvas border border-white/10 rounded-lg p-3 text-[11px] text-gray-300 font-mono focus:outline-none focus:border-indigo-500/50 resize-none"
+              />
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    if (rawBoqText.trim()) {
+                      handleFileUpload("Pasted_Raw_BOQ.txt", rawBoqText);
+                    }
+                  }}
+                  disabled={!rawBoqText.trim() || isIngesting}
+                  className="px-4 py-2 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-indigo-300 font-bold rounded-lg cursor-pointer text-[10px] disabled:opacity-50 transition"
+                >
+                  Parse Text
+                </button>
+              </div>
             </div>
           </div>
 

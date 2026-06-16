@@ -19,7 +19,7 @@ interface CatalogManagerProps {
   vendors?: Vendor[];
 }
 
-function matchesDeepPath(sku: CatalogSKU, selectedPath: any): boolean {
+function matchesDeepPath(sku: CatalogSKU, selectedPath: import('../../types').TaxonomyPath): boolean {
   if (selectedPath.vendor !== "all" && sku.vendor.toLowerCase() !== selectedPath.vendor.toLowerCase()) {
     return false;
   }
@@ -199,11 +199,9 @@ export function CatalogManager({
 
   function deleteSku(skuId: string) {
     setCatalogSkus((prev) => prev.filter((s) => s.id !== skuId));
-    try {
-      apiClient.delete(`/api/catalog/${skuId}`);
-    } catch(err) {
+    apiClient.delete(`/api/catalog/${skuId}`).catch(() => {
       console.error("Failed to delete SKU via API");
-    }
+    });
   }
 
   return (

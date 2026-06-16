@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { GraphEdge, GraphAPIResponse } from "../types/data";
+import { GraphEdge, GraphAPIResponse, GraphPath } from "../types/data";
 import { Config, CatalogSKU } from "../types";
 import { apiClient } from "../services/apiClient";
 
@@ -11,6 +11,7 @@ export interface MapNodeRequest {
 
 export function useCatalogGraphData(configId: string | null, allConfigs: Config[], catalogSkus: CatalogSKU[]) {
   const [data, setData] = useState<GraphAPIResponse>({ nodes: [], edges: [], unmappedIds: [] });
+  const [alternativePaths, setAlternativePaths] = useState<GraphPath[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,10 +28,11 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
     setError(null);
 
     try {
-      const res = await apiClient.get<GraphAPIResponse>(`/api/taxonomy/graph/${configId}`);
+      const res = await apiClient.getGraphSolution(configId);
       if (isCancelled && isCancelled()) return;
-      if (res.success) {
+      if (res.success && res.data) {
         setData(res.data);
+        setAlternativePaths([]);
       } else {
         throw new Error("Failed to fetch topology");
       }
@@ -39,6 +41,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
       if (isCancelled && isCancelled()) return;
       setError("Failed to fetch topology for the selected configuration.");
       setData({ nodes: [], edges: [], unmappedIds: [] });
+      setAlternativePaths([]);
     } finally {
       if (!isCancelled || !isCancelled()) {
         setIsLoading(false);
@@ -99,5 +102,123 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
      });
   };
 
-  return { data, isLoading, error, mapNode, unmapNode, addRule, refresh: fetchGraph };
+  const fetchAlternativePaths = async (targetNodeId: string) => {
+    try {
+      const res = await apiClient.getGraphAlternativePaths(targetNodeId);
+      if (res.success && res.data?.paths) {
+        setAlternativePaths(res.data.paths);
+        return res.data.paths;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    return [];
+  };
+
+  const commitPathSelection = async (jobId: string, selectedPathId: string) => {
+    const rejectedIds = alternativePaths.map(p => p.pathId).filter(id => id !== selectedPathId);
+    try {
+      const res = await apiClient.commitGraphPathSelection(jobId, selectedPathId, rejectedIds);
+      if (res.success) {
+        setAlternativePaths([]);
+      }
+      return res.success;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const addGraphNode = async (node: Partial<import('../types/data').GraphNode>) => {
+    try {
+      const res = await apiClient.createGraphNode(node);
+      if (res.success && res.data) {
+        setData(prev => ({ ...prev, nodes: [...prev.nodes, res.data!] }));
+      }
+      return res.success;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const updateGraphNode = async (nodeId: string, updates: Partial<import('../types/data').GraphNode>) => {
+    try {
+      const res = await apiClient.updateGraphNode(nodeId, updates);
+      if (res.success && res.data) {
+        setData(prev => ({
+          ...prev,
+          nodes: prev.nodes.map(n => n.id === nodeId ? res.data! : n)
+        }));
+      }
+      return res.success;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const deleteGraphNode = async (nodeId: string) => {
+    try {
+      const res = await apiClient.deleteGraphNode(nodeId);
+      if (res.success) {
+        setData(prev => ({
+          ...prev,
+          nodes: prev.nodes.filter(n => n.id !== nodeId),
+          edges: prev.edges.filter(e => e.source !== nodeId && e.target !== nodeId)
+        }));
+      }
+      return res.success;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const addGraphEdge = async (edge: Partial<import('../types/data').GraphEdge>) => {
+    try {
+      const res = await apiClient.createGraphEdge(edge);
+      if (res.success && res.data) {
+        setData(prev => ({ ...prev, edges: [...prev.edges, res.data!] }));
+      }
+      return res.success;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const deleteGraphEdge = async (edgeId: string) => {
+    try {
+      const res = await apiClient.deleteGraphEdge(edgeId);
+      if (res.success) {
+        setData(prev => ({
+          ...prev,
+          edges: prev.edges.filter(e => e.id !== edgeId)
+        }));
+      }
+      return res.success;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  return { 
+    data, 
+    isLoading, 
+    error, 
+    mapNode, 
+    unmapNode, 
+    addRule, 
+    refresh: fetchGraph,
+    alternativePaths,
+    fetchAlternativePaths,
+    commitPathSelection,
+    addGraphNode,
+    updateGraphNode,
+    deleteGraphNode,
+    addGraphEdge,
+    deleteGraphEdge
+  };
 }

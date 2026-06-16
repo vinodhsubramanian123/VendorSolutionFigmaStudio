@@ -126,10 +126,11 @@ export function TopBar({
 
   const handleBlur = () => {
     setIsFocused(false);
-    // Allow small timeout for clicks on items
-    setTimeout(() => {
-      setShowDropdown(false);
-    }, 250);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setShowDropdown(false);
+      });
+    });
   };
 
   return (
@@ -220,6 +221,7 @@ export function TopBar({
                             navigate(`/mission-control/${m.id}`);
                             setShowDropdown(false);
                           }}
+                          onMouseDown={(e) => e.preventDefault()}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
                         >
                           <span className="font-semibold text-indigo-300 group-hover:text-indigo-200 truncate pr-2 max-w-[120px]">{m.displayId}</span>
@@ -244,6 +246,7 @@ export function TopBar({
                             navigate("/vendor-portal");
                             setShowDropdown(false);
                           }}
+                          onMouseDown={(e) => e.preventDefault()}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
                         >
                           <span className="font-semibold text-emerald-300 group-hover:text-emerald-200">{v.shortName}</span>
@@ -268,6 +271,7 @@ export function TopBar({
                             navigate("/catalog");
                             setShowDropdown(false);
                           }}
+                          onMouseDown={(e) => e.preventDefault()}
                           className="w-full flex items-center justify-between p-2 rounded hover:bg-indigo-500/10 text-left text-gray-300 hover:text-white transition group cursor-pointer"
                         >
                           <span className="font-mono text-indigo-300 group-hover:text-indigo-200 truncate pr-2 max-w-[120px]">{s.partNumber}</span>

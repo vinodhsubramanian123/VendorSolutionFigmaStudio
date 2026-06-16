@@ -46,6 +46,16 @@ export function StepSnapshot({
               className="text-[11px] space-y-1 bg-black/30 rounded-lg border border-white/5 overflow-hidden"
             >
               <div
+                role="button"
+                tabIndex={0}
+                aria-expanded={expandedSnapshot === snap.id}
+                aria-label={`Toggle snapshot ${snap.label}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSnapshot(snap.id);
+                  }
+                }}
                 className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
                 onClick={() => toggleSnapshot(snap.id)}
               >

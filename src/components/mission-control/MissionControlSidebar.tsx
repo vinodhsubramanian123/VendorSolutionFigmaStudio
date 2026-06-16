@@ -413,6 +413,9 @@ export function MissionControlSidebar({
                         {/* Three-dot Trigger */}
                         <button
                           type="button"
+                          aria-label={`More actions for ${u.displayId}`}
+                          aria-expanded={activeMenuUcidId === u.id}
+                          aria-haspopup="true"
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveMenuUcidId(activeMenuUcidId === u.id ? null : u.id);

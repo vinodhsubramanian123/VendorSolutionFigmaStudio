@@ -17,10 +17,23 @@ function wrapSuccess<T>(data: T) {
   };
 }
 
+let memoryGraphNodes: any[] = [
+  { id: "node-1", label: "HPE ProLiant DL380", type: "catalog_part", data: { partNumber: "P52532-B21", price: 2100 } },
+  { id: "node-2", label: "Intel Xeon Silver", type: "catalog_part", data: { partNumber: "P49610-B21", price: 800 } },
+  { id: "node-3", label: "Orphaned Memory Module", type: "scraped_orphan", status: "warning", data: { partNumber: "Unknown-MEM", confidenceScore: 40 } },
+  { id: "node-4", label: "HPE 32GB DDR5", type: "catalog_part", data: { partNumber: "P43328-B21", price: 350 } },
+];
+
+let memoryGraphEdges: any[] = [
+  { id: "edge-1", source: "node-1", target: "node-2", relationship: "requires", weight: 1.0 },
+  { id: "edge-2", source: "node-1", target: "node-3", relationship: "requires", weight: 0.8, isAnimated: true },
+  { id: "edge-3", source: "node-3", target: "node-4", relationship: "substitutes", weight: 0.95 },
+];
+
 export const handlers = [
   // GET /api/jobs/:id
   http.get('/api/jobs/:id', async ({ params }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     return HttpResponse.json(wrapSuccess({
       job_id: params.id,
       status: 'completed',
@@ -34,14 +47,14 @@ export const handlers = [
 
   // GET /api/catalog
   http.get('/api/catalog', async () => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const data = await MockCatalogApi.getCatalog();
     return HttpResponse.json(wrapSuccess(data));
   }),
 
   // POST /api/catalog
   http.post('/api/catalog', async ({ request }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const body = await request.json();
     const data = await MockCatalogApi.addCatalogSku(body as CatalogSKU);
     return HttpResponse.json(wrapSuccess(data));
@@ -49,7 +62,7 @@ export const handlers = [
 
   // PUT /api/catalog/:id
   http.put('/api/catalog/:id', async ({ request, params }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const body = await request.json();
     const data = await MockCatalogApi.updateCatalogSku(params.id as string, body as Partial<CatalogSKU>);
     return HttpResponse.json(wrapSuccess(data));
@@ -57,21 +70,21 @@ export const handlers = [
 
   // DELETE /api/catalog/:id
   http.delete('/api/catalog/:id', async ({ params }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     await MockCatalogApi.deleteCatalogSku(params.id as string);
     return HttpResponse.json(wrapSuccess({}));
   }),
 
   // GET /api/snapshots
   http.get('/api/snapshots', async () => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const data = await MockSnapshotApi.getSnapshots();
     return HttpResponse.json(wrapSuccess(data));
   }),
 
   // POST /api/snapshots
   http.post('/api/snapshots', async ({ request }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const body = await request.json();
     const data = await MockSnapshotApi.addSnapshot(body as Snapshot);
     return HttpResponse.json(wrapSuccess(data));
@@ -79,21 +92,21 @@ export const handlers = [
 
   // DELETE /api/snapshots/:id
   http.delete('/api/snapshots/:id', async ({ params }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     await MockSnapshotApi.deleteSnapshot(params.id as string);
     return HttpResponse.json(wrapSuccess({}));
   }),
 
   // GET /api/solution-builder/init
   http.get('/api/solution-builder/init', async () => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const data = await MockSolutionApi.getSolutionBuilderInit();
     return HttpResponse.json(wrapSuccess(data));
   }),
 
   // GET /api/taxonomy/graph/:id
   http.get('/api/taxonomy/graph/:id', async ({ params }) => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const mockConfig = { id: params.id, vendor: "HPE" } as unknown as Config;
     const res = await MockTaxonomyApi.getGraphForConfig(mockConfig, [], "HPE");
     return HttpResponse.json(wrapSuccess(res));
@@ -101,13 +114,13 @@ export const handlers = [
 
   // POST /api/portfolio/orchestrate
   http.post('/api/portfolio/orchestrate', async () => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({ status: "accepted", job_id: "job-portfolio-sync" }));
   }),
 
   // POST /api/jobs
   http.post('/api/jobs', async () => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({ status: "accepted", job_id: "job-mock-ingest-" + Date.now() }));
   }),
 
@@ -131,7 +144,7 @@ export const handlers = [
       case "complete": progress = 100; status = "completed"; log = "[DONE] Catalog rules extracted. Document intelligence ingested."; extractedCount = 8; delayMs = 1400; break;
     }
 
-    await delay(delayMs);
+    if (process.env.NODE_ENV !== 'test') await delay(delayMs);
 
     return HttpResponse.json(wrapSuccess({
       progress,
@@ -143,14 +156,14 @@ export const handlers = [
 
   // POST /api/portfolio/upload-manual
   http.post('/api/portfolio/upload-manual', async ({ request }) => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     const b = (await request.json()) as any;
     return HttpResponse.json(wrapSuccess({ reconciliationStatus: b?.configsMatchedCount === 4 ? "complete" : "partial" }));
   }),
 
   // POST /api/boq/ingest
   http.post('/api/boq/ingest', async ({ request }) => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     const body = (await request.json()) as any;
     const presetType = body?.presetType || "hpe-legacy";
     const preset = BOQ_PRESETS[presetType] || BOQ_PRESETS["hpe-legacy"];
@@ -171,7 +184,7 @@ export const handlers = [
 
   // POST /api/reconciliation/compare
   http.post('/api/reconciliation/compare', async () => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({
       boqItems: 24,
       bomItems: 24,
@@ -182,13 +195,13 @@ export const handlers = [
 
   // POST /api/vendors/sync
   http.post('/api/vendors/sync', async () => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({ syncedCount: 4, apiHealth: 99 }));
   }),
 
   // POST /api/vendors/toggle
   http.post('/api/vendors/toggle', async ({ request }) => {
-    await delay(300);
+    if (process.env.NODE_ENV !== 'test') await delay(300);
     const body = (await request.json()) as any;
     const isConnecting = body.connect === true;
     return HttpResponse.json(wrapSuccess({ 
@@ -199,7 +212,7 @@ export const handlers = [
 
   // POST /api/agents/run
   http.post('/api/agents/run', async ({ request }) => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     const b = (await request.json()) as any;
     if (b?.agentName === "AribaScraper") {
       return HttpResponse.json({
@@ -224,7 +237,7 @@ export const handlers = [
 
   // POST /api/agents/parse-advice-file
   http.post('/api/agents/parse-advice-file', async () => {
-    await delay(1200);
+    if (process.env.NODE_ENV !== 'test') await delay(1200);
     return HttpResponse.json(wrapSuccess({
       adviceItems: [
         {
@@ -252,7 +265,7 @@ export const handlers = [
 
   // POST /api/agents/semantic-map
   http.post('/api/agents/semantic-map', async ({ request }) => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     const body = (await request.json()) as any;
     return HttpResponse.json(wrapSuccess({
       ruleType: "substitution",
@@ -265,7 +278,7 @@ export const handlers = [
 
   // POST /api/taxonomy/check-constraints
   http.post('/api/taxonomy/check-constraints', async () => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({
       chassisSocket: "LGA-4677",
       cpuSocket: "LGA-4677",
@@ -276,7 +289,7 @@ export const handlers = [
 
   // POST /api/taxonomy/map
   http.post('/api/taxonomy/map', async ({ request }) => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     const b = (await request.json()) as any;
     await MockTaxonomyApi.mapOrphanNode({
       childId: b.childId as string,
@@ -288,7 +301,7 @@ export const handlers = [
 
   // POST /api/taxonomy/rules
   http.post('/api/taxonomy/rules', async ({ request }) => {
-    await delay(800);
+    if (process.env.NODE_ENV !== 'test') await delay(800);
     const b = (await request.json()) as any;
     await MockTaxonomyApi.addRule(b.sourceId as string, b.ruleType as "requires" | "exclusive", b.explanation as string);
     return HttpResponse.json(wrapSuccess({}));
@@ -296,7 +309,7 @@ export const handlers = [
 
   // POST /api/issues/auto-heal
   http.post('/api/issues/auto-heal', async ({ request }) => {
-    await delay(1200);
+    if (process.env.NODE_ENV !== 'test') await delay(1200);
     const body = (await request.json()) as any;
     const { issueId, ucid } = body;
     
@@ -376,7 +389,7 @@ export const handlers = [
 
   // GET /api/cleansing/entries
   http.get('/api/cleansing/entries', async () => {
-    await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(600);
     const raws = [
       { raw: "32-Core CPU HPE Gen11", part: "P40424-B21", vendor: "HPE" },
       { raw: "Intel Xeon 6130 16-core legacy proc", part: "815100-B21", vendor: "HPE" },
@@ -426,7 +439,7 @@ export const handlers = [
 
   // POST /api/cleansing/fuzzy-match
   http.post('/api/cleansing/fuzzy-match', async ({ request }) => {
-    await delay(1500);
+    if (process.env.NODE_ENV !== 'test') await delay(1500);
     const body = (await request.json()) as any;
     const entries = body.entries || [];
 
@@ -448,5 +461,150 @@ export const handlers = [
     });
 
     return HttpResponse.json(wrapSuccess({ entries: mappedEntries, resolvedCount: entries.filter((e: any) => e.matchStatus === "fuzzy").length }));
+  }),
+
+  // GET /api/telemetry/logs
+  http.get('/api/telemetry/logs', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(200);
+    const endpoints = [
+      { ep: "/api/boq/ingest", method: "POST" as const, code: 200 },
+      { ep: "/api/taxonomy/check-constraints", method: "POST" as const, code: 200 },
+      { ep: "/api/taxonomy/rules", method: "POST" as const, code: 201 },
+      { ep: "/api/reconciliation/compare", method: "POST" as const, code: 200 },
+      { ep: "/api/jobs", method: "POST" as const, code: 202 },
+      { ep: "/api/jobs/j-1234", method: "GET" as const, code: 404 },
+      { ep: "/api/vendor/playwright/run", method: "POST" as const, code: 500 },
+      { ep: "/api/catalog/skus", method: "GET" as const, code: 200 },
+    ];
+    const data = endpoints.map((e, i) => ({
+      id: `log-${i + 1}`,
+      timestamp: new Date(Date.now() - (endpoints.length - i) * 45000).toISOString(),
+      endpoint: e.ep,
+      method: e.method,
+      statusCode: e.code,
+      durationMs: (i * 17 % 400) + 12,
+      level: e.code >= 500 ? "error" : e.code >= 400 ? "warn" : e.code >= 200 && e.code < 300 ? "success" : "info",
+      payload: e.method === "POST" ? `{ "ucid": "u1", "config_id": "cfg-${i}" }` : undefined,
+    }));
+    return HttpResponse.json(wrapSuccess(data));
+  }),
+
+  // GET /api/telemetry/webhooks
+  http.get('/api/telemetry/webhooks', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(200);
+    const data = [
+      { id: "wh-1", timestamp: new Date(Date.now() - 12000).toISOString(), event: "ucid.completed", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "ucid": "UCID-2026-1701", "status": "completed" }', retries: 0 },
+      { id: "wh-2", timestamp: new Date(Date.now() - 55000).toISOString(), event: "bom.reconciled", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "sessionId": "rec-001", "discrepancies": 0 }', retries: 0 },
+      { id: "wh-3", timestamp: new Date(Date.now() - 180000).toISOString(), event: "portal.playwright.failed", source: "Playwright-Agent", hmacVerified: false, statusCode: 401, payload: '{ "error": "HMAC mismatch" }', retries: 2 },
+      { id: "wh-4", timestamp: new Date(Date.now() - 360000).toISOString(), event: "catalog.sku.updated", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "partNumber": "P40424-B21", "change": "eol_status" }', retries: 0 },
+    ];
+    return HttpResponse.json(wrapSuccess(data));
+  }),
+
+  // POST /api/taxonomy/simulate
+  http.post('/api/taxonomy/simulate', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(2000);
+    return HttpResponse.json(wrapSuccess({ simulated: true }));
+  }),
+
+  // ======================================================================
+  // KNOWLEDGE GRAPH ENDPOINTS (Phase 2)
+  // ======================================================================
+
+  // GET /api/graph/solution/:ucid
+  http.get('/api/graph/solution/:ucid', async ({ params }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(600);
+    return HttpResponse.json(wrapSuccess({
+      metadata: { id: params.ucid as string, version: "v2" },
+      nodes: memoryGraphNodes,
+      edges: memoryGraphEdges,
+      unmappedIds: memoryGraphNodes.filter(n => n.type === 'scraped_orphan').map(n => n.id)
+    }));
+  }),
+
+  // POST /api/graph/nodes
+  http.post('/api/graph/nodes', async ({ request }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    const body = (await request.json()) as any;
+    const newNode = { ...body, id: `node-${Date.now()}` };
+    memoryGraphNodes.push(newNode);
+    return HttpResponse.json(wrapSuccess(newNode));
+  }),
+
+  // PUT /api/graph/nodes/:id
+  http.put('/api/graph/nodes/:id', async ({ request, params }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    const body = (await request.json()) as any;
+    const idx = memoryGraphNodes.findIndex(n => n.id === params.id);
+    if (idx !== -1) {
+      memoryGraphNodes[idx] = { ...memoryGraphNodes[idx], ...body };
+      return HttpResponse.json(wrapSuccess(memoryGraphNodes[idx]));
+    }
+    return HttpResponse.json({ success: false, error: { message: "Node not found" } }, { status: 404 });
+  }),
+
+  // DELETE /api/graph/nodes/:id
+  http.delete('/api/graph/nodes/:id', async ({ params }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    const nodeId = params.id as string;
+    memoryGraphNodes = memoryGraphNodes.filter(n => n.id !== nodeId);
+    // Cascade delete connected edges
+    memoryGraphEdges = memoryGraphEdges.filter(e => e.source !== nodeId && e.target !== nodeId);
+    return HttpResponse.json(wrapSuccess({ success: true }));
+  }),
+
+  // POST /api/graph/edges
+  http.post('/api/graph/edges', async ({ request }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    const body = (await request.json()) as any;
+    const newEdge = { ...body, id: `edge-${Date.now()}` };
+    memoryGraphEdges.push(newEdge);
+    return HttpResponse.json(wrapSuccess(newEdge));
+  }),
+
+  // DELETE /api/graph/edges/:id
+  http.delete('/api/graph/edges/:id', async ({ params }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    memoryGraphEdges = memoryGraphEdges.filter(e => e.id !== params.id);
+    return HttpResponse.json(wrapSuccess({ success: true }));
+  }),
+
+  // POST /api/graph/algorithms/alternative-paths
+  http.post('/api/graph/algorithms/alternative-paths', async ({ request }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(1200);
+    const body = (await request.json()) as any;
+    const paths = [
+      {
+        pathId: "path-alpha",
+        rank: 1,
+        totalCost: 1500,
+        confidence: 98,
+        nodesInvolved: ["node-1", "node-4"],
+        edgesInvolved: ["edge-1"]
+      },
+      {
+        pathId: "path-beta",
+        rank: 2,
+        totalCost: 1200,
+        confidence: 85,
+        nodesInvolved: ["node-1", "node-5"],
+        edgesInvolved: ["edge-4"]
+      }
+    ];
+    return HttpResponse.json(wrapSuccess({ paths }));
+  }),
+
+  // PUT /api/graph/edge/:edgeId
+  http.put('/api/graph/edge/:edgeId', async ({ request, params }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(500);
+    const body = (await request.json()) as any;
+    return HttpResponse.json(wrapSuccess({ success: true, updatedWeight: body.weight }));
+  }),
+
+  // POST /api/graph/path-selection
+  http.post('/api/graph/path-selection', async ({ request }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(800);
+    const body = (await request.json()) as any;
+    return HttpResponse.json(wrapSuccess({ success: true, confirmedSelection: body.selectedPathId }));
   })
 ];

@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react";
 import type { SourcingRule } from "../../types";
 import { apiClient } from "../../services/apiClient";
 import { LearningLoopInjector } from "./LearningLoopInjector";
+import { RuleConflictModal } from "./RuleConflictModal";
+import type { RuleConflict } from "../../types";
 
 interface SourcingRulesVaultProps {
   sourcingRules: SourcingRule[];
@@ -33,6 +35,12 @@ export function SourcingRulesVault({
   const [newStatus, setNewStatus] = useState<SourcingRule["status"]>("active");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [pendingConflict, setPendingConflict] = useState<{
+    conflict: RuleConflict;
+    existingRule: SourcingRule;
+    proposedRule: SourcingRule;
+  } | null>(null);
+
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
   const [editPartNumber, setEditPartNumber] = useState("");
   const [editMappedOutput, setEditMappedOutput] = useState("");
@@ -55,9 +63,11 @@ export function SourcingRulesVault({
       onPrefillConsumed();
       
       triggerToast("Override parameters prefilled! Review and save the rule at the bottom.", "success");
-      setTimeout(() => {
-        document.querySelector("form")?.scrollIntoView({ behavior: "smooth" });
-      }, 150);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.querySelector("form")?.scrollIntoView({ behavior: "smooth" });
+        });
+      });
     }
   }, [prefillRule, onPrefillConsumed, triggerToast]);
 
@@ -68,25 +78,47 @@ export function SourcingRulesVault({
       return;
     }
 
+    const proposedRule: SourcingRule = {
+      id: "rule-" + Date.now(),
+      ruleType: newRuleType,
+      partNumber: newPartNumber.trim(),
+      mappedOutput: newMappedOutput.trim(),
+      label: newLabel.trim() || (newRuleType.toUpperCase() + " Override Policy"),
+      vendor: newVendor,
+      status: newStatus,
+    };
+
+    // Check for conflicts
+    const existingRule = sourcingRules.find(r => r.partNumber === proposedRule.partNumber);
+    if (existingRule && existingRule.mappedOutput !== proposedRule.mappedOutput) {
+      setPendingConflict({
+        conflict: {
+          conflictId: `conflict-${Date.now()}`,
+          partNumber: proposedRule.partNumber,
+          existingRuleId: existingRule.id,
+          proposedMappedOutput: proposedRule.mappedOutput,
+          existingMappedOutput: existingRule.mappedOutput,
+          description: "This SKU is already mapped to a different output. Overwriting will flush the old intelligence rule."
+        },
+        existingRule,
+        proposedRule
+      });
+      return;
+    }
+
+    await commitRule(proposedRule);
+  };
+
+  const commitRule = async (rule: SourcingRule) => {
     setIsSubmitting(true);
     try {
       await apiClient.post("/api/taxonomy/rules", {
-        sourceId: newPartNumber.trim(),
-        ruleType: newRuleType,
-        explanation: newLabel.trim() || (newRuleType.toUpperCase() + " Override Policy")
+        sourceId: rule.partNumber,
+        ruleType: rule.ruleType,
+        explanation: rule.label
       });
 
-      const newRule: SourcingRule = {
-        id: "rule-" + Date.now(),
-        ruleType: newRuleType,
-        partNumber: newPartNumber.trim(),
-        mappedOutput: newMappedOutput.trim(),
-        label: newLabel.trim() || (newRuleType.toUpperCase() + " Override Policy"),
-        vendor: newVendor,
-        status: newStatus,
-      };
-
-      setSourcingRules((prev) => [newRule, ...prev]);
+      setSourcingRules((prev) => [rule, ...prev.filter(r => r.partNumber !== rule.partNumber)]);
       setIsAddingRule(false);
       setNewPartNumber("");
       setNewMappedOutput("");
@@ -97,6 +129,18 @@ export function SourcingRulesVault({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleResolveConflict = (action: "keep_existing" | "overwrite") => {
+    if (!pendingConflict) return;
+    
+    if (action === "overwrite") {
+      commitRule(pendingConflict.proposedRule);
+    } else {
+      triggerToast("Retained existing sourcing intelligence.", "success");
+      setIsAddingRule(false);
+    }
+    setPendingConflict(null);
   };
 
   const handleStartEdit = (rule: SourcingRule) => {
@@ -143,15 +187,17 @@ export function SourcingRulesVault({
     triggerToast("Sourcing Intelligence policy permanently retired.", "success");
   };
 
-  const handleSimulateAndPromote = (ruleId: string) => {
+  const handleSimulateAndPromote = async (ruleId: string) => {
     setSimulatingRuleId(ruleId);
-    setTimeout(() => {
+    try {
+      await apiClient.post("/api/taxonomy/simulate", { ruleId });
       setSourcingRules((prev) => 
         prev.map((r) => r.id === ruleId ? { ...r, status: "active" } : r)
       );
-      setSimulatingRuleId(null);
       triggerToast("Simulation safe! 0 conflicts found across 150 historical UCIDs. Rule promoted to ACTIVE.", "success");
-    }, 2000);
+    } finally {
+      setSimulatingRuleId(null);
+    }
   };
 
   return (
@@ -231,6 +277,13 @@ export function SourcingRulesVault({
           />
         )}
       </AnimatePresence>
+
+      <RuleConflictModal
+        conflict={pendingConflict?.conflict || null}
+        existingRule={pendingConflict?.existingRule}
+        onResolve={handleResolveConflict}
+        onCancel={() => setPendingConflict(null)}
+      />
 
       <AnimatePresence>
       {isAddingRule && (

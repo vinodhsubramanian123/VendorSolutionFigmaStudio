@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowRight, RefreshCw, Server } from "lucide-react";
 import { StatusBadge } from "../../shared/StatusBadge";
 import type { UCID } from "../../../types";
+import { apiClient } from "../../../services/apiClient";
 
 interface StepVendorProvisioningProps {
   ucid: UCID;
@@ -19,13 +20,17 @@ export function StepVendorProvisioning({
   const firstSolution = ucid.solutions?.[0];
   const submissions = firstSolution?.vendorSubmissions || [];
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     appendLogEvent("info", "Re-querying vendor API quote endpoints for latest contract pricing...");
-    setTimeout(() => {
-      setIsRefreshing(false);
+    try {
+      await apiClient.post("/api/vendors/sync", {});
       appendLogEvent("ok", "Successfully synced direct custom discount rates from manufacturer databases.");
-    }, 1200);
+    } catch {
+      appendLogEvent("err", "Failed to sync vendor API quote endpoints.");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (

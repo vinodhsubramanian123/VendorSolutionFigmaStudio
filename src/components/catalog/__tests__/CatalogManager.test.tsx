@@ -8,9 +8,9 @@ import { ToastProvider } from '../../shared/ToastContext';
 // Mock apiClient
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
-    put: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
+    put: vi.fn().mockResolvedValue({ success: true }),
+    post: vi.fn().mockResolvedValue({ success: true }),
+    delete: vi.fn().mockResolvedValue({ success: true }),
   }
 }));
 
@@ -198,7 +198,7 @@ describe('CatalogManager Component', () => {
     const { apiClient } = await import('../../../services/apiClient');
     vi.mocked(apiClient.put).mockRejectedValueOnce(new Error('API Error'));
     vi.mocked(apiClient.post).mockRejectedValueOnce(new Error('API Error'));
-    vi.mocked(apiClient.delete).mockImplementationOnce(() => { throw new Error('API Error'); });
+    vi.mocked(apiClient.delete).mockRejectedValueOnce(new Error('API Error'));
 
     // Mock console.error to prevent test pollution
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

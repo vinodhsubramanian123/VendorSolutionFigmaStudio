@@ -2,19 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { 
   Network, 
   RefreshCw, 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCcw, 
-  Filter, 
-  AlertTriangle, 
-  Plus
+  Filter
 } from 'lucide-react';
-import { motion, AnimatePresence } from "motion/react";
 import { useCatalogGraphData } from "../../hooks/useCatalogGraphData";
 import type { Config, CatalogSKU, Vendor } from "../../types";
-import { TaxonomyGraphSidebar } from "./TaxonomyGraphSidebar";
 import { TaxonomyCategoryTree } from "./TaxonomyCategoryTree";
 import { TaxonomyOrphanBox } from "./TaxonomyOrphanBox";
+import { TaxonomyGraphSidebar } from "./TaxonomyGraphSidebar";
+import { KnowledgeGraphCanvas } from "./KnowledgeGraphCanvas";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 const DEFAULT_CONFIGS = [{ id: "cfg-base", vendor: "HPE" } as Config];
@@ -26,7 +21,20 @@ interface TaxonomyGraphViewProps {
 }
 
 export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: TaxonomyGraphViewProps) {
-  const { data, isLoading, mapNode, refresh } = useCatalogGraphData(
+  const { 
+    data, 
+    isLoading, 
+    mapNode, 
+    refresh, 
+    alternativePaths, 
+    fetchAlternativePaths, 
+    commitPathSelection,
+    addGraphNode,
+    updateGraphNode,
+    deleteGraphNode,
+    addGraphEdge,
+    deleteGraphEdge
+  } = useCatalogGraphData(
     "cfg-base", 
     DEFAULT_CONFIGS, 
     catalogSkus
@@ -35,41 +43,12 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
   // States
   const [expandedNode, setExpandedNode] = useState<string | null>(null);
   const [filterOrphansOnly, setFilterOrphansOnly] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
-  const [activeTab, setActiveTab] = useState<"constraints" | "orphans">("constraints");
+  const [activeTab, setActiveTab] = useState<"constraints" | "orphans" | "edges" | "paths" | "nodes">("constraints");
   const [selectedOrphanToMap, setSelectedOrphanToMap] = useState<string | null>(null);
-
-  // Zoom & Pan functions
-  const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.8));
-  const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
-  const handleResetZoom = () => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest(".node-card") || (e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("select")) {
-      return;
-    }
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setPan({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [activeSelectedPathId, setActiveSelectedPathId] = useState<string | null>(null);
 
   const toggleNode = (nodeId: string) => {
     setExpandedNode(prev => prev === nodeId ? null : nodeId);
@@ -123,131 +102,37 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
           </div>
         </div>
 
-        {/* Viewport Canvas Container */}
-        <div 
-          role="presentation"
-          className="relative flex-1 w-full bg-surface-card border border-indigo-500/10 rounded-xl overflow-hidden min-h-[560px] select-none cursor-grab active:cursor-grabbing"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          {/* Subtle Grid Background */}
-          <div 
-            className="absolute inset-0 opacity-[0.03]" 
-            style={{ 
-              backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", 
-              backgroundSize: "24px 24px" 
-            }} 
-          />
-
-          {/* Floating Zoom & Position Controls */}
-          <div className="absolute top-4 left-4 z-30 flex items-center gap-1 bg-black/60 border border-white/10 rounded-lg p-1">
-            <button 
-              onClick={handleZoomIn} 
-              className="p-1.5 hover:bg-white/10 text-gray-400 hover:text-white rounded transition cursor-pointer border-0" 
-              title="Zoom In"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={handleZoomOut} 
-              className="p-1.5 hover:bg-white/10 text-gray-400 hover:text-white rounded transition cursor-pointer border-0" 
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-            <button 
-              onClick={handleResetZoom} 
-              className="p-1.5 hover:bg-white/10 text-gray-400 hover:text-white rounded transition text-[10px] font-mono font-bold cursor-pointer border-0" 
-              title="Reset View"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-            <span className="text-[9px] font-mono text-gray-400 px-1">{Math.round(zoom * 100)}%</span>
-          </div>
-
-          {/* Transforming Graph Node Content */}
-          <div 
-            className="absolute inset-0 flex flex-col items-center justify-start p-16 transition-transform duration-75 ease-out origin-top-left"
-            style={{
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-              width: "100%",
-              height: "100%"
-            }}
-          >
-            {isLoading ? (
-              <div className="m-auto flex flex-col items-center gap-3">
-                <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
-                <span className="text-xs font-mono text-indigo-300">Synchronizing Sourcing Tree...</span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-16 min-w-max p-12">
-                {/* Level 1: System Base configuration */}
-                <div className="flex justify-center">
-                  {rootNodes.map(node => (
-                    <motion.div 
-                      key={node.id}
-                      onClick={() => toggleNode(node.id)}
-                      className={`node-card p-4 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all shadow-lg w-56 bg-surface-elevated/90 relative ${
-                        expandedNode === node.id ? 'border-indigo-400 shadow-indigo-500/20 shadow-md scale-105' : 'border-indigo-500/30'
-                      }`}
-                      whileHover={{ y: -2 }}
-                    >
-                      <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase tracking-widest mb-1">Target Engine Base</span>
-                      <span className="text-xs font-bold text-white font-mono">{node.label}</span>
-                      <span className="text-[9px] text-gray-400 mt-1 max-w-[190px] truncate">{node.sublabel}</span>
-                      
-                      <AnimatePresence>
-                        {expandedNode === node.id && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className="absolute top-24 w-60 bg-black/95 border border-indigo-500/30 rounded-xl p-3 text-left shadow-2xl z-40"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            <span className="text-[9px] font-bold text-indigo-300 block mb-1.5 uppercase font-mono">Structural Rules</span>
-                            <div className="space-y-1 text-[9px] text-gray-300">
-                              {node.constraints?.map((c, idx) => (
-                                <div key={idx} className="flex items-start gap-1">
-                                  <span className="text-indigo-400 font-bold">•</span>
-                                  <span>{c}</span>
-                                </div>
-                              )) || <div>No specific base rules.</div>}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Vertical Connector lines */}
-                {rootNodes.length > 0 && categories.length > 0 && (
-                  <div className="w-[1.5px] h-10 bg-indigo-500/20 -mt-16 z-0" />
-                )}                {/* Level 2 & 3: Category Nodes with children items grouped underneath */}
-                <TaxonomyCategoryTree
-                  categories={categories}
-                  skus={skus}
-                  data={data}
-                  filterOrphansOnly={filterOrphansOnly}
-                  expandedNode={expandedNode}
-                  toggleNode={toggleNode}
-                />
-
-                {/* Orphaned Box at bottom if not filtered out */}
-                <TaxonomyOrphanBox
-                  data={data}
-                  skus={skus}
-                  filterOrphansOnly={filterOrphansOnly}
-                  setSelectedOrphanToMap={setSelectedOrphanToMap}
-                  setActiveTab={setActiveTab}
-                />
-              </div>
-            )}
-          </div>
+        {/* Viewport Canvas Container (Phase 3 Integration) */}
+        <div className="relative flex-1 w-full border border-indigo-500/10 rounded-xl overflow-hidden min-h-[560px]">
+          {isLoading ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-card">
+              <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
+              <span className="text-xs font-mono text-indigo-300">Synchronizing Graph Topology...</span>
+            </div>
+          ) : (
+            <KnowledgeGraphCanvas 
+              apiNodes={data.nodes} 
+              apiEdges={data.edges} 
+              apiPaths={alternativePaths}
+              activeSelectedPathId={activeSelectedPathId}
+              onNodeClick={(id) => {
+                toggleNode(id);
+                setSelectedNodeId(id);
+                const node = data.nodes.find(n => n.id === id);
+                if (node?.type === 'sku' || node?.type === 'scraped_orphan') {
+                  setSelectedOrphanToMap(id);
+                  setActiveTab("orphans");
+                } else if (node?.type === 'catalog_part' || node?.type === 'product' || node?.type === 'category_hub') {
+                  fetchAlternativePaths(id);
+                  setActiveTab("nodes");
+                }
+              }}
+              onEdgeClick={(id) => {
+                setSelectedEdgeId(id);
+                setActiveTab("edges");
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -262,8 +147,21 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
         cpuOptions={cpuOptions}
         selectedOrphanToMap={selectedOrphanToMap}
         setSelectedOrphanToMap={setSelectedOrphanToMap}
+        selectedEdgeId={selectedEdgeId}
+        setSelectedEdgeId={setSelectedEdgeId}
+        selectedNodeId={selectedNodeId}
+        setSelectedNodeId={setSelectedNodeId}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        alternativePaths={alternativePaths}
+        activeSelectedPathId={activeSelectedPathId}
+        setActiveSelectedPathId={setActiveSelectedPathId}
+        commitPathSelection={commitPathSelection}
+        addGraphNode={addGraphNode}
+        updateGraphNode={updateGraphNode}
+        deleteGraphNode={deleteGraphNode}
+        addGraphEdge={addGraphEdge}
+        deleteGraphEdge={deleteGraphEdge}
       />
     </div>
     </ErrorBoundary>

@@ -84,13 +84,32 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ exp
     return (
       <div key={node.id} className="select-none flex flex-col mt-0.5">
         <div 
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              selectPathFn(node.path);
+            }
+          }}
           className={`flex items-center py-1.5 px-2 rounded cursor-pointer transition-colors ${isSelected ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5 text-gray-300'}`}
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
           onClick={() => selectPathFn(node.path)}
+          aria-label={`Select ${node.label} path`}
         >
           {hasChildren ? (
             <div 
+              role="button"
+              tabIndex={0}
+              aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${node.label}`}
               className="mr-1 p-0.5 rounded hover:bg-white/10"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleNode(node.id);
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 toggleNode(node.id);
@@ -123,6 +142,15 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ exp
   return (
     <div className="flex-1 flex flex-col overflow-y-auto pr-1 text-left custom-scrollbar">
       <div 
+        role="button"
+        tabIndex={0}
+        aria-label="Select Global Catalog path"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectPathFn({ vendor: "all", solution: "all", product: "all", generation: "all", chassis: "all" });
+          }
+        }}
         className={`flex items-center py-1.5 px-2 rounded cursor-pointer transition-colors mb-2 ${selectedPath.vendor === 'all' ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5 text-gray-300'}`}
         onClick={() => selectPathFn({ vendor: "all", solution: "all", product: "all", generation: "all", chassis: "all" })}
       >

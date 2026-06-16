@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Layers, HelpCircle, RefreshCw, Zap } from 'lucide-react';
+import { ShieldCheck, Layers, HelpCircle, RefreshCw, Zap, Network } from 'lucide-react';
 import type { CatalogSKU } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
-
+import { NodeEditorPanel } from "./NodeEditorPanel";
+import { EdgeEditorPanel } from "./EdgeEditorPanel";
 interface TaxonomyGraphSidebarProps {
   catalogSkus: CatalogSKU[];
   setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
-  data: any;
-  categories: any[];
-  mapNode: (nodeId: string, parentId: string, metadata?: any) => Promise<void>;
+  data: { nodes: import('../../types').GraphNode[], edges: import('../../types').GraphEdge[], unmappedIds?: string[] };
+  categories: import('../../types').GraphNode[];
+  mapNode: (nodeId: string, parentId: string, metadata: import('../../hooks/useCatalogGraphData').MapNodeRequest) => Promise<void>;
   chassisOptions: CatalogSKU[];
   cpuOptions: CatalogSKU[];
   selectedOrphanToMap: string | null;
   setSelectedOrphanToMap: (id: string | null) => void;
-  activeTab: "constraints" | "orphans";
-  setActiveTab: (tab: "constraints" | "orphans") => void;
+  selectedEdgeId?: string | null;
+  setSelectedEdgeId?: (id: string | null) => void;
+  activeTab: "constraints" | "orphans" | "edges" | "paths" | "nodes";
+  setActiveTab: (tab: "constraints" | "orphans" | "edges" | "paths" | "nodes") => void;
+  alternativePaths?: import('../../types').GraphPath[];
+  activeSelectedPathId?: string | null;
+  setActiveSelectedPathId?: (id: string | null) => void;
+  commitPathSelection?: (jobId: string, pathId: string) => Promise<boolean>;
+  selectedNodeId?: string | null;
+  setSelectedNodeId?: (id: string | null) => void;
+  addGraphNode?: (node: Partial<import('../../types/data').GraphNode>) => Promise<boolean>;
+  updateGraphNode?: (nodeId: string, updates: Partial<import('../../types/data').GraphNode>) => Promise<boolean>;
+  deleteGraphNode?: (nodeId: string) => Promise<boolean>;
+  addGraphEdge?: (edge: Partial<import('../../types/data').GraphEdge>) => Promise<boolean>;
+  deleteGraphEdge?: (edgeId: string) => Promise<boolean>;
 }
 
 export function TaxonomyGraphSidebar({
@@ -28,11 +42,25 @@ export function TaxonomyGraphSidebar({
   cpuOptions,
   selectedOrphanToMap,
   setSelectedOrphanToMap,
+  selectedEdgeId,
+  setSelectedEdgeId,
   activeTab,
-  setActiveTab
+  setActiveTab,
+  alternativePaths = [],
+  activeSelectedPathId,
+  setActiveSelectedPathId,
+  commitPathSelection,
+  selectedNodeId,
+  setSelectedNodeId,
+  addGraphNode,
+  updateGraphNode,
+  deleteGraphNode,
+  addGraphEdge,
+  deleteGraphEdge
 }: TaxonomyGraphSidebarProps) {
   const { toast } = useToast();
 
+  // State for constraints...
   const [selectedChassis, setSelectedChassis] = useState("");
   const [selectedCpu, setSelectedCpu] = useState("");
   const [ramQty, setRamQty] = useState(8);
@@ -103,6 +131,7 @@ export function TaxonomyGraphSidebar({
     }
   };
 
+
   return (
     <div 
       className="w-full lg:w-80 p-5 rounded-xl border flex flex-col gap-4 bg-surface-card"
@@ -111,6 +140,7 @@ export function TaxonomyGraphSidebar({
       <div className="flex border-b border-white/5 pb-1">
         <button 
           onClick={() => setActiveTab("constraints")}
+          aria-label="Constraints Tab"
           className={`flex-1 pb-2 text-xs font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
             activeTab === "constraints" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
           }`}
@@ -119,11 +149,39 @@ export function TaxonomyGraphSidebar({
         </button>
         <button 
           onClick={() => setActiveTab("orphans")}
+          aria-label="Orphans Tab"
           className={`flex-1 pb-2 text-xs font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
             activeTab === "orphans" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Orphan Workshop
+        </button>
+        <button 
+          onClick={() => setActiveTab("edges")}
+          aria-label="Edges Tab"
+          className={`flex-1 pb-2 text-xs font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
+            activeTab === "edges" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          Edges
+        </button>
+        <button 
+          onClick={() => setActiveTab("paths")}
+          aria-label="Paths Tab"
+          className={`flex-1 pb-2 text-[10px] font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
+            activeTab === "paths" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          Paths
+        </button>
+        <button 
+          onClick={() => setActiveTab("nodes")}
+          aria-label="Nodes Tab"
+          className={`flex-1 pb-2 text-[10px] font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
+            activeTab === "nodes" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          Nodes
         </button>
       </div>
 
@@ -302,9 +360,9 @@ export function TaxonomyGraphSidebar({
 
           <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin pr-1 pt-2 border-t border-white/5">
             <span className="text-[9px] font-mono text-gray-500 font-bold uppercase block tracking-wider mb-1">
-              Active Orphans ({data.unmappedIds.length})
+              Active Orphans ({(data.unmappedIds || []).length})
             </span>
-            {data.unmappedIds.map((oId: string) => {
+            {(data.unmappedIds || []).map((oId: string) => {
               const sRef = catalogSkus.find(s => s.partNumber === oId || s.id === oId);
               return (
                 <div 
@@ -326,6 +384,88 @@ export function TaxonomyGraphSidebar({
             })}
           </div>
         </div>
+      )}
+
+      {activeTab === "edges" && (
+        <EdgeEditorPanel
+          data={data}
+          selectedEdgeId={selectedEdgeId}
+          setSelectedEdgeId={setSelectedEdgeId}
+          deleteGraphEdge={deleteGraphEdge}
+          addGraphEdge={addGraphEdge}
+        />
+      )}
+
+      {activeTab === "paths" && (
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="space-y-3.5">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 font-mono">
+              <RefreshCw className="w-4 h-4 text-indigo-400" />
+              Path Orchestrator
+            </div>
+            <p className="text-[10px] text-gray-400 leading-normal">
+              Evaluate isometric path alternatives. Select a path to visualize its trajectory.
+            </p>
+
+            {alternativePaths.length > 0 ? (
+              <div className="space-y-3">
+                {alternativePaths.map((path) => (
+                  <div 
+                    key={path.pathId}
+                    onClick={() => setActiveSelectedPathId?.(path.pathId)}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${activeSelectedPathId === path.pathId ? 'bg-indigo-900/30 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-surface-elevated border-white/10 hover:border-indigo-400/50'}`}
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-bold font-mono text-white">Path Rank #{path.rank}</span>
+                      <span className={`text-[10px] font-bold ${path.confidence >= 90 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {path.confidence}% Confidence
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-gray-400">Total Cost</span>
+                      <span className="text-[11px] font-bold text-white">${path.totalCost.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+
+                {activeSelectedPathId && (
+                  <button
+                    onClick={async () => {
+                      if (commitPathSelection) {
+                        const success = await commitPathSelection("current-job", activeSelectedPathId);
+                        if (success) {
+                          toast("Path selection committed successfully.", "success");
+                          setActiveTab("constraints");
+                        } else {
+                          toast("Failed to commit path selection.", "error");
+                        }
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg border border-emerald-400/20 transition cursor-pointer text-[10px] uppercase font-mono shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  >
+                    Commit Active Path
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-gray-500 flex flex-col items-center justify-center min-h-[140px] gap-2">
+                <Layers className="w-8 h-8 text-gray-600" />
+                <p>Click on any primary Category Hub node in the canvas to calculate alternative fulfillment paths.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "nodes" && (
+        <NodeEditorPanel
+          data={data}
+          selectedNodeId={selectedNodeId}
+          setSelectedNodeId={setSelectedNodeId}
+          updateGraphNode={updateGraphNode}
+          deleteGraphNode={deleteGraphNode}
+          addGraphNode={addGraphNode}
+        />
       )}
     </div>
   );

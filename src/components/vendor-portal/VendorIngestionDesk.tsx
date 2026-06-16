@@ -9,11 +9,11 @@ import {
   EyeOff,
   Radio,
 } from "lucide-react";
-import type { UCID, PlaywrightRunResponse, CatalogSKU, PortalErrorItem, SourcingRule, LearningEvent } from "../../types";
+import type { UCID, PlaywrightRunResponse, CatalogSKU, PortalErrorItem, SourcingRule, LearningEvent, AdviceResolution } from "../../types";
 import { apiClient } from "../../services/apiClient";
 import { tokens } from "../../styles/tokens";
 import { VENDORS } from "../../lib/mockData";
-import { PortalErrorResolutionPanel } from "./PortalErrorResolutionPanel";
+import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 
 interface VendorIngestionDeskProps {
@@ -48,8 +48,8 @@ export function VendorIngestionDesk({
     "System Initialized. Playwright Web-Automation Daemon listening on thread pool...",
     "Awaiting partner credential handshake config...",
   ]);
-  // CLIC error resolution state
-  const [portalErrors, setPortalErrors] = useState<PortalErrorItem[]>([]);
+  // Advice sheet resolution state
+  const [adviceResolutions, setAdviceResolutions] = useState<AdviceResolution[]>([]);
 
   // Derive ALL credential config from selectedPortal synchronously — no useEffect needed.
   // This is the correct pattern per AGENTS.md §3.2: avoid setState in useEffect.
@@ -108,32 +108,38 @@ export function VendorIngestionDesk({
     setAuthStatus(portalConfig.authStatus);
   }, [selectedPortal, portalConfig]);
 
-  function getMockErrorFields(vendor: string) {
+  function getMockAdviceResolutions(vendor: string): AdviceResolution[] {
     if (vendor === "Cisco") {
-      return {
-        skuRef: "UCS-CPU-I6430",
-        errorType: "constraint_violation" as const,
-        errorMessage: "CCW error: UCS-CPU-I6430 requires UCS-MR-128G1ED-E memory modules (minimum 128GB per DIMM slot for Gen 4 UCS). Current 64GB allocation is unsupported.",
-        suggestedAlternatePartNumber: "UCS-CPU-I6526",
-        suggestedAlternateName: "UCS Intel Xeon Gold 6526Y Processor",
-      };
+      return [{
+        id: `adv-${Date.now()}-1`,
+        sheetName: "Validation_Output",
+        severity: "critical",
+        logicOperator: "AND",
+        targetSkus: ["UCS-CPU-I6430", "UCS-MR-128G1ED-E"],
+        message: "CCW error: UCS-CPU-I6430 requires UCS-MR-128G1ED-E memory modules (minimum 128GB per DIMM slot for Gen 4 UCS). Current 64GB allocation is unsupported.",
+        contextRef: "UCS Intel Xeon Gold 6526Y Processor",
+      }];
     }
     if (vendor === "Dell") {
-      return {
-        skuRef: "400-BPSB",
-        errorType: "unbuildable" as const,
-        errorMessage: "CLIC Configurator error: 400-BPSB drive not compatible with R760 chassis when combined with RAID-10 controller HBA. Constraint violation detected.",
-        suggestedAlternatePartNumber: "400-BPSC",
-        suggestedAlternateName: "Dell 7.68TB Enterprise NVMe SSD",
-      };
+      return [{
+        id: `adv-${Date.now()}-2`,
+        sheetName: "BOM_Advice",
+        severity: "critical",
+        logicOperator: "NONE",
+        targetSkus: ["400-BPSB", "RAID-10-HBA"],
+        message: "CLIC Configurator error: 400-BPSB drive not compatible with R760 chassis when combined with RAID-10 controller HBA. Constraint violation detected.",
+        contextRef: "Dell 7.68TB Enterprise NVMe SSD",
+      }];
     }
-    return {
-      skuRef: "815100-B21",
-      errorType: "discontinued" as const,
-      errorMessage: "CLIC validation failed: Part 815100-B21 is discontinued and no longer orderable on HPE Partner Ready portal. Configuration cannot be submitted.",
-      suggestedAlternatePartNumber: "P40424-B21",
-      suggestedAlternateName: "Intel Xeon Gold 6430 Gen11 Processor",
-    };
+    return [{
+      id: `adv-${Date.now()}-3`,
+      sheetName: "Error_Summary",
+      severity: "warning",
+      logicOperator: "OR",
+      targetSkus: ["815100-B21", "P40424-B21"],
+      message: "CLIC validation failed: Part 815100-B21 is discontinued and no longer orderable on HPE Partner Ready portal. Configuration cannot be submitted. Replace with P40424-B21 or compatible CPU.",
+      contextRef: "Intel Xeon Gold 6430 Gen11 Processor",
+    }];
   }
 
   function populateMockError(err: unknown) {
@@ -142,15 +148,8 @@ export function VendorIngestionDesk({
     const errMsg = err instanceof Error ? err.message : String(err);
     setConsoleLogs((prev) => [...prev, `[PLAYWRIGHT] Error: ${errMsg}`]);
     showToast("Playwright automation failed.", "error");
-    // Parse mock portal errors when the run fails
-    setPortalErrors([
-      {
-        id: `perr-${Date.now()}-1`,
-        vendor: selectedPortal,
-        resolved: false,
-        ...getMockErrorFields(selectedPortal),
-      },
-    ]);
+    // Parse mock portal errors into generic advice structures
+    setAdviceResolutions(getMockAdviceResolutions(selectedPortal));
   }
 
   async function handleRunPortalTest() {
@@ -215,14 +214,8 @@ export function VendorIngestionDesk({
     ]);
   }
 
-  function handleSubstitute(errorId: string, partNumber: string, name: string) {
-    setPortalErrors((prev) =>
-      prev.map((e) =>
-        e.id === errorId
-          ? { ...e, resolved: true, suggestedAlternatePartNumber: partNumber, suggestedAlternateName: name }
-          : e
-      )
-    );
+  function handleSubstitute(adviceId: string, partNumber: string, name: string) {
+    setAdviceResolutions((prev) => prev.filter(a => a.id !== adviceId));
     setConsoleLogs((prev) => [
       ...prev,
       `[RESOLUTION] SKU substitution applied: ${partNumber} (${name}) — configuration error resolved.`,
@@ -231,22 +224,22 @@ export function VendorIngestionDesk({
     showToast(`SKU substituted to ${partNumber} — error resolved & rule learned!`, "success");
   }
 
-  function handleLearn(error: any) {
+  function handleLearn(targetSku: string, resolvedSku: string, vendorId: string, issueId: string) {
     setConsoleLogs((prev) => [
       ...prev,
-      `[LEARNING] Intelligence rule created: ${error.skuRef} → ${error.suggestedAlternatePartNumber}. Future BOQ scans will auto-resolve this pattern.`,
+      `[LEARNING] Intelligence rule created: ${targetSku} → ${resolvedSku}. Future BOQ scans will auto-resolve this pattern.`,
     ]);
 
     const newLearnedRule: SourcingRule = {
       id: `rule-${Date.now()}-portal`,
       ruleType: "substitution",
-      partNumber: error.skuRef,
-      mappedOutput: error.suggestedAlternatePartNumber || "UNKNOWN",
-      label: `Auto-Learned via Portal: Resolves ${error.vendor} CLIC Error`,
-      vendor: error.vendor,
+      partNumber: targetSku,
+      mappedOutput: resolvedSku || "UNKNOWN",
+      label: `Auto-Learned via Generic Advice Parser`,
+      vendor: vendorId,
       status: "active",
       learnedAt: new Date().toISOString(),
-      sourceIssueId: error.id,
+      sourceIssueId: issueId,
       isAutoLearned: true,
       preventedMismatchCount: 1,
     };
@@ -254,17 +247,17 @@ export function VendorIngestionDesk({
     const newEvent: LearningEvent = {
       id: `learn-${Date.now()}-portal`,
       timestamp: new Date().toISOString(),
-      sourceIssueId: error.id,
+      sourceIssueId: issueId,
       ruleType: "substitution",
-      partNumber: error.skuRef,
-      action: `Partner portal error resolved by substituting ${error.skuRef} with ${error.suggestedAlternatePartNumber}. Rule added to Sourcing Rules Vault.`,
+      partNumber: targetSku,
+      action: `Validation Advice resolved by substituting ${targetSku} with ${resolvedSku}. Rule added to Sourcing Rules Vault.`,
       confidenceScore: 95,
-      vendor: error.vendor,
+      vendor: vendorId,
       preventedMismatchCount: 1,
     };
 
     setSourcingRules((prev) => {
-      const exists = prev.some(r => r.partNumber === error.skuRef && r.mappedOutput === error.suggestedAlternatePartNumber);
+      const exists = prev.some(r => r.partNumber === targetSku && r.mappedOutput === resolvedSku);
       if (exists) return prev;
       return [newLearnedRule, ...prev];
     });
@@ -461,17 +454,18 @@ export function VendorIngestionDesk({
         </div>
       </div>
 
-      {/* CLIC Error Resolution Panel — appears when Playwright portal run detects configuration errors */}
-      {portalErrors.length > 0 && (
-        <PortalErrorResolutionPanel
-          errors={portalErrors}
+      {/* Generic Advice Sheet Resolution Panel */}
+      {adviceResolutions.length > 0 && (
+        <AdviceResolutionPanel
+          advice={adviceResolutions}
           catalogSkus={catalogSkus}
           vendor={selectedPortal}
           onSubstitute={handleSubstitute}
-          onDismiss={(errorId) =>
-            setPortalErrors((prev) => prev.filter((e) => e.id !== errorId))
+          onDismiss={(adviceId) =>
+            setAdviceResolutions((prev) => prev.filter((a) => a.id !== adviceId))
           }
           onLearn={handleLearn}
+          activeUcid={ucids[0]}
         />
       )}
     </div>

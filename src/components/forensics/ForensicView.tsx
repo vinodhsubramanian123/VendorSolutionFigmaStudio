@@ -87,7 +87,7 @@ export function ForensicView({
       action,
       confidenceScore,
       vendor,
-      preventedMismatchCount: Math.floor(Math.random() * 4) + 1, // starts at 1-4, increments over time
+      preventedMismatchCount: 1, // starts at 1, increments over time
     };
     setLearningEvents((prev) => [newEvent, ...prev].slice(0, 50));
   }

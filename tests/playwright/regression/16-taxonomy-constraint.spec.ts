@@ -65,7 +65,7 @@ test.describe('16 - Taxonomy Graph Constraint & Orphan Fix E2E', () => {
       await expect(page.getByText('Aligning Part').first()).toBeVisible();
 
       // Choose subsystem
-      const subsystemSelect = page.locator('select').first();
+      const subsystemSelect = page.locator('select#target-subsystem').first();
       await subsystemSelect.selectOption({ index: 1 });
       await delay(800);
 

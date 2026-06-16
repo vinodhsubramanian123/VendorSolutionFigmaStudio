@@ -53,7 +53,11 @@ export function JobStreamer({ jobId, context, onSuccess, onError }: JobStreamerP
     };
   }, [jobId]);
 
-  const [randomLatency] = useState(() => Math.floor(Math.random() * 20 + 15));
+  const [randomLatency] = useState(() => {
+    let hash = 0;
+    for (let i = 0; i < jobId.length; i++) hash = jobId.charCodeAt(i) + ((hash << 5) - hash);
+    return (Math.abs(hash) % 20) + 15;
+  });
 
   // We do not return null on completion to prevent layout shifting before the parent unmounts it
   if (status === 'failed') return null;

@@ -120,6 +120,16 @@ To prevent repeating historical regressions, strictly observe the following guid
     - Mock delays and progress simulations must be entirely delegated to the `apiClient` / MSW layer (`handlers.ts`).
     - Complex parsing (like NLP semantic parsing or deep object overrides) belongs strictly in the backend boundary. The UI must remain a dumb visualization layer reacting to external streams.
 
+### 3.11 Unhandled Promise Rejections in Synchronous UI Handlers
+*   **Issue**: UI components (like `CatalogManager`) utilized asynchronous API client methods (e.g., `apiClient.delete`) inside synchronous click handlers with synchronous `try/catch` blocks. This resulted in uncaught promise rejections that crashed tests and failed to handle backend errors correctly.
+*   **Solution**: Never wrap detached asynchronous calls inside synchronous `try/catch` blocks without `await`. Always chain `.catch()` for detached promises in UI event handlers to ensure proper telemetry and error surfacing:
+    ```typescript
+    // BAD
+    try { apiClient.delete(id) } catch (e) { ... } 
+    // GOOD
+    apiClient.delete(id).catch(e => console.error(e))
+    ```
+
 ---
 
 ## 4. Visual Regression Gate
@@ -188,3 +198,50 @@ To prevent architectural regression, broken types, and memory leaks from bleedin
 ### 9.2 Comprehensive Test Harness Execution
 *   **Rule**: Code logic changes (especially to shared components like `CatalogManager` or `DataPersistenceGate`) require a functional test run.
 *   **Action**: Execute `npx vitest run` and `npx playwright test`. Any crash indicating "Element type is invalid", or failing component tests, MUST be analyzed and resolved (via JSDOM mocks in `tests/setup.ts` or component fixes).
+
+### 9.3 Vitest Fetch & MSW Mock Topography
+*   **Issue**: Global fetch mocks in Vitest (e.g., `vi.stubGlobal('fetch')`) fail when matching relative URL paths across the API client interceptors.
+*   **Solution**: All `apiClient.ts` test expectations must assert full absolute domain mappings (e.g. `expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/endpoint', ...)`). Additionally, chained mocked methods (like `apiClient.delete`) must explicitly return promises using `.mockResolvedValue` or `.mockRejectedValue` rather than returning `undefined` or throwing synchronously.
+
+---
+
+## 10. Backend Delegation Rules (Phase 5 Offloading)
+
+The UI layer is strictly a visualization and interaction engine. Any intensive logic or binary extraction must be built by the backend team tomorrow:
+
+### 10.1 Generic Advice Sheet Parsing
+*   **Backend Responsibility**: The Backend (`ExcelParserService`) must handle the extraction of warnings, AND/OR logic constraints, and SKU patterns from uploaded Vendor validation workbooks (CLIC, Premier, CCW) and return them as generic `AdviceResolution` JSON arrays. 
+*   **Frontend Responsibility**: The UI strictly consumes the structured generic format and displays interactive Splicing/Override panels linked to the Active BOM.
+
+### 10.2 PDF / CSV Snapshot Exports
+*   **Backend Responsibility**: The Backend (`BlobGeneratorService`) must process immutable `Snapshot` objects and stream back fully formatted PDF or CSV byte blobs.
+*   **Frontend Responsibility**: The UI only handles the download triggers (transient `<a>` tags) fetching from the Backend. Do not construct heavy multi-page PDFs using client-side JavaScript.
+
+---
+
+## 11. Strict UI/UX and Component Architecture Mandates
+
+As of Phase 7 (Refactoring & Perfection), the following structural rules are completely non-negotiable:
+
+### 11.1 Absolute Component Size Limits (The 400-Line Rule)
+*   **Rule**: No React functional component or file shall exceed **400 lines of code**.
+*   **Action**: If a file like `TaxonomyGraphSidebar.tsx` or `LearningLoopInjector.tsx` approaches this limit, you must halt feature development and decompose it into atomic sub-components (e.g., `NodeEditorPanel.tsx`, `EdgeEditorPanel.tsx`). Monolithic "God Components" are banned.
+
+### 11.2 Zero `any` Type Tolerance
+*   **Rule**: The `any` type is strictly forbidden across the entire `src/` directory.
+*   **Action**: Use precise Zod-backed interfaces (e.g., `CatalogSKU`, `GraphNode`). If an external payload is truly dynamic, use `unknown` and perform runtime type narrowing or validation.
+
+### 11.3 Accessibility (a11y) & Interactive Elements
+*   **Rule**: All interactive elements (`<button>`, custom `<div>` clickables, modals, and tabs) MUST include proper accessibility attributes.
+*   **Action**: 
+    - Inject `aria-label` or `aria-labelledby` on all icon-only or custom buttons.
+    - Ensure keyboard navigation (`tabIndex={0}`) and `onKeyDown` listeners are implemented for custom `div` buttons.
+    - Do not rely solely on color or layout to convey state changes to screen readers.
+
+### 11.4 Taxonomy Graph CRUD Boundaries
+*   **Rule**: The UI must never compute isomorphic graph paths, resolve orphaned node relationships, or calculate taxonomy weights locally.
+*   **Action**: All Graph interactions (Adding Nodes, Updating Edges, Fetching Paths) must be routed through `apiClient.ts` to the Backend/MSW layer. The UI's `useCatalogGraphData.ts` hook acts solely as a synchronization wrapper, passing generic IDs and payloads.
+
+### 11.5 Intelligence Parsing Boundary
+*   **Rule**: The UI must strictly act as a dumb visualization layer for heuristics and learning loops. It must never parse raw natural language strings directly to taxonomy targets using local regex or logic.
+*   **Action**: The `NLPParser` and `LearningLoopInjector` components must offload rule generation strictly to the Backend API layer (`/api/agents/semantic-map` and `/api/agents/run`), exactly mirroring the Graph constraints.

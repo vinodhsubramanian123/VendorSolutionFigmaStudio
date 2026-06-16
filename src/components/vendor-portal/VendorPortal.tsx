@@ -17,10 +17,10 @@ interface VendorPortalProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   catalogSkus?: CatalogSKU[];
-  sourcingRules: any[];
-  setSourcingRules: React.Dispatch<React.SetStateAction<any[]>>;
-  learningEvents: any[];
-  setLearningEvents: React.Dispatch<React.SetStateAction<any[]>>;
+  sourcingRules: import('../../types').SourcingRule[];
+  setSourcingRules: React.Dispatch<React.SetStateAction<import('../../types').SourcingRule[]>>;
+  learningEvents: import('../../types').LearningEvent[];
+  setLearningEvents: React.Dispatch<React.SetStateAction<import('../../types').LearningEvent[]>>;
 }
 
 export const VendorPortal = React.memo(function VendorPortal({

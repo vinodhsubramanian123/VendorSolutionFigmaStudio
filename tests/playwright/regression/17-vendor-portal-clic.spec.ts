@@ -32,7 +32,7 @@ test.describe('17 - Vendor Portal CLIC Error Resolution E2E', () => {
     await delay(1200);
 
     // Verify error toast or console logs show error
-    await expect(page.getByText('Partner Portal Error Resolution').first()).toBeVisible();
+    await expect(page.getByText('Generic Workbook Advice Resolution').first()).toBeVisible();
     await expect(page.getByText('UCS-CPU-I6430').first()).toBeVisible();
   });
 
@@ -48,11 +48,11 @@ test.describe('17 - Vendor Portal CLIC Error Resolution E2E', () => {
     await delay(1200);
 
     // Verify pre-validated suggestion box exists
-    const suggestBox = page.getByText('Pre-validated Replacement:', { exact: false });
+    const suggestBox = page.getByText('Catalog Alternates', { exact: false });
     await expect(suggestBox).toBeVisible();
 
     // Click Apply Fix button
-    const fixBtn = page.getByRole('button', { name: 'Apply Fix' });
+    const fixBtn = page.getByRole('button', { name: 'Splice SKU' }).first();
     await fixBtn.click();
     await delay(400);
 

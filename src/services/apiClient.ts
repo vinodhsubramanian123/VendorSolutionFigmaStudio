@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ApiResponse, ApiErrorResponse } from "../types";
+import { ApiResponse, ApiErrorResponse, GraphAPIResponse, GraphPath } from "../types";
 
 /**
  * Global API Client Boundary
@@ -140,7 +140,7 @@ class ApiClient {
 
     const tick = () => {
       if (!active) return;
-      progress += Math.floor(Math.random() * 15) + 5; // increment by 5-20%
+      progress += 15; // increment deterministically
       if (progress >= 100) {
         progress = 100;
         onMessage({
@@ -157,7 +157,7 @@ class ApiClient {
           status: "processing",
           progress: progress
         });
-        setTimeout(tick, Math.random() * 400 + 400); // tick every 400-800ms
+        setTimeout(tick, 600); // tick deterministically
       }
     };
 
@@ -168,6 +168,57 @@ class ApiClient {
         active = false;
       }
     };
+  }
+
+  // ==========================================
+  // KNOWLEDGE GRAPH ENDPOINTS (Phase 2)
+  // ==========================================
+
+  async getGraphSolution(ucid: string): Promise<ApiResponse<GraphAPIResponse>> {
+    return this.get<GraphAPIResponse>(`/api/graph/solution/${ucid}`);
+  }
+
+  async getGraphAlternativePaths(targetNodeId: string, limit: number = 3, optimizeFor: string = 'cost'): Promise<ApiResponse<{ paths: GraphPath[] }>> {
+    return this.post<{ paths: GraphPath[] }>(`/api/graph/algorithms/alternative-paths`, {
+      targetNodeId,
+      limit,
+      optimizeFor
+    });
+  }
+
+  async updateGraphEdge(edgeId: string, weight: number, metadata?: Record<string, unknown>): Promise<ApiResponse<{ success: boolean }>> {
+    return this.put<{ success: boolean }>(`/api/graph/edge/${edgeId}`, {
+      weight,
+      metadata
+    });
+  }
+
+  async commitGraphPathSelection(jobId: string, selectedPathId: string, rejectedPathIds: string[]): Promise<ApiResponse<{ success: boolean }>> {
+    return this.post<{ success: boolean }>(`/api/graph/path-selection`, {
+      jobId,
+      selectedPathId,
+      rejectedPathIds
+    });
+  }
+
+  async createGraphNode(node: Partial<import('../types/data').GraphNode>): Promise<ApiResponse<import('../types/data').GraphNode>> {
+    return this.post<import('../types/data').GraphNode>('/api/graph/nodes', node);
+  }
+
+  async updateGraphNode(nodeId: string, updates: Partial<import('../types/data').GraphNode>): Promise<ApiResponse<import('../types/data').GraphNode>> {
+    return this.put<import('../types/data').GraphNode>(`/api/graph/nodes/${nodeId}`, updates);
+  }
+
+  async deleteGraphNode(nodeId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return this.delete<{ success: boolean }>(`/api/graph/nodes/${nodeId}`);
+  }
+
+  async createGraphEdge(edge: Partial<import('../types/data').GraphEdge>): Promise<ApiResponse<import('../types/data').GraphEdge>> {
+    return this.post<import('../types/data').GraphEdge>('/api/graph/edges', edge);
+  }
+
+  async deleteGraphEdge(edgeId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return this.delete<{ success: boolean }>(`/api/graph/edges/${edgeId}`);
   }
 }
 

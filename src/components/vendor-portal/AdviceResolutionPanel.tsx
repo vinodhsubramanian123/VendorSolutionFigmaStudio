@@ -10,60 +10,69 @@ import {
   Wrench,
   ExternalLink,
 } from "lucide-react";
-import type { PortalErrorItem, CatalogSKU } from "../../types";
+import type { AdviceResolution, CatalogSKU, UCID } from "../../types";
 
-interface PortalErrorResolutionPanelProps {
-  errors: PortalErrorItem[];
+interface AdviceResolutionPanelProps {
+  advice: AdviceResolution[];
   catalogSkus: CatalogSKU[];
   vendor: string;
-  onSubstitute: (errorId: string, replacementPartNumber: string, replacementName: string) => void;
-  onDismiss: (errorId: string) => void;
-  onLearn: (error: PortalErrorItem) => void;
+  onSubstitute: (adviceId: string, replacementPartNumber: string, replacementName: string) => void;
+  onDismiss: (adviceId: string) => void;
+  onLearn: (targetSku: string, resolvedSku: string, vendorId: string, issueId: string) => void;
+  activeUcid?: UCID;
 }
 
-const ERROR_TYPE_LABELS: Record<PortalErrorItem["errorType"], { label: string; color: string; bg: string; border: string }> = {
-  unbuildable: { label: "Unbuildable Config", color: "text-red-400", bg: "bg-red-500/8", border: "border-red-500/20" },
-  discontinued: { label: "Discontinued SKU", color: "text-amber-400", bg: "bg-amber-500/8", border: "border-amber-500/20" },
-  not_found: { label: "SKU Not Found", color: "text-orange-400", bg: "bg-orange-500/8", border: "border-orange-500/20" },
-  constraint_violation: { label: "Constraint Violation", color: "text-purple-400", bg: "bg-purple-500/8", border: "border-purple-500/20" },
+const SEVERITY_CFG = {
+  critical: { label: "CRITICAL", color: "text-red-400", bg: "bg-red-500/8", border: "border-red-500/20" },
+  warning: { label: "WARNING", color: "text-amber-400", bg: "bg-amber-500/8", border: "border-amber-500/20" },
+  info: { label: "INFO", color: "text-blue-400", bg: "bg-blue-500/8", border: "border-blue-500/20" }
 };
 
-export function PortalErrorResolutionPanel({
-  errors,
+export function AdviceResolutionPanel({
+  advice,
   catalogSkus,
   vendor,
   onSubstitute,
   onDismiss,
   onLearn,
-}: PortalErrorResolutionPanelProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(errors[0]?.id || null);
+  activeUcid
+}: AdviceResolutionPanelProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(advice[0]?.id || null);
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
 
-  // For each error, find candidate replacements from the catalog
+  // Active BOM SKU set
+  const activeBomSkus = useMemo(() => {
+    const set = new Set<string>();
+    activeUcid?.solutions?.forEach(sol => {
+      sol.vendorSubmissions?.forEach(vs => {
+        vs.configs?.forEach(cfg => {
+          cfg.items?.forEach(item => set.add(item.partNumber.toLowerCase()));
+        });
+      });
+    });
+    return set;
+  }, [activeUcid]);
+
   const suggestions = useMemo(() => {
     const result: Record<string, CatalogSKU[]> = {};
-    for (const err of errors) {
-      if (err.resolved) continue;
-      // Find catalog SKUs from same vendor, active, matching by type keyword or name similarity
+    for (const item of advice) {
+      const targetTerm = searchTerms[item.id] || "";
       const candidates = catalogSkus.filter(
         (sku) =>
           sku.status === "active" &&
           sku.vendor === vendor &&
-          sku.partNumber !== err.skuRef &&
-          (searchTerms[err.id]
-            ? sku.partNumber.toLowerCase().includes(searchTerms[err.id].toLowerCase()) ||
-              sku.name.toLowerCase().includes(searchTerms[err.id].toLowerCase())
+          !item.targetSkus.includes(sku.partNumber) &&
+          (targetTerm
+            ? sku.partNumber.toLowerCase().includes(targetTerm.toLowerCase()) ||
+              sku.name.toLowerCase().includes(targetTerm.toLowerCase())
             : true)
       ).slice(0, 5);
-      result[err.id] = candidates;
+      result[item.id] = candidates;
     }
     return result;
-  }, [errors, catalogSkus, vendor, searchTerms]);
+  }, [advice, catalogSkus, vendor, searchTerms]);
 
-  const unresolvedErrors = errors.filter((e) => !e.resolved);
-  const resolvedErrors = errors.filter((e) => e.resolved);
-
-  if (errors.length === 0) return null;
+  if (advice.length === 0) return null;
 
   return (
     <motion.div
@@ -79,28 +88,22 @@ export function PortalErrorResolutionPanel({
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            Partner Portal Error Resolution
+            Generic Workbook Advice Resolution
             <span className="text-[10px] font-normal text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded font-mono">
-              {unresolvedErrors.length} unresolved
+              {advice.length} pending
             </span>
           </h3>
           <p className="text-[11px] text-gray-500 mt-0.5">
-            CLIC validation returned configuration errors. Substitute SKUs below to fix and learn.
+            Validation sheet parsing returned warnings. Resolve logic constraints targeting the Active BOM.
           </p>
         </div>
-        {resolvedErrors.length > 0 && (
-          <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono border border-emerald-500/20 bg-emerald-500/8 px-2 py-1 rounded shrink-0">
-            <CheckCircle2 className="w-3 h-3" />
-            {resolvedErrors.length} resolved
-          </div>
-        )}
       </div>
 
       {/* Error List */}
       <div className="divide-y divide-white/[0.04]">
         <AnimatePresence initial={false}>
-          {unresolvedErrors.map((err) => {
-            const cfg = ERROR_TYPE_LABELS[err.errorType];
+          {advice.map((err) => {
+            const cfg = SEVERITY_CFG[err.severity];
             const isExpanded = expandedId === err.id;
             const candidates = suggestions[err.id] || [];
 
@@ -113,7 +116,7 @@ export function PortalErrorResolutionPanel({
                 exit={{ opacity: 0 }}
                 className="p-4"
               >
-                {/* Error row header */}
+                {/* Row Header */}
                 <div
                   role="button"
                   tabIndex={0}
@@ -126,11 +129,30 @@ export function PortalErrorResolutionPanel({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[11px] font-bold text-white font-mono">{err.skuRef}</span>
-                      <span className="text-[10px] text-gray-500">{err.vendor}</span>
+                      <span className="text-[10px] bg-white/5 border border-white/10 px-1.5 rounded font-mono text-gray-400">
+                        {err.sheetName}
+                      </span>
+                      {err.targetSkus.map((sku, idx) => {
+                        const inBom = activeBomSkus.has(sku.toLowerCase());
+                        return (
+                          <React.Fragment key={sku}>
+                            {idx > 0 && err.logicOperator !== "NONE" && (
+                              <span className="text-[9px] font-bold text-indigo-400 px-1">{err.logicOperator}</span>
+                            )}
+                            <span className="text-[11px] font-bold text-white font-mono flex items-center gap-1.5">
+                              {sku}
+                              {inBom && (
+                                <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1 py-0.5 rounded uppercase tracking-wider">
+                                  In Active BOM
+                                </span>
+                              )}
+                            </span>
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-0.5 leading-relaxed line-clamp-2">
-                      {err.errorMessage}
+                    <p className="text-[10px] text-gray-400 mt-1 leading-relaxed line-clamp-2">
+                      {err.message}
                     </p>
                   </div>
                   <button
@@ -141,7 +163,7 @@ export function PortalErrorResolutionPanel({
                   </button>
                 </div>
 
-                {/* Expanded: alternate SKU search */}
+                {/* Expanded Search View */}
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div
@@ -155,7 +177,7 @@ export function PortalErrorResolutionPanel({
                         <Search className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                         <input
                           type="text"
-                          placeholder={`Search catalog for ${err.skuRef} replacement...`}
+                          placeholder={`Search replacement for constraints...`}
                           value={searchTerms[err.id] || ""}
                           onChange={(e) => setSearchTerms((prev) => ({ ...prev, [err.id]: e.target.value }))}
                           className="flex-1 bg-transparent text-[11px] text-white placeholder-gray-600 focus:outline-none font-mono"
@@ -185,12 +207,12 @@ export function PortalErrorResolutionPanel({
                               <button
                                 onClick={() => {
                                   onSubstitute(err.id, sku.partNumber, sku.name);
-                                  onLearn(err);
+                                  onLearn(err.targetSkus[0], sku.partNumber, vendor, err.id);
                                 }}
                                 className="shrink-0 flex items-center gap-1.5 text-[10px] font-bold text-white bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded cursor-pointer transition"
                               >
                                 <Wrench className="w-3 h-3" />
-                                Substitute SKU
+                                Splice SKU
                                 <ArrowRight className="w-3 h-3" />
                               </button>
                             </div>
@@ -199,30 +221,7 @@ export function PortalErrorResolutionPanel({
                       ) : (
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-black/20 border border-white/5 text-[10px] text-gray-500">
                           <RefreshCw className="w-3 h-3" />
-                          No active catalog alternatives found for <span className="font-mono text-gray-400">{err.skuRef}</span> in <span className="font-semibold text-white">{vendor}</span> inventory.
-                          Try broadening your search term above.
-                        </div>
-                      )}
-
-                      {/* Pre-validated suggestion from error item */}
-                      {err.suggestedAlternatePartNumber && (
-                        <div className="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-[11px] font-bold text-emerald-300">
-                              Pre-validated Replacement: {err.suggestedAlternatePartNumber}
-                            </p>
-                            <p className="text-[10px] text-gray-400">{err.suggestedAlternateName}</p>
-                          </div>
-                          <button
-                            onClick={() => {
-                              onSubstitute(err.id, err.suggestedAlternatePartNumber!, err.suggestedAlternateName || "");
-                              onLearn(err);
-                            }}
-                            className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded cursor-pointer transition"
-                          >
-                            Apply Fix
-                          </button>
+                          No active catalog alternatives found. Try broadening your search term above.
                         </div>
                       )}
                     </motion.div>
@@ -234,14 +233,13 @@ export function PortalErrorResolutionPanel({
         </AnimatePresence>
       </div>
 
-      {/* Footer */}
       <div className="p-3 border-t border-white/5 bg-black/15 flex items-center justify-between">
         <p className="text-[10px] text-gray-600 font-mono">
-          Each substitution creates a sourcing intelligence rule to prevent future occurrences
+          Resolving constraints updates the Active BOM and commits an intelligence rule.
         </p>
         <div className="flex items-center gap-1.5 text-[9px] text-indigo-400 font-mono font-bold">
           <ExternalLink className="w-3 h-3" />
-          CLIC Error Resolution Loop
+          Generic Pipeline
         </div>
       </div>
     </motion.div>
