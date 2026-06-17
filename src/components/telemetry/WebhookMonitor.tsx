@@ -1,16 +1,25 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "motion/react";
 import { Shield, Zap } from "lucide-react";
-import { WebhookEvent, makeMockWebhooks, getHttpColor } from "./telemetryUtils";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
+import type { WebhookEvent } from "./types";
 
-export function WebhookMonitor() {
+function getHttpColor(code: number): string {
+  if (code >= 500) return "text-red-400";
+  if (code >= 400) return "text-amber-400";
+  if (code >= 200 && code < 300) return "text-emerald-400";
+  return "text-gray-400";
+}
+
+interface WebhookMonitorProps {
+  webhooks: WebhookEvent[];
+}
+
+export function WebhookMonitor({ webhooks }: WebhookMonitorProps) {
   const { toast } = useToast();
-  const [webhooks] = useState<WebhookEvent[]>(makeMockWebhooks);
   const [hmacSecret, setHmacSecret] = useState("vsip-wh-secret-••••••••");
 
-  // Test HMAC webhook
   const handleTestHMAC = useCallback(async () => {
     try {
       await apiClient.post("/api/jobs", { type: "webhook-test", context: {}, parent_job_id: "" });
@@ -27,9 +36,7 @@ export function WebhookMonitor() {
       className="flex flex-col gap-4"
     >
       {/* HMAC secret tester */}
-      <div
-        className="p-4 rounded-xl border border-white/8 bg-black/20 flex flex-col md:flex-row items-start md:items-center gap-4"
-      >
+      <div className="p-4 rounded-xl border border-white/8 bg-black/20 flex flex-col md:flex-row items-start md:items-center gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <Shield className="w-4 h-4 text-indigo-400" />
@@ -39,6 +46,7 @@ export function WebhookMonitor() {
             type="text"
             value={hmacSecret}
             onChange={(e) => setHmacSecret(e.target.value)}
+            aria-label="HMAC Webhook Signing Secret"
             className="w-full bg-black/40 border border-white/8 rounded-lg px-3 py-2 text-[11px] text-white font-mono placeholder-gray-600 focus:outline-none focus:border-indigo-500/40"
           />
         </div>
@@ -92,6 +100,11 @@ export function WebhookMonitor() {
               </div>
             </div>
           ))}
+          {webhooks.length === 0 && (
+            <div className="p-6 text-center text-[10px] text-gray-600">
+              No webhook events received yet.
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

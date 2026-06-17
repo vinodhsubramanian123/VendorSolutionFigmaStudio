@@ -3,6 +3,9 @@ import 'vitest-axe/extend-expect';
 import * as matchers from 'vitest-axe/matchers';
 import { expect } from 'vitest';
 
+// Mock scrollIntoView — not available in JSDOM (used by NLPParser chat scroll)
+window.HTMLElement.prototype.scrollIntoView = () => {};
+
 // Extend vitest's expect with axe matchers
 expect.extend(matchers);
 

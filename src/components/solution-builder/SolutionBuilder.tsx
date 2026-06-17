@@ -94,7 +94,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     }
     
     setIsLoading(false);
-  }, [ucids]); // Allow re-hydration if global state radically changes externally
+  }, [ucids.length]); // Allow re-hydration if global state radically changes externally
 
   // Switch configs across UCID boxes
   const assignConfigToUcid = (configId: string, ucidId: string) => {
@@ -107,9 +107,10 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   const handleAddUcid = () => {
     const prefix = 'UCID-2026-';
     const nextNum = 1700 + ucidsList.length;
-    const newId = `${prefix}${nextNum}`;
+    const newId = crypto.randomUUID();
     const newContainer: UcidContainer = {
       id: newId,
+      displayId: `${prefix}${nextNum}`,
       name: `Sub-deployment ${ucidsList.length + 1}`,
       reasoning: 'Assigned configurations to secondary isolated cloud environments.',
       locked: false,
@@ -196,7 +197,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       return {
         id: crypto.randomUUID(),
         trackingRef: `dynamic-${container.id}`,
-        displayId: container.displayId || (container.id.includes('UCID-') ? container.id.substring(container.id.indexOf('UCID-')) : `UCID-2026-${(crypto.getRandomValues(new Uint32Array(1))[0] % 9000) + 1000}`),
+        displayId: container.displayId || (container.id.includes('UCID-') ? container.id.substring(container.id.indexOf('UCID-')) : `UCID-2026-${(crypto.getRandomValues(new Uint32Array(1))[0] % 90000) + 10000}`),
         name: `${solutionName} — ${container.name}`,
         solutionName: solutionName,
         priority: containerIdx === 0 ? 'high' : 'medium',

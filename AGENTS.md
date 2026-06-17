@@ -245,3 +245,51 @@ As of Phase 7 (Refactoring & Perfection), the following structural rules are com
 ### 11.5 Intelligence Parsing Boundary
 *   **Rule**: The UI must strictly act as a dumb visualization layer for heuristics and learning loops. It must never parse raw natural language strings directly to taxonomy targets using local regex or logic.
 *   **Action**: The `NLPParser` and `LearningLoopInjector` components must offload rule generation strictly to the Backend API layer (`/api/agents/semantic-map` and `/api/agents/run`), exactly mirroring the Graph constraints.
+
+---
+
+## 12. Phase 7 Gap-Analysis Fix Learnings (June 2026)
+
+These patterns were identified during the comprehensive gap-analysis pass and must not regress.
+
+### 12.1 Select Option Value Binding
+*   **Issue**: `<option>` elements without explicit `value` attributes sent the display text (e.g., "HPE (Hewlett Packard Enterprise)") to state handlers instead of the canonical short-form key ("HPE"), causing downstream contract mismatches.
+*   **Solution**: Every `<option>` in a controlled `<select>` MUST have an explicit `value` attribute. Example: `<option value="HPE">HPE (Hewlett Packard Enterprise)</option>`.
+
+### 12.2 All ID Generation Must Use `crypto.randomUUID()`
+*   **Issue**: Components like `IngestionHub`, `SourcingRulesVault`, and `SolutionBuilder` used `Date.now()`, `1700 + length`, or manual string concatenations to generate IDs, causing collisions in multi-UCID environments and Zod schema violations.
+*   **Solution**: **All** new entity IDs (UCIDs, job IDs, rule IDs, conflict IDs) must be generated via `crypto.randomUUID()`. No manual ID arithmetic.
+
+### 12.3 Controlled Input Query Sync via `useEffect`
+*   **Issue**: `SearchView.tsx` maintained internal query state independently of the `query` prop. When the parent programmatically updated the prop (e.g., from GlobalCommandPalette), the local input did not reflect the change.
+*   **Solution**: Always add a `useEffect` to sync controlled input state when a prop can be updated externally:
+    ```typescript
+    useEffect(() => { setLocalQuery(query); }, [query]);
+    ```
+
+### 12.4 Derived State Initialization (No Hardcoded `true`)
+*   **Issue**: `ReconciliationView.tsx` initialized `hasDrift` as `true` regardless of actual data, causing the "Drift Detected" banner to flash on first load even when all UCIDs were clean.
+*   **Solution**: Always derive boolean flags from real data at initialization:
+    ```typescript
+    const [hasDrift, setHasDrift] = useState(() =>
+      ucids.some(u => u.syncStatus === 'Out-of-Sync' || u.syncStatus === 'Error')
+    );
+    ```
+
+### 12.5 ISO-8601 Timestamp Standardization
+*   **Issue**: `mockData.ts` event timestamps mixed human-readable strings (e.g., "2 hours ago") with ISO-8601 strings, causing `new Date(...).toLocaleString()` to render as `"Invalid Date"` in telemetry views.
+*   **Solution**: All `LogEvent.timestamp` values must be valid ISO-8601 strings (`"2026-06-17T10:00:00.000Z"`).
+
+### 12.6 Component Decomposition Map (400-Line Compliance)
+The following "God Components" were decomposed in Phase 7. This is the authoritative component map:
+
+| Original File | Sub-Components Created |
+|---|---|
+| `SourcingRulesVault.tsx` | `AddRuleForm.tsx`, `RulesTable.tsx` |
+| `CleansingView.tsx` | `MappingPanel.tsx`, `types.ts`, `constants.ts`, `mockData.ts` |
+| `SystemTelemetry.tsx` | `DocumentPipelinePanel.tsx`, `ApiLogsTable.tsx`, `WebhookMonitor.tsx`, `types.ts` |
+
+### 12.7 useEffect Dependency Safety in SolutionBuilder
+*   **Issue**: `SolutionBuilder` listed `solutions` (an array) as a raw `useEffect` dependency. React recreates array references on every render, causing the effect to re-run infinitely.
+*   **Solution**: Use `solutions.length` (a primitive) or `JSON.stringify(solutions)` as the dependency sentinel when you need to react to collection changes, or use a stable ref.
+

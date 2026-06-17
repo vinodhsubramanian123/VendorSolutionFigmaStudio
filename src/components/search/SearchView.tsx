@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "motion/react";
 import { Database, Globe, Target, Search, ArrowUpRight, Sparkles } from "lucide-react";
 import type { AppView, UCID, Vendor, CatalogSKU } from "../../types";
@@ -55,6 +55,10 @@ export function SearchView({
   onSearchChange,
 }: SearchViewProps) {
   const [localInput, setLocalInput] = useState(query);
+
+  useEffect(() => {
+    setLocalInput(query);
+  }, [query]);
 
   // Drive the active query from whichever is more recent: local override or external prop
   // This avoids the setState-in-effect cascade while still allowing parent prop updates

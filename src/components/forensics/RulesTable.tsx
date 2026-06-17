@@ -1,0 +1,323 @@
+import React, { useState } from "react";
+import { Edit3, Trash2, Save, X, Activity, Loader2 } from "lucide-react";
+import type { SourcingRule } from "../../types";
+
+interface RulesTableProps {
+  sourcingRules: SourcingRule[];
+  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
+  triggerToast: (message: string, type: "success" | "warn") => void;
+  onSimulateAndPromote: (ruleId: string) => Promise<void>;
+  simulatingRuleId: string | null;
+}
+
+export function RulesTable({
+  sourcingRules,
+  setSourcingRules,
+  triggerToast,
+  onSimulateAndPromote,
+  simulatingRuleId,
+}: RulesTableProps) {
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [editPartNumber, setEditPartNumber] = useState("");
+  const [editMappedOutput, setEditMappedOutput] = useState("");
+  const [editLabel, setEditLabel] = useState("");
+  const [editVendor, setEditVendor] = useState("");
+  const [editStatus, setEditStatus] = useState<SourcingRule["status"]>("active");
+  const [editAssociatedSkus, setEditAssociatedSkus] = useState("");
+  const [editCliScript, setEditCliScript] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+
+  const handleStartEdit = (rule: SourcingRule) => {
+    setEditingRuleId(rule.id);
+    setEditPartNumber(rule.partNumber);
+    setEditMappedOutput(rule.mappedOutput);
+    setEditLabel(rule.label);
+    setEditVendor(rule.vendor);
+    setEditStatus(rule.status);
+    setEditAssociatedSkus(rule.associatedSkus || "");
+    setEditCliScript(rule.cliScript || "");
+    setEditNotes(rule.notes || "");
+  };
+
+  const handleSaveEdit = (ruleId: string) => {
+    if (!editPartNumber.trim() || !editMappedOutput.trim()) {
+      triggerToast("Input parameters cannot be left blank during edit.", "warn");
+      return;
+    }
+
+    setSourcingRules((prev) =>
+      prev.map((r) =>
+        r.id === ruleId
+          ? {
+              ...r,
+              partNumber: editPartNumber.trim(),
+              mappedOutput: editMappedOutput.trim(),
+              label: editLabel.trim(),
+              vendor: editVendor,
+              status: editStatus,
+              associatedSkus: editAssociatedSkus.trim() || undefined,
+              cliScript: editCliScript.trim() || undefined,
+              notes: editNotes.trim() || undefined,
+            }
+          : r
+      )
+    );
+    setEditingRuleId(null);
+    triggerToast("Sourcing Intelligence overridden and persistent layers flushed.", "success");
+  };
+
+  const handleDeleteRule = (ruleId: string) => {
+    setSourcingRules((prev) => prev.filter((r) => r.id !== ruleId));
+    triggerToast("Sourcing Intelligence policy permanently retired.", "success");
+  };
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15">
+      <table className="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr className="bg-black/40 border-b border-white/5 text-gray-400 font-semibold font-mono text-[10px] uppercase select-none tracking-wider">
+            <th className="p-3">Target Reference Parameter</th>
+            <th className="p-3">Category Class</th>
+            <th className="p-3">Alignment Override</th>
+            <th className="p-3">Sourcing Narrative / Rule Logs</th>
+            <th className="p-3">Sourced Vendor</th>
+            <th className="p-3">Origin</th>
+            <th className="p-3">Operational State</th>
+            <th className="p-3 text-center">Engine Control</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          {sourcingRules.map((rule) => {
+            const isEditing = editingRuleId === rule.id;
+            const isDraft = rule.status === "draft";
+            return (
+              <tr key={rule.id} className={`transition-colors ${isDraft ? 'bg-amber-500/5 border-l-2 border-l-amber-500' : 'hover:bg-white/2'}`}>
+                <td className="p-3 font-mono font-bold text-white whitespace-nowrap">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editPartNumber}
+                      onChange={(e) => setEditPartNumber(e.target.value)}
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus:border-indigo-500/40"
+                    />
+                  ) : (
+                    rule.partNumber
+                  )}
+                </td>
+
+                <td className="p-3 font-medium whitespace-nowrap">
+                  <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${
+                    rule.ruleType === "substitution"
+                      ? "bg-purple-500/15 text-purple-300 border border-purple-500/20"
+                      : rule.ruleType === "price_cap"
+                      ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20"
+                      : rule.ruleType === "symmetry"
+                      ? "bg-amber-500/15 text-amber-300 border border-amber-500/20"
+                      : "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
+                  }`}>
+                    {rule.ruleType}
+                  </span>
+                </td>
+
+                <td className="p-3 font-mono text-white whitespace-nowrap">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editMappedOutput}
+                      onChange={(e) => setEditMappedOutput(e.target.value)}
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus:border-indigo-500/40"
+                    />
+                  ) : (
+                    <span className="font-bold text-indigo-300">
+                      {rule.ruleType === "price_cap" && !isNaN(Number(rule.mappedOutput)) ? `$${Number(rule.mappedOutput).toLocaleString()}` : rule.mappedOutput}
+                    </span>
+                  )}
+                </td>
+
+                <td className="p-3 text-gray-400">
+                  {isEditing ? (
+                    <div className="space-y-2 max-w-[280px]">
+                      <div>
+                        <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Label Narrative</label>
+                        <input
+                          type="text"
+                          value={editLabel}
+                          onChange={(e) => setEditLabel(e.target.value)}
+                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-indigo-500/40"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                          <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Combo SKUs</label>
+                          <input
+                            type="text"
+                            value={editAssociatedSkus}
+                            onChange={(e) => setEditAssociatedSkus(e.target.value)}
+                            placeholder="e.g. P47781-B21"
+                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">CLI Command</label>
+                          <input
+                            type="text"
+                            value={editCliScript}
+                            onChange={(e) => setEditCliScript(e.target.value)}
+                            placeholder="e.g. hpe-cli..."
+                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 font-mono"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Human Notes</label>
+                        <textarea
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          placeholder="Provide additional details..."
+                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 h-10 resize-none font-sans"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="text-gray-300 font-medium">{rule.label}</div>
+                      {(rule.associatedSkus || rule.cliScript || rule.notes) && (
+                        <div className="mt-1.5 p-2 rounded bg-black/30 border border-white/5 space-y-1.5 text-[10px] max-w-[280px]">
+                          {rule.associatedSkus && (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-gray-500 font-mono text-[9px] uppercase">Combo/Accessory SKUs:</span>
+                              <span className="text-indigo-300 font-mono font-bold break-all bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 w-fit">{rule.associatedSkus}</span>
+                            </div>
+                          )}
+                          {rule.cliScript && (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-gray-500 font-mono text-[9px] uppercase">CLI Automation Command:</span>
+                              <code className="bg-black/45 text-amber-400 px-1.5 py-0.5 rounded border border-white/5 font-mono select-all break-all">{rule.cliScript}</code>
+                            </div>
+                          )}
+                          {rule.notes && (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-gray-500 font-mono text-[9px] uppercase">Remedy Notes:</span>
+                              <span className="text-gray-400 italic bg-white/2 px-1.5 py-0.5 rounded border border-white/5 leading-relaxed">{rule.notes}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </td>
+
+                <td className="p-3 font-bold text-gray-200">
+                  {isEditing ? (
+                    <select
+                      value={editVendor}
+                      onChange={(e) => setEditVendor(e.target.value)}
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none"
+                    >
+                      <option value="HPE">HPE</option>
+                      <option value="Dell">Dell</option>
+                      <option value="Cisco">Cisco</option>
+                      <option value="Juniper">Juniper</option>
+                    </select>
+                  ) : (
+                    rule.vendor
+                  )}
+                </td>
+
+                <td className="p-3 whitespace-nowrap">
+                  {rule.isAutoLearned ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded font-mono uppercase">
+                        🧠 Auto-Learned
+                      </span>
+                      {rule.learnedAt && (
+                        <span className="text-[8px] text-gray-600 font-mono">
+                          {new Date(rule.learnedAt).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded font-mono uppercase">
+                      ✍️ Manual
+                    </span>
+                  )}
+                </td>
+
+                <td className="p-3 whitespace-nowrap">
+                  {isEditing ? (
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as SourcingRule["status"])}
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none"
+                    >
+                      <option value="active">Active</option>
+                      <option value="draft">Draft</option>
+                    </select>
+                  ) : (
+                    <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9.5px] ${
+                      rule.status === "active" ? "text-emerald-400" : "text-gray-500 animate-pulse"
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${rule.status === "active" ? "bg-emerald-400" : "bg-gray-500"}`} />
+                      {rule.status}
+                    </span>
+                  )}
+                </td>
+
+                <td className="p-3 text-center whitespace-nowrap">
+                  {isEditing ? (
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => handleSaveEdit(rule.id)}
+                        className="p-1 px-2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition cursor-pointer text-[10px] font-bold flex items-center gap-1"
+                      >
+                        <Save className="w-3.5 h-3.5" /> Save
+                      </button>
+                      <button
+                        onClick={() => setEditingRuleId(null)}
+                        className="p-1 px-2 rounded bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 transition cursor-pointer text-[10px] font-bold flex items-center gap-1"
+                      >
+                        <X className="w-3.5 h-3.5" /> Pin
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-1.5">
+                      {rule.status === "draft" && (
+                        <button
+                          onClick={() => onSimulateAndPromote(rule.id)}
+                          disabled={simulatingRuleId === rule.id}
+                          className="p-1.5 px-2 rounded bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition cursor-pointer text-[10px] font-bold flex items-center gap-1 disabled:opacity-50"
+                          title="Simulate rule blast radius and promote to active"
+                        >
+                          {simulatingRuleId === rule.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Activity className="w-3.5 h-3.5" />
+                          )}
+                          Simulate & Promote
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleStartEdit(rule)}
+                        className="p-1 px-2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition cursor-pointer text-[11px] font-medium flex items-center gap-0.5"
+                        title="Edit override directive parameters"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="p-1.5 rounded bg-red-400/10 border border-red-400/20 text-red-400 hover:bg-red-400/20 transition cursor-pointer text-[11px] font-medium"
+                        title="Delete policy permanently"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}

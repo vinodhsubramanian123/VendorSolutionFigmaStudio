@@ -12,7 +12,7 @@ import { TaxonomyGraphSidebar } from "./TaxonomyGraphSidebar";
 import { KnowledgeGraphCanvas } from "./KnowledgeGraphCanvas";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
-const DEFAULT_CONFIGS = [{ id: "cfg-base", vendor: "HPE" } as Config];
+const DEFAULT_CONFIGS: Config[] = [{ id: "cfg-base", vendor: "HPE", name: "Base Configuration", totalPrice: 0, originalPrice: 0, items: [] }];
 
 interface TaxonomyGraphViewProps {
   catalogSkus: CatalogSKU[];

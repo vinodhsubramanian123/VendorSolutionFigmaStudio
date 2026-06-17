@@ -191,7 +191,7 @@ export function IngestionHub({
             .join("\n") || "";
 
         return {
-          id: `dynamic-hub-${displayId}`,
+          id: crypto.randomUUID(),
           displayId: displayId,
           name: `Sourced ${sol.vendorSubmissions?.[0]?.vendor || sol.name} Alignment Config`,
           solutionName: boqResponse.sourceFile,
@@ -211,7 +211,7 @@ export function IngestionHub({
             {
               id: `sol-${displayId}-primary`,
               name: sol.name,
-              targetUcidId: `dynamic-hub-${displayId}`,
+              targetUcidId: displayId,
               vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({ ...vs })) || [],
             },
           ],

@@ -146,7 +146,7 @@ export function Dashboard({
       up: true,
     },
     {
-      id: "catalog",
+      id: "vendor-portal",
       label: "Last Sync Status",
       value: syncStatusInfo.value,
       sub: syncStatusInfo.sub,
@@ -297,6 +297,7 @@ export function Dashboard({
           {criticalIssues > 0 && (
             <button
               onClick={() => onNavigate("forensic")}
+              aria-label="Resolve Critical Issues"
               className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer border border-status-error/30"
               style={{ background: tokens.colors.status.error, color: tokens.colors.text.primary }} 
             >
@@ -306,6 +307,7 @@ export function Dashboard({
           )}
           <button
             onClick={() => onNavigate("mission-control")}
+            aria-label="Open Live Mission Control"
             className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer"
             style={{ background: tokens.colors.accent.indigo, color: tokens.colors.text.primary }} 
           >
@@ -378,7 +380,7 @@ export function Dashboard({
             </button>
           </div>
           <div
-            className="divide-y"
+            className="divide-y max-h-[300px] overflow-y-auto"
             style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
           >
             {renderedUcids}

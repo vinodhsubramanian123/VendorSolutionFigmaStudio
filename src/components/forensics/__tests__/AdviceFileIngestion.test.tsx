@@ -84,7 +84,8 @@ describe('AdviceFileIngestion', () => {
   it('switches between tabs', () => {
     renderComponent({ uploadSuccess: true, adviceItems: [], bomItems: [{ 'Product Number': 'PN2' }] });
     
-    const bomTab = screen.getByText(/BOM Items/i);
+    // Use getByRole to target the specific tab button (avoids matching the summary text line too)
+    const bomTab = screen.getByRole('button', { name: /BOM Items/i });
     fireEvent.click(bomTab);
     
     expect(screen.getByText('PN2')).toBeInTheDocument();

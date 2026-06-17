@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { apiClient } from "../../services/apiClient";
 import { motion } from "motion/react";
 import { Info, Loader2, Network } from "lucide-react";
-import type { CatalogSKU, Vendor } from "../../types";
+import type { CatalogSKU, Vendor, TaxonomyPath } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
 import { CatalogHeader } from "./CatalogHeader";
@@ -19,7 +19,7 @@ interface CatalogManagerProps {
   vendors?: Vendor[];
 }
 
-function matchesDeepPath(sku: CatalogSKU, selectedPath: import('../../types').TaxonomyPath): boolean {
+function matchesDeepPath(sku: CatalogSKU, selectedPath: TaxonomyPath): boolean {
   if (selectedPath.vendor !== "all" && sku.vendor.toLowerCase() !== selectedPath.vendor.toLowerCase()) {
     return false;
   }
@@ -32,14 +32,7 @@ function matchesDeepPath(sku: CatalogSKU, selectedPath: import('../../types').Ta
     if (selectedPath.product !== "all") {
       const p = selectedPath.product.toLowerCase();
       const family = sku.productFamily?.toLowerCase();
-      if (p === "dl380a" && family !== "dl380a") return false;
-      if (p === "dl380" && family !== "dl380") return false;
-      if (p === "dl80" && family !== "dl80") return false;
-      if (p === "msa" && family !== "msa") return false;
-      if (p === "aruba" && family !== "aruba") return false;
-      if (p === "r760" && family !== "r760") return false;
-      if (p === "ucs" && family !== "ucs") return false;
-      if (p === "qfx" && family !== "qfx") return false;
+      if (p !== family) return false;
 
       if (selectedPath.generation !== "all") {
         const gen = selectedPath.generation.toLowerCase();
@@ -66,9 +59,9 @@ export function CatalogManager({
   const deferredSearchTerm = React.useDeferredValue(searchTerm);
 
   const totalCatalogItems = useMemo(() => {
-    if (!vendors || vendors.length === 0) return 16625;
+    if (!vendors || vendors.length === 0) return catalogSkus.length;
     return vendors.reduce((acc, v) => acc + (v.catalogItems || 0), 0);
-  }, [vendors]);
+  }, [vendors, catalogSkus.length]);
 
   const totalConnectedVendors = useMemo(() => {
     return vendors?.length || 5;
@@ -82,7 +75,7 @@ export function CatalogManager({
   const [showAddForm, setShowAddForm] = useState(false);
 
   // Deep Nesting Multi-level Manufacturer Sourcing Taxonomy State
-  const [selectedPath, setSelectedPath] = useState<any>({
+  const [selectedPath, setSelectedPath] = useState<TaxonomyPath>({
     vendor: "all",
     solution: "all",
     product: "all",
@@ -134,13 +127,17 @@ export function CatalogManager({
         return false;
       }
 
+      if (vendorFilter !== "all" && sku.vendor.toLowerCase() !== vendorFilter.toLowerCase()) {
+        return false;
+      }
+
       if (selectedPath.vendor !== "all") {
         if (!matchesDeepPath(sku, selectedPath)) return false;
       }
 
-      return matchesSearch;
+      return true;
     });
-  }, [catalogSkus, deferredSearchTerm, typeFilter, selectedPath]);
+  }, [catalogSkus, deferredSearchTerm, typeFilter, vendorFilter, selectedPath]);
 
 
 
@@ -181,7 +178,7 @@ export function CatalogManager({
 
   async function handleAddSku(data: Omit<CatalogSKU, "id" | "status">) {
     const newSku: CatalogSKU = {
-      id: `sku-custom-${Date.now()}`,
+      id: crypto.randomUUID(),
       ...data,
       status: "active",
     };

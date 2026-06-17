@@ -26,7 +26,9 @@ export function ReconciliationView({
   setForensicIssues,
   setVendors,
 }: ReconciliationViewProps) {
-  const [hasDrift, setHasDrift] = useState(true);
+  const [hasDrift, setHasDrift] = useState(() => {
+    return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison");
+  });
   const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
 
   // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines

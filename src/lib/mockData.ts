@@ -892,32 +892,32 @@ export const UCIDS: UCID[] = [
     ],
     events: [
       {
-        ts: "10:24:12",
+        ts: "2026-06-01T10:24:12Z",
         level: "info",
         msg: "System Ingested Raw BOQ via Email API Pipeline",
       },
       {
-        ts: "10:25:30",
+        ts: "2026-06-01T10:25:30Z",
         level: "ok",
         msg: "Core constraints extracted: 48x Intel 32-Core, 512GB Memory, 15TB PCIe Storage",
       },
       {
-        ts: "10:26:01",
+        ts: "2026-06-01T10:26:01Z",
         level: "ok",
         msg: "Pre-intelligence catalog matching complete.",
       },
       {
-        ts: "10:30:15",
+        ts: "2026-06-01T10:30:15Z",
         level: "ok",
         msg: "Dual alternatives constructed: HPE DL380 Gen11 vs Dell R760",
       },
       {
-        ts: "11:12:44",
+        ts: "2026-06-01T11:12:44Z",
         level: "warn",
         msg: "API Warning — Dell transaction endpoint returned high queue load",
       },
       {
-        ts: "11:13:00",
+        ts: "2026-06-01T11:13:00Z",
         level: "ok",
         msg: "Vendor provisioning online: Contract pricing synced containing -6% discount",
       },
@@ -984,12 +984,12 @@ export const UCIDS: UCID[] = [
     ],
     events: [
       {
-        ts: "14:15:32",
+        ts: "2026-06-03T14:15:32Z",
         level: "info",
         msg: "Ingested raw CSV sheet containing 2 records",
       },
       {
-        ts: "14:17:11",
+        ts: "2026-06-03T14:17:11Z",
         level: "warn",
         msg: "Price mismatch detected on 24x 400-BPSB SSD storage cards. Direct API quotes $1,190 vs BOQ $1,590.",
       },
@@ -1012,7 +1012,7 @@ export const UCIDS: UCID[] = [
     solutions: [],
     events: [
       {
-        ts: "09:12:00",
+        ts: "2026-06-04T09:12:00Z",
         level: "info",
         msg: "Awaiting raw list alignment parsing...",
       },
@@ -1076,14 +1076,14 @@ export const UCIDS: UCID[] = [
       },
     ],
     events: [
-      { ts: "2026-05-25 11:30", level: "info", msg: "Intake created." },
+      { ts: "2026-05-25T11:30:00Z", level: "info", msg: "Intake created." },
       {
-        ts: "2026-05-25 11:35",
+        ts: "2026-05-25T11:35:00Z",
         level: "ok",
         msg: "Pre-intelligence validated 4 units SRX300.",
       },
       {
-        ts: "2026-05-25 13:02",
+        ts: "2026-05-25T13:02:00Z",
         level: "ok",
         msg: "Committed and locked by procurement agent.",
       },
