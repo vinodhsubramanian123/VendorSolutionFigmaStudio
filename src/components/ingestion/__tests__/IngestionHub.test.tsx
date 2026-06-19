@@ -26,13 +26,13 @@ vi.mock('../BoqIngestWorkbook', () => ({
       {isBOQIngesting && <div data-testid="boq-ingesting">Ingesting {boqProgress}%</div>}
       {boqError && <div data-testid="boq-error">{boqError}</div>}
       {boqResponse && <div data-testid="boq-response">Response Loaded</div>}
-      <button data-testid="set-preset-btn" onClick={() => setSelectedPreset('dell-overcharge')}>
+      <button type="button" data-testid="set-preset-btn" onClick={() => setSelectedPreset('dell-overcharge')}>
         Set Preset
       </button>
-      <button data-testid="trigger-parse-btn" onClick={() => onTriggerBOQParse('hpe_spec.xlsx', 'hpe-legacy')}>
+      <button type="button" data-testid="trigger-parse-btn" onClick={() => onTriggerBOQParse('hpe_spec.xlsx', 'hpe-legacy')}>
         Trigger Parse
       </button>
-      <button data-testid="split-btn" onClick={onSplitAndProvision}>
+      <button type="button" data-testid="split-btn" onClick={onSplitAndProvision}>
         Split and Provision
       </button>
     </div>
@@ -59,16 +59,16 @@ vi.mock('../TechnicalBomWorkspace', () => ({
       {bomError && <div data-testid="bom-error">{bomError}</div>}
       {bomVerifyResult && <div data-testid="bom-verify-status">Verified</div>}
       {bomReconResult && <div data-testid="bom-recon-status">Reconciled</div>}
-      <button data-testid="trigger-bom-parse-btn" onClick={() => onTriggerBOMParse('bom_spec.xlsx')}>
+      <button type="button" data-testid="trigger-bom-parse-btn" onClick={() => onTriggerBOMParse('bom_spec.xlsx')}>
         Trigger BOM Parse
       </button>
-      <button data-testid="trigger-batch-recon-btn" onClick={onTriggerBatchReconciliation}>
+      <button type="button" data-testid="trigger-batch-recon-btn" onClick={onTriggerBatchReconciliation}>
         Trigger Batch Recon
       </button>
-      <button data-testid="select-mission-btn" onClick={() => onSelectMission('mission-1')}>
+      <button type="button" data-testid="select-mission-btn" onClick={() => onSelectMission('mission-1')}>
         Select Mission
       </button>
-      <button data-testid="select-bom-subset-btn" onClick={() => setSelectedBomsForBatch(['u1'])}>
+      <button type="button" data-testid="select-bom-subset-btn" onClick={() => setSelectedBomsForBatch(['u1'])}>
         Select Subset
       </button>
     </div>
@@ -79,7 +79,7 @@ vi.mock('../HybridPortfolioOrchestration', () => ({
   HybridPortfolioOrchestration: ({ onAdvanceStep }: any) => (
     <div data-testid="portfolio-orchestration">
       <div>Portfolio Mock</div>
-      <button data-testid="portfolio-advance-btn" onClick={onAdvanceStep}>
+      <button type="button" data-testid="portfolio-advance-btn" onClick={onAdvanceStep}>
         Advance Step
       </button>
     </div>
@@ -90,7 +90,7 @@ vi.mock('../LaunchStep', () => ({
   LaunchStep: ({ onNavigate }: any) => (
     <div data-testid="launch-step">
       <div>Launch Step Mock</div>
-      <button data-testid="navigate-btn" onClick={() => onNavigate('dashboard' as any)}>
+      <button type="button" data-testid="navigate-btn" onClick={() => onNavigate('dashboard' as any)}>
         Navigate
       </button>
     </div>
@@ -101,10 +101,10 @@ vi.mock('../../shared/JobStreamer', () => ({
   JobStreamer: ({ jobId, context, onSuccess, onError }: any) => (
     <div data-testid="job-streamer">
       <div>Job Streamer Mock ({jobId})</div>
-      <button data-testid="job-success-btn" onClick={() => onSuccess({ success: true }, context)}>
+      <button type="button" data-testid="job-success-btn" onClick={() => onSuccess({ success: true }, context)}>
         Simulate Job Success
       </button>
-      <button data-testid="job-error-btn" onClick={() => onError('Job execution failed', context)}>
+      <button type="button" data-testid="job-error-btn" onClick={() => onError('Job execution failed', context)}>
         Simulate Job Error
       </button>
     </div>

@@ -74,7 +74,7 @@ export function useCleansingState(catalogSkus: CatalogSKU[]) {
   const handleAutoMap = useCallback(async () => {
     setIsRunningAutoMap(true);
     try {
-      const res = await apiClient.post<any>("/api/cleansing/fuzzy-match", { entries });
+      const res = await apiClient.post<{ entries: CleansingEntry[]; resolvedCount: number }>("/api/cleansing/fuzzy-match", { entries });
       if (res.data && res.data.entries) {
         setEntries(res.data.entries);
         toast(`Auto-mapping complete! ${res.data.resolvedCount} fuzzy entries resolved.`, "success");

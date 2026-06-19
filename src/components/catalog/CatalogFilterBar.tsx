@@ -6,8 +6,8 @@ import type { TaxonomyPath } from "../../types";
 interface CatalogFilterBarProps {
   searchTerm: string;
   setSearchTerm: (val: string) => void;
-  selectedPath: TaxonomyPath | null;
-  setSelectedPath: (val: TaxonomyPath | null) => void;
+  selectedPath: TaxonomyPath;
+  setSelectedPath: React.Dispatch<React.SetStateAction<TaxonomyPath>>;
   setVendorFilter: (val: string) => void;
   setTypeFilter: (val: string) => void;
 }
@@ -30,10 +30,10 @@ export function CatalogFilterBar({
           placeholder="Search Active Part Number or Name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-9 pl-9 pr-3 rounded bg-black/25 text-white placeholder-gray-500 border border-white/5 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 font-medium"
+          className="w-full h-9 pl-9 pr-3 rounded bg-black/25 text-white placeholder-gray-500 border border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 font-medium"
         />
         {searchTerm && (
-          <button
+          <button type="button"
             onClick={() => setSearchTerm("")}
             className="absolute right-3 top-2.5 text-gray-400 hover:text-white cursor-pointer"
           >
@@ -61,7 +61,7 @@ export function CatalogFilterBar({
         {(selectedPath?.vendor !== "all" ||
           selectedPath?.solution !== "all" ||
           searchTerm) && (
-          <button
+          <button type="button"
             onClick={() => {
               setSelectedPath({
                 vendor: "all",

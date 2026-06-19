@@ -161,11 +161,12 @@ export function Sidebar({
             </div>
           </div>
         )}
-        <button
+        <button type="button"
           onClick={(e) => {
             e.stopPropagation();
             onToggle();
           }}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center hidden lg:flex"
         >
           {collapsed ? (
@@ -182,7 +183,7 @@ export function Sidebar({
           const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
           const IconComponent = item.icon;
           return (
-            <button
+            <button type="button"
               id={`nav-${item.path.replace('/', '') || 'dashboard'}`}
               key={item.path}
               onClick={(e) => {
@@ -258,7 +259,7 @@ export function Sidebar({
               const isActive =
                 activeMissionId === ucid.id && activePath.startsWith("/mission-control");
               return (
-                <button
+                <button type="button"
                   id={`side-track-${ucid.id}`}
                   key={ucid.id}
                   onClick={() => onSelectMission(ucid.id)}

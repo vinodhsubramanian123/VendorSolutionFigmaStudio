@@ -95,7 +95,7 @@ export function StepPreIntelligence({
               </p>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={onAdvance}
             className="text-xs px-3 py-1.5 bg-indigo-500 text-white rounded font-bold cursor-pointer hover:bg-indigo-600"
           >

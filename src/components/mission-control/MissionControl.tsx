@@ -23,8 +23,8 @@ import { StatusBadge } from "../shared/StatusBadge";
 import { MissionControlSidebar } from "./MissionControlSidebar";
 import { UCIDStepper } from "./UCIDStepper";
 import { UCIDEventLedger } from "./UCIDEventLedger";
+import { useMissionControlWorkflow } from "./useMissionControlWorkflow";
 
-import { generateDefaultSolutions } from "../../lib/demoDataBuilder";
 import { PRIORITY_COLOR } from "../../lib/constants";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 
@@ -61,10 +61,7 @@ export const MissionControl = React.memo(function MissionControl({
 }: MissionControlProps) {
   const { toast } = useToast();
   const [viewStep, setViewStep] = useState<UCIDStep | null>(null);
-  const [runningIntel, setRunningIntel] = useState<string | null>(null);
-  const [intelProgress, setIntelProgress] = useState(0);
   const [showNewUCID, setShowNewUCID] = useState(false);
-  const [committingSnapshot, setCommittingSnapshot] = useState(false);
   const [hierarchyTab, setHierarchyTab] = useState<"visual" | "faq">("visual");
   const [workspaceMode, setWorkspaceMode] = useState<
     "individual" | "consolidation"
@@ -113,29 +110,6 @@ export const MissionControl = React.memo(function MissionControl({
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
 
-  if (!selected || ucids.length === 0) {
-    return (
-      <ErrorBoundary>
-        <div className="flex flex-col items-center justify-center h-full min-h-[400px] border border-dashed border-brand-indigo/15 bg-surface-elevated/50 rounded-xl m-6">
-          {/* Zero-state list visualization fallback when active ucids collection is empty */}
-          <div className="w-16 h-16 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-6 border border-brand-indigo/20">
-            <Rocket className="w-8 h-8 text-brand-indigo" />
-          </div>
-          <h2 className="text-xl font-bold text-content-primary mb-2">No Active Missions</h2>
-          <p className="text-content-muted text-sm text-center max-w-md mb-8">
-            Initialize a new UCID campaign to begin intelligence tracking.
-          </p>
-          <button
-            onClick={() => setShowNewUCID(true)}
-            className="px-6 py-2.5 rounded-lg bg-brand-indigo text-white font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
-          >
-            Create New Mission
-          </button>
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
   const completeCount = ucids.filter(
     (u) => u.currentStep === "snapshot",
   ).length;
@@ -156,271 +130,40 @@ export const MissionControl = React.memo(function MissionControl({
     return "upcoming";
   }
 
-  function recordAuditLog(
-    fromStep: string | undefined,
-    toStep: string,
-    action: string,
-  ) {
-    try {
-      const stored = localStorage.getItem("procurement_lifecycle_audit_logs");
-      const currentLogs = stored ? JSON.parse(stored) : [];
-      const newLog = {
-        timestamp: new Date().toISOString(),
-        fromStep,
-        toStep,
-        action,
-      };
-      localStorage.setItem(
-        "procurement_lifecycle_audit_logs",
-        JSON.stringify([...currentLogs, newLog].slice(-20)),
-      );
-    } catch (e) {
-      console.warn("Failed to record audit log", e);
-    }
-  }
+  const {
+    runningIntel,
+    intelProgress,
+    committingSnapshot,
+    activeJobId,
+    runIntelligence,
+    onIntelSuccess,
+    onIntelError,
+    advanceStep,
+    regressStep,
+    commitSnapshot,
+    appendLogEvent,
+    clearLogEvents,
+  } = useMissionControlWorkflow({ ucids, setUcids, setViewStep, toast });
 
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
-
-  async function runIntelligence(ucidId: string) {
-    setRunningIntel(ucidId);
-    setIntelProgress(0);
-
-    try {
-      const response = await apiClient.post<{ job_id: string }>("/api/jobs", {
-        type: "config_process",
-        context: { ucid: ucidId, config_id: "intel-scan", solution_id: "baseline" },
-        parent_job_id: ""
-      });
-      setActiveJobId(response.data.job_id);
-    } catch (e: unknown) {
-      toast("Failed to initiate intelligence scan: " + (e as Error).message, "error");
-      setRunningIntel(null);
-    }
-  }
-
-  function onIntelSuccess(result: unknown, context: unknown) {
-    setActiveJobId(null);
-    setRunningIntel(null);
-    const ucidId = (context as { ucid: string }).ucid;
-    setUcids((prev) => {
-      const match = prev.find((u) => u.id === ucidId);
-      if (match) {
-        const currentIdx = STEP_ORDER.indexOf(match.currentStep);
-        const nextStep = STEP_ORDER[currentIdx + 1] || match.currentStep;
-        recordAuditLog(
-          match.currentStep,
-          nextStep,
-          "PRE_INTEL AUTO_ADVANCE",
-        );
-      }
-      return prev.map((u) => {
-        if (u.id === ucidId) {
-          const currentIdx = STEP_ORDER.indexOf(u.currentStep);
-          const nextStep = STEP_ORDER[currentIdx + 1] || u.currentStep;
-
-          // Mock adding a solution if there wasn't one
-          const updatedSolutions =
-            u.solutions.length > 0
-              ? u.solutions
-              : generateDefaultSolutions();
-
-          return {
-            ...u,
-            currentStep: nextStep,
-            completedSteps: [...u.completedSteps, u.currentStep],
-            solutions: updatedSolutions,
-            events: [
-              ...u.events,
-              {
-                ts: new Date().toLocaleTimeString(),
-                level: "ok",
-                msg: `Pre-Intelligence completed. Matches mapped to ${updatedSolutions.length} options.`,
-                    },
-                  ],
-                };
-              }
-              return u;
-            });
-          });
-  }
-
-  function onIntelError(error: string, context: unknown) {
-    setActiveJobId(null);
-    setRunningIntel(null);
-    toast(error, "error");
-  }
-
-  function advanceStep(ucidId: string) {
-    setUcids((prev) => {
-      const match = prev.find((u) => u.id === ucidId);
-      if (match) {
-        const idx = STEP_ORDER.indexOf(match.currentStep);
-        const next = STEP_ORDER[idx + 1];
-        if (next) {
-          recordAuditLog(match.currentStep, next, "MANUAL_STEP_ADVANCE");
-        }
-      }
-      return prev.map((u) => {
-        if (u.id !== ucidId) return u;
-        const idx = STEP_ORDER.indexOf(u.currentStep);
-        const next = STEP_ORDER[idx + 1];
-        if (!next) return u;
-        return {
-          ...u,
-          completedSteps: [...u.completedSteps, u.currentStep],
-          currentStep: next,
-          events: [
-            ...u.events,
-            {
-              ts: new Date().toLocaleTimeString(),
-              level: "info",
-              msg: `Step advanced from ${u.currentStep} to ${next}.`,
-            },
-          ],
-        };
-      });
-    });
-    setViewStep(null);
-  }
-
-  function regressStep(ucidId: string) {
-    setUcids((prev) => {
-      const match = prev.find((u) => u.id === ucidId);
-      if (match) {
-        const idx = STEP_ORDER.indexOf(match.currentStep);
-        const prevStep = STEP_ORDER[idx - 1];
-        if (prevStep) {
-          recordAuditLog(match.currentStep, prevStep, "MANUAL_STEP_REGRESS");
-        }
-      }
-      return prev.map((u) => {
-        if (u.id !== ucidId) return u;
-        const idx = STEP_ORDER.indexOf(u.currentStep);
-        const prevStep = STEP_ORDER[idx - 1];
-        if (!prevStep) return u;
-        return {
-          ...u,
-          completedSteps: u.completedSteps.filter((s) => s !== prevStep),
-          currentStep: prevStep,
-          events: [
-            ...u.events,
-            {
-              ts: new Date().toLocaleTimeString(),
-              level: "info",
-              msg: `Step regressed from ${u.currentStep} to ${prevStep}.`,
-            },
-          ],
-        };
-      });
-    });
-    setViewStep(null);
-  }
-
-  async function commitSnapshot(ucidId: string) {
-    setCommittingSnapshot(true);
-    
-    const ucid = ucids.find((u) => u.id === ucidId);
-    if (!ucid) {
-      setCommittingSnapshot(false);
-      return;
-    }
-
-    const prizeSol = ucid.solutions[0]?.vendorSubmissions?.[0] ?? {
-      id: "vs-mock-fallback",
-      label: "Dual-sourced solution",
-      totalPrice: 244000,
-      vendor: "Unknown",
-      originalPrice: 244000,
-      savings: 0,
-      complianceScore: 100,
-      configs: [],
-    } as VendorSubmission;
-
-    const newSnapshot: Snapshot = {
-      id: "snap-" + Date.now(),
-      version: ucid.snapshots.length + 1,
-      timestamp: new Date().toISOString(),
-      label: "Mission Control Milestone Lock",
-      committedAt: new Date().toISOString().replace("T", " ").substring(0, 19) + " UTC",
-      winnerSolution: prizeSol?.label || "Consolidated Execution",
-      totalValue: prizeSol.totalPrice,
-      notes: "Contract locked & archived automatically in secure compliance ledger.",
-      payload: ucid.solutions,
-      locked: true,
-      bomSnapshot: prizeSol.configs || []
-    };
-
-    try {
-      await apiClient.post(`/api/ucids/${ucidId}/snapshots`, { snapshot: newSnapshot });
-      setUcids((prev) => {
-        const match = prev.find((u) => u.id === ucidId);
-        if (match) {
-          recordAuditLog(
-            match.currentStep,
-            match.currentStep,
-            "SNAPSHOT_LOCKED",
-          );
-        }
-        return prev.map((u) => {
-          if (u.id === ucidId) {
-            return {
-              ...u,
-              completedSteps: [...u.completedSteps, "comparison" as UCIDStep],
-              currentStep: "snapshot" as UCIDStep,
-              snapshots: [...u.snapshots, newSnapshot],
-              events: [
-                ...u.events,
-                {
-                  ts: new Date().toLocaleTimeString(),
-                  level: "ok",
-                  msg: "Snapshot securely committed to immutable ledger.",
-                },
-              ],
-            };
-          }
-          return u;
-        });
-      });
-      toast("Snapshot securely locked and persisted to ledger.", "success");
-    } catch (e) {
-      toast("Failed to commit snapshot to the server.", "error");
-    } finally {
-      setCommittingSnapshot(false);
-    }
-  }
-
-  function appendLogEvent(
-    ucidId: string,
-    level: "info" | "warn" | "ok" | "err",
-    msg: string,
-  ) {
-    setUcids((prev) =>
-      prev.map((u) => {
-        if (u.id === ucidId) {
-          return {
-            ...u,
-            events: [
-              ...u.events,
-              { ts: new Date().toLocaleTimeString(), level, msg },
-            ],
-          };
-        }
-        return u;
-      }),
-    );
-  }
-
-  function clearLogEvents(ucidId: string) {
-    setUcids((prev) =>
-      prev.map((u) => {
-        if (u.id === ucidId) {
-          return {
-            ...u,
-            events: [],
-          };
-        }
-        return u;
-      }),
+  if (!selected || ucids.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div className="flex flex-col items-center justify-center h-full min-h-[400px] border border-dashed border-brand-indigo/15 bg-surface-elevated/50 rounded-xl m-6">
+          <div className="w-16 h-16 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-6 border border-brand-indigo/20">
+            <Rocket className="w-8 h-8 text-brand-indigo" />
+          </div>
+          <h2 className="text-xl font-bold text-content-primary mb-2">No Active Missions</h2>
+          <p className="text-content-muted text-sm text-center max-w-md mb-8">
+            Initialize a new UCID campaign to begin intelligence tracking.
+          </p>
+          <button type="button"
+            onClick={() => setShowNewUCID(true)}
+            className="px-6 py-2.5 rounded-lg bg-brand-indigo text-white font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
+          >
+            Create New Mission
+          </button>
+        </div>
+      </ErrorBoundary>
     );
   }
 

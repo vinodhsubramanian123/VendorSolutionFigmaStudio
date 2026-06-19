@@ -78,7 +78,12 @@ export function AdviceFileIngestion({
     formData.append("file", file);
 
     try {
-      const res = await apiClient.postForm<any>("/api/agents/parse-advice-file", formData);
+      const res = await apiClient.postForm<{
+        adviceItems: AdviceTriageItem[];
+        bomItems: Record<string, string | number | boolean | null>[];
+        configRows: Record<string, string | number | boolean | null>[];
+        ignoredSheets: string[];
+      }>("/api/agents/parse-advice-file", formData);
       if (res.success && res.data) {
         setAdviceItems(res.data.adviceItems || []);
         setBomItems(res.data.bomItems || []);
@@ -143,7 +148,7 @@ export function AdviceFileIngestion({
                 </p>
               </div>
             </div>
-            <button 
+            <button type="button" 
               onClick={handleResetUpload}
               className="text-[9.5px] font-bold text-red-400 hover:text-red-300 border border-red-500/20 hover:bg-red-500/10 px-2 py-1 rounded transition cursor-pointer"
             >
@@ -164,7 +169,7 @@ export function AdviceFileIngestion({
           )}
 
           <div className="flex bg-black/25 border border-white/5 rounded-lg p-0.5 shrink-0 text-[10px]">
-            <button
+            <button type="button"
               onClick={() => setFileSubTab("advice")}
               className={`flex-1 py-1 rounded font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1 ${
                 fileSubTab === "advice" 
@@ -175,7 +180,7 @@ export function AdviceFileIngestion({
               <AlertCircle className="w-3 h-3 text-indigo-400" />
               Validation Messages ({adviceItems.length})
             </button>
-            <button
+            <button type="button"
               onClick={() => setFileSubTab("bom")}
               className={`flex-1 py-1 rounded font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1 ${
                 fileSubTab === "bom" 
@@ -186,7 +191,7 @@ export function AdviceFileIngestion({
               <ListFilter className="w-3 h-3 text-indigo-400" />
               BOM Items ({bomItems.length})
             </button>
-            <button
+            <button type="button"
               onClick={() => setFileSubTab("config")}
               className={`flex-1 py-1 rounded font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1 ${
                 fileSubTab === "config" 
@@ -251,7 +256,7 @@ export function AdviceFileIngestion({
                               Vendor Class: <span className="text-indigo-400 font-bold">{item.vendor}</span>
                             </span>
                             
-                            <button
+                            <button type="button"
                               onClick={() => !item.drafted && onDraftAdviceRule(item)}
                               disabled={item.drafted}
                               className={`px-2 py-1 rounded text-[9.5px] font-bold uppercase transition flex items-center gap-1 border cursor-pointer ${

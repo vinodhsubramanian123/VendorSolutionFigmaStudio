@@ -18,43 +18,43 @@ vi.mock('../../../services/apiClient', () => ({
 vi.mock('../CatalogTaxonomyTree', () => ({
   CatalogTaxonomyTree: vi.fn(({ selectPathFn, toggleNode, expandedNodes }) => (
     <div data-testid="mock-taxonomy-tree">
-      <button onClick={() => selectPathFn({ vendor: 'all', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'all', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}>
         Select All
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'Cisco', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'Cisco', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}>
         Select Cisco
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'all', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'all', generation: 'all', chassis: 'all' })}>
         Select HPE Server
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Storage', product: 'MSA', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Storage', product: 'MSA', generation: 'all', chassis: 'all' })}>
         Select HPE Storage MSA
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Networking', product: 'Aruba', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Networking', product: 'Aruba', generation: 'all', chassis: 'all' })}>
         Select HPE Aruba
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL80', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL80', generation: 'all', chassis: 'all' })}>
         Select HPE DL80
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL380a', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL380a', generation: 'all', chassis: 'all' })}>
         Select HPE DL380a
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'Dell', solution: 'Server', product: 'R760', generation: 'Gen16', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'Dell', solution: 'Server', product: 'R760', generation: 'Gen16', chassis: 'all' })}>
         Select Dell R760
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'Juniper', solution: 'Networking', product: 'QFX', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'Juniper', solution: 'Networking', product: 'QFX', generation: 'all', chassis: 'all' })}>
         Select Juniper QFX
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'all' })}>
         Select HPE DL380 Chassis All
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'sku-1' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'HPE', solution: 'Server', product: 'DL380', generation: 'Gen11', chassis: 'sku-1' })}>
         Select HPE DL380 Chassis sku-1
       </button>
-      <button onClick={() => selectPathFn({ vendor: 'Cisco', solution: 'Networking', product: 'UCS', generation: 'all', chassis: 'all' })}>
+      <button type="button" onClick={() => selectPathFn({ vendor: 'Cisco', solution: 'Networking', product: 'UCS', generation: 'all', chassis: 'all' })}>
         Select Cisco UCS
       </button>
-      <button onClick={() => toggleNode('hpe')}>
+      <button type="button" onClick={() => toggleNode('hpe')}>
         Toggle HPE
       </button>
       <span data-testid="hpe-expanded-status">{expandedNodes.hpe ? 'expanded' : 'collapsed'}</span>

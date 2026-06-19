@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertOctagon, ArrowRight, ShieldAlert, Check } from "lucide-react";
 import type { RuleConflict, SourcingRule } from "../../types";
@@ -11,6 +11,14 @@ interface RuleConflictModalProps {
 }
 
 export function RuleConflictModal({ conflict, existingRule, onResolve, onCancel }: RuleConflictModalProps) {
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onCancel]);
+
   if (!conflict || !existingRule) return null;
 
   return (
@@ -97,19 +105,19 @@ export function RuleConflictModal({ conflict, existingRule, onResolve, onCancel 
 
           {/* Footer Actions */}
           <div className="bg-black/30 border-t border-white/5 px-5 py-4 flex items-center justify-end gap-3">
-            <button
+            <button type="button"
               onClick={onCancel}
               className="px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white transition cursor-pointer"
             >
               Cancel Edit
             </button>
-            <button
+            <button type="button"
               onClick={() => onResolve("keep_existing")}
               className="px-4 py-2 rounded-lg text-xs font-bold bg-white/10 text-white hover:bg-white/20 transition cursor-pointer border border-white/10"
             >
               Keep Existing Rule
             </button>
-            <button
+            <button type="button"
               onClick={() => onResolve("overwrite")}
               className="px-4 py-2 rounded-lg text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 transition cursor-pointer flex items-center gap-2"
             >

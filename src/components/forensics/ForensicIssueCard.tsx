@@ -70,7 +70,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             {onManualPromote && (
-              <button
+              <button type="button"
                 onClick={() => onManualPromote(issue)}
                 className="flex items-center gap-1 text-[10px] font-medium py-2 px-3 rounded-lg bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/25 transition-all cursor-pointer border border-indigo-500/20 uppercase tracking-wide"
                 title="Pre-fill Sourcing Rules form with details"
@@ -78,7 +78,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
                 Seed Intel Override
               </button>
             )}
-            <button
+            <button type="button"
               onClick={() => onAutoHeal(issue.id)}
               className="flex items-center gap-1.2 text-[10px] font-extrabold py-2 px-3.5 rounded-lg bg-status-success/12 text-status-success hover:bg-status-success/25 transition-all cursor-pointer border border-status-success/22 uppercase tracking-wide shadow-md shadow-status-success/5" 
             >

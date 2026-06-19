@@ -73,9 +73,9 @@ export function ReconciliationView({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
+          <button type="button"
             onClick={() => setIsSnapshotPanelOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 hover:text-indigo-300 font-extrabold uppercase text-[9.5px] tracking-wider transition-all duration-150 cursor-pointer focus:outline-none"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 hover:text-indigo-300 font-extrabold uppercase text-[9.5px] tracking-wider transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <Camera className="w-3.5 h-3.5" />
             <span>Version Snapshots ({activeUCID?.snapshots?.length || 0})</span>

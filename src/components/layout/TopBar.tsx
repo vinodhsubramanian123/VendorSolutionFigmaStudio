@@ -151,11 +151,11 @@ export function TopBar({
       {/* Global Lookup Search & Actions */}
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Create Solution Gradient Button */}
-        <button
+        <button type="button"
           id="topbar-create-solution-btn"
           data-testid="create-solution-btn"
           onClick={() => navigate("/solution-builder")}
-          className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 transition shadow-md shadow-indigo-500/10 cursor-pointer flex items-center gap-1.5 focus:outline-none shrink-0"
+          className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 transition shadow-md shadow-indigo-500/10 cursor-pointer flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Create Solution</span>
@@ -163,7 +163,7 @@ export function TopBar({
 
         {/* Search Input Box */}
         <div className="relative w-32 sm:w-60 md:w-80" ref={dropdownRef}>
-          <button
+          <button type="button"
             onClick={() => inputRef.current?.focus()}
             className="absolute inset-y-0 left-3 flex items-center text-gray-500 hover:text-indigo-400 transition-colors z-10"
             title="Focus Search Input"
@@ -183,7 +183,7 @@ export function TopBar({
             }}
             onBlur={handleBlur}
             placeholder="Search SKUs, vendors, processes..."
-            className="w-full h-9 pl-9 pr-12 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 border transition-all"
+            className="w-full h-9 pl-9 pr-12 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 border transition-all"
             style={{
               backgroundColor: "rgba(74, 133, 253,0.03)",
               borderColor: "rgba(74, 133, 253,0.12)",
@@ -214,7 +214,7 @@ export function TopBar({
                         <span>Active Tracks ({matchedMissions.length})</span>
                       </div>
                       {matchedMissions.map(m => (
-                        <button
+                        <button type="button"
                           key={m.id}
                           onClick={() => {
                             onSelectMission && onSelectMission(m.id);
@@ -240,7 +240,7 @@ export function TopBar({
                         <span>Vendor Partners ({matchedVendors.length})</span>
                       </div>
                       {matchedVendors.map(v => (
-                        <button
+                        <button type="button"
                           key={v.id}
                           onClick={() => {
                             navigate("/vendor-portal");
@@ -265,7 +265,7 @@ export function TopBar({
                         <span>Inventory SKUs ({matchedSkus.length})</span>
                       </div>
                       {matchedSkus.map(s => (
-                        <button
+                        <button type="button"
                           key={s.id}
                           onClick={() => {
                             navigate("/catalog");
@@ -293,7 +293,7 @@ export function TopBar({
                 className="mt-1 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500 font-medium"
               >
                 <span>↵ Press Enter to review details</span>
-                <button
+                <button type="button"
                   onClick={() => {
                     setShowDropdown(false);
                     navigate("/search");
@@ -326,8 +326,9 @@ export function TopBar({
 
         {/* Notifications & System Configurations */}
         <div className="flex items-center gap-1">
-          <button
+          <button type="button"
             id="btn-notifications"
+            aria-label="Notifications"
             onClick={() => toast.success("No new priority notifications.")}
             className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer relative"
           >
@@ -335,8 +336,9 @@ export function TopBar({
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
           </button>
 
-          <button
+          <button type="button"
             id="btn-settings"
+            aria-label="Settings"
             onClick={() => toast.success("Settings modal opening...")}
             className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
           >

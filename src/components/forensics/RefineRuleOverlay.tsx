@@ -100,6 +100,14 @@ export function RefineRuleOverlay({
     }
   }, [refiningItem]);
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRefiningItem(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [setRefiningItem]);
+
   const handleToggleRemedyOption = (sku: string) => {
     const updated = remedyOptions.map(o => o.sku === sku ? { ...o, checked: !o.checked } : o);
     setRemedyOptions(updated);
@@ -140,7 +148,7 @@ export function RefineRuleOverlay({
     if (!refiningItem) return;
     
     const draftRule: SourcingRule = {
-      id: `rule-draft-${Date.now()}-${refiningItem.ruleNumber}`,
+      id: crypto.randomUUID(),
       ruleType: refineRuleType,
       partNumber: refineTargetSku.trim(),
       mappedOutput: refineAssociatedSkus.trim() || "SYMMETRY_ENFORCED",
@@ -179,8 +187,9 @@ export function RefineRuleOverlay({
                 Refine Sourcing Policy (Rule {refiningItem.ruleNumber})
               </h4>
             </div>
-            <button 
+            <button type="button" 
               onClick={() => setRefiningItem(null)} 
+              aria-label="Close"
               className="text-gray-400 hover:text-white transition cursor-pointer border-0 bg-transparent"
             >
               <X className="w-4 h-4" />
@@ -206,7 +215,7 @@ export function RefineRuleOverlay({
                 <select
                   value={refineRuleType}
                   onChange={(e) => setRefineRuleType(e.target.value as SourcingRule["ruleType"])}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
+                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
                   <option value="substitution">Obsolete Substitution Mapping</option>
                   <option value="price_cap">Price Contract Cap ($)</option>
@@ -220,7 +229,7 @@ export function RefineRuleOverlay({
                 <select
                   value={refineSeverity}
                   onChange={(e) => setRefineSeverity(e.target.value as "critical" | "warning" | "info")}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
+                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
                   <option value="critical">Unbuildable (Critical)</option>
                   <option value="warning">Warning</option>
@@ -234,7 +243,7 @@ export function RefineRuleOverlay({
                   type="text"
                   value={refineTargetSku}
                   onChange={(e) => setRefineTargetSku(e.target.value)}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
+                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 />
               </div>
 
@@ -243,11 +252,11 @@ export function RefineRuleOverlay({
                 <select
                   value={refineScope}
                   onChange={(e) => setRefineScope(e.target.value)}
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
+                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
-                  <option>Exact SKU Match Only</option>
-                  <option>Specific Category Only</option>
-                  <option>Global Brand</option>
+                  <option value="Exact SKU Match Only">Exact SKU Match Only</option>
+                  <option value="Specific Category Only">Specific Category Only</option>
+                  <option value="Global Brand">Global Brand</option>
                 </select>
               </div>
             </div>
@@ -327,7 +336,7 @@ export function RefineRuleOverlay({
                   value={refineAssociatedSkus}
                   onChange={(e) => setRefineAssociatedSkus(e.target.value)}
                   placeholder="e.g. P47781-B21, P47777-B21"
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none placeholder-gray-600"
+                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 placeholder-gray-600"
                 />
               </div>
 
@@ -338,7 +347,7 @@ export function RefineRuleOverlay({
                   value={refineCliScript}
                   onChange={(e) => setRefineCliScript(e.target.value)}
                   placeholder="e.g. hpe-cli configure --add P47781-B21"
-                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none placeholder-gray-600"
+                  className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 placeholder-gray-600"
                 />
               </div>
             </div>
@@ -349,7 +358,7 @@ export function RefineRuleOverlay({
                 value={refineNotes}
                 onChange={(e) => setRefineNotes(e.target.value)}
                 placeholder="Explain the remedy rules and lessons learned..."
-                className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg text-xs focus:border-indigo-500/40 focus:outline-none h-14 resize-none placeholder-gray-600"
+                className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg text-xs focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 h-14 resize-none placeholder-gray-600"
               />
             </div>
           </div>

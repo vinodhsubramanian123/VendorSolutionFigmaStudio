@@ -52,7 +52,7 @@ export function LaunchStep({ onNavigate }: LaunchStepProps) {
         id="launch-solution-builder-btn"
         type="button"
         onClick={() => onNavigate("solution-builder")}
-        className="px-8 py-3 bg-brand-indigo hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg shadow-sky-500/20 transition-colors flex items-center gap-2 cursor-pointer focus:outline-none" 
+        className="px-8 py-3 bg-brand-indigo hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg shadow-sky-500/20 transition-colors flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50" 
       >
         <Play className="w-5 h-5 shrink-0" />
         <span>Launch Solution Builder</span>

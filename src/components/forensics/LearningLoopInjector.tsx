@@ -44,14 +44,14 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
             Semantic Intelligence Injector
           </h4>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-white transition cursor-pointer border-0 bg-transparent">
+        <button type="button" onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-white transition cursor-pointer border-0 bg-transparent">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Navigation Tabs */}
       <div className="flex bg-black/35 border-b border-white/5 p-1 shrink-0">
-        <button
+        <button type="button"
           onClick={() => setActiveTab("chat")}
           className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
             activeTab === "chat" 
@@ -61,7 +61,7 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
         >
           AI Semantic Agent
         </button>
-        <button
+        <button type="button"
           onClick={() => setActiveTab("file")}
           className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
             activeTab === "file" 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Target, Check } from "lucide-react";
 
 interface RuleClarificationModalProps {
@@ -15,6 +15,14 @@ export function RuleClarificationModal({
   onCancel,
 }: RuleClarificationModalProps) {
   const [scope, setScope] = useState<"Global" | "Brand" | "Exact">("Exact");
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onCancel]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -66,10 +74,10 @@ export function RuleClarificationModal({
         </div>
 
         <div className="p-4 border-t border-white/5 bg-black/40 flex justify-end gap-3">
-          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition">
+          <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition">
             Cancel
           </button>
-          <button onClick={() => onConfirm(scope)} className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white flex items-center gap-2 transition">
+          <button type="button" onClick={() => onConfirm(scope)} className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white flex items-center gap-2 transition">
             <Check className="w-3.5 h-3.5" />
             Lock Intelligence Rule
           </button>

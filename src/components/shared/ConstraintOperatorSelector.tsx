@@ -30,7 +30,7 @@ export function ConstraintOperatorSelector({
       </p>
       
       <div className="flex bg-black/40 p-1 rounded-lg border border-white/5 mt-1">
-        <button
+        <button type="button"
           onClick={() => onChange('AND')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-bold transition-all ${
             operator === 'AND'
@@ -41,7 +41,7 @@ export function ConstraintOperatorSelector({
           <CheckSquare2 className="w-3.5 h-3.5" />
           AND (Joint Req)
         </button>
-        <button
+        <button type="button"
           onClick={() => onChange('OR')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-bold transition-all ${
             operator === 'OR'

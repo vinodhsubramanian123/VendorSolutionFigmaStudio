@@ -10,10 +10,10 @@ vi.mock('../../shared/JobStreamer', () => ({
   JobStreamer: ({ jobId, context, onSuccess, onError }: any) => (
     <div data-testid="job-streamer">
       <div>Job Streamer Mock ({jobId})</div>
-      <button data-testid="job-success-btn" onClick={() => onSuccess({ success: true }, context)}>
+      <button type="button" data-testid="job-success-btn" onClick={() => onSuccess({ success: true }, context)}>
         Simulate Job Success
       </button>
-      <button data-testid="job-error-btn" onClick={() => onError('Reconciliation job failed', context)}>
+      <button type="button" data-testid="job-error-btn" onClick={() => onError('Reconciliation job failed', context)}>
         Simulate Job Error
       </button>
     </div>

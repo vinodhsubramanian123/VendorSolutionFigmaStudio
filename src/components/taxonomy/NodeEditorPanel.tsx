@@ -57,7 +57,7 @@ export function NodeEditorPanel({
                   value={selectedNode.type}
                   onChange={async e => {
                     if (updateGraphNode) {
-                      const success = await updateGraphNode(selectedNode.id, { type: e.target.value as any });
+                      const success = await updateGraphNode(selectedNode.id, { type: e.target.value as "catalog_part" | "product" | "category_hub" | "scraped_orphan" });
                       if (success) toast("Node type updated", "success");
                     }
                   }}
@@ -70,7 +70,7 @@ export function NodeEditorPanel({
                 </select>
               </div>
 
-              <button
+              <button type="button"
                 onClick={async () => {
                   if (deleteGraphNode && selectedNodeId) {
                     const success = await deleteGraphNode(selectedNodeId);
@@ -85,7 +85,7 @@ export function NodeEditorPanel({
                 Delete Node
               </button>
 
-              <button 
+              <button type="button" 
                 onClick={() => setSelectedNodeId && setSelectedNodeId(null)}
                 className="w-full text-center text-[9px] font-mono text-gray-500 hover:text-gray-300 border-0 bg-transparent cursor-pointer mt-1"
               >
@@ -97,7 +97,7 @@ export function NodeEditorPanel({
           <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-gray-500 flex flex-col items-center justify-center min-h-[140px] gap-2">
             <HelpCircle className="w-8 h-8 text-gray-600" />
             <p>Click on any node in the graph canvas to modify its properties.</p>
-            <button
+            <button type="button"
               onClick={() => setIsEditingNode(true)}
               className="mt-2 px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded font-mono text-[9px] uppercase hover:bg-indigo-500/30 cursor-pointer"
             >
@@ -120,7 +120,7 @@ export function NodeEditorPanel({
             <div className="space-y-1.5">
               <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Type</label>
               <select
-                value={newNodeType} onChange={e => setNewNodeType(e.target.value as any)}
+                value={newNodeType} onChange={e => setNewNodeType(e.target.value as "catalog_part" | "product")}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
               >
                 <option value="catalog_part">Catalog Part (Atomic)</option>
@@ -143,13 +143,13 @@ export function NodeEditorPanel({
               />
             </div>
             <div className="flex gap-2">
-              <button
+              <button type="button"
                 onClick={() => setIsEditingNode(false)}
                 className="flex-1 py-1.5 bg-gray-800 text-gray-300 border border-white/10 rounded font-mono text-[9px] cursor-pointer"
               >
                 Cancel
               </button>
-              <button
+              <button type="button"
                 onClick={async () => {
                   if (newNodeLabel && addGraphNode) {
                     const success = await addGraphNode({

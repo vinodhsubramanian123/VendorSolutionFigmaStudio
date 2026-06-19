@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { 
   validators, 
-  ReconciliationRequestSchema 
+  ReconciliationRequestSchema,
+  UCIDSchema,
+  BOMItemSchema,
+  IngestRequestSchema,
+  ConstraintCheckRequestSchema,
+  VendorSchema
 } from '../zodSchemas';
 
 describe('Zod Schemas and Validators', () => {
@@ -212,5 +217,101 @@ describe('Zod Schemas and Validators', () => {
       origin: "portal",
     });
     expect(invalid.success).toBe(false);
+  });
+
+  describe('Negative Boundary & DTO Validations', () => {
+    it('should reject UCID with invalid displayId format', () => {
+      const mockUCIDInvalidDisplayId = {
+        id: "ucid-1",
+        displayId: "INVALID-FORMAT-123", // Does not match /^UCID-\d{4}-\d+$/
+        name: "Test",
+        priority: "high",
+        projectRef: "proj",
+        createdAt: "2024-01-01T00:00:00Z",
+        currentStep: "boq-intake",
+        completedSteps: ["boq-intake"],
+        rawBOM: "raw",
+        solutions: [],
+        events: [],
+        snapshots: []
+      };
+      
+      const result = UCIDSchema.safeParse(mockUCIDInvalidDisplayId);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].path).toContain('displayId');
+      }
+    });
+
+    it('should reject negative quantities and prices in BOMItem', () => {
+      const negativeItem = {
+        id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        partNumber: "P123",
+        name: "Test",
+        type: "Chassis",
+        quantity: -5, // Invalid
+        unitPrice: -100 // Invalid
+      };
+
+      const result = BOMItemSchema.safeParse(negativeItem);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const errorPaths = result.error.issues.map(i => i.path[0]);
+        expect(errorPaths).toContain('quantity');
+        expect(errorPaths).toContain('unitPrice');
+      }
+    });
+
+    it('should validate DTO Integration Payloads (IngestRequestSchema)', () => {
+      const validIngest = {
+        fileName: "HPE_PARTNER_QUOTE_6130_EOL.xlsx",
+        presetType: "hpe-legacy"
+      };
+      expect(IngestRequestSchema.safeParse(validIngest).success).toBe(true);
+
+      const invalidIngest = {
+        fileName: "", // Too short
+        presetType: "unknown-preset" // Invalid enum
+      };
+      const invalidResult = IngestRequestSchema.safeParse(invalidIngest);
+      expect(invalidResult.success).toBe(false);
+    });
+
+    it('should catch invalid ConstraintCheckRequestSchema payloads', () => {
+      const invalidPayload = {
+        chassisSKU: "", // Empty not allowed
+        cpuSKU: "P123",
+        ramQuantity: 0, // Must be positive
+        psuWattsCount: -5 // Must be positive
+      };
+      const result = ConstraintCheckRequestSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const errorPaths = result.error.issues.map(i => i.path[0]);
+        expect(errorPaths).toContain('chassisSKU');
+        expect(errorPaths).toContain('ramQuantity');
+        expect(errorPaths).toContain('psuWattsCount');
+      }
+    });
+
+    it('should enforce URL format on Vendor apiEndpoint', () => {
+      const invalidVendor = {
+        id: "v-1",
+        name: "Test",
+        shortName: "Test",
+        status: "connected",
+        color: "red",
+        catalogItems: 0,
+        apiHealth: 100,
+        apiEndpoint: "not-a-valid-url", // Invalid
+        syncInterval: "1h",
+        lastSync: "2024-01-01T00:00:00Z"
+      };
+      const result = VendorSchema.safeParse(invalidVendor);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].path).toContain('apiEndpoint');
+      }
+    });
   });
 });

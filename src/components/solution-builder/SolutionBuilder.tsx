@@ -8,6 +8,7 @@ import { StepIntake } from './StepIntake';
 import { StepWorkspace } from './StepWorkspace';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { apiClient } from '../../services/apiClient';
+import { generateDisplayId } from '../../utils/generateDisplayId';
 
 interface SolutionBuilderProps {
   ucids: UCID[];
@@ -61,7 +62,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           syncStatus: (u.syncStatus === 'Error' ? 'Out-of-Sync' : u.syncStatus) || 'Pending'
         });
 
-        u.solutions.forEach(sol => {
+        u.solutions?.forEach(sol => {
           sol.vendorSubmissions?.forEach(vs => {
             vs.configs?.forEach((cfg) => {
               derivedConfigs.push({
@@ -105,12 +106,10 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
 
   // Add a new UCID container
   const handleAddUcid = () => {
-    const prefix = 'UCID-2026-';
-    const nextNum = 1700 + ucidsList.length;
     const newId = crypto.randomUUID();
     const newContainer: UcidContainer = {
       id: newId,
-      displayId: `${prefix}${nextNum}`,
+      displayId: generateDisplayId(),
       name: `Sub-deployment ${ucidsList.length + 1}`,
       reasoning: 'Assigned configurations to secondary isolated cloud environments.',
       locked: false,
@@ -128,7 +127,8 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   const toggleMultiUcidMode = (enabled: boolean) => {
     setIsMultiUcid(enabled);
     if (!enabled) {
-      const firstId = ucidsList[0]?.id || 'UCID-2026-1699';
+      const firstId = ucidsList[0]?.id;
+      if (!firstId) return; // guard — do nothing if no containers exist
       setConfigs(prev => prev.map(c => ({ ...c, targetUcidId: firstId })));
     } else {
       if (ucidsList.length < 2) {
@@ -197,20 +197,20 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       return {
         id: crypto.randomUUID(),
         trackingRef: `dynamic-${container.id}`,
-        displayId: container.displayId || (container.id.includes('UCID-') ? container.id.substring(container.id.indexOf('UCID-')) : `UCID-2026-${(crypto.getRandomValues(new Uint32Array(1))[0] % 90000) + 10000}`),
+        displayId: container.displayId || generateDisplayId(),
         name: `${solutionName} — ${container.name}`,
         solutionName: solutionName,
         priority: containerIdx === 0 ? 'high' : 'medium',
         projectRef: 'PRJ-HORIZON-2026',
-        createdAt: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: new Date().toISOString(),
         currentStep: 'solution-design', // Incepted straight at the architecture phase
         completedSteps: ['boq-intake', 'pre-intelligence'],
         rawBOM: `Assigned Equipment configurations:\n` + assignedConfigs.map(c => ` - ${c.name} (${c.vendor} equipment)`).join('\n') + `\n\nReasoning: ${container.reasoning}`,
         solutions: [masterSolution],
         events: [
-          { ts: '13:59:32', level: 'info', msg: `Ingested Raw Sheet configurations into Sourcing platform` },
-          { ts: '13:59:45', level: 'ok', msg: `Auto-assigned container: ${container.name} (${container.id})` },
-          { ts: '13:59:52', level: 'ok', msg: `Catalog validation finished with optimal load metrics` }
+          { ts: new Date().toISOString(), level: 'info', msg: `Ingested Raw Sheet configurations into Sourcing platform` },
+          { ts: new Date().toISOString(), level: 'ok', msg: `Auto-assigned container: ${container.name} (${container.id})` },
+          { ts: new Date().toISOString(), level: 'ok', msg: `Catalog validation finished with optimal load metrics` }
         ],
         snapshots: []
       };
@@ -225,7 +225,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     setDeployedSolution({
       name: solutionName,
       ucidCount: generatedUcids.length,
-      timestamp: Date.now()
+      timestamp: new Date().getTime()
     });
 
     onSelectMission(generatedUcids[0].id);
@@ -290,12 +290,10 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
               setConfigs(prev => [...prev, ...(newConfigs as ConfigItem[])]);
               if (ucidsList.length === 0) {
                 // Generate a dummy UCID container to hold the parsed text configs
-                const prefix = 'UCID-2026-';
-                const nextNum = 1700;
-                const newId = `${prefix}${nextNum}`;
+                const newId = crypto.randomUUID();
                 const newContainer: UcidContainer = {
                   id: newId,
-                  displayId: newId,
+                  displayId: generateDisplayId(),
                   name: `Dynamic Ingestion`,
                   reasoning: 'Assigned parsed configurations.',
                   locked: false,

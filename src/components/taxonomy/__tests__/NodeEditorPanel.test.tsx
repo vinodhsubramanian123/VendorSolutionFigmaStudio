@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { NodeEditorPanel } from '../NodeEditorPanel';
 import { ToastProvider } from '../../shared/ToastContext';
@@ -35,7 +35,9 @@ describe('NodeEditorPanel', () => {
     renderComponent({ selectedNodeId: 'node-1', updateGraphNode });
     
     const select = screen.getByDisplayValue('Catalog Part (Atomic)');
-    fireEvent.change(select, { target: { value: 'product' } });
+    await act(async () => {
+      fireEvent.change(select, { target: { value: 'product' } });
+    });
     
     expect(updateGraphNode).toHaveBeenCalledWith('node-1', { type: 'product' });
   });
@@ -45,7 +47,9 @@ describe('NodeEditorPanel', () => {
     renderComponent({ addGraphNode });
     
     const createBtn = screen.getByText('+ Create New Node');
-    fireEvent.click(createBtn);
+    await act(async () => {
+      fireEvent.click(createBtn);
+    });
     
     expect(screen.getByPlaceholderText('e.g. HPE Synergy Frame')).toBeInTheDocument();
     
@@ -53,7 +57,9 @@ describe('NodeEditorPanel', () => {
     fireEvent.change(nameInput, { target: { value: 'New Test Node' } });
     
     const saveBtn = screen.getByText('Save Node');
-    fireEvent.click(saveBtn);
+    await act(async () => {
+      fireEvent.click(saveBtn);
+    });
     
     expect(addGraphNode).toHaveBeenCalled();
   });
@@ -64,7 +70,9 @@ describe('NodeEditorPanel', () => {
     renderComponent({ selectedNodeId: 'node-1', deleteGraphNode, setSelectedNodeId });
     
     const deleteBtn = screen.getByText('Delete Node');
-    fireEvent.click(deleteBtn);
+    await act(async () => {
+      fireEvent.click(deleteBtn);
+    });
     
     expect(deleteGraphNode).toHaveBeenCalledWith('node-1');
   });

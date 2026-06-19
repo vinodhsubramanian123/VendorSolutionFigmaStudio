@@ -90,9 +90,9 @@ export function SolutionBanner({
                   variant="success"
                   size="sm"
                 />
-                <button
+                <button type="button"
                   onClick={onClearDeployed}
-                  className="text-[9px] text-gray-500 hover:text-white underline font-mono cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                  className="text-[9px] text-gray-500 hover:text-white underline font-mono cursor-pointer bg-transparent border-none p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
                   Reset Banner
                 </button>

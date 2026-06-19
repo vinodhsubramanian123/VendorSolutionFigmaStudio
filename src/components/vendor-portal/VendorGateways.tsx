@@ -98,7 +98,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 pt-1 mt-auto">
-              <button
+              <button type="button"
                 onClick={() => handleToggleStatus(vendor.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-bold border cursor-pointer transition-colors ${
                   isConnected

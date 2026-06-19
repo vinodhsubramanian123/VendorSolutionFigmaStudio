@@ -23,6 +23,7 @@ import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
 
 import { MappingPanel } from "./MappingPanel";
+import { CleansingHeader } from "./CleansingHeader";
 import { STATUS_CONFIG } from "./constants";
 import type { MatchStatus, CleansingEntry } from "./types";
 import { generateMockEntries } from "./mockData";
@@ -201,77 +202,15 @@ export function CleansingView({ catalogSkus }: CleansingViewProps) {
       transition={{ duration: 0.35, ease: "easeOut" }}
     >
       {/* Header */}
-      <div
-        className="p-5 rounded-xl border"
-        style={{ background: "rgba(7,10,19,0.8)", borderColor: "rgba(74,133,253,0.12)" }}
-      >
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Scissors className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-white">
-                Interactive Splicing &amp; Mapping Workshop
-              </h1>
-              <p className="text-[11px] text-gray-500 mt-0.5">
-                PRD §3.6 — Quarantine, fuzzy-match, and canonicalize raw BOQ line items against the Master Catalog
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" /> Export CSV
-            </button>
-            <button
-              onClick={handleAutoMap}
-              disabled={isRunningAutoMap}
-              className="flex items-center gap-1.5 text-[11px] font-bold px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition cursor-pointer disabled:opacity-50"
-            >
-              {isRunningAutoMap ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-yellow-300" />}
-              Auto-Map
-            </button>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="flex flex-wrap gap-3 mt-4">
-          {(["all", "matched", "fuzzy", "unmatched", "quarantined", "mapped"] as const).map((s) => {
-            const count = s === "all" ? stats.total : stats[s as keyof typeof stats];
-            const cfg = s === "all" ? null : STATUS_CONFIG[s as MatchStatus];
-            return (
-              <button
-                key={s}
-                onClick={() => setFilterStatus(s)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase font-mono transition cursor-pointer border ${
-                  filterStatus === s
-                    ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
-                    : "bg-white/5 border-white/8 text-gray-500 hover:text-gray-300"
-                }`}
-              >
-                {cfg && <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />}
-                {s === "all" ? "All" : STATUS_CONFIG[s as MatchStatus].label} ({count})
-              </button>
-            );
-          })}
-          {/* Coverage bar */}
-          <div className="ml-auto flex items-center gap-3 text-[10px] text-gray-500">
-            <span className="font-mono">Coverage</span>
-            <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-indigo-500"
-                initial={{ width: 0 }}
-                animate={{ width: `${coveragePercent}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
-            <span className="text-white font-bold font-mono">{coveragePercent}%</span>
-          </div>
-        </div>
-      </div>
+      <CleansingHeader
+        stats={stats}
+        coveragePercent={coveragePercent}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        isRunningAutoMap={isRunningAutoMap}
+        handleExportCSV={handleExportCSV}
+        handleAutoMap={handleAutoMap}
+      />
 
       {/* Main workspace: two-panel layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -285,10 +224,10 @@ export function CleansingView({ catalogSkus }: CleansingViewProps) {
               placeholder="Search raw values, part numbers, SKU names..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent text-xs text-white placeholder-gray-600 focus:outline-none"
+              className="flex-1 bg-transparent text-xs text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
             />
             {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="text-gray-600 hover:text-gray-400">
+              <button type="button" onClick={() => setSearchTerm("")} className="text-gray-600 hover:text-gray-400">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -314,6 +253,15 @@ export function CleansingView({ catalogSkus }: CleansingViewProps) {
                         ? "border-indigo-500/40 bg-indigo-500/5"
                         : "border-white/5 bg-black/15 hover:border-white/10"
                     }`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedEntryId(isSelected ? null : entry.id);
+                        setSkuSearchTerm(entry.detectedPartNumber || entry.rawValue.split(" ")[0]);
+                      }
+                    }}
                     onClick={() => {
                       setSelectedEntryId(isSelected ? null : entry.id);
                       setSkuSearchTerm(entry.detectedPartNumber || entry.rawValue.split(" ")[0]);

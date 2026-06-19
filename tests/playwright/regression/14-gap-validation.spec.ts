@@ -66,7 +66,7 @@ test.describe('14 - Gap UI/UX Resolution E2E', () => {
 
   test('should trigger kebab menu duplicate, edit, and delete actions', async ({ page }) => {
     // Find Actions trigger on the first UCID card
-    const actionBtn = page.getByTitle('Actions').first();
+    const actionBtn = page.locator('button.nested-action').first();
     await expect(actionBtn).toBeVisible();
     
     // Click actions kebab trigger
@@ -81,7 +81,7 @@ test.describe('14 - Gap UI/UX Resolution E2E', () => {
     await expect(page.getByText('(Copy)').first()).toBeVisible();
 
     // Now edit the copy
-    const copyActionBtn = page.getByTitle('Actions').last();
+    const copyActionBtn = page.locator('button.nested-action').last();
     await copyActionBtn.click();
     await delay(300);
 
@@ -97,7 +97,7 @@ test.describe('14 - Gap UI/UX Resolution E2E', () => {
     await expect(page.getByText('Renamed E2E Flow')).toBeVisible();
 
     // Delete the renamed copy
-    const renamedActionBtn = page.getByTitle('Actions').last();
+    const renamedActionBtn = page.locator('button.nested-action').last();
     await renamedActionBtn.click();
     await delay(300);
 

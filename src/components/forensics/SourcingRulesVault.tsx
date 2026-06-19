@@ -137,7 +137,7 @@ export function SourcingRulesVault({
           </div>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button type="button"
             onClick={() => {
               setIsAddingRule(false);
               setIsInjectingIntel(!isInjectingIntel);
@@ -147,7 +147,7 @@ export function SourcingRulesVault({
             <Sparkles className="w-3.5 h-3.5" /> {isInjectingIntel ? "Close Learning Loop" : "Feed Intelligence"}
           </button>
 
-          <button
+          <button type="button"
             onClick={() => {
               setIsInjectingIntel(false);
               setIsAddingRule(!isAddingRule);

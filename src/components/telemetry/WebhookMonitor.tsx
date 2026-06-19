@@ -47,10 +47,10 @@ export function WebhookMonitor({ webhooks }: WebhookMonitorProps) {
             value={hmacSecret}
             onChange={(e) => setHmacSecret(e.target.value)}
             aria-label="HMAC Webhook Signing Secret"
-            className="w-full bg-black/40 border border-white/8 rounded-lg px-3 py-2 text-[11px] text-white font-mono placeholder-gray-600 focus:outline-none focus:border-indigo-500/40"
+            className="w-full bg-black/40 border border-white/8 rounded-lg px-3 py-2 text-[11px] text-white font-mono placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40"
           />
         </div>
-        <button
+        <button type="button"
           onClick={handleTestHMAC}
           className="flex items-center gap-1.5 text-[11px] font-bold px-4 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white transition cursor-pointer shrink-0"
         >

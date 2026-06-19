@@ -86,7 +86,7 @@ export function EdgeEditorPanel({
               <p className="text-[8px] text-gray-500 font-mono mt-1">1.0 = Absolute Requirement | 0.5 = Moderate Substitute</p>
             </div>
 
-            <button
+            <button type="button"
               onClick={handleUpdateEdge}
               disabled={isUpdatingEdge}
               className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-lg border border-indigo-400/20 transition cursor-pointer text-[10px] uppercase font-mono"
@@ -94,7 +94,7 @@ export function EdgeEditorPanel({
               {isUpdatingEdge ? "Syncing..." : "Update Edge Weight"}
             </button>
 
-            <button 
+            <button type="button" 
               onClick={async () => {
                 if (deleteGraphEdge && selectedEdgeId) {
                   const success = await deleteGraphEdge(selectedEdgeId);
@@ -111,7 +111,7 @@ export function EdgeEditorPanel({
               Delete Edge
             </button>
 
-            <button 
+            <button type="button" 
               onClick={() => setSelectedEdgeId && setSelectedEdgeId(null)}
               className="w-full text-center text-[9px] font-mono text-gray-500 hover:text-gray-300 border-0 bg-transparent cursor-pointer mt-1"
             >
@@ -122,7 +122,7 @@ export function EdgeEditorPanel({
           <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-gray-500 flex flex-col items-center justify-center min-h-[140px] gap-2">
             <HelpCircle className="w-8 h-8 text-gray-600" />
             <p>Click on any relationship edge in the graph canvas to modify its properties.</p>
-            <button
+            <button type="button"
               onClick={() => setIsCreatingEdge(true)}
               className="mt-2 px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded font-mono text-[9px] uppercase hover:bg-indigo-500/30 cursor-pointer"
             >
@@ -160,7 +160,7 @@ export function EdgeEditorPanel({
               <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Relationship</label>
               <select
                 value={newEdgeRelationship}
-                onChange={e => setNewEdgeRelationship(e.target.value as any)}
+                onChange={e => setNewEdgeRelationship(e.target.value as "requires" | "substitutes" | "compatible" | "conflicts")}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
               >
                 <option value="requires">Requires</option>
@@ -179,19 +179,19 @@ export function EdgeEditorPanel({
               />
             </div>
             <div className="flex gap-2">
-              <button
+              <button type="button"
                 onClick={() => setIsCreatingEdge(false)}
                 className="flex-1 py-1.5 bg-gray-800 text-gray-300 border border-white/10 rounded font-mono text-[9px] cursor-pointer"
               >
                 Cancel
               </button>
-              <button
+              <button type="button"
                 onClick={async () => {
                   if (newEdgeSource && newEdgeTarget && addGraphEdge) {
                     const success = await addGraphEdge({
                       source: newEdgeSource,
                       target: newEdgeTarget,
-                      relationship: newEdgeRelationship as any,
+                      relationship: newEdgeRelationship,
                       weight: newEdgeWeight
                     });
                     if (success) {

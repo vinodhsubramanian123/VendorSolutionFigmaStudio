@@ -146,7 +146,7 @@ export function SolutionConfigCard({
                         handleQtyChange(item.id, val);
                       }
                     }}
-                    className="w-8 text-[11px] font-bold font-mono text-white bg-transparent text-center focus:outline-none focus:bg-white/5 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-8 text-[11px] font-bold font-mono text-white bg-transparent text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:bg-white/5 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <button
                     type="button"

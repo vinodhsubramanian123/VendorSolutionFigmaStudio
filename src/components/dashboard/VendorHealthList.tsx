@@ -12,9 +12,14 @@ export function VendorHealthList({ vendors, onNavigate }: VendorHealthListProps)
   const renderedVendors = useMemo(() => {
     if (vendors.length === 0) {
       return (
-        <div className="p-4 text-center text-gray-500 text-[10px]">
-          <Users className="w-5 h-5 mx-auto mb-1 opacity-50" />
-          No partners connected
+        <div className="p-6 flex flex-col items-center justify-center text-center text-gray-500 animate-fadeIn">
+          <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center mb-3">
+            <Users className="w-5 h-5 text-indigo-400 opacity-80" />
+          </div>
+          <p className="text-xs font-bold text-gray-400">No Partners Connected</p>
+          <p className="text-[10px] mt-1 text-gray-500 max-w-[150px] leading-relaxed">
+            Link vendor APIs to monitor health status.
+          </p>
         </div>
       );
     }
@@ -85,7 +90,7 @@ export function VendorHealthList({ vendors, onNavigate }: VendorHealthListProps)
         <p className="text-sm font-semibold" style={{ color: tokens.colors.text.primary }}> 
           Vendor API Health
         </p>
-        <button
+        <button type="button"
           onClick={() => onNavigate("vendor-portal")}
           className="flex items-center gap-1 text-xs text-brand-indigo hover:underline cursor-pointer"
         >

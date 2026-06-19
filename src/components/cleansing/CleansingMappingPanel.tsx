@@ -49,14 +49,14 @@ export function CleansingMappingPanel({
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <button
+                <button type="button"
                   onClick={() => handleQuarantine(selectedEntry.id)}
                   className="p-1.5 rounded hover:bg-red-500/10 text-red-400 hover:text-red-300 transition cursor-pointer"
                   title="Quarantine"
                 >
                   <AlertTriangle className="w-3.5 h-3.5" />
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setSelectedEntryId(null)}
                   className="p-1.5 rounded hover:bg-white/5 text-gray-500 hover:text-gray-300 transition cursor-pointer"
                 >
@@ -90,12 +90,12 @@ export function CleansingMappingPanel({
                   placeholder="Search catalog..."
                   value={skuSearchTerm}
                   onChange={(e) => setSkuSearchTerm(e.target.value)}
-                  className="flex-1 bg-transparent text-[11px] text-white placeholder-gray-700 focus:outline-none font-mono"
+                  className="flex-1 bg-transparent text-[11px] text-white placeholder-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 font-mono"
                 />
               </div>
               <div className="space-y-1 max-h-52 overflow-y-auto">
                 {catalogSuggestions.map((sku) => (
-                  <button
+                  <button type="button"
                     key={sku.id}
                     data-testid="catalog-suggestion"
                     onClick={() => handleManualMap(selectedEntry.id, sku)}

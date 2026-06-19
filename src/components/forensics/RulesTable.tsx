@@ -98,7 +98,7 @@ export function RulesTable({
                       type="text"
                       value={editPartNumber}
                       onChange={(e) => setEditPartNumber(e.target.value)}
-                      className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus:border-indigo-500/40"
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40"
                     />
                   ) : (
                     rule.partNumber
@@ -125,7 +125,7 @@ export function RulesTable({
                       type="text"
                       value={editMappedOutput}
                       onChange={(e) => setEditMappedOutput(e.target.value)}
-                      className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus:border-indigo-500/40"
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 font-mono text-white text-xs w-32 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40"
                     />
                   ) : (
                     <span className="font-bold text-indigo-300">
@@ -143,7 +143,7 @@ export function RulesTable({
                           type="text"
                           value={editLabel}
                           onChange={(e) => setEditLabel(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-indigo-500/40"
+                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-1.5">
@@ -154,7 +154,7 @@ export function RulesTable({
                             value={editAssociatedSkus}
                             onChange={(e) => setEditAssociatedSkus(e.target.value)}
                             placeholder="e.g. P47781-B21"
-                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 font-mono"
+                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40 font-mono"
                           />
                         </div>
                         <div>
@@ -164,7 +164,7 @@ export function RulesTable({
                             value={editCliScript}
                             onChange={(e) => setEditCliScript(e.target.value)}
                             placeholder="e.g. hpe-cli..."
-                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 font-mono"
+                            className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40 font-mono"
                           />
                         </div>
                       </div>
@@ -174,7 +174,7 @@ export function RulesTable({
                           value={editNotes}
                           onChange={(e) => setEditNotes(e.target.value)}
                           placeholder="Provide additional details..."
-                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus:border-indigo-500/40 h-10 resize-none font-sans"
+                          className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-[10px] w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/40 h-10 resize-none font-sans"
                         />
                       </div>
                     </div>
@@ -212,7 +212,7 @@ export function RulesTable({
                     <select
                       value={editVendor}
                       onChange={(e) => setEditVendor(e.target.value)}
-                      className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none"
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                     >
                       <option value="HPE">HPE</option>
                       <option value="Dell">Dell</option>
@@ -248,7 +248,7 @@ export function RulesTable({
                     <select
                       value={editStatus}
                       onChange={(e) => setEditStatus(e.target.value as SourcingRule["status"])}
-                      className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none"
+                      className="bg-black/50 border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                     >
                       <option value="active">Active</option>
                       <option value="draft">Draft</option>
@@ -266,23 +266,23 @@ export function RulesTable({
                 <td className="p-3 text-center whitespace-nowrap">
                   {isEditing ? (
                     <div className="flex items-center justify-center gap-1.5">
-                      <button
+                      <button type="button"
                         onClick={() => handleSaveEdit(rule.id)}
                         className="p-1 px-2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition cursor-pointer text-[10px] font-bold flex items-center gap-1"
                       >
                         <Save className="w-3.5 h-3.5" /> Save
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => setEditingRuleId(null)}
                         className="p-1 px-2 rounded bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 transition cursor-pointer text-[10px] font-bold flex items-center gap-1"
                       >
-                        <X className="w-3.5 h-3.5" /> Pin
+                        <X className="w-3.5 h-3.5" /> Cancel
                       </button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center gap-1.5">
                       {rule.status === "draft" && (
-                        <button
+                        <button type="button"
                           onClick={() => onSimulateAndPromote(rule.id)}
                           disabled={simulatingRuleId === rule.id}
                           className="p-1.5 px-2 rounded bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition cursor-pointer text-[10px] font-bold flex items-center gap-1 disabled:opacity-50"
@@ -296,14 +296,14 @@ export function RulesTable({
                           Simulate & Promote
                         </button>
                       )}
-                      <button
+                      <button type="button"
                         onClick={() => handleStartEdit(rule)}
                         className="p-1 px-2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition cursor-pointer text-[11px] font-medium flex items-center gap-0.5"
                         title="Edit override directive parameters"
                       >
                         <Edit3 className="w-3.5 h-3.5" /> Edit
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => handleDeleteRule(rule.id)}
                         className="p-1.5 rounded bg-red-400/10 border border-red-400/20 text-red-400 hover:bg-red-400/20 transition cursor-pointer text-[11px] font-medium"
                         title="Delete policy permanently"

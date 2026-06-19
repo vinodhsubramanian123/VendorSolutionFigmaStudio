@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   CheckCircle,
   Layers,
-  Sparkles,
   Radio,
   FileSpreadsheet,
   Loader2,
@@ -11,6 +10,7 @@ import {
 import type { UCID, Snapshot, VendorSubmission } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { SourcingStrategyPanel, CampaignReconciliationMatrix, CampaignCertificationPanel } from "./CampaignPanels";
 
 interface CampaignConsolidationHubProps {
   campaignName: string;
@@ -78,7 +78,7 @@ export function CampaignConsolidationHub({
           events: [
             ...u.events,
             {
-              ts: new Date().toLocaleTimeString(),
+              ts: new Date().toISOString(),
               level: "ok" as const,
               msg: "Group Sourcing Optimisation: Applied Best-of-Breed strategy. Winner alternative set to absolute cheapest proposal.",
             },
@@ -126,7 +126,7 @@ export function CampaignConsolidationHub({
             events: [
               ...u.events,
               {
-                ts: new Date().toLocaleTimeString(),
+                ts: new Date().toISOString(),
                 level: "ok" as const,
                 msg: `Group Sourcing Homogeneity: Linked active design choice to single-source vendor ${vendor}.`,
               },
@@ -185,7 +185,7 @@ export function CampaignConsolidationHub({
           events: [
             ...u.events,
             {
-              ts: new Date().toLocaleTimeString(),
+              ts: new Date().toISOString(),
               level: "ok" as const,
               msg: `Covenant Lock: Master Snapshot sealed by ${campaignSigner}. SECURE SHA-256 generated.`,
             },
@@ -331,336 +331,29 @@ export function CampaignConsolidationHub({
         </div>
       </div>
 
-      {/* Sourcing strategies simulation section */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 text-gray-400">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />{" "}
-          Sourcing Simulation & Portfolio Optimization
-        </h4>
-        <p className="text-[11px] text-gray-500 leading-relaxed">
-          Reconcile commercial margins by toggling collective sourcing profiles.
-          Choose **Best-of-Breed Blend** for pure bottom-dollar optimization, or
-          force single-vendor homogeneity to model volume concessions.
-        </p>
+      <SourcingStrategyPanel
+        isLocked={isLocked}
+        hpeTotal={hpeTotal}
+        dellTotal={dellTotal}
+        bestBreedTotal={bestBreedTotal}
+        onApplyBestOfBreed={handleApplyBestOfBreed}
+        onApplySingleVendor={handleApplySingleVendor}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Best of Breed Strategy */}
-          <div className="p-3.5 rounded-xl border border-indigo-500/15 bg-surface-elevated flex flex-col justify-between gap-3 text-left"> 
-            <div className="space-y-1">
-              <StatusBadge status="Dynamic Blending" variant="success" />
-              <h5 className="text-xs font-bold text-white mt-1">
-                Best-of-Breed Hybrid
-              </h5>
-              <p className="text-[10px] text-gray-400 leading-normal">
-                Select the absolute cheapest bid independently for each
-                worksheet pipeline to minimize absolute ledger spending.
-              </p>
-            </div>
-            <div className="pt-2 border-t border-white/5 space-y-2">
-              <div className="flex justify-between items-center text-[10.5px]">
-                <span className="text-gray-500">Projected Sum:</span>
-                <span className="font-mono font-bold text-status-success">
-                  ${bestBreedTotal.toLocaleString()}
-                </span>
-              </div>
-              <button
-                disabled={isLocked}
-                onClick={handleApplyBestOfBreed}
-                className="w-full py-1.5 rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer"
-              >
-                Apply Blend Strategy
-              </button>
-            </div>
-          </div>
+      <CampaignReconciliationMatrix
+        campaignUcids={campaignUcids}
+        completedPipes={completedPipes}
+      />
 
-          {/* HPE Homogenous Sourcing */}
-          <div className="p-3.5 rounded-xl border border-status-success/15 bg-surface-elevated flex flex-col justify-between gap-3 text-left"> 
-            <div className="space-y-1">
-              <StatusBadge status="Single Sponsor (HPE)" variant="success" />
-              <h5 className="text-xs font-bold text-white mt-1">
-                HPE Single Sourced Stack
-              </h5>
-              <p className="text-[10px] text-gray-400 leading-normal">
-                Consolidate all parallel hardware designs into HPE. Lock in
-                uniform service response, chassis parity, and unified corporate
-                care.
-              </p>
-            </div>
-            <div className="pt-2 border-t border-white/5 space-y-2">
-              <div className="flex justify-between items-center text-[10.5px]">
-                <span className="text-gray-500">Projected Sum:</span>
-                <span className="font-mono font-bold text-white">
-                  ${hpeTotal.toLocaleString()}
-                </span>
-              </div>
-              <button
-                disabled={isLocked}
-                onClick={() => handleApplySingleVendor("HPE")}
-                className="w-full py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer"
-              >
-                Force All HPE proposals
-              </button>
-            </div>
-          </div>
-
-          {/* Dell Homogenous Sourcing */}
-          <div className="p-3.5 rounded-xl border border-blue-500/15 bg-surface-elevated flex flex-col justify-between gap-3 text-left"> 
-            <div className="space-y-1">
-              <StatusBadge status="Single Sponsor (dell)" variant="info" />
-              <h5 className="text-xs font-bold text-white mt-1">
-                Dell Single Sourced Stack
-              </h5>
-              <p className="text-[10px] text-gray-400 leading-normal">
-                Consolidate all designs under Dell Technologies to maximize
-                volume corporate tier rebates (extra volume discounts applied).
-              </p>
-            </div>
-            <div className="pt-2 border-t border-white/5 space-y-2">
-              <div className="flex justify-between items-center text-[10.5px]">
-                <span className="text-gray-500">Projected Sum:</span>
-                <span className="font-mono font-bold text-white">
-                  ${dellTotal.toLocaleString()}
-                </span>
-              </div>
-              <button
-                disabled={isLocked}
-                onClick={() => handleApplySingleVendor("Dell")}
-                className="w-full py-1.5 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer"
-              >
-                Force All Dell proposals
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sourcing Reconciliation ledger matrix table */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 text-gray-400">
-            <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-400" /> Sourcing
-            Agreement Portfolio Reconciliation Matrix
-          </h4>
-          <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-gray-400 font-mono font-semibold uppercase">
-            {completedPipes} / {campaignUcids.length} Sheets Frozen
-          </span>
-        </div>
-
-        <div className="bg-surface-card border border-white/5 rounded-xl overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left font-sans text-[10px] border-collapse min-w-[620px]">
-              <thead>
-                <tr className="border-b border-white/5 bg-white/5 font-mono text-[8.5px] text-gray-500 uppercase tracking-widest">
-                  <th className="p-3 font-semibold">Sheet / Workspace Ref</th>
-                  <th className="p-3 font-semibold">Winner Vendor</th>
-                  <th className="p-3 font-semibold text-right">
-                    Selected Cost
-                  </th>
-                  <th className="p-3 font-semibold text-right text-emerald-400">
-                    HPE Option Quote
-                  </th>
-                  <th className="p-3 font-semibold text-right text-blue-400 font-bold">
-                    Dell Option Quote
-                  </th>
-                  <th className="p-3 font-semibold text-center">Step State</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {campaignUcids.map((u) => {
-                  const masterSolution = u.solutions[0];
-                  const currentSelected =
-                    masterSolution?.vendorSubmissions?.[0];
-                  const hpeS =
-                    masterSolution?.vendorSubmissions?.find(
-                      (x) => x.vendor === "HPE",
-                    ) ?? masterSolution?.vendorSubmissions?.[0];
-                  const dellS =
-                    masterSolution?.vendorSubmissions?.find(
-                      (x) => x.vendor === "Dell",
-                    ) ?? masterSolution?.vendorSubmissions?.[0];
-
-                  const getVariant = (step: string): "success" | "warning" | "error" | "info" | "default" => {
-                    if (step === "snapshot") return "success";
-                    if (step === "pre-intelligence") return "warning";
-                    if (step === "solution-design" || step === "vendor-provisioning" || step === "comparison") return "info";
-                    return "default";
-                  };
-
-                  return (
-                    <tr
-                      key={u.id}
-                      className="hover:bg-white/5 transition duration-150"
-                    >
-                      {/* WS Column */}
-                      <td className="p-3">
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-white leading-none flex items-center gap-1.5">
-                            <span className="text-[8.5px] text-gray-500 font-mono tracking-wider">
-                              {u.displayId}
-                            </span>
-                            <span className="truncate max-w-[150px] font-sans text-[10px]">
-                              {u.name.includes(" — ")
-                                ? u.name.split(" — ").slice(1).join(" — ")
-                                : u.name}
-                            </span>
-                          </p>
-                          <p className="text-[8.5px] text-gray-500 font-mono">
-                            Ref: {u.projectRef}
-                          </p>
-                        </div>
-                      </td>
-
-                      {/* Chosen choice */}
-                      <td className="p-3 font-semibold">
-                        {currentSelected ? (
-                          <StatusBadge 
-                            status={currentSelected.vendor} 
-                            variant={currentSelected.vendor === "HPE" ? "success" : "info"}
-                            size="sm"
-                          />
-                        ) : (
-                          <span className="text-gray-500 italic">
-                            Unassigned
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Active cost */}
-                      <td className="p-3 text-right font-mono font-bold text-[10px] text-white">
-                        ${(currentSelected?.totalPrice ?? 0).toLocaleString()}
-                      </td>
-
-                      {/* HPE sum */}
-                      <td className="p-3 text-right font-mono text-gray-400">
-                        ${(hpeS?.totalPrice ?? 0).toLocaleString()}
-                      </td>
-
-                      {/* Dell sum */}
-                      <td className="p-3 text-right font-mono text-gray-400">
-                        ${(dellS?.totalPrice ?? 0).toLocaleString()}
-                      </td>
-
-                      {/* State column */}
-                      <td className="p-3 text-center">
-                        <StatusBadge 
-                          status={u.currentStep.replace("-", " ")} 
-                          variant={getVariant(u.currentStep)} 
-                          size="sm" 
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Corporate Certification Lock Block */}
-      <div className="p-4 rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/10 to-surface-elevated space-y-4 shadow-xl"> 
-        <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-          <CheckCircle className="w-4 h-4 text-emerald-400" />
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-            Master Sourcing Covenant Certification & Sync Lock
-          </h4>
-        </div>
-
-        {isLocked ? (
-          <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-              <div>
-                <p className="text-xs text-white font-bold leading-normal">
-                  Covenant Sync Agreement Frozen & Finalized
-                </p>
-                <p className="text-[10px] text-gray-400 leading-normal mt-0.5">
-                  The Master Covenant was validated and digitally frozen by{" "}
-                  <span className="text-emerald-400 font-bold font-mono">
-                    {campaignSigner}
-                  </span>
-                  . Cryptographic compliance checksum PO reports have been
-                  written onto all child pipelines.
-                </p>
-              </div>
-            </div>
-
-            {/* Cryptographic metadata stamp */}
-            <div className="p-3 rounded-lg bg-black/35 font-mono text-[8px] text-gray-500 leading-relaxed border border-white/5 space-y-1">
-              <p className="text-gray-400 uppercase font-black text-[8.5px] tracking-wider mb-1 flex items-center gap-1">
-                <Radio className="w-3.5 h-3.5 text-indigo-400 shrink-0 animate-pulse" />
-                SECURE TRANSACTION AGREEMENT SIGN-OFF PROTOCOL
-              </p>
-              <p>
-                • COVENANT ID:{" "}
-                <span className="text-indigo-400 select-all font-bold">
-                  COV-{campaignName.replace(/\s+/g, "-").toUpperCase()}
-                </span>
-              </p>
-              <p>
-                • IMMUTABLE CRYPTO STAMP:{" "}
-                <span className="text-gray-400">
-                  sha256-4b901aef33b00ca6e987f2d783aa8bfdd410a8ef11b305e6123bb45cdac1132
-                </span>
-              </p>
-              <p>
-                • LOCKED BUDGET AGGREGATION:{" "}
-                <span className="text-status-success font-bold">
-                  ${totalSourcedBudget.toLocaleString()}
-                </span>{" "}
-                (Sourced total across sheets)
-              </p>
-              <p>
-                • DIGITAL COMPLIANCE MARK:{" "}
-                <span className="text-status-success">
-                  APPROVED & COMMITTED (SNAPSHOTS SEALED)
-                </span>
-              </p>
-            </div>
-
-            <button
-              onClick={handleExportCSV}
-              className="mt-4 py-2 px-4 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[10px] font-mono uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/20"
-            >
-              <FileSpreadsheet className="w-4 h-4" /> Export Campaign CSV
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3.5">
-            <p className="text-[10.5px] text-gray-400 leading-relaxed">
-              Freeze the entire campaign Solution Group collection
-              simultaneously! Certifying the master covenant automatically
-              transitions all worksheet pipelines in this solution group to
-              their completed <strong>'Snapshot' (Commit)</strong> state, seals
-              details, and deposits formal immutability audit stamps.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <input
-                type="text"
-                placeholder="Type Procurement Officer Initials / Name to authorize..."
-                value={campaignSigner}
-                onChange={(e) => setCampaignSigner(e.target.value)}
-                className="flex-1 px-3 py-2 text-xs rounded-lg bg-surface-elevated border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-medium font-mono" 
-              />
-
-              <button
-                onClick={handleCertifyCampaign}
-                disabled={!campaignSigner.trim()}
-                className="py-2 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-extrabold text-xs font-mono uppercase tracking-wider text-gray-950 disabled:opacity-20 disabled:cursor-not-allowed transition cursor-pointer shrink-0 flex items-center gap-1.5 hover:shadow-lg hover:shadow-emerald-500/15"
-              >
-                <CheckCircle className="w-4 h-4 text-gray-950" /> Authorize
-                Certification
-              </button>
-            </div>
-
-            <p className="text-[8.5px] text-gray-500 italic leading-none">
-              * Note: Signing seals the campaign structures in the active
-              session and freezes equivalent hardware selections.
-            </p>
-          </div>
-        )}
-      </div>
+      <CampaignCertificationPanel
+        isLocked={isLocked}
+        campaignName={campaignName}
+        campaignSigner={campaignSigner}
+        setCampaignSigner={setCampaignSigner}
+        totalSourcedBudget={totalSourcedBudget}
+        handleExportCSV={handleExportCSV}
+        handleCertifyCampaign={handleCertifyCampaign}
+      />
     </div>
     </ErrorBoundary>
   );

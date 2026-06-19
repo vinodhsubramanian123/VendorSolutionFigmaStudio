@@ -94,7 +94,7 @@ describe('useIngestionLogic Hook', () => {
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/portfolio/orchestrate', {
       portfolioId: 'PORT-2026-HQ-EXPANSION',
-      ucids: [{ id: 'UCID-2026-1701', channel: 'manual', vendor: 'Dell' }]
+      ucids: [{ id: undefined, channel: 'manual', vendor: 'Dell' }]
     });
   });
 

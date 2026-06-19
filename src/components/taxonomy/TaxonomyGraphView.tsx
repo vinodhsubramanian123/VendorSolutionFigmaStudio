@@ -56,7 +56,7 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
 
   // Filter lists of nodes
   const rootNodes = useMemo(() => data.nodes.filter(n => n.type === "product"), [data.nodes]);
-  const categories = useMemo(() => data.nodes.filter(n => n.type === "category"), [data.nodes]);
+  const categories = useMemo(() => data.nodes.filter(n => n.type === "category" || n.type === "category_hub"), [data.nodes]);
   const skus = useMemo(() => data.nodes.filter(n => n.type === "sku"), [data.nodes]);
 
   // Chassis & Processor options for constraint validator dropdowns
@@ -83,7 +83,7 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button 
+            <button type="button" 
               onClick={() => setFilterOrphansOnly(!filterOrphansOnly)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all cursor-pointer ${filterOrphansOnly ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold' : 'bg-surface-elevated border-white/5 text-gray-400 hover:text-white'}`}
             >
@@ -91,7 +91,7 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
               <span>{filterOrphansOnly ? 'Showing Orphans' : 'Filter Orphans'}</span>
             </button>
 
-            <button 
+            <button type="button" 
               onClick={() => refresh()}
               disabled={isLoading}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-xs font-bold rounded-lg border border-indigo-400/20 transition cursor-pointer text-white"

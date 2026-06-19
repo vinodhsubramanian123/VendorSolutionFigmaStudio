@@ -37,13 +37,13 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
     if (!inputValue.trim() || state === "parsing" || state === "drafting") return;
 
     const userText = inputValue.trim();
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender: "human", text: userText }]);
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), sender: "human", text: userText }]);
     setInputValue("");
 
     if (state === "idle") {
       setState("parsing");
       try {
-        const res = await apiClient.post<any>("/api/agents/semantic-map", { message: userText });
+        const res = await apiClient.post<Partial<SourcingRule>>("/api/agents/semantic-map", { message: userText });
         const intent = res.data || {};
         setParsedIntent(intent);
         
@@ -51,7 +51,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
         setMessages(prev => [
           ...prev,
           {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             sender: "agent",
             text: `I've mapped this as a "${(intent.ruleType || 'substitution').toUpperCase()}" rule for ${intent.vendor || 'HPE'}. I detected the target SKU "${intent.partNumber || 'Unknown'}". Is this correct, or should we target a different SKU/parameter code?`,
             isActionable: true,
@@ -67,7 +67,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
         setMessages(prev => [
           ...prev,
           {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             sender: "agent",
             text: `Got it. Target parameter set to "${userText}". To prevent rule bleeding, what is the strict scope level for this directive? (e.g. "Global Brand", "Specific Category Only", "Exact SKU Match Only")`,
             isActionable: true,
@@ -82,7 +82,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
         setMessages(prev => [
           ...prev,
           {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             sender: "agent",
             text: `Invalid scope detected to prevent blast radius. You must explicitly reply with one of the following strict scopes: "Global Brand", "Specific Category Only", or "Exact SKU Match Only".`,
             isActionable: true,
@@ -101,7 +101,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
 
   const finalizeRule = async (scopeText: string) => {
     const rule: SourcingRule = {
-      id: "rule-draft-" + Date.now(),
+      id: crypto.randomUUID(),
       ruleType: parsedIntent.ruleType || "substitution",
       partNumber: parsedIntent.partNumber || "Unknown",
       mappedOutput: parsedIntent.mappedOutput || "SYMMETRY_ENFORCED",
@@ -116,7 +116,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
     setMessages(prev => [
       ...prev,
       {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         sender: "agent",
         text: `Perfect. Generating draft override policy and writing to Sourcing Override Registry...`,
       }
@@ -168,9 +168,9 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder={state.includes("clarifying") ? "Type the missing parameter..." : "Describe the override rule or paste warning logs..."}
           disabled={state === "parsing" || state === "drafting"}
-          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 disabled:opacity-50"
+          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/50 disabled:opacity-50"
         />
-        <button 
+        <button type="button" 
           onClick={handleSend}
           disabled={!inputValue.trim() || state === "parsing" || state === "drafting"}
           className="p-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-700 disabled:text-gray-500 text-white transition cursor-pointer"

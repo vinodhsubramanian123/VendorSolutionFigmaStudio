@@ -32,10 +32,10 @@ export function CleansingEntryList({
           placeholder="Search raw values, part numbers, SKU names..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 bg-transparent text-xs text-white placeholder-gray-600 focus:outline-none"
+          className="flex-1 bg-transparent text-xs text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         />
         {searchTerm && (
-          <button onClick={() => setSearchTerm("")} className="text-gray-600 hover:text-gray-400">
+          <button type="button" onClick={() => setSearchTerm("")} className="text-gray-600 hover:text-gray-400">
             <X className="w-3.5 h-3.5" />
           </button>
         )}

@@ -149,11 +149,11 @@ export function SearchView({
                 value={localInput}
                 onChange={(e) => handleSearchSubmit(e.target.value)}
                 placeholder="Type here to search parts, manufacturers, process IDs..."
-                className="w-full h-11 pl-10 pr-4 rounded-lg bg-black/40 border border-white/10 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/25 transition-all text-ellipsis"
+                className="w-full h-11 pl-10 pr-4 rounded-lg bg-black/40 border border-white/10 text-white text-xs placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/25 transition-all text-ellipsis"
               />
             </div>
             {localInput && (
-              <button
+              <button type="button"
                 onClick={() => handleSearchSubmit("")}
                 className="px-4 h-11 rounded-lg bg-surface-elevated hover:bg-white/5 border border-white/10 text-gray-400 hover:text-white transition cursor-pointer text-[11px]"
               >
@@ -165,9 +165,10 @@ export function SearchView({
           <div className="flex flex-wrap items-center gap-2 mt-1 z-10">
             <span className="text-[10px] text-gray-500 font-medium">Suggestions:</span>
             {suggestions.map((sug, idx) => (
-              <button
+              <button type="button"
                 key={idx}
                 onClick={() => handleSearchSubmit(sug.text)}
+                aria-label={`Search suggestion: ${sug.text}`}
                 className="px-2.5 py-1 rounded bg-surface-elevated hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 text-gray-400 hover:text-indigo-300 transition text-[10px] cursor-pointer"
               >
                 {sug.text}
@@ -191,7 +192,7 @@ export function SearchView({
             </span>
             <div className="flex-1 pr-1 space-y-2">
               {matchedMissions.map((m) => (
-                <button
+                <button type="button"
                   key={m.id}
                   id={`search-mission-${m.id}`}
                   onClick={() => onSelectMission(m.id)}
@@ -234,7 +235,7 @@ export function SearchView({
             </span>
             <div className="flex-1 pr-1 space-y-2">
               {matchedVendors.map((v) => (
-                <button
+                <button type="button"
                   key={v.id}
                   id={`search-vendor-${v.id}`}
                   onClick={() => onNavigate("vendor-portal")}
@@ -279,7 +280,7 @@ export function SearchView({
             </span>
             <div className="flex-1 pr-1 space-y-2">
               {matchedSkus.map((s) => (
-                <button
+                <button type="button"
                   key={s.id}
                   id={`search-sku-${s.id}`}
                   onClick={() => onNavigate("catalog")}

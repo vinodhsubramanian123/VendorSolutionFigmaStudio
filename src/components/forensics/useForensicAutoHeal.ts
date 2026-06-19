@@ -39,6 +39,11 @@ export function useForensicsLogic({
   const { toast } = useToast();
 
   const [prefillRule, setPrefillRule] = useState<Partial<SourcingRule> | null>(null);
+  const [pendingHealIssueId, setPendingHealIssueId] = useState<string | null>(null);
+
+  function requestAutoHeal(issueId: string) {
+    setPendingHealIssueId(issueId);
+  }
 
   function emitLearningEvent(
     issueId: string,
@@ -48,7 +53,7 @@ export function useForensicsLogic({
     vendor: string,
     confidenceScore: number
   ) {
-    const eventId = `learn-${Date.now()}`;
+    const eventId = `learn-${crypto.randomUUID()}`;
     const newEvent: LearningEvent = {
       id: eventId,
       timestamp: new Date().toISOString(),
@@ -189,11 +194,19 @@ export function useForensicsLogic({
     }
   }
 
-  async function handleAutoHeal(issueId: string) {
-    if (!currUcid) return;
+  async function confirmAutoHeal(scope: "Global" | "Brand" | "Exact") {
+    if (!currUcid || !pendingHealIssueId) return;
+    const issueId = pendingHealIssueId;
+    setPendingHealIssueId(null);
 
     try {
-      const res = await apiClient.post<any>("/api/issues/auto-heal", { issueId, ucid: currUcid });
+      const res = await apiClient.post<{
+        updatedUcid?: UCID;
+        newRule?: SourcingRule;
+        newLearningEvent?: LearningEvent;
+        catalogUpdates?: Record<string, Partial<CatalogSKU>>;
+        toastMsg?: string;
+      }>("/api/issues/auto-heal", { issueId, ucid: currUcid, scope });
       const { updatedUcid, newRule, newLearningEvent, catalogUpdates, toastMsg } = res.data;
 
       if (updatedUcid) {
@@ -292,7 +305,10 @@ export function useForensicsLogic({
     openIssues,
     triggerToast,
     runAuditScanner,
-    handleAutoHeal,
+    requestAutoHeal,
+    confirmAutoHeal,
     handleManualPromote,
+    pendingHealIssueId,
+    setPendingHealIssueId,
   };
 }

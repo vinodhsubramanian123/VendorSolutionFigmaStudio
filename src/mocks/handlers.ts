@@ -2,6 +2,7 @@ import { http, HttpResponse, delay } from 'msw';
 import { MockCatalogApi, MockSnapshotApi, MockSolutionApi, MockTaxonomyApi } from '../lib/api-mock';
 import { CatalogSKU, Config, Snapshot } from '../types';
 import { BOQ_PRESETS } from './boqMocks';
+import { makeMockApiLogs, makeMockWebhooks } from '../components/telemetry/telemetryUtils';
 
 function wrapSuccess<T>(data: T) {
   const reqId = typeof window !== 'undefined' && window.crypto?.randomUUID 
@@ -22,6 +23,7 @@ let memoryGraphNodes: any[] = [
   { id: "node-2", label: "Intel Xeon Silver", type: "catalog_part", data: { partNumber: "P49610-B21", price: 800 } },
   { id: "node-3", label: "Orphaned Memory Module", type: "scraped_orphan", status: "warning", data: { partNumber: "Unknown-MEM", confidenceScore: 40 } },
   { id: "node-4", label: "HPE 32GB DDR5", type: "catalog_part", data: { partNumber: "P43328-B21", price: 350 } },
+  { id: "node-subsystem-1", label: "Memory Subsystem", type: "category_hub" },
 ];
 
 let memoryGraphEdges: any[] = [
@@ -466,38 +468,14 @@ export const handlers = [
   // GET /api/telemetry/logs
   http.get('/api/telemetry/logs', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(200);
-    const endpoints = [
-      { ep: "/api/boq/ingest", method: "POST" as const, code: 200 },
-      { ep: "/api/taxonomy/check-constraints", method: "POST" as const, code: 200 },
-      { ep: "/api/taxonomy/rules", method: "POST" as const, code: 201 },
-      { ep: "/api/reconciliation/compare", method: "POST" as const, code: 200 },
-      { ep: "/api/jobs", method: "POST" as const, code: 202 },
-      { ep: "/api/jobs/j-1234", method: "GET" as const, code: 404 },
-      { ep: "/api/vendor/playwright/run", method: "POST" as const, code: 500 },
-      { ep: "/api/catalog/skus", method: "GET" as const, code: 200 },
-    ];
-    const data = endpoints.map((e, i) => ({
-      id: `log-${i + 1}`,
-      timestamp: new Date(Date.now() - (endpoints.length - i) * 45000).toISOString(),
-      endpoint: e.ep,
-      method: e.method,
-      statusCode: e.code,
-      durationMs: (i * 17 % 400) + 12,
-      level: e.code >= 500 ? "error" : e.code >= 400 ? "warn" : e.code >= 200 && e.code < 300 ? "success" : "info",
-      payload: e.method === "POST" ? `{ "ucid": "u1", "config_id": "cfg-${i}" }` : undefined,
-    }));
+    const data = makeMockApiLogs();
     return HttpResponse.json(wrapSuccess(data));
   }),
 
   // GET /api/telemetry/webhooks
   http.get('/api/telemetry/webhooks', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(200);
-    const data = [
-      { id: "wh-1", timestamp: new Date(Date.now() - 12000).toISOString(), event: "ucid.completed", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "ucid": "UCID-2026-1701", "status": "completed" }', retries: 0 },
-      { id: "wh-2", timestamp: new Date(Date.now() - 55000).toISOString(), event: "bom.reconciled", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "sessionId": "rec-001", "discrepancies": 0 }', retries: 0 },
-      { id: "wh-3", timestamp: new Date(Date.now() - 180000).toISOString(), event: "portal.playwright.failed", source: "Playwright-Agent", hmacVerified: false, statusCode: 401, payload: '{ "error": "HMAC mismatch" }', retries: 2 },
-      { id: "wh-4", timestamp: new Date(Date.now() - 360000).toISOString(), event: "catalog.sku.updated", source: "VSIP-Backend", hmacVerified: true, statusCode: 200, payload: '{ "partNumber": "P40424-B21", "change": "eol_status" }', retries: 0 },
-    ];
+    const data = makeMockWebhooks();
     return HttpResponse.json(wrapSuccess(data));
   }),
 

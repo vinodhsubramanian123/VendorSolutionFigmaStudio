@@ -96,7 +96,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                     {t.message}
                   </p>
                   {t.actionLabel && t.onAction && (
-                    <button
+                    <button type="button"
                       onClick={() => {
                         t.onAction?.();
                         setToasts((prev) => prev.filter((toastItem) => toastItem.id !== t.id));
@@ -108,7 +108,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
 
-                <button
+                <button type="button"
                   onClick={() => removeToast(t.id)}
                   className="p-1 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition cursor-pointer"
                 >

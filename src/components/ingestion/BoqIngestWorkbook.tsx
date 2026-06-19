@@ -207,7 +207,7 @@ export function BoqIngestWorkbook({
                     selectedPreset,
                   );
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/20 text-sky-400 font-bold cursor-pointer transition focus:outline-none text-[10px]"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/20 text-sky-400 font-bold cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px]"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>Run Backend API Ingest (Simulation Sandbox)</span>
@@ -290,7 +290,7 @@ export function BoqIngestWorkbook({
                   id="split-and-provision-btn"
                   type="button"
                   onClick={onSplitAndProvision}
-                  className="px-5 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold cursor-pointer transition flex items-center gap-2 shadow-lg shadow-sky-500/10 focus:outline-none text-[11px]"
+                  className="px-5 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold cursor-pointer transition flex items-center gap-2 shadow-lg shadow-sky-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[11px]"
                 >
                   <span>Split Configs into Active UCIDs</span>
                   <ArrowRight className="w-4 h-4" />

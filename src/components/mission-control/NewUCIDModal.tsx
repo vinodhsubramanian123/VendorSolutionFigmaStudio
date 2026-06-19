@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Radio, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UCID } from "../../types";
 import { Select } from "../shared/Select";
 import { Button } from "../shared/Button";
 import { useForm, Controller } from "react-hook-form";
+import { generateDisplayId } from "../../utils/generateDisplayId";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -33,14 +34,18 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
     }
   });
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   const onSubmit = (data: FormValues) => {
-    // Generate a secure display number 
-    const randomVals = new Uint32Array(1);
-    crypto.getRandomValues(randomVals);
-    const displayNum = (randomVals[0] % 9000) + 1000;
     const newUCID: UCID = {
-      id: `u-${Date.now()}`,
-      displayId: `UCID-2026-${displayNum}`,
+      id: crypto.randomUUID(),
+      displayId: generateDisplayId(),
       name: data.ucidName.trim(),
       priority: data.priority,
       projectRef: data.ucidRef.trim(),
@@ -51,7 +56,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
       solutions: [],
       events: [
         {
-          ts: new Date().toLocaleTimeString(),
+          ts: new Date().toISOString(),
           level: "info",
           msg: "UCID pipeline registered successfully. Intake form completed.",
         },
@@ -85,6 +90,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
           </h3>
           <button
             type="button"
+            aria-label="Close"
             onClick={onClose}
             className="text-gray-500 hover:text-white cursor-pointer"
           >

@@ -29,7 +29,7 @@ export function CatalogTypeFilters({
             : typeCounts[type.toLowerCase()] || 0;
 
         return (
-          <button
+          <button type="button"
             key={type}
             onClick={() => {
               setTypeFilter(type.toLowerCase());

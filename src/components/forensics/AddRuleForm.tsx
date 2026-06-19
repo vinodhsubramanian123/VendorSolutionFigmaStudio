@@ -78,7 +78,7 @@ export function AddRuleForm({
           <select
             value={newRuleType}
             onChange={(e) => setNewRuleType(e.target.value as SourcingRule["ruleType"])}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
+            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <option value="substitution">Obsolete Substitution Mapping</option>
             <option value="price_cap">Price Contract Cap ($)</option>
@@ -94,7 +94,7 @@ export function AddRuleForm({
             placeholder="e.g. 400-BPSB or Processor"
             value={newPartNumber}
             onChange={(e) => setNewPartNumber(e.target.value)}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none"
+            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           />
         </div>
 
@@ -105,7 +105,7 @@ export function AddRuleForm({
             placeholder="e.g. P40424-B21 or 1190"
             value={newMappedOutput}
             onChange={(e) => setNewMappedOutput(e.target.value)}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none"
+            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           />
         </div>
 
@@ -114,7 +114,7 @@ export function AddRuleForm({
           <select
             value={newVendor}
             onChange={(e) => setNewVendor(e.target.value)}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none"
+            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <option value="HPE">HPE (Hewlett Packard Enterprise)</option>
             <option value="Dell">Dell Technologies</option>
@@ -131,7 +131,7 @@ export function AddRuleForm({
           placeholder="Brief justification logs e.g. Contract rate locked during 2026 Procurement summit"
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
-          className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg text-xs placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none"
+          className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg text-xs placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         />
       </div>
 

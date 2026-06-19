@@ -54,7 +54,7 @@ export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, cha
             </Pie>
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(v: any) => [Number(v).toLocaleString(), "Requests"]}
+              formatter={(v: unknown) => [Number(v).toLocaleString(), "Requests"]}
             />
           </PieChart>
         ) : (

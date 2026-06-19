@@ -204,7 +204,7 @@ export function PipelineView() {
             <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
               Processing Queue ({jobs.length})
             </p>
-            <button
+            <button type="button"
               onClick={() => setJobs((prev) => prev.filter((j) => j.status !== "completed"))}
               className="text-[10px] text-gray-600 hover:text-gray-400 font-mono cursor-pointer transition"
             >
@@ -260,7 +260,7 @@ export function PipelineView() {
                         <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
                       )}
                       <span className="text-[10px] text-gray-500 font-mono w-8 text-right">{job.progress}%</span>
-                      <button
+                      <button type="button"
                         onClick={(e) => { e.stopPropagation(); handleClearJob(job.id); }}
                         className="w-5 h-5 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition cursor-pointer"
                       >

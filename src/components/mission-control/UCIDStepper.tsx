@@ -150,7 +150,7 @@ export function UCIDStepper({ ucid, activeStep, setViewStep, getStepState }: UCI
               <button
                 type="button"
                 onClick={() => setViewStep(step.id as UCIDStep)}
-                className="flex flex-col items-center gap-1 cursor-pointer w-full group relative focus:outline-none"
+                className="flex flex-col items-center gap-1 cursor-pointer w-full group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
               >
                 {/* Tooltip on Hover */}
                 {state === "complete" && (

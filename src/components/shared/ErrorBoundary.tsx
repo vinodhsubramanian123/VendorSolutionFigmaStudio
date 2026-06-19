@@ -53,14 +53,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {this.state.errorMsg}
           </div>
           <div className="flex gap-4">
-            <button
+            <button type="button"
               onClick={this.handleReset}
               className="flex items-center gap-2 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
             >
               <RefreshCw className="h-4 w-4" />
               Reset View
             </button>
-            <button
+            <button type="button"
               onClick={this.handleHardReset}
               className="flex items-center gap-2 rounded border border-red-500/50 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20"
             >

@@ -155,7 +155,7 @@ export function AdviceResolutionPanel({
                       {err.message}
                     </p>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={(e) => { e.stopPropagation(); onDismiss(err.id); }}
                     className="shrink-0 w-6 h-6 rounded flex items-center justify-center text-gray-600 hover:text-gray-400 hover:bg-white/5 transition cursor-pointer"
                   >
@@ -180,7 +180,7 @@ export function AdviceResolutionPanel({
                           placeholder={`Search replacement for constraints...`}
                           value={searchTerms[err.id] || ""}
                           onChange={(e) => setSearchTerms((prev) => ({ ...prev, [err.id]: e.target.value }))}
-                          className="flex-1 bg-transparent text-[11px] text-white placeholder-gray-600 focus:outline-none font-mono"
+                          className="flex-1 bg-transparent text-[11px] text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 font-mono"
                         />
                       </div>
 
@@ -204,7 +204,7 @@ export function AdviceResolutionPanel({
                                 </div>
                                 <p className="text-[10px] text-gray-400 truncate mt-0.5">{sku.name}</p>
                               </div>
-                              <button
+                              <button type="button"
                                 onClick={() => {
                                   onSubstitute(err.id, sku.partNumber, sku.name);
                                   onLearn(err.targetSkus[0], sku.partNumber, vendor, err.id);

@@ -58,7 +58,7 @@ export function useLocalStorageState<T>(
     };
 
     const handleCustomStorage = (e: Event) => {
-      const customEvent = e as CustomEvent<{ key: string, value: any }>;
+      const customEvent = e as CustomEvent<{ key: string, value: T }>;
       if (customEvent.detail.key === key) {
         setState(customEvent.detail.value);
       }

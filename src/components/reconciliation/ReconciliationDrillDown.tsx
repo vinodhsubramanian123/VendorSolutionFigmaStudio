@@ -8,82 +8,14 @@ import {
   Download,
   ChevronDown,
   ShieldAlert,
-  Zap,
-  AlertTriangle,
 } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { useToast } from '../shared/ToastContext';
 import type { UCID, CatalogSKU, Vendor, ForensicIssue } from '../../types';
 import { TableRow as TableRowType, TableGroup } from "../../types/data";
 import { ActiveSourcingRules } from "../../config/sourcingRules";
-
-const MemoizedRow = React.memo(function MemoizedRow({
-  row,
-  handleAutoHeal,
-}: {
-  row: TableRowType & { hasAlert: boolean; alertId: string; alertTitle: string };
-  handleAutoHeal: (id: string) => void;
-}) {
-  return (
-    <motion.tr
-      layout
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, height: 0 }}
-      className={`border-b border-white/2 hover:bg-white/2 transition-colors duration-100 text-[11px] font-medium text-gray-300 ${
-        row.hasAlert ? "border-l-2 border-l-amber-500 bg-amber-500/[0.03]" : ""
-      }`}
-    >
-      <td className="py-3 px-4 font-semibold text-white max-w-xs text-left">
-        <div className="truncate">{row.boqItem}</div>
-        {row.hasAlert && (
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 p-1 px-1.5 rounded bg-amber-500/10 border border-amber-500/25 text-[9.5px] font-bold text-amber-400 font-mono inline-flex">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-bounce" />
-            <span>{row.alertTitle}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAutoHeal(row.alertId);
-              }}
-              className="ml-1 px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-black font-extrabold uppercase text-[9px] tracking-wide cursor-pointer transition flex items-center gap-0.5 border-0 focus:outline-none"
-            >
-              <Zap className="w-2.5 h-2.5 text-black" /> 
-              <span>Auto-Align</span>
-            </button>
-          </div>
-        )}
-      </td>
-      <td className="py-3 px-2 font-mono text-gray-400 text-left">{row.boqPart}</td>
-      <td className={`py-3 px-2 text-center font-mono ${row.boqQty !== row.bomQty && row.boqQty !== "—" && row.bomQty !== "—" ? "text-rose-400 font-bold" : "text-white"}`}>{row.boqQty}</td>
-      <td className="py-3 px-3 text-center">
-        <StatusBadge
-          status={row.status}
-          variant={
-            row.status === "Matched"
-              ? "success"
-              : row.status === "Missing"
-                ? "error"
-                : row.status === "Spec !="
-                  ? "warning"
-                  : "info"
-          }
-          size="sm"
-        />
-      </td>
-      <td className={`py-3 px-2 font-mono text-left ${row.boqPart !== row.bomPart && row.boqPart !== "—" && row.bomPart !== "—" ? "text-amber-400 font-bold" : "text-gray-400"}`}>{row.bomPart}</td>
-      <td className="py-3 px-4 text-white font-semibold truncate max-w-xs text-left">{row.bomItem}</td>
-      <td className={`py-3 px-2 text-center font-mono ${row.boqQty !== row.bomQty && row.boqQty !== "—" && row.bomQty !== "—" ? "text-emerald-400 font-bold" : "text-white"}`}>{row.bomQty}</td>
-      <td className="py-3 px-2 text-right font-mono text-gray-500">
-        {row.unitPrice !== "—" ? `$${row.unitPrice}` : "—"}
-      </td>
-      <td className="py-3 px-4 text-right font-mono font-bold text-status-success">
-        {row.totalPrice !== "—" ? `$${row.totalPrice}` : "—"}
-      </td>
-    </motion.tr>
-  );
-});
-
-// Define TS Interfaces for Drift Reconciliation Table
+import { useDrillDownAutoHeal } from './useDrillDownAutoHeal';
+import { DriftTableRow } from './DriftTableRow';
 
 interface ReconciliationDrillDownProps {
   selectedConfigSheet: string;
@@ -108,7 +40,6 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
 }: ReconciliationDrillDownProps) {
   const toast = useToast();
   const [reconciliationFilter, setReconciliationFilter] = useState<string>("All");
-
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const toggleGroup = (name: string) => {
@@ -198,258 +129,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
     return { driftTableData: groups, configName: config.name, totalPrice, activeUCID };
   }, [ucids, selectedConfigSheet, catalogSkus, forensicIssues]);
 
-  // Direct Auto-Heal method to resolve discrepancies in real-time
-  const handleAutoHeal = (issueId: string) => {
-    if (!activeUCID || !setUcids) return;
-
-    if (issueId === "iss-1") {
-      setUcids((prev) =>
-        prev.map((u) => {
-          if (u.id === activeUCID.id) {
-            const nextSolutions = u.solutions.map((sol) => {
-              const matchedCPU = sol.vendorSubmissions?.some((vs) =>
-                vs.configs?.some((c) =>
-                  c.items?.some((it) => ActiveSourcingRules.legacySKUs.includes(it.partNumber)),
-                ),
-              );
-              if (!matchedCPU) return sol;
-
-              const repairedSubmissions =
-                sol.vendorSubmissions?.map((vs) => {
-                  const repairedConfigs =
-                    vs.configs?.map((c) => {
-                      const repairedItems =
-                        c.items?.map((it) => {
-                          if (ActiveSourcingRules.legacySKUs.includes(it.partNumber)) {
-                            return {
-                              ...it,
-                              partNumber: "P40424-B21",
-                              name: "Intel Xeon Gold 6430 CPU [REPLACED]",
-                              unitPrice: 2150,
-                            };
-                          }
-                          return it;
-                        }) || [];
-                      const newConfigSum = repairedItems.reduce(
-                        (acc, curr) => acc + curr.unitPrice * curr.quantity,
-                        0,
-                      );
-                      return {
-                        ...c,
-                        items: repairedItems,
-                        totalPrice: newConfigSum,
-                        savings: Math.max(0, c.originalPrice - newConfigSum),
-                      };
-                    }) || [];
-                  const newVsSum = repairedConfigs.reduce(
-                    (acc, c) => acc + c.totalPrice,
-                    0,
-                  );
-                  return {
-                    ...vs,
-                    configs: repairedConfigs,
-                    totalPrice: newVsSum,
-                    savings: Math.max(0, vs.originalPrice - newVsSum),
-                    complianceScore: 100,
-                  };
-                }) || [];
-
-              return {
-                ...sol,
-                vendorSubmissions: repairedSubmissions,
-              };
-            });
-
-            return {
-              ...u,
-              solutions: nextSolutions,
-              events: [
-                ...u.events,
-                {
-                  ts: new Date().toLocaleTimeString(),
-                  level: "ok",
-                  msg: "BOM Direct Align: Replaced obsolete HPE processor 815100-B21 with model P40424-B21.",
-                },
-              ],
-            };
-          }
-          return u;
-        }),
-      );
-
-      setForensicIssues?.((prev) =>
-        prev.map((iss) =>
-          iss.id === "iss-1" ? { ...iss, status: "resolved" as const } : iss,
-        ),
-      );
-      toast.success("Obsolete HPE CPU successfully aligned and certified!");
-    } else if (issueId === "iss-2") {
-      setUcids((prev) =>
-        prev.map((u) => {
-          if (u.id === activeUCID.id) {
-            const nextSolutions = u.solutions.map((sol) => {
-              const hasOverage = sol.vendorSubmissions?.some((vs) =>
-                vs.configs?.some((c) =>
-                  c.items?.some(
-                    (it) => it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && it.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit,
-                  ),
-                ),
-              );
-              if (!hasOverage) return sol;
-
-              const repairedSubmissions =
-                sol.vendorSubmissions?.map((vs) => {
-                  const repairedConfigs =
-                    vs.configs?.map((c) => {
-                      const repairedItems =
-                        c.items?.map((it) => {
-                          if (it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU) {
-                            return {
-                              ...it,
-                              unitPrice: ActiveSourcingRules.thresholds.dellOverchargeBaseLimit,
-                              name: "Dell 3.84TB Enterprise NVMe SSD [ALIGNED]",
-                            };
-                          }
-                          return it;
-                        }) || [];
-                      const newConfigSum = repairedItems.reduce(
-                        (acc, curr) => acc + curr.unitPrice * curr.quantity,
-                        0,
-                      );
-                      return {
-                        ...c,
-                        items: repairedItems,
-                        totalPrice: newConfigSum,
-                        savings: Math.max(0, c.originalPrice - newConfigSum),
-                      };
-                    }) || [];
-                  const newVsSum = repairedConfigs.reduce(
-                    (acc, c) => acc + c.totalPrice,
-                    0,
-                  );
-                  return {
-                    ...vs,
-                    configs: repairedConfigs,
-                    totalPrice: newVsSum,
-                    savings: Math.max(0, vs.originalPrice - newVsSum),
-                  };
-                }) || [];
-
-              return {
-                ...sol,
-                vendorSubmissions: repairedSubmissions,
-              };
-            });
-
-            return {
-              ...u,
-              solutions: nextSolutions,
-              events: [
-                ...u.events,
-                {
-                  ts: new Date().toLocaleTimeString(),
-                  level: "ok",
-                  msg: "BOM Direct Align: Adjusted overcharge markup on Dell SFF premium drive to standard trade agreement limit of $1,190.",
-                },
-              ],
-            };
-          }
-          return u;
-        }),
-      );
-
-      setForensicIssues?.((prev) =>
-        prev.map((iss) =>
-          iss.id === "iss-2" ? { ...iss, status: "resolved" as const } : iss,
-        ),
-      );
-      toast.success("Dell quoted unit price contract matched successfully.");
-    } else if (issueId === "iss-3") {
-      setUcids((prev) =>
-        prev.map((u) => {
-          if (u.id === activeUCID.id) {
-            const nextSolutions = u.solutions.map((sol) => {
-              const hasAsymmetricMemory = sol.vendorSubmissions?.some(
-                (vs) =>
-                  vs.vendor === "Cisco" &&
-                  vs.configs?.some((c) =>
-                    c.items?.some(
-                      (it) => it.type === "Memory" && it.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0,
-                    ),
-                  ),
-              );
-              if (!hasAsymmetricMemory) return sol;
-
-              const repairedSubmissions =
-                sol.vendorSubmissions?.map((vs) => {
-                  if (vs.vendor !== "Cisco") return vs;
-                  const repairedConfigs =
-                    vs.configs?.map((c) => {
-                      const repairedItems =
-                        c.items?.map((it) => {
-                          if (it.type === "Memory") {
-                            return {
-                              ...it,
-                              quantity: 8,
-                              name: "Cisco 64GB DDR5 memory module [REBALANCED]",
-                            };
-                          }
-                          return it;
-                        }) || [];
-                      const newConfigSum = repairedItems.reduce(
-                        (acc, curr) => acc + curr.unitPrice * curr.quantity,
-                        0,
-                      );
-                      return {
-                        ...c,
-                        items: repairedItems,
-                        totalPrice: newConfigSum,
-                        savings: Math.max(0, c.originalPrice - newConfigSum),
-                      };
-                    }) || [];
-                  const newVsSum = repairedConfigs.reduce(
-                    (acc, c) => acc + c.totalPrice,
-                    0,
-                  );
-                  return {
-                    ...vs,
-                    configs: repairedConfigs,
-                    totalPrice: newVsSum,
-                    savings: Math.max(0, vs.originalPrice - newVsSum),
-                  };
-                }) || [];
-
-              return {
-                ...sol,
-                vendorSubmissions: repairedSubmissions,
-              };
-            });
-
-            return {
-              ...u,
-              solutions: nextSolutions,
-              events: [
-                ...u.events,
-                {
-                  ts: new Date().toLocaleTimeString(),
-                  level: "ok",
-                  msg: "BOM Direct Align: Balanced memory loadout to optimal 8-channel socket standards.",
-                },
-              ],
-            };
-          }
-          return u;
-        }),
-      );
-
-      setForensicIssues?.((prev) =>
-        prev.map((iss) =>
-          iss.id === "iss-3" ? { ...iss, status: "resolved" as const } : iss,
-        ),
-      );
-      toast.success("Balanced dual-socket bus alignment configured.");
-    }
-  };
+  const handleAutoHeal = useDrillDownAutoHeal(activeUCID, setUcids, setForensicIssues, toast);
 
   const stats = React.useMemo(() => {
     let all = 0, matched = 0, missing = 0, added = 0, spec = 0, qty = 0;
@@ -495,9 +175,9 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
       {/* Back button and navigation breadcrumbs */}
       <div className="flex justify-between items-center bg-black/10 py-2 px-3 rounded-lg">
         <div className="flex items-center gap-3">
-          <button
+          <button type="button"
             onClick={() => setSelectedConfigSheet(null)}
-            className="flex items-center gap-1 font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer select-none text-[11px] focus:outline-none"
+            className="flex items-center gap-1 font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer select-none text-[11px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Configs</span>
@@ -505,7 +185,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
           <span className="text-gray-600">|</span>
           <div className="flex items-center gap-1.5 font-mono text-[10.5px] text-gray-400">
             <span className="text-gray-400 font-semibold text-xs">
-              {activeUCID?.displayId || "UCID-2026-0042"}
+              {activeUCID?.displayId || "No Active UCID"}
             </span>
             <ChevronRight className="w-3 h-3 text-gray-600" />
             <span className="text-indigo-300 font-bold">
@@ -544,15 +224,15 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => toast.success("Filter functionality active.")} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
+            <button type="button" onClick={() => toast.success("Filter functionality active.")} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px] font-semibold">
               <Filter className="w-3 h-3" />
               <span>Filter</span>
             </button>
-            <button onClick={() => toast.success("Sort options displayed.")} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
+            <button type="button" onClick={() => toast.success("Sort options displayed.")} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px] font-semibold">
               <ArrowUpDown className="w-3 h-3" />
               <span>Sort</span>
             </button>
-            <button onClick={handleExport} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none text-[10px] font-semibold">
+            <button type="button" onClick={handleExport} className="flex items-center gap-1 p-2 bg-black/25 hover:bg-black/40 border border-white/5 text-gray-400 hover:text-white rounded-lg transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px] font-semibold">
               <Download className="w-3 h-3" />
               <span>Export</span>
             </button>
@@ -572,10 +252,10 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
         ].map((pill) => {
           const isActive = reconciliationFilter === pill.count;
           return (
-            <button
+            <button type="button"
               key={pill.count}
               onClick={() => setReconciliationFilter(pill.count)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase transition-all duration-150 cursor-pointer focus:outline-none ${
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
                 isActive
                   ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/10"
                   : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
@@ -663,7 +343,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
                   <AnimatePresence>
                   {!isCollapsed &&
                     filteredRows.map((row) => (
-                      <MemoizedRow key={row.id} row={row as TableRowType & { hasAlert: boolean; alertId: string; alertTitle: string }} handleAutoHeal={handleAutoHeal} />
+                      <DriftTableRow key={row.id} row={row as TableRowType & { hasAlert: boolean; alertId: string; alertTitle: string }} handleAutoHeal={handleAutoHeal} />
                     ))}
 
                     </AnimatePresence>

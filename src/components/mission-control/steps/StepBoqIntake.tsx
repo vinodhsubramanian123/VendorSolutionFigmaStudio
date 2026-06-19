@@ -117,7 +117,7 @@ export function StepBoqIntake({
             <button
               type="button"
               onClick={() => onNavigate("ingestion-hub")}
-              className="mt-1 text-[9px] bg-sky-500/10 hover:bg-sky-500/15 text-sky-400 font-mono font-bold px-3 py-1.5 rounded cursor-pointer border border-sky-500/20 hover:border-sky-500/40 uppercase tracking-wide inline-block transition focus:outline-none"
+              className="mt-1 text-[9px] bg-sky-500/10 hover:bg-sky-500/15 text-sky-400 font-mono font-bold px-3 py-1.5 rounded cursor-pointer border border-sky-500/20 hover:border-sky-500/40 uppercase tracking-wide inline-block transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
             >
               📥 Open BOQ & BOM Ingest Hub
             </button>
@@ -198,7 +198,7 @@ export function StepBoqIntake({
             id="raw-bom-textarea"
             value={ucid.rawBOM}
             onChange={(e) => onUpdateBOM(e.target.value)}
-            className="w-full flex-1 min-h-[140px] p-3 rounded-lg border text-[10.5px] font-mono text-status-success placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 bg-black/35 border-white/10"
+            className="w-full flex-1 min-h-[140px] p-3 rounded-lg border text-[10.5px] font-mono text-status-success placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 bg-black/35 border-white/10"
           />
         </div>
       </div>

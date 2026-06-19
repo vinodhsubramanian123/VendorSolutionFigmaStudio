@@ -107,9 +107,9 @@ export function SnapshotsPanel({
                     </p>
                   </div>
                 </div>
-                <button
+                <button type="button"
                   onClick={onClose}
-                  className="p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white cursor-pointer active:scale-95 transition focus:outline-none"
+                  className="p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white cursor-pointer active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -133,7 +133,7 @@ export function SnapshotsPanel({
                   <div className="bg-black/20 border border-white/5 p-3 rounded-xl flex flex-col gap-2">
                     <div className="flex justify-between items-center text-[10px]">
                       <span className="text-gray-400 font-bold">Comparison Mode Options</span>
-                      <button
+                      <button type="button"
                         onClick={() => setSelectedForCompare([])}
                         className="text-indigo-400 hover:text-indigo-300 font-semibold text-[9.5px]"
                       >
@@ -174,14 +174,14 @@ export function SnapshotsPanel({
               {snapshotsList.length > 0 && (
                 <div className="p-4 bg-surface-header border-t border-white/5 space-y-2.5 shrink-0">
                   {/* Compare action button */}
-                  <button
+                  <button type="button"
                     disabled={
                       compareAgainstCurrent
                         ? selectedForCompare.length !== 1
                         : selectedForCompare.length !== 2
                     }
                     onClick={() => setIsDiffModalOpen(true)}
-                    className="w-full py-2.5 rounded-lg bg-indigo-500 disabled:bg-zinc-800 disabled:text-gray-500 text-white font-extrabold uppercase text-[10.5px] tracking-wider transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed focus:outline-none shadow-lg shadow-indigo-500/10"
+                    className="w-full py-2.5 rounded-lg bg-indigo-500 disabled:bg-zinc-800 disabled:text-gray-500 text-white font-extrabold uppercase text-[10.5px] tracking-wider transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shadow-lg shadow-indigo-500/10"
                   >
                     <GitCompare className="w-4 h-4" />
                     <span>Run Visual Sourcing Diff</span>

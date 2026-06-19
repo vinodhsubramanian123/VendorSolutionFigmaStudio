@@ -31,6 +31,14 @@ export function SnapshotNewModal({
     }
   }, [isOpen, activeUCID]);
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   if (!isOpen) return null;
 
   const handleSaveSnapshot = () => {
@@ -52,7 +60,7 @@ export function SnapshotNewModal({
     const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
 
     const newSnap: Snapshot = {
-      id: `snap-${Date.now()}`,
+      id: crypto.randomUUID(),
       label: newLabel,
       committedAt: new Date().toISOString().split("T")[0],
       winnerSolution: newWinner || "Consolidated Sourcing",
@@ -104,8 +112,9 @@ export function SnapshotNewModal({
               Seal Audit Snapshot
             </span>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
+            aria-label="Close"
             className="p-1 rounded text-gray-400 hover:text-white"
           >
             <X className="w-4 h-4" />
@@ -122,7 +131,7 @@ export function SnapshotNewModal({
               type="text"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              className="w-full bg-black/45 border border-white/5 focus:border-indigo-500 rounded-lg p-2.5 text-xs text-white focus:outline-none placeholder-gray-600 font-mono"
+              className="w-full bg-black/45 border border-white/5 focus:border-indigo-500 rounded-lg p-2.5 text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 placeholder-gray-600 font-mono"
               placeholder="e.g. Snapshot v1.0 — Baseline"
             />
           </div>
@@ -136,7 +145,7 @@ export function SnapshotNewModal({
               type="text"
               value={newWinner}
               onChange={(e) => setNewWinner(e.target.value)}
-              className="w-full bg-black/45 border border-white/5 focus:border-indigo-500 rounded-lg p-2.5 text-xs text-white focus:outline-none placeholder-gray-600"
+              className="w-full bg-black/45 border border-white/5 focus:border-indigo-500 rounded-lg p-2.5 text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 placeholder-gray-600"
               placeholder="e.g. Cisco Enterprise Rack Bundle"
             />
           </div>
@@ -150,7 +159,7 @@ export function SnapshotNewModal({
               rows={3}
               value={newNotes}
               onChange={(e) => setNewNotes(e.target.value)}
-              className="w-full bg-black/45 border border-white/5 focus:border-indigo-500 rounded-lg p-2.5 text-xs text-white focus:outline-none placeholder-gray-600 leading-normal"
+              className="w-full bg-black/45 border border-white/5 focus:border-indigo-500 rounded-lg p-2.5 text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 placeholder-gray-600 leading-normal"
               placeholder="Auditing reasons, price variance waivers, corporate justification comments, or alignment notes..."
             />
           </div>
@@ -166,15 +175,15 @@ export function SnapshotNewModal({
         </div>
 
         <div className="mt-5 flex gap-2.5">
-          <button
+          <button type="button"
             onClick={onClose}
-            className="flex-1 py-2 border border-white/5 text-gray-400 hover:text-white rounded-lg text-[10px] uppercase font-bold tracking-wider hover:bg-white/5 transition focus:outline-none"
+            className="flex-1 py-2 border border-white/5 text-gray-400 hover:text-white rounded-lg text-[10px] uppercase font-bold tracking-wider hover:bg-white/5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             Cancel
           </button>
-          <button
+          <button type="button"
             onClick={handleSaveSnapshot}
-            className="flex-1 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition focus:outline-none flex items-center justify-center gap-1"
+            className="flex-1 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 flex items-center justify-center gap-1"
           >
             <Lock className="w-3.5 h-3.5" />
             <span>Seal & Lock</span>

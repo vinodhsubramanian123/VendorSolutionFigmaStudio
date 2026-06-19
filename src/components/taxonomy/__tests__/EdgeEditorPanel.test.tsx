@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { EdgeEditorPanel } from '../EdgeEditorPanel';
 import { ToastProvider } from '../../shared/ToastContext';
@@ -47,7 +47,9 @@ describe('EdgeEditorPanel', () => {
     fireEvent.change(input, { target: { value: '0.5' } });
     
     const updateBtn = screen.getByText('Update Edge Weight');
-    fireEvent.click(updateBtn);
+    await act(async () => {
+      fireEvent.click(updateBtn);
+    });
     
     await waitFor(() => {
       expect(apiClient.updateGraphEdge).toHaveBeenCalledWith('edge-1', 0.5);
@@ -59,7 +61,9 @@ describe('EdgeEditorPanel', () => {
     renderComponent({ addGraphEdge });
     
     const createBtn = screen.getByText('+ Add New Edge');
-    fireEvent.click(createBtn);
+    await act(async () => {
+      fireEvent.click(createBtn);
+    });
     
     expect(screen.getByText('Source Node')).toBeInTheDocument();
     
@@ -70,7 +74,9 @@ describe('EdgeEditorPanel', () => {
     fireEvent.change(selects[2], { target: { value: 'substitutes' } });
     
     const saveBtn = screen.getByText('Save');
-    fireEvent.click(saveBtn);
+    await act(async () => {
+      fireEvent.click(saveBtn);
+    });
     
     expect(addGraphEdge).toHaveBeenCalledWith(expect.objectContaining({
       source: 'node-1',
@@ -85,7 +91,9 @@ describe('EdgeEditorPanel', () => {
     renderComponent({ selectedEdgeId: 'edge-1', deleteGraphEdge, setSelectedEdgeId });
     
     const deleteBtn = screen.getByText('Delete Edge');
-    fireEvent.click(deleteBtn);
+    await act(async () => {
+      fireEvent.click(deleteBtn);
+    });
     
     expect(deleteGraphEdge).toHaveBeenCalledWith('edge-1');
   });

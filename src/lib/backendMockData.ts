@@ -15,6 +15,7 @@ import {
   WebhookDispatchResponseSchema,
   GraphAPIResponseSchema,
 } from "../types/zodSchemas";
+import type { ZodIssue } from "zod";
 
 /**
  * ============================================================================
@@ -344,7 +345,7 @@ export function runIntegrationDiagnosticTestSuite(): { passed: boolean; reports:
       reports.push(`✓ [PASSED COMPLIANCE CHECK]: ${name}`);
     } else {
       passed = false;
-      const errStr = res.error?.issues.map((i: any) => i.path.join(".") + ": " + i.message).join(", ");
+      const errStr = res.error?.issues.map((i: ZodIssue) => i.path.join(".") + ": " + i.message).join(", ");
       reports.push(`✗ [FAILED COMPLIANCE CHECK]: ${name} - Errors: ` + errStr);
     }
   };

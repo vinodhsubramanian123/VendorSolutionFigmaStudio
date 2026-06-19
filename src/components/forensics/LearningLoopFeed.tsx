@@ -243,7 +243,7 @@ export function LearningLoopFeed({
                             {timeAgo}
                           </span>
                           {onMarkReviewed && (
-                            <button
+                            <button type="button"
                               onClick={() => onMarkReviewed(event.id)}
                               className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[9px] text-indigo-400 border border-indigo-500/20 bg-indigo-500/8 hover:bg-indigo-500/15 px-2 py-1 rounded font-bold transition-all cursor-pointer"
                             >

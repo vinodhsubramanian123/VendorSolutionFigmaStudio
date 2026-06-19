@@ -13,7 +13,7 @@ export const Select: React.FC<SelectProps & { wrapperClassName?: string }> = ({
     <div className={`relative ${wrapperClassName}`}>
       <select
         onChange={props.onChange}
-        className={`w-full appearance-none bg-surface-card border border-white/10 rounded-lg px-4 py-2.5 text-content-primary focus:outline-none focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo/50 transition-all cursor-pointer text-sm font-semibold min-h-[44px] ${className}`}
+        className={`w-full appearance-none bg-surface-card border border-white/10 rounded-lg px-4 py-2.5 text-content-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo/50 transition-all cursor-pointer text-sm font-semibold min-h-[44px] ${className}`}
         {...props}
       >
         {children}

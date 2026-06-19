@@ -42,7 +42,7 @@ export function TaxonomyOrphanBox({
             >
               <span className="font-bold text-white leading-tight truncate">{sku.name}</span>
               <span className="font-mono text-amber-500/70">{sku.partNumber}</span>
-              <button 
+              <button type="button" 
                 onClick={() => {
                   setSelectedOrphanToMap(sku.id);
                   setActiveTab("orphans");

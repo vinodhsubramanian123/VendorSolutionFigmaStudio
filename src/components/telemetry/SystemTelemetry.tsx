@@ -70,7 +70,7 @@ export function SystemTelemetry() {
         {/* Tabs */}
         <div className="flex gap-1 mt-4 p-1 rounded-lg bg-black/25 border border-white/5 w-fit">
           {tabs.map((tab) => (
-            <button
+            <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-[11px] font-bold transition cursor-pointer ${

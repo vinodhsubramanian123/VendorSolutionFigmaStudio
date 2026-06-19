@@ -90,7 +90,7 @@ export const CatalogTrendAnalyzer = React.memo(function CatalogTrendAnalyzer({ d
             />
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(v: any) => [Number(v).toLocaleString(), "SKUs"]}
+              formatter={(v: unknown) => [Number(v).toLocaleString(), "SKUs"]}
             />
             <Area
               key="area"

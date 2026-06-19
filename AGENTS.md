@@ -259,6 +259,7 @@ These patterns were identified during the comprehensive gap-analysis pass and mu
 ### 12.2 All ID Generation Must Use `crypto.randomUUID()`
 *   **Issue**: Components like `IngestionHub`, `SourcingRulesVault`, and `SolutionBuilder` used `Date.now()`, `1700 + length`, or manual string concatenations to generate IDs, causing collisions in multi-UCID environments and Zod schema violations.
 *   **Solution**: **All** new entity IDs (UCIDs, job IDs, rule IDs, conflict IDs) must be generated via `crypto.randomUUID()`. No manual ID arithmetic.
+*   **CRITICAL FOLLOW-UP**: When migrating primary entities to UUIDs, be certain to update the UI (like `UcidContainerList`) to display `entity.displayId` rather than `entity.id`. Playwright E2E tests searching for human-readable regexes (like `/UCID-/`) will violently fail if the component renders the raw UUID instead.
 
 ### 12.3 Controlled Input Query Sync via `useEffect`
 *   **Issue**: `SearchView.tsx` maintained internal query state independently of the `query` prop. When the parent programmatically updated the prop (e.g., from GlobalCommandPalette), the local input did not reflect the change.
@@ -286,10 +287,22 @@ The following "God Components" were decomposed in Phase 7. This is the authorita
 | Original File | Sub-Components Created |
 |---|---|
 | `SourcingRulesVault.tsx` | `AddRuleForm.tsx`, `RulesTable.tsx` |
-| `CleansingView.tsx` | `MappingPanel.tsx`, `types.ts`, `constants.ts`, `mockData.ts` |
+| `CleansingView.tsx` | `MappingPanel.tsx`, `types.ts`, `constants.ts`, `mockData.ts`, `CleansingHeader.tsx`, `QualityMetrics.tsx` |
 | `SystemTelemetry.tsx` | `DocumentPipelinePanel.tsx`, `ApiLogsTable.tsx`, `WebhookMonitor.tsx`, `types.ts` |
+| `TaxonomyGraphSidebar.tsx` | `TaxonomyGraphPanels.tsx` (MechanicalConstraintsPanel, OrphanWorkshopPanel, PathOrchestratorPanel) |
+| `BomReconciliationPanel.tsx` | `BomSummaryHeader.tsx`, `VendorDifferencesTable.tsx` |
+| `Dashboard.tsx` | `UcidPipelineCard.tsx` |
+| `CampaignConsolidationHub.tsx` | `CampaignHeader.tsx`, `ProcurementEvents.tsx`, `CostSavingMetrics.tsx` |
 
 ### 12.7 useEffect Dependency Safety in SolutionBuilder
 *   **Issue**: `SolutionBuilder` listed `solutions` (an array) as a raw `useEffect` dependency. React recreates array references on every render, causing the effect to re-run infinitely.
 *   **Solution**: Use `solutions.length` (a primitive) or `JSON.stringify(solutions)` as the dependency sentinel when you need to react to collection changes, or use a stable ref.
 
+
+### 12.8 Vitest Deep Nested Mock Paths
+*   **Issue**: When testing deeply nested components (like `src/components/forensics/__tests__/SourcingRulesVault.test.tsx`), using `vi.mock("../../services/apiClient")` silently created a dummy module rather than overriding the actual `apiClient`, causing tests that `await` API calls to hang and timeout.
+*   **Solution**: Always ensure the relative path traverse goes all the way back to `src`. For a nested test file like `__tests__/ComponentName.test.tsx`, the path to services should be `../../../services/apiClient`.
+
+### 12.9 Playwright E2E and Suspense Shimmer Blocks
+*   **Issue**: Playwright mega-flow tests timed out expecting explicit text like `ACTIVE SOLUTION MISSION`, but the DOM rendered `<div class="animate-pulse bg-white/5...">` because `MissionControl` was stuck in a `Suspense` boundary due to missing or invalid UUID mappings passed from `IngestionHub`.
+*   **Solution**: When creating new UCIDs or configurations, ensure that `displayId` and `id` remain consistent across state lifts. If `displayId` is strictly expected by the UI, but Playwright navigates via the raw UUID, the data persistence gates will trigger `Suspense` fallbacks instead of crashing, causing E2E tests to timeout rather than fail explicitly.

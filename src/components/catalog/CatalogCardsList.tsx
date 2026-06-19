@@ -45,7 +45,7 @@ interface RowData {
   deleteSku: (id: string) => void;
 }
 
-const areEqual = (prevProps: any, nextProps: any) => {
+const areEqual = (prevProps: { index: number, style: React.CSSProperties, data: RowData }, nextProps: { index: number, style: React.CSSProperties, data: RowData }) => {
   return (
     prevProps.index === nextProps.index &&
     prevProps.style === nextProps.style &&
@@ -123,13 +123,13 @@ const Row = React.memo(({ index, style, data }: { index: number, style: React.CS
                       type="text"
                       value={editedPrice}
                       onChange={(e) => setEditedPrice(e.target.value)}
-                      className="w-16 p-1 h-6 text-right bg-surface-header text-status-success font-mono border rounded border-status-success/35 text-[10px] focus:outline-none"
+                      className="w-16 p-1 h-6 text-right bg-surface-header text-status-success font-mono border rounded border-status-success/35 text-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                       autoFocus
                     />
-                    <button onClick={() => savePrice(sku.id)} className="p-0.5 rounded hover:bg-emerald-500/20 text-status-success cursor-pointer" title="Save Price">
+                    <button type="button" onClick={() => savePrice(sku.id)} aria-label="Save Price" className="p-0.5 rounded hover:bg-emerald-500/20 text-status-success cursor-pointer" title="Save Price">
                       <Check className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => setEditingSkuId(null)} className="p-0.5 rounded hover:bg-red-500/20 text-red-400 cursor-pointer" title="Cancel">
+                    <button type="button" onClick={() => setEditingSkuId(null)} aria-label="Cancel" className="p-0.5 rounded hover:bg-red-500/20 text-red-400 cursor-pointer" title="Cancel">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -138,10 +138,10 @@ const Row = React.memo(({ index, style, data }: { index: number, style: React.CS
                     <span className="font-mono text-xs font-black text-status-success">
                       ${sku.price.toLocaleString()}
                     </span>
-                    <button onClick={() => startEditing(sku)} className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-white/5 rounded text-gray-500 hover:text-indigo-400 transition cursor-pointer shrink-0" title="Edit Price">
+                    <button type="button" onClick={() => startEditing(sku)} aria-label="Edit Price" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-white/5 rounded text-gray-500 hover:text-indigo-400 transition cursor-pointer shrink-0" title="Edit Price">
                       <Edit2 className="w-3 h-3" />
                     </button>
-                    <button onClick={() => deleteSku(sku.id)} className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-red-500/10 rounded text-gray-500 hover:text-red-400 transition cursor-pointer shrink-0" title="Delete SKU">
+                    <button type="button" onClick={() => deleteSku(sku.id)} aria-label="Delete SKU" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-red-500/10 rounded text-gray-500 hover:text-red-400 transition cursor-pointer shrink-0" title="Delete SKU">
                       <X className="w-3 h-3" />
                     </button>
                   </div>
@@ -218,7 +218,7 @@ export function CatalogCardsList({
           <p className="italic text-xs">
             No project SKUs discovered matching current taxonomy filter parameters.
           </p>
-          <button
+          <button type="button"
             onClick={onClearFilters}
             className="mt-3 text-[10.5px] text-indigo-400 hover:text-white font-bold cursor-pointer underline decoration-dotted"
           >

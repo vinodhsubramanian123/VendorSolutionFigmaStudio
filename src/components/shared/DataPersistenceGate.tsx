@@ -96,7 +96,7 @@ export function DataPersistenceGate({
           </p>
         </div>
 
-        <button
+        <button type="button"
           onClick={handleRestoreSession}
           className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-white rounded-lg text-sm font-semibold transition-colors"
         >
@@ -133,13 +133,13 @@ export function DataPersistenceGate({
               </div>
             </div>
             <div className="mt-8 flex justify-end gap-3">
-              <button
+              <button type="button"
                 onClick={onCancelNavigation}
                 className="px-4 py-2 bg-transparent text-gray-400 hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium transition"
               >
                 Cancel
               </button>
-              <button
+              <button type="button"
                 onClick={onConfirmNavigation}
                 className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 hover:text-orange-300 border border-orange-500/20 rounded-lg text-sm font-bold transition"
               >
