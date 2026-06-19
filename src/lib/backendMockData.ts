@@ -101,12 +101,12 @@ export const SAMPLE_INGEST_RESPONSE = {
     ],
     events: [
       {
-        ts: "2026-06-09T19:45:01Z",
+        timestamp: "2026-06-09T19:45:01Z",
         level: "info",
         msg: "Ingestion System triggered for file: Q2_PROCURMENT_DELL_BOM_FINAL.xlsx",
       },
       {
-        ts: "2026-06-09T19:45:12Z",
+        timestamp: "2026-06-09T19:45:12Z",
         level: "ok",
         msg: "Excel workbook processed successfully. Found 2 unique SKUs across 17 units.",
       }

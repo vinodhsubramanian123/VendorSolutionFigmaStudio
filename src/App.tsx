@@ -293,7 +293,6 @@ export default function App() {
               view={currentViewString}
               activeMissionId={activeMissionId}
               ucids={ucids}
-              onNavigate={(v: string) => legacyNavigate(v as AppView)}
             />
             <ErrorBoundary>
               <DataPersistenceGate

@@ -51,7 +51,7 @@ export const SolutionSchema = z.object({
 
 // 5. LogEvent Zod Schema
 export const LogEventSchema = z.object({
-  ts: z.string(), // ISO-8601 UTC string format
+  timestamp: z.string(), // ISO-8601 UTC string format
   level: z.enum(["info", "warn", "ok", "err"]),
   msg: z.string(),
 });

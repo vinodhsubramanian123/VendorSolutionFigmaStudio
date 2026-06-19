@@ -12,7 +12,6 @@ export const MOCK_JOBS: Job[] = [
       config_id: "cfg-123",
       solution_id: "sol-active",
     },
-    parent_job_id: "",
     child_jobs: []
   }
 ];
@@ -892,32 +891,32 @@ export const UCIDS: UCID[] = [
     ],
     events: [
       {
-        ts: "2026-06-01T10:24:12Z",
+        timestamp: "2026-06-01T10:24:12Z",
         level: "info",
         msg: "System Ingested Raw BOQ via Email API Pipeline",
       },
       {
-        ts: "2026-06-01T10:25:30Z",
+        timestamp: "2026-06-01T10:25:30Z",
         level: "ok",
         msg: "Core constraints extracted: 48x Intel 32-Core, 512GB Memory, 15TB PCIe Storage",
       },
       {
-        ts: "2026-06-01T10:26:01Z",
+        timestamp: "2026-06-01T10:26:01Z",
         level: "ok",
         msg: "Pre-intelligence catalog matching complete.",
       },
       {
-        ts: "2026-06-01T10:30:15Z",
+        timestamp: "2026-06-01T10:30:15Z",
         level: "ok",
         msg: "Dual alternatives constructed: HPE DL380 Gen11 vs Dell R760",
       },
       {
-        ts: "2026-06-01T11:12:44Z",
+        timestamp: "2026-06-01T11:12:44Z",
         level: "warn",
         msg: "API Warning — Dell transaction endpoint returned high queue load",
       },
       {
-        ts: "2026-06-01T11:13:00Z",
+        timestamp: "2026-06-01T11:13:00Z",
         level: "ok",
         msg: "Vendor provisioning online: Contract pricing synced containing -6% discount",
       },
@@ -984,12 +983,12 @@ export const UCIDS: UCID[] = [
     ],
     events: [
       {
-        ts: "2026-06-03T14:15:32Z",
+        timestamp: "2026-06-03T14:15:32Z",
         level: "info",
         msg: "Ingested raw CSV sheet containing 2 records",
       },
       {
-        ts: "2026-06-03T14:17:11Z",
+        timestamp: "2026-06-03T14:17:11Z",
         level: "warn",
         msg: "Price mismatch detected on 24x 400-BPSB SSD storage cards. Direct API quotes $1,190 vs BOQ $1,590.",
       },
@@ -1012,7 +1011,7 @@ export const UCIDS: UCID[] = [
     solutions: [],
     events: [
       {
-        ts: "2026-06-04T09:12:00Z",
+        timestamp: "2026-06-04T09:12:00Z",
         level: "info",
         msg: "Awaiting raw list alignment parsing...",
       },
@@ -1076,14 +1075,14 @@ export const UCIDS: UCID[] = [
       },
     ],
     events: [
-      { ts: "2026-05-25T11:30:00Z", level: "info", msg: "Intake created." },
+      { timestamp: "2026-05-25T11:30:00Z", level: "info", msg: "Intake created." },
       {
-        ts: "2026-05-25T11:35:00Z",
+        timestamp: "2026-05-25T11:35:00Z",
         level: "ok",
         msg: "Pre-intelligence validated 4 units SRX300.",
       },
       {
-        ts: "2026-05-25T13:02:00Z",
+        timestamp: "2026-05-25T13:02:00Z",
         level: "ok",
         msg: "Committed and locked by procurement agent.",
       },
@@ -1092,12 +1091,12 @@ export const UCIDS: UCID[] = [
       {
         id: "snap-old-1",
         label: "Snapshot v1.0 — Committed & Signed",
-        committedAt: "2026-05-25 01:02 PM",
+        committedAt: "2026-05-25T13:02:00.000Z",
         winnerSolution: "Juniper SRX Gateway Security Configuration",
         totalValue: 3800,
         notes: "Signed contract uploaded, PO-2026-0922 issued successfully.",
         version: 1,
-        timestamp: "2026-05-25 13:02:00",
+        timestamp: "2026-05-25T13:02:00.000Z",
         locked: true,
         payload: [
           {

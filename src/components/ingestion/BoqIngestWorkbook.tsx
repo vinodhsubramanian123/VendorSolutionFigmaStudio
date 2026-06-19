@@ -180,6 +180,7 @@ export function BoqIngestWorkbook({
                   </p>
                   <Button 
                     variant="outline"
+                    aria-label="Select spreadsheet file to upload"
                     onClick={(e) => {
                       e.stopPropagation();
                       document.getElementById("hub-boq-picker")?.click();
@@ -198,6 +199,7 @@ export function BoqIngestWorkbook({
               <button
                 id="run-ingest-btn"
                 type="button"
+                aria-label="Run backend API Ingestion simulation"
                 onClick={() => {
                   const matchedPreset = boqPresets.find(
                     (p) => p.key === selectedPreset,
@@ -289,6 +291,7 @@ export function BoqIngestWorkbook({
                 <button
                   id="split-and-provision-btn"
                   type="button"
+                  aria-label="Split configurations into active UCIDs"
                   onClick={onSplitAndProvision}
                   className="px-5 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold cursor-pointer transition flex items-center gap-2 shadow-lg shadow-sky-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[11px]"
                 >

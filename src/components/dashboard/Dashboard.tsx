@@ -97,7 +97,8 @@ export function Dashboard({
 
   const KPI_CARDS = useMemo(() => [
     {
-      id: "vendor-portal",
+      id: "kpi-vendor-portal-count",
+      view: "vendor-portal",
       label: "Connected Vendors",
       value: `${connectedVendors}`,
       sub: `of ${vendors.length} total`,
@@ -107,7 +108,8 @@ export function Dashboard({
       up: true,
     },
     {
-      id: "catalog",
+      id: "kpi-catalog",
+      view: "catalog",
       label: "Catalog SKUs",
       value: totalCatalog.toLocaleString(),
       sub: `across ${vendors.length} vendors`,
@@ -117,7 +119,8 @@ export function Dashboard({
       up: true,
     },
     {
-      id: "mission-control",
+      id: "kpi-mission-control-count",
+      view: "mission-control",
       label: "Active UCIDs",
       value: `${activeUCIDs.length}`,
       sub: `${ucids.length} total missions`,
@@ -127,7 +130,8 @@ export function Dashboard({
       up: true,
     },
     {
-      id: "forensic",
+      id: "kpi-forensic",
+      view: "forensic",
       label: "Open Issues",
       value: `${forensicIssues.filter((f) => f.status !== "resolved").length}`,
       sub: `${criticalIssues} critical`,
@@ -137,7 +141,8 @@ export function Dashboard({
       up: false,
     },
     {
-      id: "mission-control",
+      id: "kpi-mission-control-pipeline",
+      view: "mission-control",
       label: "Active Pipeline",
       value: `${averagePipeline}%`,
       sub: `${recentMission} processing`,
@@ -147,7 +152,8 @@ export function Dashboard({
       up: true,
     },
     {
-      id: "vendor-portal",
+      id: "kpi-vendor-portal-sync",
+      view: "vendor-portal",
       label: "Last Sync Status",
       value: syncStatusInfo.value,
       sub: syncStatusInfo.sub,
@@ -170,16 +176,27 @@ export function Dashboard({
         {/* Welcome banner */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="rounded-xl p-4 flex items-center justify-between"
+        animate={{ 
+          opacity: 1, 
+          scale: 1, 
+          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] 
+        }}
+        transition={{ 
+          opacity: { duration: 0.4, ease: "easeOut" },
+          scale: { duration: 0.4, ease: "easeOut" },
+          backgroundPosition: { duration: 15, repeat: Infinity, ease: "linear" }
+        }}
+        className="rounded-xl p-4 flex items-center justify-between relative overflow-hidden"
         style={{
-          background:
-            "linear-gradient(135deg, rgba(74, 133, 253,0.12) 0%, rgba(0,212,160,0.06) 100%)",
+          background: "linear-gradient(270deg, rgba(74, 133, 253, 0.12) 0%, rgba(0,212,160,0.06) 50%, rgba(74, 133, 253,0.12) 100%)",
+          backgroundSize: "200% 200%",
           border: "1px solid rgba(74, 133, 253,0.18)",
         }}
       >
-        <div>
+        {/* Subtle particle overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23ffffff\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'1\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'1\\'/%3E%3C/g%3E%3C/svg%3E')" }} />
+        
+        <div className="relative z-10">
           <p
             className="text-base"
             style={{ color: tokens.colors.text.primary, fontWeight: 500 }} 
@@ -191,27 +208,31 @@ export function Dashboard({
             vendors live · {criticalIssues} critical issues awaiting review
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative z-10">
           {criticalIssues > 0 && (
-            <button type="button"
+            <motion.button type="button"
               onClick={() => onNavigate("forensic")}
               aria-label="Resolve Critical Issues"
               className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer border border-status-error/30"
               style={{ background: tokens.colors.status.error, color: tokens.colors.text.primary }} 
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               <AlertTriangle className="w-3.5 h-3.5 animate-bounce" />
               Resolve {criticalIssues} Critical
-            </button>
+            </motion.button>
           )}
-          <button type="button"
+          <motion.button type="button"
             onClick={() => onNavigate("mission-control")}
             aria-label="Open Live Mission Control"
             className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer"
             style={{ background: tokens.colors.accent.indigo, color: tokens.colors.text.primary }} 
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             <Target className="w-3.5 h-3.5" />
             Live Mission Control
-          </button>
+          </motion.button>
         </div>
       </motion.div>
 
@@ -231,7 +252,7 @@ export function Dashboard({
             hovered={hovered === `kpi-${i}`}
             onMouseEnter={() => setHovered(`kpi-${i}`)}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => onNavigate(kpi.id as AppView)}
+            onClick={() => onNavigate(kpi.view as AppView)}
           />
         ))}
       </div>

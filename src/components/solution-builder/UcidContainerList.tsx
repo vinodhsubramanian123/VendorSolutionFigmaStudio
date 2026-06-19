@@ -203,6 +203,7 @@ export function UcidContainerList({
       {/* Glowing grand CTA block to Deploy to Live Parallel Control pipeline */}
       <div className="flex justify-end pt-3">
         <button type="button"
+          data-testid="btn-deploy-solutions"
           onClick={handleDeployToMissionControl}
           className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 text-white font-black uppercase text-xs tracking-wider shadow-lg shadow-indigo-500/25 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         >

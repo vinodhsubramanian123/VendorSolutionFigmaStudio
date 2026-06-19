@@ -1,6 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React, { useState, useEffect, useMemo } from 'react';
 import { AlertTriangle, Edit2, Check, X, Server, Cpu, Layers, HardDrive, Network, Sliders } from 'lucide-react';
+import { motion } from 'motion/react';
 import { StatusBadge } from '../shared/StatusBadge';
 import type { CatalogSKU } from '../../types';
 // Use react-virtuoso for robust, modern virtualization that supports React 19 and dynamic sizing
@@ -77,13 +78,21 @@ const Row = React.memo(({ index, style, data }: { index: number, style: React.CS
         const activeColor = brandColors[sku.vendor] || "rgba(148, 163, 184, 1)";
 
         return (
-          <div
+          <motion.div
             key={sku.id}
-            className="bg-surface-elevated border rounded-xl p-4 flex flex-col justify-between hover:border-indigo-500/30 transition duration-200 relative overflow-hidden group/card flex-1"
+            data-eol={isEol}
+            className="bg-surface-elevated border rounded-xl p-4 flex flex-col justify-between transition-colors relative overflow-hidden group/card flex-1"
             style={{
               borderColor: isEditing ? tokens.colors.status.success : "rgba(74, 133, 253,0.06)",
               maxWidth: `calc(${100 / columns}% - ${((columns - 1) * 1) / columns}rem)`
             }}
+            whileHover={{
+              y: -3,
+              borderColor: activeColor,
+              boxShadow: `0 8px 30px ${activeColor}15`
+            }}
+            animate={isEol ? { opacity: [1, 0.6, 1] } : { opacity: 1 }}
+            transition={isEol ? { duration: 2.5, repeat: Infinity, ease: "easeInOut" } : {}}
           >
             <div className="flex gap-3 items-start">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center border shrink-0 bg-surface-elevated border-white/5">
@@ -113,7 +122,7 @@ const Row = React.memo(({ index, style, data }: { index: number, style: React.CS
               <span className="font-mono text-gray-400">{sku.leadTimeDays}D Lead</span>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between relative z-10">
               <StatusBadge status={sku.status.toUpperCase()} variant={isEol ? "error" : "success"} size="sm" />
               <div className="text-right">
                 {isEditing ? (
@@ -148,7 +157,7 @@ const Row = React.memo(({ index, style, data }: { index: number, style: React.CS
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </div>

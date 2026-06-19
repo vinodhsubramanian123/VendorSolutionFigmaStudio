@@ -68,7 +68,9 @@ export function useSnapshotManagerLogic(
 
     apiClient.post("/api/snapshots", createdSnapshot)
       .then((data) => {
-        console.log("[SYNC] Snapshot synchronized successfully with server backend:", data);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log("[SYNC] Snapshot synchronized successfully with server backend:", data);
+        }
       })
       .catch((error) => {
         console.error("[SYNC ERROR] Failed to sync snapshot. Rolling back UI:", error);

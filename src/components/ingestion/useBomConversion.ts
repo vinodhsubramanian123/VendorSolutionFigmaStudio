@@ -94,7 +94,7 @@ export function useBomConversion(
             });
 
             const newEvent = {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: constraintsData.isCompliant ? ("ok" as const) : ("warn" as const),
               msg: `BOM Sheet "${fileName}" verified centrally. Compliance Rating matched: ${updatedSolutions[0]?.vendorSubmissions?.[0]?.complianceScore ?? "98"}%`,
             };
@@ -226,7 +226,7 @@ export function useBomConversion(
             solutions: updatedSolutions,
             events: [
               {
-                ts: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
                 level: "ok" as const,
                 msg: "✓ Global Batch Reconciliation Sweep executed successfully. Hardware constraints satisfied, discrepancies zeroed, and records synchronized.",
               },

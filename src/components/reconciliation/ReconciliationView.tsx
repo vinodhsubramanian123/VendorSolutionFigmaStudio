@@ -73,9 +73,16 @@ export function ReconciliationView({
         </div>
 
         <div className="flex items-center gap-3">
-          <button type="button"
-            onClick={() => setIsSnapshotPanelOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 hover:text-indigo-300 font-extrabold uppercase text-[9.5px] tracking-wider transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+          <button
+            type="button"
+            data-testid="btn-version-snapshots"
+            onClick={() => setIsSnapshotPanelOpen(!isSnapshotPanelOpen)}
+            aria-label="View Version Snapshots"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded border transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
+              isSnapshotPanelOpen 
+                ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30" 
+                : "bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40"
+            }`}
           >
             <Camera className="w-3.5 h-3.5" />
             <span>Version Snapshots ({activeUCID?.snapshots?.length || 0})</span>

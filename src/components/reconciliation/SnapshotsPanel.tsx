@@ -108,6 +108,7 @@ export function SnapshotsPanel({
                   </div>
                 </div>
                 <button type="button"
+                  aria-label="Close snapshots panel"
                   onClick={onClose}
                   className="p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white cursor-pointer active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
@@ -134,6 +135,7 @@ export function SnapshotsPanel({
                     <div className="flex justify-between items-center text-[10px]">
                       <span className="text-gray-400 font-bold">Comparison Mode Options</span>
                       <button type="button"
+                        aria-label="Clear selected snapshots"
                         onClick={() => setSelectedForCompare([])}
                         className="text-indigo-400 hover:text-indigo-300 font-semibold text-[9.5px]"
                       >

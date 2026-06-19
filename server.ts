@@ -231,8 +231,8 @@ async function startServer() {
           }]
         })),
         events: [
-          { ts: new Date().toISOString(), level: "info" as const, msg: `Ingestion triggered for file: ${fileName}` },
-          { ts: new Date().toISOString(), level: "ok" as const, msg: `Workbook processed. Confidence: ${confidence}%` }
+          { timestamp: new Date().toISOString(), level: "info" as const, msg: `Ingestion triggered for file: ${fileName}` },
+          { timestamp: new Date().toISOString(), level: "ok" as const, msg: `Workbook processed. Confidence: ${confidence}%` }
         ],
         snapshots: []
       },

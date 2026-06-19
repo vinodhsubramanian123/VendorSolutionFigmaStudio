@@ -52,7 +52,7 @@ describe('Zod Schemas and Validators', () => {
     expect(validators.validateSolution(mockSolution)).toBeDefined();
 
     const mockLogEvent = {
-      ts: "2024-01-01T00:00:00Z",
+      timestamp: "2024-01-01T00:00:00Z",
       level: "info",
       msg: "Test"
     };

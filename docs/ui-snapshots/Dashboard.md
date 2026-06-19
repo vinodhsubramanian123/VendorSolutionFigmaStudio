@@ -7,13 +7,13 @@
 - **Header Section**:
   - Greeting (e.g. "Welcome back", "System Online")
   - System Sync Status (e.g. "All engines synced")
-- **KPI Row (4 Cards)**:
+- **KPI Row (4 Cards - `motion.div` Staggered Entry)**:
   - Active Opportunities (Total Open)
   - Sourcing Pipeline (Monetary Value)
   - Forensic Violations (Critical Issues)
   - Partner Network (Catalog Items)
-- **Main Content**:
-  - Active Missions Matrix (Table listing ongoing UCIDs)
+- **Main Content (`motion` Layout)**:
+  - Active Missions Matrix (`UcidPipelineCard` listing ongoing UCIDs with stagger animations)
   - Right Column:
     - Compliance Alerts (List of active issues with status)
     - Vendor Network Status (List of connecting vendors with sync states)

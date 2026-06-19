@@ -303,7 +303,7 @@ export const MissionControl = React.memo(function MissionControl({
                     </div>
                     <div className="flex items-center gap-2 self-start md:self-auto">
                       <span className="text-xs text-gray-500 font-mono flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> Ingested 2026-06
+                        <Clock className="w-3.5 h-3.5" /> Ingested {new Date(selected.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>

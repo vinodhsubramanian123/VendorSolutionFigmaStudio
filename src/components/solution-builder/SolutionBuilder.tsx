@@ -208,9 +208,9 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         rawBOM: `Assigned Equipment configurations:\n` + assignedConfigs.map(c => ` - ${c.name} (${c.vendor} equipment)`).join('\n') + `\n\nReasoning: ${container.reasoning}`,
         solutions: [masterSolution],
         events: [
-          { ts: new Date().toISOString(), level: 'info', msg: `Ingested Raw Sheet configurations into Sourcing platform` },
-          { ts: new Date().toISOString(), level: 'ok', msg: `Auto-assigned container: ${container.name} (${container.id})` },
-          { ts: new Date().toISOString(), level: 'ok', msg: `Catalog validation finished with optimal load metrics` }
+          { timestamp: new Date().toISOString(), level: 'info', msg: `Ingested Raw Sheet configurations into Sourcing platform` },
+          { timestamp: new Date().toISOString(), level: 'ok', msg: `Auto-assigned container: ${container.name} (${container.id})` },
+          { timestamp: new Date().toISOString(), level: 'ok', msg: `Catalog validation finished with optimal load metrics` }
         ],
         snapshots: []
       };

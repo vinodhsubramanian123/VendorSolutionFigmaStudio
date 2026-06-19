@@ -28,6 +28,7 @@ export const DriftTableRow = React.memo(function DriftTableRow({
             <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-bounce" />
             <span>{row.alertTitle}</span>
             <button type="button"
+              aria-label="Auto-align this discrepancy"
               onClick={(e) => {
                 e.stopPropagation();
                 handleAutoHeal(row.alertId);

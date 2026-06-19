@@ -181,7 +181,7 @@ export function VendorIngestionDesk({
               events: [
                 ...u.events,
                 {
-                  ts: now,
+                  timestamp: now,
                   level: "ok",
                   msg: `Playwright Automation: Authenticated partner gate ${selectedPortal} utilizing secure credentials. Refreshed direct contract rates index.`,
                 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Radio, Trash2, Filter } from "lucide-react";
 import type { UCID } from "../../types";
+import { Virtuoso } from "react-virtuoso";
 
 interface UCIDEventLedgerProps {
   ucid: UCID;
@@ -79,37 +80,43 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
 
       <div
         ref={scrollRef}
-        className="rounded-lg p-3 font-mono text-[10px] space-y-1.5 bg-surface-card text-left max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scroll-smooth"
+        className="rounded-lg p-3 font-mono text-[10px] bg-surface-card text-left h-48 overflow-hidden"
       >
         {filteredEvents.length === 0 ? (
           <div className="text-gray-500 text-center py-4 italic select-none">
             No events match the selected filter.
           </div>
         ) : (
-          filteredEvents.map((ev, i) => {
-            const stableKey = `${ev.ts}-${ev.level}-${ev.msg.substring(0, 10)}-${i}`;
-            return (
-              <div key={stableKey} className="flex gap-3 items-start border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0">
-                <span className="text-gray-500 shrink-0 select-none font-semibold">{ev.ts}</span>
-                <span
-                  className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase select-none ${
-                    ev.level === "ok"
-                      ? "bg-status-success/15 text-status-success"
-                      : ev.level === "warn"
-                        ? "bg-status-warning/15 text-status-warning"
-                        : ev.level === "err"
-                          ? "bg-status-error/15 text-status-error"
-                          : "bg-indigo-500/15 text-indigo-400"
-                  }`}
-                >
-                  {ev.level === "info" ? "inf" : ev.level}
-                </span>
-                <span className="text-gray-300 flex-1 leading-normal break-all">
-                  {ev.msg}
-                </span>
-              </div>
-            );
-          })
+          <Virtuoso
+            style={{ height: "100%" }}
+            data={filteredEvents}
+            followOutput="smooth"
+            itemContent={(i, ev) => {
+              const stableKey = `${ev.timestamp}-${ev.level}-${ev.msg.substring(0, 10)}-${i}`;
+              return (
+                <div key={stableKey} className="flex gap-3 items-start border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0 mb-1.5 font-mono text-[10px]">
+                  <span className="text-gray-500 shrink-0 select-none font-semibold">{ev.timestamp}</span>
+                  <span
+                    className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase select-none ${
+                      ev.level === "ok"
+                        ? "bg-status-success/15 text-status-success"
+                        : ev.level === "warn"
+                          ? "bg-status-warning/15 text-status-warning"
+                          : ev.level === "err"
+                            ? "bg-status-error/15 text-status-error"
+                            : "bg-indigo-500/15 text-indigo-400"
+                    }`}
+                  >
+                    {ev.level === "info" ? "inf" : ev.level}
+                  </span>
+                  <span className="text-gray-300 flex-1 leading-normal break-all">
+                    {ev.msg}
+                  </span>
+                </div>
+              );
+            }}
+            className="scrollbar-thin scrollbar-thumb-white/10"
+          />
         )}
       </div>
     </div>

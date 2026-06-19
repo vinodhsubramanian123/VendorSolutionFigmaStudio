@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { tokens } from "../../styles/tokens";
+import { motion } from "motion/react";
 import {
   LayoutDashboard,
   Target,
@@ -201,7 +202,11 @@ export function Sidebar({
             >
               {/* Left active line indicator */}
               {isActive && (
-                <div className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-indigo-400" />
+                <motion.div
+                  layoutId="sidebar-active-indicator"
+                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-indigo-400"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
               )}
 
               <IconComponent

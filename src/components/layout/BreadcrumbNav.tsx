@@ -7,7 +7,6 @@ interface BreadcrumbNavProps {
   view: string;
   activeMissionId?: string;
   ucids: UCID[];
-  onNavigate?: (view: string) => void;
 }
 
 export function BreadcrumbNav({

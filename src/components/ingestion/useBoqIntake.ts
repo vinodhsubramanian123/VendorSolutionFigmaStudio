@@ -110,12 +110,12 @@ export function useBoqIntake(
           ],
           events: [
             {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: "info",
               msg: `Central BOQ split allocated to target container ${displayId}`,
             },
             {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: "ok",
               msg: `Primary spec loaded with initial compliance score and structural items.`,
             },

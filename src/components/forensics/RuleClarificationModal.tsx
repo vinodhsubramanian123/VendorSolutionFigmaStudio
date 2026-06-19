@@ -77,8 +77,13 @@ export function RuleClarificationModal({
           <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition">
             Cancel
           </button>
-          <button type="button" onClick={() => onConfirm(scope)} className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white flex items-center gap-2 transition">
-            <Check className="w-3.5 h-3.5" />
+          <button
+            data-testid="btn-lock-intelligence-rule"
+            type="button"
+            onClick={() => onConfirm(scope)}
+            className="flex items-center gap-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-bold shadow-lg cursor-pointer transition-colors text-xs"
+          >
+            <Check className="w-4 h-4" />
             Lock Intelligence Rule
           </button>
         </div>

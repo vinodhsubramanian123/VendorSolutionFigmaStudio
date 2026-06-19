@@ -14,7 +14,7 @@ export class UCIDScheduler {
   scheduleProcessing(ucid: UCID) {
     console.log(`[UCIDScheduler] Scheduling workflow for UCID ${ucid.id}`);
     const task: SchedulerTask = {
-      id: `task-${Date.now()}`,
+      id: `task-${crypto.randomUUID()}`,
       ucidRef: ucid.id,
       action: 'process_boq',
       status: 'pending'

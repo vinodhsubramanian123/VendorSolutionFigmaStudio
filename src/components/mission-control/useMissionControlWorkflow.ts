@@ -69,7 +69,7 @@ export function useMissionControlWorkflow({
             events: [
               ...u.events,
               {
-                ts: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
                 level: "ok",
                 msg: `Pre-Intelligence completed. Matches mapped to ${updatedSolutions.length} options.`,
               },
@@ -109,7 +109,7 @@ export function useMissionControlWorkflow({
           events: [
             ...u.events,
             {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: "info",
               msg: `Step advanced from ${u.currentStep} to ${next}.`,
             },
@@ -142,7 +142,7 @@ export function useMissionControlWorkflow({
           events: [
             ...u.events,
             {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: "info",
               msg: `Step regressed from ${u.currentStep} to ${prevStep}.`,
             },
@@ -209,7 +209,7 @@ export function useMissionControlWorkflow({
               events: [
                 ...u.events,
                 {
-                  ts: new Date().toISOString(),
+                  timestamp: new Date().toISOString(),
                   level: "ok",
                   msg: "Snapshot securely committed to immutable ledger.",
                 },
@@ -239,7 +239,7 @@ export function useMissionControlWorkflow({
             ...u,
             events: [
               ...u.events,
-              { ts: new Date().toISOString(), level, msg },
+              { timestamp: new Date().toISOString(), level, msg },
             ],
           };
         }

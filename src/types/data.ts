@@ -78,7 +78,7 @@ export interface Solution {
  * Written directly to the job telemetry channel.
  */
 export interface LogEvent {
-  ts: string; // ISO-8601 UTC Timestamp
+  timestamp: string; // ISO-8601 UTC Timestamp
   level: "info" | "warn" | "ok" | "err"; // Telemetry tracking severity levels
   msg: string; // Informational narrative string
 }

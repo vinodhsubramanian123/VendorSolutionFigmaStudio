@@ -1,5 +1,6 @@
 import React from 'react';
 import { Power } from 'lucide-react';
+import { motion } from 'motion/react';
 import type { Vendor } from '../../types';
 import { StatusBadge } from '../shared/StatusBadge';
 
@@ -8,19 +9,45 @@ interface VendorGatewaysProps {
   handleToggleStatus: (vendorId: string) => void;
 }
 
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+
 export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <motion.div
+      className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {vendors.map((vendor) => {
         const isConnected =
           vendor.status === "connected" || vendor.status === "syncing";
         return (
-          <div
+          <motion.div
             key={vendor.id}
-            className="p-4 rounded-xl border flex flex-col gap-3.5 transition-all hover:border-indigo-500/20"
+            className="p-4 rounded-xl border flex flex-col gap-3.5"
             style={{
               backgroundColor: "var(--color-surface-elevated)",
               borderColor: "rgba(74, 133, 253,0.08)",
+            }}
+            variants={{
+              hidden: { opacity: 0, y: 14 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
+            }}
+            whileHover={{
+              y: -2,
+              borderColor: isConnected ? "rgba(0,212,160,0.2)" : "rgba(255,61,90,0.15)",
+              boxShadow: isConnected
+                ? "0 6px 24px rgba(0,212,160,0.08)"
+                : "0 6px 20px rgba(255,61,90,0.06)",
             }}
           >
             {/* Header */}
@@ -29,10 +56,20 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
               style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                <div
-                  className="w-3 h-3 rounded-full shrink-0"
-                  style={{ backgroundColor: vendor.color }}
-                />
+                <div className="relative shrink-0">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: vendor.color }}
+                  />
+                  {isConnected && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: vendor.color }}
+                      animate={{ scale: [1, 2, 1], opacity: [0.6, 0, 0.6] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                </div>
                 <div className="min-w-0">
                   <h3 className="text-xs text-white font-bold truncate">
                     {vendor.name}
@@ -56,7 +93,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
 
             {/* API Specs */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-2.5 rounded bg-black/20 space-y-0.5 border border-white/2">
+              <div className="p-2.5 rounded bg-black/20 space-y-0.5 border border-white/5">
                 <span className="text-gray-500 font-medium text-[9.5px]">
                   Synced SKUs
                 </span>
@@ -64,7 +101,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
                   {vendor.catalogItems.toLocaleString()}
                 </p>
               </div>
-              <div className="p-2.5 rounded bg-black/20 space-y-0.5 border border-white/2">
+              <div className="p-2.5 rounded bg-black/20 space-y-0.5 border border-white/5">
                 <span className="text-gray-500 font-medium text-[9.5px]">
                   Channel Health
                 </span>
@@ -85,9 +122,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
               <div className="flex justify-between text-gray-500">
                 <p>
                   Interval:{" "}
-                  <span className="text-gray-300">
-                    {vendor.syncInterval}
-                  </span>
+                  <span className="text-gray-300">{vendor.syncInterval}</span>
                 </p>
                 <p>
                   Last Sync:{" "}
@@ -98,23 +133,25 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 pt-1 mt-auto">
-              <button type="button"
+              <motion.button
+                type="button"
+                aria-label={isConnected ? "Disconnect System Gateway" : "Sync Sourcing Gateway"}
                 onClick={() => handleToggleStatus(vendor.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-bold border cursor-pointer transition-colors ${
                   isConnected
                     ? "bg-red-500/10 text-red-400 border-red-500/15 hover:bg-red-500/15"
                     : "bg-status-success/10 text-status-success border-status-success/15 hover:bg-status-success/20"
                 }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
               >
                 <Power className="w-3.5 h-3.5" />
-                {isConnected
-                  ? "Disconnect System Gateway"
-                  : "Sync Sourcing Gateway"}
-              </button>
+                {isConnected ? "Disconnect System Gateway" : "Sync Sourcing Gateway"}
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

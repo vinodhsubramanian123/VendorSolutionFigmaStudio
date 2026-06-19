@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertCircle, Database, RefreshCw, AlertTriangle } from "lucide-react";
+import { motion } from "motion/react";
 import type { UCID, Vendor, CatalogSKU } from "../../types";
 import { UCIDSchema, VendorSchema, CatalogSKUSchema } from "../../types";
 import { z } from "zod";
@@ -53,9 +54,13 @@ export function DataPersistenceGate({
       }
 
       if (errors.length > 0) {
-        console.warn("⚠️ [VSIP Schema Validation Drift Detected]:", errors);
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("⚠️ [VSIP Schema Validation Drift Detected]:", errors);
+        }
       } else {
-        console.log("✅ [VSIP Schema Alignment Secure]: 100% compliant with standard relational contracts.");
+        if (process.env.NODE_ENV !== "production") {
+          console.log("✅ [VSIP Schema Alignment Secure]: 100% compliant with standard relational contracts.");
+        }
       }
 
       return {
@@ -79,13 +84,27 @@ export function DataPersistenceGate({
 
   if (!isHealthy) {
     return (
-      <div className="flex flex-col h-full bg-surface-canvas rounded-xl border border-white/5 items-center justify-center p-8 space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+      <motion.div
+        className="flex flex-col h-full bg-surface-canvas rounded-xl border border-white/5 items-center justify-center p-8 space-y-6"
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      >
+        <motion.div
+          className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+          animate={{ boxShadow: ["0 0 20px rgba(239,68,68,0.2)", "0 0 35px rgba(239,68,68,0.35)", "0 0 20px rgba(239,68,68,0.2)"] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        >
           <Database className="w-8 h-8 text-red-400 opacity-60 absolute" />
           <AlertCircle className="w-5 h-5 text-red-500 relative mt-4 ml-4" />
-        </div>
+        </motion.div>
 
-        <div className="text-center space-y-2 max-w-sm">
+        <motion.div
+          className="text-center space-y-2 max-w-sm"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.3 }}
+        >
           <h2 className="text-lg font-bold text-white tracking-tight">
             Session Data Corrupted
           </h2>
@@ -94,16 +113,23 @@ export function DataPersistenceGate({
             Vendors, or Catalog). Navigation to this tab is halted to prevent
             cascading errors.
           </p>
-        </div>
+        </motion.div>
 
-        <button type="button"
+        <motion.button
+          type="button"
           onClick={handleRestoreSession}
+          aria-label="Attempt session restore"
           className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-white rounded-lg text-sm font-semibold transition-colors"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
           <RefreshCw className="w-4 h-4" />
           Attempt Session Restore
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     );
   }
 

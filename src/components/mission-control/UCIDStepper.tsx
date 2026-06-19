@@ -125,7 +125,7 @@ export function UCIDStepper({ ucid, activeStep, setViewStep, getStepState }: UCI
         ev.msg.toLowerCase().includes(`step advanced from ${stepId.toLowerCase()}`) ||
         (stepId === "snapshot" && ev.msg.toLowerCase().includes("snapshot securely committed"))
     );
-    if (event) return event.ts;
+    if (event) return event.timestamp;
 
     // Fallback for intake step
     if (stepId === "boq-intake") {

@@ -23,7 +23,7 @@ serverState.catalog = [
   },
   {
     id: "sku-seed-2",
-    vendor: "Intel",
+    vendor: "HPE",
     partNumber: "P40424-B21",
     name: "Intel Xeon Gold 6430 32-Core CPU",
     type: "Processor",

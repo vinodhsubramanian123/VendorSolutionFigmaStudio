@@ -37,6 +37,7 @@ export function SweepCoordinatorBoard({
         <button
           id="comparison-sweep-btn"
           type="button"
+          aria-label="Initiate multi UCID comparison sweep"
           onClick={onTriggerBatchReconciliation}
           className="w-full md:w-auto px-5 py-3 rounded-lg bg-sky-500 hover:bg-sky-600 border border-sky-400/25 text-white font-extrabold cursor-pointer transition flex items-center justify-center gap-2 shadow-2xl text-[10.5px] tracking-wider uppercase shrink hover:scale-[1.02] active:scale-[0.98]"
         >
@@ -55,6 +56,7 @@ export function SweepCoordinatorBoard({
           <div className="flex gap-2">
             <button
               type="button"
+              aria-label="Select all configurations for sweep"
               onClick={() => setSelectedBomsForBatch(ucids.map((u) => u.id))}
               className="text-[9.2px] text-sky-400 hover:underline cursor-pointer font-bold uppercase tracking-wider"
             >
@@ -63,6 +65,7 @@ export function SweepCoordinatorBoard({
             <span className="text-gray-700 text-[9px]">|</span>
             <button
               type="button"
+              aria-label="Clear all sweep selections"
               onClick={() => setSelectedBomsForBatch([])}
               className="text-[9.2px] text-sky-400 hover:underline cursor-pointer font-bold uppercase tracking-wider"
             >

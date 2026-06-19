@@ -74,7 +74,7 @@ export function useDrillDownAutoHeal(
               events: [
                 ...u.events,
                 {
-                  ts: new Date().toISOString(),
+                  timestamp: new Date().toISOString(),
                   level: "ok",
                   msg: "BOM Direct Align: Replaced obsolete HPE processor 815100-B21 with model P40424-B21.",
                 },
@@ -155,7 +155,7 @@ export function useDrillDownAutoHeal(
               events: [
                 ...u.events,
                 {
-                  ts: new Date().toISOString(),
+                  timestamp: new Date().toISOString(),
                   level: "ok",
                   msg: "BOM Direct Align: Adjusted overcharge markup on Dell SFF premium drive to standard trade agreement limit of $1,190.",
                 },
@@ -239,7 +239,7 @@ export function useDrillDownAutoHeal(
               events: [
                 ...u.events,
                 {
-                  ts: new Date().toISOString(),
+                  timestamp: new Date().toISOString(),
                   level: "ok",
                   msg: "BOM Direct Align: Balanced memory loadout to optimal 8-channel socket standards.",
                 },

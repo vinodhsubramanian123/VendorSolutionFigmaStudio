@@ -144,6 +144,7 @@ export const VendorPortal = React.memo(function VendorPortal({
 
         <div className="flex items-center gap-2 self-end md:self-auto shrink-0 select-none">
           <button type="button" 
+            aria-label="Synchronize all supplier endpoints"
             onClick={handleSyncAll}
             disabled={syncingAll}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-[10px] transition-all cursor-pointer shadow-lg active:scale-95 ${syncingAll ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300' : 'bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/20 text-indigo-400'}`}

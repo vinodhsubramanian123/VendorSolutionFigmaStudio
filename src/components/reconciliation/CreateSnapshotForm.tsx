@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Camera } from "lucide-react";
+import { Camera, Check } from "lucide-react";
 import type { UCID } from "../../types";
 
 interface CreateSnapshotFormProps {
@@ -96,12 +96,14 @@ export function CreateSnapshotForm({
         </div>
 
         <div className="flex gap-2">
-          <button
-            type="submit"
-            className="flex-1 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold text-[9.5px] uppercase tracking-wider rounded transition cursor-pointer"
-          >
-            Confirm Version Snapshot Block
-          </button>
+            <button
+              type="submit"
+              data-testid="btn-confirm-snapshot"
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+            >
+              <Check className="w-4 h-4" />
+              <span>Confirm Version Snapshot Block</span>
+            </button>
         </div>
       </form>
     </motion.div>

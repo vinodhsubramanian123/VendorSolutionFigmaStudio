@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "motion/react";
-import { Plus, Layers } from "lucide-react";
+import { Plus, Layers, Camera } from "lucide-react";
 import { useToast } from "../shared/ToastContext";
 import type { UCID, Snapshot } from "../../types";
 import { useSnapshotManagerLogic } from "./useSnapshotManagerLogic";
@@ -81,17 +81,19 @@ export function SnapshotManager({
           </span>
         </div>
 
-        <button type="button"
+        <button
+          type="button"
+          data-testid="btn-capture-snapshot"
           onClick={() => {
-            if (!activeUCID || !activeUCID.solutions?.length) {
+            if (!activeUCID?.solutions?.length || activeUCID.solutions.length === 0) {
               toast.error("Please ensure the configuration is ingested before saving a snapshot.");
               return;
             }
-            setIsCreateOpen(true);
+            setIsCreateOpen(!isCreateOpen);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-bold uppercase text-[9.5px] tracking-wider transition cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 active:scale-95 shadow-md shadow-indigo-500/15"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded font-bold shadow-md cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 uppercase tracking-wider text-[10px]"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Camera className="w-4 h-4" />
           <span>Capture Snapshot</span>
         </button>
       </div>

@@ -56,7 +56,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
       solutions: [],
       events: [
         {
-          ts: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
           level: "info",
           msg: "UCID pipeline registered successfully. Intake form completed.",
         },

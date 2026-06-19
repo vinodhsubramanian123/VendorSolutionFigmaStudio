@@ -84,7 +84,7 @@ export function MissionControlSidebar({
       snapshots: [],
       events: [
         {
-          ts: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
           level: "info",
           msg: `Cloned from parallel flow ${u.displayId}.`,
         },

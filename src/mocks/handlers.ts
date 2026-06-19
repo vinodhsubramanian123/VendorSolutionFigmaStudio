@@ -1,13 +1,12 @@
 import { http, HttpResponse, delay } from 'msw';
 import { MockCatalogApi, MockSnapshotApi, MockSolutionApi, MockTaxonomyApi } from '../lib/api-mock';
-import { CatalogSKU, Config, Snapshot } from '../types';
+import { CatalogSKU, Config, Snapshot, GraphNode, GraphEdge, Solution, VendorSubmission, BOMItem, SourcingRule, LearningEvent, UCID } from '../types';
+import { CleansingEntry } from '../components/cleansing/types';
 import { BOQ_PRESETS } from './boqMocks';
 import { makeMockApiLogs, makeMockWebhooks } from '../components/telemetry/telemetryUtils';
 
 function wrapSuccess<T>(data: T) {
-  const reqId = typeof window !== 'undefined' && window.crypto?.randomUUID 
-    ? window.crypto.randomUUID() 
-    : Math.random().toString(36).substring(7);
+  const reqId = crypto.randomUUID();
   return {
     success: true,
     data,
@@ -18,18 +17,18 @@ function wrapSuccess<T>(data: T) {
   };
 }
 
-let memoryGraphNodes: any[] = [
-  { id: "node-1", label: "HPE ProLiant DL380", type: "catalog_part", data: { partNumber: "P52532-B21", price: 2100 } },
-  { id: "node-2", label: "Intel Xeon Silver", type: "catalog_part", data: { partNumber: "P49610-B21", price: 800 } },
+let memoryGraphNodes: GraphNode[] = [
+  { id: "node-1", label: "HPE ProLiant DL380", type: "catalog_part", status: "healthy", data: { partNumber: "P52532-B21", price: 2100 } },
+  { id: "node-2", label: "Intel Xeon Silver", type: "catalog_part", status: "healthy", data: { partNumber: "P49610-B21", price: 800 } },
   { id: "node-3", label: "Orphaned Memory Module", type: "scraped_orphan", status: "warning", data: { partNumber: "Unknown-MEM", confidenceScore: 40 } },
-  { id: "node-4", label: "HPE 32GB DDR5", type: "catalog_part", data: { partNumber: "P43328-B21", price: 350 } },
-  { id: "node-subsystem-1", label: "Memory Subsystem", type: "category_hub" },
+  { id: "node-4", label: "HPE 32GB DDR5", type: "catalog_part", status: "healthy", data: { partNumber: "P43328-B21", price: 350 } },
+  { id: "node-subsystem-1", label: "Memory Subsystem", type: "category_hub", status: "healthy" },
 ];
 
-let memoryGraphEdges: any[] = [
-  { id: "edge-1", source: "node-1", target: "node-2", relationship: "requires", weight: 1.0 },
+let memoryGraphEdges: GraphEdge[] = [
+  { id: "edge-1", source: "node-1", target: "node-2", relationship: "requires", weight: 1.0, isAnimated: false },
   { id: "edge-2", source: "node-1", target: "node-3", relationship: "requires", weight: 0.8, isAnimated: true },
-  { id: "edge-3", source: "node-3", target: "node-4", relationship: "substitutes", weight: 0.95 },
+  { id: "edge-3", source: "node-3", target: "node-4", relationship: "substitutes", weight: 0.95, isAnimated: false },
 ];
 
 export const handlers = [
@@ -123,12 +122,12 @@ export const handlers = [
   // POST /api/jobs
   http.post('/api/jobs', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({ status: "accepted", job_id: "job-mock-ingest-" + Date.now() }));
+    return HttpResponse.json(wrapSuccess({ status: "accepted", job_id: "job-mock-ingest-" + crypto.randomUUID() }));
   }),
 
   // POST /api/pipeline/step
   http.post('/api/pipeline/step', async ({ request }) => {
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { step?: string };
     const step = body.step;
     
     let progress = 0;
@@ -159,14 +158,14 @@ export const handlers = [
   // POST /api/portfolio/upload-manual
   http.post('/api/portfolio/upload-manual', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const b = (await request.json()) as any;
+    const b = (await request.json()) as { configsMatchedCount?: number };
     return HttpResponse.json(wrapSuccess({ reconciliationStatus: b?.configsMatchedCount === 4 ? "complete" : "partial" }));
   }),
 
   // POST /api/boq/ingest
   http.post('/api/boq/ingest', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { presetType?: string; fileName?: string };
     const presetType = body?.presetType || "hpe-legacy";
     const preset = BOQ_PRESETS[presetType] || BOQ_PRESETS["hpe-legacy"];
 
@@ -204,7 +203,7 @@ export const handlers = [
   // POST /api/vendors/toggle
   http.post('/api/vendors/toggle', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { connect?: boolean };
     const isConnecting = body.connect === true;
     return HttpResponse.json(wrapSuccess({ 
       status: isConnecting ? "connected" : "disconnected", 
@@ -215,7 +214,7 @@ export const handlers = [
   // POST /api/agents/run
   http.post('/api/agents/run', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const b = (await request.json()) as any;
+    const b = (await request.json()) as { agentName?: string };
     if (b?.agentName === "AribaScraper") {
       return HttpResponse.json({
         success: false,
@@ -268,7 +267,7 @@ export const handlers = [
   // POST /api/agents/semantic-map
   http.post('/api/agents/semantic-map', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { message?: string };
     return HttpResponse.json(wrapSuccess({
       ruleType: "substitution",
       vendor: "HPE",
@@ -292,7 +291,7 @@ export const handlers = [
   // POST /api/taxonomy/map
   http.post('/api/taxonomy/map', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const b = (await request.json()) as any;
+    const b = (await request.json()) as { childId?: string; targetParentId?: string; properties?: { partNumber: string; name: string } };
     await MockTaxonomyApi.mapOrphanNode({
       childId: b.childId as string,
       parentId: b.targetParentId as string,
@@ -304,7 +303,7 @@ export const handlers = [
   // POST /api/taxonomy/rules
   http.post('/api/taxonomy/rules', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const b = (await request.json()) as any;
+    const b = (await request.json()) as { sourceId?: string; ruleType?: "requires" | "exclusive"; explanation?: string };
     await MockTaxonomyApi.addRule(b.sourceId as string, b.ruleType as "requires" | "exclusive", b.explanation as string);
     return HttpResponse.json(wrapSuccess({}));
   }),
@@ -312,77 +311,77 @@ export const handlers = [
   // POST /api/issues/auto-heal
   http.post('/api/issues/auto-heal', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { issueId: string; ucid: UCID };
     const { issueId, ucid } = body;
     
     // We mock the backend logic that calculates savings, re-prices, and maps components
-    let updatedUcid = { ...ucid };
-    let newRule = null;
-    let newLearningEvent = null;
-    let catalogUpdates: Record<string, any> = {};
+    const updatedUcid: UCID = { ...ucid };
+    let newRule: SourcingRule | null = null;
+    let newLearningEvent: LearningEvent | null = null;
+    const catalogUpdates: Record<string, Partial<CatalogSKU>> = {};
     let toastMsg = "Issue resolved successfully.";
 
     if (issueId === "iss-1") {
-      updatedUcid.solutions = updatedUcid.solutions.map((sol: any) => ({
+      updatedUcid.solutions = updatedUcid.solutions.map((sol: Solution) => ({
         ...sol,
-        vendorSubmissions: sol.vendorSubmissions?.map((vs: any) => ({
+        vendorSubmissions: sol.vendorSubmissions?.map((vs: VendorSubmission) => ({
           ...vs,
-          configs: vs.configs?.map((c: any) => {
-            const items = c.items?.map((it: any) => it.partNumber === "815100-B21" ? { ...it, partNumber: "P40424-B21", name: "Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [REPLACED]", unitPrice: 2150 } : it);
-            const sum = items?.reduce((a: number, b: any) => a + (b.unitPrice * b.quantity), 0);
+          configs: vs.configs?.map((c: Config) => {
+            const items = c.items?.map((it: BOMItem) => it.partNumber === "815100-B21" ? { ...it, partNumber: "P40424-B21", name: "Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [REPLACED]", unitPrice: 2150 } : it);
+            const sum = items?.reduce((a: number, b: BOMItem) => a + (b.unitPrice * b.quantity), 0) ?? 0;
             return { ...c, items, totalPrice: sum, savings: Math.max(0, c.originalPrice - sum) };
           })
         }))
       }));
-      updatedUcid.events = [...updatedUcid.events, { ts: new Date().toLocaleTimeString(), level: "ok", msg: "Forensic System Repair: Replaced obsolete legacy HPE CPU (815100-B21) with supported factory Intel Gold 6430 (P40424-B21)." }];
+      updatedUcid.events = [...updatedUcid.events, { timestamp: new Date().toISOString(), level: "ok", msg: "Forensic System Repair: Replaced obsolete legacy HPE CPU (815100-B21) with supported factory Intel Gold 6430 (P40424-B21)." }];
       
       catalogUpdates["815100-B21"] = { status: "eol", name: "Intel Xeon Gold 6130 16-Core (Legacy Gen10) - EOL [REPLACED BY P40424-B21]" };
       catalogUpdates["P40424-B21"] = { name: "Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [ACTIVE REPLACEMENT]" };
       
-      newRule = { id: `rule-${Date.now()}-eol`, ruleType: "substitution", partNumber: "815100-B21", mappedOutput: "P40424-B21", label: "Auto-Learned: Obsolete HPE CPU mapped to high compliance Intel Gold 6430", vendor: "HPE", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-1", isAutoLearned: true };
-      newLearningEvent = { id: `learn-${Date.now()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-1", ruleType: "substitution", partNumber: "815100-B21", action: "Obsolete HPE Intel Xeon Gold 6130 CPU (815100-B21) auto-substituted to Gen11 Gold 6430 (P40424-B21).", vendor: "HPE", confidenceScore: 96 };
+      newRule = { id: `rule-${crypto.randomUUID()}-eol`, ruleType: "substitution", partNumber: "815100-B21", mappedOutput: "P40424-B21", label: "Auto-Learned: Obsolete HPE CPU mapped to high compliance Intel Gold 6430", vendor: "HPE", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-1", isAutoLearned: true };
+      newLearningEvent = { id: `learn-${crypto.randomUUID()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-1", ruleType: "substitution", partNumber: "815100-B21", action: "Obsolete HPE Intel Xeon Gold 6130 CPU (815100-B21) auto-substituted to Gen11 Gold 6430 (P40424-B21).", vendor: "HPE", confidenceScore: 96, preventedMismatchCount: 0 };
       toastMsg = "HPE EOL CPU replaced & catalog replacement rule populated!";
     } else if (issueId === "iss-2") {
-      updatedUcid.solutions = updatedUcid.solutions.map((sol: any) => ({
+      updatedUcid.solutions = updatedUcid.solutions.map((sol: Solution) => ({
         ...sol,
-        vendorSubmissions: sol.vendorSubmissions?.map((vs: any) => ({
+        vendorSubmissions: sol.vendorSubmissions?.map((vs: VendorSubmission) => ({
           ...vs,
-          configs: vs.configs?.map((c: any) => {
-            const items = c.items?.map((it: any) => it.partNumber === "400-BPSB" ? { ...it, unitPrice: 1190, name: "Dell 3.84TB Enterprise NVMe SSD SFF [ALIGNED]" } : it);
-            const sum = items?.reduce((a: number, b: any) => a + (b.unitPrice * b.quantity), 0);
+          configs: vs.configs?.map((c: Config) => {
+            const items = c.items?.map((it: BOMItem) => it.partNumber === "400-BPSB" ? { ...it, unitPrice: 1190, name: "Dell 3.84TB Enterprise NVMe SSD SFF [ALIGNED]" } : it);
+            const sum = items?.reduce((a: number, b: BOMItem) => a + (b.unitPrice * b.quantity), 0) ?? 0;
             return { ...c, items, totalPrice: sum, savings: Math.max(0, c.originalPrice - sum) };
           })
         }))
       }));
-      updatedUcid.events = [...updatedUcid.events, { ts: new Date().toLocaleTimeString(), level: "ok", msg: "Forensic System Repair: Corrected Dell Premier Drive mark-up overcharge. Aligned unit pricing to matched API partner contract rate of $1,190." }];
+      updatedUcid.events = [...updatedUcid.events, { timestamp: new Date().toISOString(), level: "ok", msg: "Forensic System Repair: Corrected Dell Premier Drive mark-up overcharge. Aligned unit pricing to matched API partner contract rate of $1,190." }];
       
       catalogUpdates["400-BPSB"] = { price: 1190, name: "Dell 3.84TB Enterprise NVMe Read Intensive SSD SFF [CONTRACT LOCKED]", status: "active" };
-      newRule = { id: `rule-${Date.now()}-price`, ruleType: "price_cap", partNumber: "400-BPSB", mappedOutput: "1190", label: "Auto-Learned: Contract target Cap rate overcharge protection locked at $1,190", vendor: "Dell", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-2", isAutoLearned: true };
-      newLearningEvent = { id: `learn-${Date.now()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-2", ruleType: "price_cap", partNumber: "400-BPSB", action: "Dell Premier portal markup detected: 400-BPSB quoted at $1,590 vs contract rate $1,190. Price cap rule locked to prevent future overcharge.", vendor: "Dell", confidenceScore: 99 };
+      newRule = { id: `rule-${crypto.randomUUID()}-price`, ruleType: "price_cap", partNumber: "400-BPSB", mappedOutput: "1190", label: "Auto-Learned: Contract target Cap rate overcharge protection locked at $1,190", vendor: "Dell", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-2", isAutoLearned: true };
+      newLearningEvent = { id: `learn-${crypto.randomUUID()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-2", ruleType: "price_cap", partNumber: "400-BPSB", action: "Dell Premier portal markup detected: 400-BPSB quoted at $1,590 vs contract rate $1,190. Price cap rule locked to prevent future overcharge.", vendor: "Dell", confidenceScore: 99, preventedMismatchCount: 0 };
       toastMsg = "Dell Quote pricing aligned & catalog contract price verified!";
     } else if (issueId === "iss-3") {
-      updatedUcid.solutions = updatedUcid.solutions.map((sol: any) => ({
+      updatedUcid.solutions = updatedUcid.solutions.map((sol: Solution) => ({
         ...sol,
-        vendorSubmissions: sol.vendorSubmissions?.map((vs: any) => {
+        vendorSubmissions: sol.vendorSubmissions?.map((vs: VendorSubmission) => {
           if (vs.vendor !== "Cisco") return vs;
           return {
             ...vs,
-            configs: vs.configs?.map((c: any) => {
-              const items = c.items?.map((it: any) => it.type === "Memory" ? { ...it, quantity: 8, name: "Cisco 64GB DDR5 memory module [REBALANCED]" } : it);
-              const sum = items?.reduce((a: number, b: any) => a + (b.unitPrice * b.quantity), 0);
+            configs: vs.configs?.map((c: Config) => {
+              const items = c.items?.map((it: BOMItem) => it.type === "Memory" ? { ...it, quantity: 8, name: "Cisco 64GB DDR5 memory module [REBALANCED]" } : it);
+              const sum = items?.reduce((a: number, b: BOMItem) => a + (b.unitPrice * b.quantity), 0) ?? 0;
               return { ...c, items, totalPrice: sum, savings: Math.max(0, c.originalPrice - sum) };
             })
           };
         })
       }));
-      updatedUcid.events = [...updatedUcid.events, { ts: new Date().toLocaleTimeString(), level: "ok", msg: "Forensic System Repair: Balanced Cisco memory distribution to 8 dual-rank modules. Re-established symmetric motherboard 8-channel indexing." }];
+      updatedUcid.events = [...updatedUcid.events, { timestamp: new Date().toISOString(), level: "ok", msg: "Forensic System Repair: Balanced Cisco memory distribution to 8 dual-rank modules. Re-established symmetric motherboard 8-channel indexing." }];
       
-      newRule = { id: `rule-${Date.now()}-sym`, ruleType: "symmetry", partNumber: "Memory", mappedOutput: "multiple_of_8", label: "Auto-Learned: Cisco UCS memory rebalanced to 8-channel socket layout symmetry", vendor: "Cisco", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-3", isAutoLearned: true };
-      newLearningEvent = { id: `learn-${Date.now()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-3", ruleType: "symmetry", partNumber: "Memory", action: "Cisco UCS C240 M7 memory asymmetry detected (5 modules). Auto-rebalanced to 8-channel DDR5 layout.", vendor: "Cisco", confidenceScore: 91 };
+      newRule = { id: `rule-${crypto.randomUUID()}-sym`, ruleType: "symmetry", partNumber: "Memory", mappedOutput: "multiple_of_8", label: "Auto-Learned: Cisco UCS memory rebalanced to 8-channel socket layout symmetry", vendor: "Cisco", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-3", isAutoLearned: true };
+      newLearningEvent = { id: `learn-${crypto.randomUUID()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-3", ruleType: "symmetry", partNumber: "Memory", action: "Cisco UCS C240 M7 memory asymmetry detected (5 modules). Auto-rebalanced to 8-channel DDR5 layout.", vendor: "Cisco", confidenceScore: 91, preventedMismatchCount: 0 };
       toastMsg = "Cisco memory layout load-balanced for optimal motherboard symmetry!";
     } else if (issueId === "iss-4") {
-      newRule = { id: `rule-${Date.now()}-api`, ruleType: "api_gateway", partNumber: "Juniper API", mappedOutput: "authorized_oauth_v1", label: "Auto-Learned: Restored security tokens and partner gateway synchronization", vendor: "Juniper", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-4", isAutoLearned: true };
-      newLearningEvent = { id: `learn-${Date.now()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-4", ruleType: "api_gateway", partNumber: "Juniper API", action: "Juniper Networks partner API OAuth token expired. Credentials re-authorized.", vendor: "Juniper", confidenceScore: 88 };
+      newRule = { id: `rule-${crypto.randomUUID()}-api`, ruleType: "api_gateway", partNumber: "Juniper API", mappedOutput: "authorized_oauth_v1", label: "Auto-Learned: Restored security tokens and partner gateway synchronization", vendor: "Juniper", status: "active", learnedAt: new Date().toISOString(), sourceIssueId: "iss-4", isAutoLearned: true };
+      newLearningEvent = { id: `learn-${crypto.randomUUID()}`, timestamp: new Date().toISOString(), sourceIssueId: "iss-4", ruleType: "api_gateway", partNumber: "Juniper API", action: "Juniper Networks partner API OAuth token expired. Credentials re-authorized.", vendor: "Juniper", confidenceScore: 88, preventedMismatchCount: 0 };
       toastMsg = "Juniper Networks partner API connected and authorized!";
     }
 
@@ -442,10 +441,10 @@ export const handlers = [
   // POST /api/cleansing/fuzzy-match
   http.post('/api/cleansing/fuzzy-match', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1500);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { entries?: CleansingEntry[] };
     const entries = body.entries || [];
 
-    const mappedEntries = entries.map((e: any) => {
+    const mappedEntries = entries.map((e: CleansingEntry) => {
       if (e.matchStatus === "fuzzy" && e.confidence >= 70) {
         return { ...e, matchStatus: "matched", confidence: Math.min(e.confidence + 12, 99), reviewedAt: new Date().toISOString() };
       }
@@ -453,7 +452,7 @@ export const handlers = [
         return {
           ...e,
           matchStatus: "fuzzy",
-          matchedSkuId: `sku-${Date.now()}`,
+          matchedSkuId: `sku-${crypto.randomUUID()}`,
           matchedPartNumber: e.detectedPartNumber,
           normalizedName: `Mocked Matched Name ${e.detectedPartNumber}`,
           confidence: 74,
@@ -462,7 +461,7 @@ export const handlers = [
       return e;
     });
 
-    return HttpResponse.json(wrapSuccess({ entries: mappedEntries, resolvedCount: entries.filter((e: any) => e.matchStatus === "fuzzy").length }));
+    return HttpResponse.json(wrapSuccess({ entries: mappedEntries, resolvedCount: entries.filter((e: CleansingEntry) => e.matchStatus === "fuzzy").length }));
   }),
 
   // GET /api/telemetry/logs
@@ -503,8 +502,8 @@ export const handlers = [
   // POST /api/graph/nodes
   http.post('/api/graph/nodes', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as any;
-    const newNode = { ...body, id: `node-${Date.now()}` };
+    const body = (await request.json()) as Omit<GraphNode, 'id'>;
+    const newNode: GraphNode = { ...body, id: `node-${crypto.randomUUID()}` };
     memoryGraphNodes.push(newNode);
     return HttpResponse.json(wrapSuccess(newNode));
   }),
@@ -512,7 +511,7 @@ export const handlers = [
   // PUT /api/graph/nodes/:id
   http.put('/api/graph/nodes/:id', async ({ request, params }) => {
     if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as Partial<GraphNode>;
     const idx = memoryGraphNodes.findIndex(n => n.id === params.id);
     if (idx !== -1) {
       memoryGraphNodes[idx] = { ...memoryGraphNodes[idx], ...body };
@@ -534,8 +533,8 @@ export const handlers = [
   // POST /api/graph/edges
   http.post('/api/graph/edges', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as any;
-    const newEdge = { ...body, id: `edge-${Date.now()}` };
+    const body = (await request.json()) as Omit<GraphEdge, 'id'>;
+    const newEdge: GraphEdge = { ...body, id: `edge-${crypto.randomUUID()}` };
     memoryGraphEdges.push(newEdge);
     return HttpResponse.json(wrapSuccess(newEdge));
   }),
@@ -550,7 +549,7 @@ export const handlers = [
   // POST /api/graph/algorithms/alternative-paths
   http.post('/api/graph/algorithms/alternative-paths', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { source?: string; target?: string };
     const paths = [
       {
         pathId: "path-alpha",
@@ -575,14 +574,14 @@ export const handlers = [
   // PUT /api/graph/edge/:edgeId
   http.put('/api/graph/edge/:edgeId', async ({ request, params }) => {
     if (process.env.NODE_ENV !== 'test') await delay(500);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { weight: number };
     return HttpResponse.json(wrapSuccess({ success: true, updatedWeight: body.weight }));
   }),
 
   // POST /api/graph/path-selection
   http.post('/api/graph/path-selection', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as { selectedPathId: string };
     return HttpResponse.json(wrapSuccess({ success: true, confirmedSelection: body.selectedPathId }));
   })
 ];

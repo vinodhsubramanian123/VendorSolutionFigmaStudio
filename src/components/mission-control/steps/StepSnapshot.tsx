@@ -345,7 +345,7 @@ export function StepSnapshot({
                   ? ucid.events
                     .map(
                       (ev) =>
-                        `[${ev.ts}] [${ev.level.toUpperCase()}] ${ev.msg}`,
+                        `[${ev.timestamp}] [${ev.level.toUpperCase()}] ${ev.msg}`,
                     )
                     .join("\n")
                   : "No events logged in the audit database.") +

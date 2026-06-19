@@ -78,7 +78,7 @@ export function CampaignConsolidationHub({
           events: [
             ...u.events,
             {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: "ok" as const,
               msg: "Group Sourcing Optimisation: Applied Best-of-Breed strategy. Winner alternative set to absolute cheapest proposal.",
             },
@@ -126,7 +126,7 @@ export function CampaignConsolidationHub({
             events: [
               ...u.events,
               {
-                ts: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
                 level: "ok" as const,
                 msg: `Group Sourcing Homogeneity: Linked active design choice to single-source vendor ${vendor}.`,
               },
@@ -185,7 +185,7 @@ export function CampaignConsolidationHub({
           events: [
             ...u.events,
             {
-              ts: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
               level: "ok" as const,
               msg: `Covenant Lock: Master Snapshot sealed by ${campaignSigner}. SECURE SHA-256 generated.`,
             },

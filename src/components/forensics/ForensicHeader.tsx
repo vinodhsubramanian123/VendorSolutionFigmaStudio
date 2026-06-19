@@ -44,6 +44,7 @@ export function ForensicHeader({
         </div>
 
         <button type="button"
+          data-testid="btn-execute-scan"
           onClick={runAuditScanner}
           disabled={scanning}
           className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg bg-status-error text-white hover:bg-status-error/90 font-bold disabled:opacity-50 cursor-pointer shadow-lg shadow-status-error/10 shrink-0 transition" 

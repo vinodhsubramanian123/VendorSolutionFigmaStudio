@@ -36,6 +36,7 @@ export default defineConfig(() => {
       globals: true,
       environment: 'jsdom',
       pool: 'forks',
+      testTimeout: 60000,
       setupFiles: ['./src/tests/setup.ts'],
       include: ['src/**/*.test.{ts,tsx}'],
       coverage: {

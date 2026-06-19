@@ -306,3 +306,33 @@ The following "God Components" were decomposed in Phase 7. This is the authorita
 ### 12.9 Playwright E2E and Suspense Shimmer Blocks
 *   **Issue**: Playwright mega-flow tests timed out expecting explicit text like `ACTIVE SOLUTION MISSION`, but the DOM rendered `<div class="animate-pulse bg-white/5...">` because `MissionControl` was stuck in a `Suspense` boundary due to missing or invalid UUID mappings passed from `IngestionHub`.
 *   **Solution**: When creating new UCIDs or configurations, ensure that `displayId` and `id` remain consistent across state lifts. If `displayId` is strictly expected by the UI, but Playwright navigates via the raw UUID, the data persistence gates will trigger `Suspense` fallbacks instead of crashing, causing E2E tests to timeout rather than fail explicitly.
+
+---
+
+## 13. Phase 8 UX Visual Upgrades Learnings (June 2026)
+
+These patterns were identified during the comprehensive Framer Motion visual upgrade phase:
+
+### 13.1 `AnimatePresence` and Virtualized Lists
+*   **Issue**: `AnimatePresence` requires immediate direct children to be `motion` components to track exits. When dealing with highly optimized virtualized lists (e.g. `react-virtuoso` in `CatalogCardsList`), staggering list-item entry via a parent container isn't easily supported because `react-virtuoso` handles its own DOM windowing.
+*   **Solution**: Do not attempt to use `AnimatePresence` stagger effects across virtualized rows. Instead, scope animations directly to individual card wrappers (e.g. `whileHover={{ y: -3 }}`) or use simple CSS animations for states like EOL pulsing (`animate-pulse-slow`).
+
+### 13.2 Double Return Syntax Regression
+*   **Issue**: When upgrading existing React nodes to `motion.div` via regex or strict string replacement, duplicating the `return (` statement causes a silent "Expression expected" TypeScript compilation failure.
+*   **Solution**: Always verify the bounding JSX lines when replacing generic HTML tags with their `motion` equivalents. Run `npm run lint` immediately after any visual component swap.
+
+### 13.3 `motion/react` Import Validation
+*   **Issue**: Component conversions (like changing `div` to `motion.div`) naturally fail if the `motion` object isn't explicitly imported from `motion/react`.
+*   **Solution**: Whenever refactoring a component for animations, add `import { motion } from 'motion/react';` at the top of the file before rendering the component.
+
+### 13.4 Playwright E2E Flow Testing & Modal Blocking
+*   **Issue**: Playwright tests timing out in Phase 5 (Auto-Heal & Learn) because the expected `marked End-of-Life` event was never intercepted or displayed. This occurred because clicking the "Auto-Align Component" button triggers the `RuleClarificationModal`, which inherently blocked execution until explicitly confirmed via the "Lock Intelligence Rule" button, a step missed by previous scripts.
+*   **Solution**: Always model user interception modals explicitly in E2E flows. Add `await page.getByRole('button', { name: 'Lock Intelligence Rule' }).click()` prior to expecting downstream `LearningLoopFeed` asynchronous updates.
+
+### 13.5 E2E Component Text Coupling (MSW Mocks)
+*   **Issue**: Tests failed to find specific toast elements like "Snapshot Block Locked" or specific MSW learning text like "marked End-of-Life" because the mock implementation in `src/mocks/handlers.ts` or component UI returned dynamically constructed backend strings (e.g., `locked & archived in CRM register (optimistic)`).
+*   **Solution**: Frontend string expectations in Playwright must strictly mirror exactly what the backend `handlers.ts` produces or what `SnapshotManager.tsx` issues via the `ToastContext`. When building out integration tests across 6 distinct states, use partial generic matching (`exact: false`) tied closely to the exact phrase produced by the mock server or use proper `data-testid` values.
+
+### 13.6 Test Resilience & Hardcoded Strings (data-testid)
+*   **Issue**: End-to-End Playwright tests originally relied heavily on `page.getByText()` and `page.locator('button[title="..."]')`. This created fragile tests that would break anytime marketing copy, tooltips, or visual labels were updated, slowing down continuous integration.
+*   **Solution**: Core interactive elements (e.g., `Execute Compliance Scan`, `Capture Snapshot`) must be decoupled from UI copy by using `data-testid` attributes (e.g., `data-testid="btn-execute-scan"`). Always use `page.getByTestId()` in the Playwright suite to ensure robust integration testing immune to cosmetic adjustments.
