@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertUCIDPayloadIntegrity, assertForensicIssuesIntegrity, assertSourcingRulesIntegrity } from '../utils/assertPayload';
 
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -7,6 +8,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
   test.setTimeout(180000); 
 
   test('should flawlessly execute the complete data lifecycle across all 6 platform stages', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
     // Navigate to root to start the session
     await page.goto('/');
     await delay(1000);
@@ -86,6 +88,14 @@ test.describe('11 - Master E2E Lifecycle', () => {
 
       // Verify "Exact Match"
       await expect(page.getByText('Exact Match').first()).toBeVisible();
+
+      // [STATE ASSERTION] Phase 2
+      const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const activeUcid = ucidsPhase2.find((u: any) => u.displayId.startsWith('UCID-'));
+      expect(activeUcid).toBeDefined();
+      expect(activeUcid?.currentStep).toBe('boq-intake');
+      
+      await assertUCIDPayloadIntegrity(page, activeUcid.id);
     });
 
     // ==========================================
@@ -102,6 +112,14 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(deployBtn).toBeVisible();
       await deployBtn.click();
       await delay(2000); // Wait for transit navigation
+
+      // [STATE ASSERTION] Phase 3
+      const ucidsPhase3 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const deployedUcid = ucidsPhase3.find((u: any) => u.displayId.startsWith('UCID-'));
+      expect(deployedUcid?.currentStep).toBe('solution-design');
+      expect(deployedUcid?.completedSteps).toContain('pre-intelligence');
+      
+      await assertUCIDPayloadIntegrity(page, deployedUcid.id);
     });
 
     // ==========================================
@@ -122,6 +140,13 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await syncBtn.click();
       await delay(1500); // Simulated delay
       await expect(page.getByText('Vendor system status altered successfully.').first()).toBeVisible();
+
+      // [STATE ASSERTION] Phase 4 Sync Status
+      const ucidsPhase4 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const syncedUcid = ucidsPhase4.find((u: any) => u.displayId.startsWith('UCID-'));
+      expect(syncedUcid?.syncStatus).toBe('Synced');
+      
+      await assertUCIDPayloadIntegrity(page, syncedUcid.id);
     });
 
     // ==========================================
@@ -143,7 +168,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       const autoHealBtn = page.getByTestId('btn-auto-align').first();
       if (await autoHealBtn.isVisible()) {
         await autoHealBtn.click();
-        await delay(1000);
+        await delay(2500);
         
         // Confirm the Clarification Modal
         const lockBtn = page.getByTestId('btn-lock-intelligence-rule');
@@ -155,6 +180,26 @@ test.describe('11 - Master E2E Lifecycle', () => {
 
       await delay(1000);
       await expect(page.getByText('Obsolete HPE Intel Xeon', { exact: false }).first()).toBeVisible();
+
+      // [STATE ASSERTION] Phase 5 Auto-Heal & Learn Chain
+      const issues = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_forensic_issues') || '[]'));
+      const sourcingRules = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_sourcing_rules') || '[]'));
+      const learnedRule = sourcingRules.find((r: any) => r.isAutoLearned);
+      
+      if (learnedRule) {
+        const healed = issues.find((i: any) => i.id === learnedRule.sourceIssueId);
+        console.log("DEBUG TEST: healed:", healed);
+        console.log("DEBUG TEST: issues length:", issues.length);
+        console.log("DEBUG TEST: issues:", JSON.stringify(issues, null, 2));
+        expect(learnedRule).toBeDefined();
+        expect(learnedRule.status).toBe('active');
+        expect(healed?.status).toBe('resolved');
+        
+        await assertSourcingRulesIntegrity(page);
+        if (healed) {
+          await assertForensicIssuesIntegrity(page);
+        }
+      }
     });
 
     // ==========================================
@@ -193,6 +238,15 @@ test.describe('11 - Master E2E Lifecycle', () => {
       }
 
       await expect(page.getByText('locked & archived in CRM register', { exact: false }).first()).toBeVisible();
+
+      // [STATE ASSERTION] Phase 6 Lock status
+      const ucidsPhase6 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidWithSnap = ucidsPhase6.find((u: any) => u.snapshots && u.snapshots.length > 0);
+      const snap = ucidWithSnap?.snapshots?.at(-1);
+      expect(snap).toBeDefined();
+      expect(snap?.locked).toBe(true);
+      
+      await assertUCIDPayloadIntegrity(page, ucidWithSnap.id);
     });
 
     // End of Master E2E Lifecycle test. If we reach here, no UI components crashed, 

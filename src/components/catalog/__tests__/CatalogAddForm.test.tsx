@@ -5,10 +5,10 @@ import { CatalogAddForm } from '../CatalogAddForm';
 
 vi.mock('motion/react', () => ({
   motion: {
-    p: ({ children, className }: any) => <p className={className}>{children}</p>,
-    div: ({ children, className }: any) => <div className={className}>{children}</div>,
+    p: ({ children, className }: { children: import("react").ReactNode, className?: string }) => <p className={className}>{children}</p>,
+    div: ({ children, className }: { children: import("react").ReactNode, className?: string }) => <div className={className}>{children}</div>,
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: import("react").ReactNode }) => <>{children}</>,
 }));
 
 describe('CatalogAddForm', () => {

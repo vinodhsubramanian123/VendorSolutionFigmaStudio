@@ -33,7 +33,9 @@ class ApiClient {
   }
 
   private async fetchWithTimeout(endpoint: string, options?: RequestInit): Promise<Response> {
-    const url = endpoint.startsWith('/') ? `http://localhost:3000${endpoint}` : endpoint;
+    // Determine the base URL based on environment. Use relative path for MSW interception in dev/test.
+    const isDev = typeof process !== 'undefined' ? process.env.NODE_ENV !== 'production' : true;
+    const url = endpoint.startsWith('/') && !isDev ? `http://localhost:3000${endpoint}` : endpoint;
     const res = await fetch(url, options);
     if (!res.ok) {
       let errorMessage = "Failed to fetch";

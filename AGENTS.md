@@ -224,8 +224,8 @@ The UI layer is strictly a visualization and interaction engine. Any intensive l
 As of Phase 7 (Refactoring & Perfection), the following structural rules are completely non-negotiable:
 
 ### 11.1 Absolute Component Size Limits (The 400-Line Rule)
-*   **Rule**: No React functional component or file shall exceed **400 lines of code**.
-*   **Action**: If a file like `TaxonomyGraphSidebar.tsx` or `LearningLoopInjector.tsx` approaches this limit, you must halt feature development and decompose it into atomic sub-components (e.g., `NodeEditorPanel.tsx`, `EdgeEditorPanel.tsx`). Monolithic "God Components" are banned.
+*   **Rule**: NO file in the repository shall exceed **400 lines of code**. This is an absolute mandate to ensure high-quality coding design architecture. It applies to **ALL files**, including React components, `types`, Zod schemas, mock data (`mockData.ts`), MSW handlers (`handlers.ts`), and especially `__tests__` files.
+*   **Action**: If a file approaches this limit, you must halt feature development and decompose it logically by domain. Monolithic "God Components" or "God Files" are strictly banned. For example, test suites should be split by behavior, and schema files by bounded context.
 
 ### 11.2 Zero `any` Type Tolerance
 *   **Rule**: The `any` type is strictly forbidden across the entire `src/` directory.
@@ -336,3 +336,44 @@ These patterns were identified during the comprehensive Framer Motion visual upg
 ### 13.6 Test Resilience & Hardcoded Strings (data-testid)
 *   **Issue**: End-to-End Playwright tests originally relied heavily on `page.getByText()` and `page.locator('button[title="..."]')`. This created fragile tests that would break anytime marketing copy, tooltips, or visual labels were updated, slowing down continuous integration.
 *   **Solution**: Core interactive elements (e.g., `Execute Compliance Scan`, `Capture Snapshot`) must be decoupled from UI copy by using `data-testid` attributes (e.g., `data-testid="btn-execute-scan"`). Always use `page.getByTestId()` in the Playwright suite to ensure robust integration testing immune to cosmetic adjustments.
+
+---
+
+## 14. Phase 9 Testing Hardening Learnings (June 2026)
+
+These patterns were identified during the Zod integration and Integration test stabilization pass:
+
+### 14.1 Aria-Label Query Precedence
+*   **Issue**: Vitest and Playwright `findByRole` or `getByRole` selectors timed out when searching for text like `/Split Configs/i` on a button. This occurred because the button had an `aria-label="Split configurations into active UCIDs"`, which overrides the text content in accessibility trees.
+*   **Solution**: Always check if a component uses `aria-label` before writing generic text matchers in tests. If present, query the accessible name strictly, or use `data-testid`.
+
+### 14.2 End-to-End Zod Schema Integrity
+*   **Issue**: Early Playwright tests only asserted UI visibility. If a state update malformed the `localStorage` object structure underneath, the regression test wouldn't catch it unless the UI explicitly crashed via `DataPersistenceGate`.
+*   **Solution**: Import Zod schemas (`UCIDSchema`, etc.) directly into Playwright E2E flows to validate raw `localStorage` objects at critical phase boundaries. Use robust utility wrappers to assert payload structures rather than relying solely on UI assertions.
+
+### 14.3 Simulated Stream Timeouts
+*   **Issue**: Components using `JobStreamer` or artificial backend tick delays fail in Vitest because the default `1000ms` testing library timeout expires before the simulated 100% progress resolves.
+*   **Solution**: For simulated streams and multi-tick operations, extend the `waitFor` or `findByRole` timeouts aggressively (`{ timeout: 10000 }`) rather than relying on synchronous mocks to ensure proper integration coverage.
+
+---
+
+## 13. Zero "Any" Type Tolerance in Vitest Mocking (Phase 7 Learnings)
+
+When refactoring test suites to adhere to the strict "Zero `any` Tolerance" rule, agents frequently encounter cyclic TypeScript errors (e.g., `TS18046: 'X' is of type 'unknown'` or missing properties in complex Zod objects). To prevent burning credits on endless TypeScript assignment loops, enforce these strict mocking standards:
+
+### 13.1 Mocking React Component Props
+*   **Issue**: Using generic `Record<string, unknown>` for mocked component props causes React rendering failures because `unknown` is not assignable to `ReactNode` or `MouseEventHandler`. Using `React.ComponentProps<typeof Component>` without default exports causes "no exported member 'default'" errors.
+*   **Solution**: Write explicit, perfect inline interfaces for mock props. Never use `any`, and avoid generic `unknown`. 
+    *   *Event Handlers*: Must be typed as `import("react").MouseEventHandler` or `() => void`.
+    *   *Data Props*: Must be typed as `import("react").ReactNode` or mapped strictly to the real domain schema.
+    *   *Example*:
+    ```typescript
+    vi.mock('./StepBoqIntake', () => ({
+      StepBoqIntake: (props: { onTriggerBOQParse?: import("react").MouseEventHandler, isBOQIngesting?: boolean }) => ...
+    }));
+    ```
+
+### 13.2 Mocking Complex Zod Domain Objects (UCID, Solutions, VendorSubmissions)
+*   **Issue**: Mocking deep nested structures like `UCID` or `VendorSubmission` by passing incomplete object literals (`{ label: "test" }`) violently fails Zod-backed type assertions for missing fields (e.g. `totalPrice`, `createdAt`, `projectRef`).
+*   **Solution**: Never try to cast partial objects as `any`. You must strictly define **every single required property** mandated by `data.ts`. If a property is deeply nested, provide fully compliant dummy properties inline to satisfy the compiler natively.
+    *   *Example*: If `Solution` requires `targetUcidId`, do not omit it. Write `targetUcidId: "dummy-id"`.

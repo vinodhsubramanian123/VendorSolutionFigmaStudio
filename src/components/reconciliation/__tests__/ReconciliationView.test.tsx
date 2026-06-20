@@ -9,16 +9,16 @@ vi.mock("../ReconciliationOverview", () => ({
 }));
 
 vi.mock("../ReconciliationDrillDown", () => ({
-  ReconciliationDrillDown: ({ ucid, onClose }: any) => (
+  ReconciliationDrillDown: ({ ucid, onClose }: { ucid?: { displayId?: string }, onClose?: Function }) => (
     <div data-testid="reconciliation-drilldown">
       DrillDown for {ucid?.displayId}
-      <button type="button" onClick={onClose} data-testid="drilldown-close">Close</button>
+      <button type="button" onClick={onClose as import("react").MouseEventHandler} data-testid="drilldown-close">Close</button>
     </div>
   )
 }));
 
 vi.mock("../SnapshotsPanel", () => ({
-  SnapshotsPanel: ({ isOpen }: any) => isOpen ? <div data-testid="snapshots-panel">SnapshotsPanel</div> : null
+  SnapshotsPanel: ({ isOpen }: { isOpen?: boolean }) => isOpen ? <div data-testid="snapshots-panel">SnapshotsPanel</div> : null
 }));
 
 const mockUcids: UCID[] = [

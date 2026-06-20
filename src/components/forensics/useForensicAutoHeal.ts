@@ -229,10 +229,10 @@ export function useForensicsLogic({
 
       if (newRule) {
         setSourcingRules(prev => {
-          if (prev.some(r => r.partNumber === newRule.partNumber && r.ruleType === newRule.ruleType)) {
-            return prev;
-          }
-          return [newRule, ...prev];
+          const filtered = prev.filter(r => !(r.partNumber === newRule.partNumber && r.ruleType === newRule.ruleType));
+          const updated = [newRule, ...filtered];
+          window.localStorage.setItem('sys_sourcing_rules', JSON.stringify(updated));
+          return updated;
         });
       }
 

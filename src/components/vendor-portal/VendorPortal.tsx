@@ -62,6 +62,12 @@ export const VendorPortal = React.memo(function VendorPortal({
           return v;
         }),
       );
+      
+      // Also update UCID sync status
+      if (res.data?.status === "connected") {
+        setUcids(prev => prev.map(u => ({ ...u, syncStatus: "Synced" })));
+      }
+      
       toast("Vendor system status altered successfully.", "success");
     } catch {
       toast("Failed to toggle vendor status.", "error");

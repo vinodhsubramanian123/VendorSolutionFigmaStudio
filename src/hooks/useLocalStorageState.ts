@@ -41,7 +41,7 @@ export function useLocalStorageState<T>(
       } catch (e) {
         console.warn(`Error writing localStorage for key "${key}"`, e);
       }
-    }, 300);
+    }, 10);
 
     return () => clearTimeout(handler);
   }, [key, state]);

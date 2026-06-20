@@ -38,14 +38,14 @@ export function useSnapshotManagerLogic(
     const createdSnapshot: Snapshot = {
       id: crypto.randomUUID(),
       label: newLabel.trim(),
-      committedAt: new Date().toISOString().split("T")[0],
+      committedAt: new Date().toISOString(),
       winnerSolution: newWinner || "Consolidated Sourcing",
       totalValue: currentTotalValue,
       notes: newNotes.trim() || "Committed following active dual-sourcing reconciliations.",
       payload: JSON.parse(JSON.stringify(activeUCID.solutions || [])),
       version: nextVersion,
       timestamp: nowStr,
-      locked: true,
+      locked: nextVersion === 1,
       bomSnapshot: JSON.parse(JSON.stringify(bomConfigs))
     };
 
@@ -56,6 +56,8 @@ export function useSnapshotManagerLogic(
         if (u.id === activeUCID.id) {
           return {
             ...u,
+            currentStep: 'snapshot',
+            completedSteps: Array.from(new Set([...(u.completedSteps || []), 'comparison'])),
             snapshots: [...(u.snapshots || []), createdSnapshot]
           };
         }
@@ -69,7 +71,7 @@ export function useSnapshotManagerLogic(
     apiClient.post("/api/snapshots", createdSnapshot)
       .then((data) => {
         if (process.env.NODE_ENV !== 'production') {
-          console.log("[SYNC] Snapshot synchronized successfully with server backend:", data);
+
         }
       })
       .catch((error) => {
@@ -82,6 +84,17 @@ export function useSnapshotManagerLogic(
   const handleToggleLock = (snapId: string) => {
     if (!activeUCID || !setUcids) return;
 
+    const targetSnap = activeUCID.snapshots?.find((s) => s.id === snapId);
+    if (!targetSnap) return;
+
+    const newLocked = !targetSnap.locked;
+
+    if (newLocked) {
+      toast.success(`Snapshot "${targetSnap.label}" is now fully LOCKED (read-only state).`);
+    } else {
+      toast.warn(`Snapshot "${targetSnap.label}" is now UNLOCKED (modifications permitted).`);
+    }
+
     setUcids((prev) =>
       prev.map((u) => {
         if (u.id === activeUCID.id) {
@@ -89,15 +102,9 @@ export function useSnapshotManagerLogic(
             ...u,
             snapshots: (u.snapshots || []).map((s) => {
               if (s.id === snapId) {
-                const updatedLock = !s.locked;
-                if (updatedLock) {
-                  toast.success(`Snapshot "${s.label}" is now fully LOCKED (read-only state).`);
-                } else {
-                  toast.warn(`Snapshot "${s.label}" is now UNLOCKED (modifications permitted).`);
-                }
                 return {
                   ...s,
-                  locked: updatedLock
+                  locked: newLocked
                 };
               }
               return s;

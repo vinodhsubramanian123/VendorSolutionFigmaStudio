@@ -5,18 +5,18 @@ import { describe, it, expect, vi } from "vitest";
 
 // Mock child components
 vi.mock("../AddRuleForm", () => ({
-  AddRuleForm: ({ onSubmit, onCancel }: any) => (
+  AddRuleForm: ({ onSubmit, onCancel }: { onSubmit: (rule: Partial<import("../../../types").SourcingRule>) => void, onCancel: () => void }) => (
     <div data-testid="add-rule-form">
-      <button type="button" onClick={() => onSubmit({ id: "rule-1", partNumber: "P-123", mappedOutput: "Out", ruleType: "Type", label: "Label" })}>Save Rule</button>
+      <button type="button" onClick={() => onSubmit({ id: "rule-1", partNumber: "P-123", mappedOutput: "Out", ruleType: "substitution", label: "Label" })}>Save Rule</button>
       <button type="button" onClick={onCancel}>Cancel Rule</button>
     </div>
   )
 }));
 
 vi.mock("../RulesTable", () => ({
-  RulesTable: ({ sourcingRules }: any) => (
+  RulesTable: ({ sourcingRules }: { sourcingRules: import("../../../types").SourcingRule[] }) => (
     <div data-testid="rules-table">
-      {sourcingRules.map((r: any) => (
+      {sourcingRules.map((r: import("../../../types").SourcingRule) => (
         <div key={r.id} data-testid={`rule-row-${r.id}`}>
           {r.partNumber}
         </div>

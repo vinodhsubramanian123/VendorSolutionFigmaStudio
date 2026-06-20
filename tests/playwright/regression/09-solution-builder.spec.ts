@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertUCIDPayloadIntegrity } from '../utils/assertPayload';
 
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -58,5 +59,8 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
     // Check for exact state enums like "pending", "automated" or lock status
     const statusBadge = page.getByText(/Pending|Automated|Manual|Synced|Out-of-Sync/i).first();
     await expect(statusBadge).toBeVisible();
+
+    // [PAYLOAD INTEGRITY]
+    await assertUCIDPayloadIntegrity(page);
   });
 });

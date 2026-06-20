@@ -218,6 +218,7 @@ export function CatalogCardsList({
         <Virtuoso
           style={{ height: listHeight, width: '100%' }}
           totalCount={rowCount}
+          computeItemKey={(index) => `row-${index}`}
           itemContent={(index) => <Row index={index} style={{ height: ITEM_HEIGHT }} data={itemData} />}
           className="scrollbar-hide"
         />

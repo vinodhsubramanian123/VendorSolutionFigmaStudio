@@ -5,9 +5,9 @@ import { ToastProvider, useToast } from '../ToastContext';
 
 vi.mock('motion/react', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: { children: import("react").ReactNode } & import("react").HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: import("react").ReactNode }) => <>{children}</>,
 }));
 
 const TestComponent = ({ type, message, actionLabel }: { type: 'success' | 'warn' | 'error', message: string, actionLabel?: string }) => {

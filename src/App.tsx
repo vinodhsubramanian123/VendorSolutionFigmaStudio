@@ -74,55 +74,55 @@ export default function App() {
 
   // Graceful Migration of Snapshot objects inside ucids
   useEffect(() => {
-    let migrated = false;
-    const nextUcids = ucids.map((u) => {
-      let uMigrated = false;
-      const nextSnaps = (u.snapshots || []).map((s, idx) => {
-        const fallbackVersion = s.version ?? (idx + 1);
-        const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
-        const fallbackLocked = s.locked ?? true;
-        
-        let fallbackBom: Config[] = s.bomSnapshot as Config[];
-        if (!fallbackBom) {
-          if (s.payload && Array.isArray(s.payload)) {
-            fallbackBom = s.payload[0]?.vendorSubmissions?.[0]?.configs || [];
-          } else {
-            fallbackBom = [];
+    setUcids((prevUcids) => {
+      let migrated = false;
+      const nextUcids = prevUcids.map((u) => {
+        let uMigrated = false;
+        const nextSnaps = (u.snapshots || []).map((s, idx) => {
+          const fallbackVersion = s.version ?? (idx + 1);
+          const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
+          const fallbackLocked = s.locked ?? true;
+          
+          let fallbackBom: Config[] = s.bomSnapshot as Config[];
+          if (!fallbackBom) {
+            if (s.payload && Array.isArray(s.payload)) {
+              fallbackBom = s.payload[0]?.vendorSubmissions?.[0]?.configs || [];
+            } else {
+              fallbackBom = [];
+            }
           }
-        }
 
-        if (
-          s.version !== fallbackVersion ||
-          s.timestamp !== fallbackTimestamp ||
-          s.locked !== fallbackLocked ||
-          s.bomSnapshot === undefined
-        ) {
-          uMigrated = true;
+          if (
+            s.version !== fallbackVersion ||
+            s.timestamp !== fallbackTimestamp ||
+            s.locked !== fallbackLocked ||
+            s.bomSnapshot === undefined
+          ) {
+            uMigrated = true;
+            return {
+              ...s,
+              version: fallbackVersion,
+              timestamp: fallbackTimestamp,
+              locked: fallbackLocked,
+              bomSnapshot: fallbackBom,
+            };
+          }
+          return s;
+        });
+
+        if (uMigrated) {
+          migrated = true;
           return {
-            ...s,
-            version: fallbackVersion,
-            timestamp: fallbackTimestamp,
-            locked: fallbackLocked,
-            bomSnapshot: fallbackBom,
+            ...u,
+            snapshots: nextSnaps,
           };
         }
-        return s;
+        return u;
       });
 
-      if (uMigrated) {
-        migrated = true;
-        return {
-          ...u,
-          snapshots: nextSnaps,
-        };
-      }
-      return u;
+      return migrated ? nextUcids : prevUcids;
     });
-
-    if (migrated) {
-      setUcids(nextUcids);
-    }
-  }, [ucids, setUcids]);
+  }, [setUcids]);
 
 
   // Phase 3: The Forensic Auto-Heal Hook
@@ -137,6 +137,23 @@ export default function App() {
         )
       )
     );
+
+
+    if (globalHasEol) {
+      ucids.forEach(u => {
+        u.solutions?.forEach(sol => {
+          sol.vendorSubmissions?.forEach(vs => {
+            vs.configs?.forEach(c => {
+              c.items?.forEach(it => {
+                if (ActiveSourcingRules.legacySKUs.includes(it.partNumber)) {
+
+                }
+              });
+            });
+          });
+        });
+      });
+    }
 
     // Price Variance
     const globalHasPriceRisk = ucids.some((u) =>

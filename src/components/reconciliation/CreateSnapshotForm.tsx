@@ -99,6 +99,7 @@ export function CreateSnapshotForm({
             <button
               type="submit"
               data-testid="btn-confirm-snapshot"
+              onClick={onSubmit}
               className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
             >
               <Check className="w-4 h-4" />

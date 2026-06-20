@@ -7,7 +7,7 @@ import { ToastProvider } from '../../shared/ToastContext';
 
 // Mock JobStreamer to expose trigger buttons
 vi.mock('../../shared/JobStreamer', () => ({
-  JobStreamer: ({ jobId, context, onSuccess, onError }: any) => (
+  JobStreamer: ({ jobId, context, onSuccess, onError }: import("react").ComponentProps<typeof import("../../shared/JobStreamer").JobStreamer>) => (
     <div data-testid="job-streamer">
       <div>Job Streamer Mock ({jobId})</div>
       <button type="button" data-testid="job-success-btn" onClick={() => onSuccess({ success: true }, context)}>
@@ -91,14 +91,14 @@ const ReconciliationOverviewTestWrapper = ({
 }: {
   initialUcids?: UCID[];
   catalogSkus?: CatalogSKU[];
-  initialUnassignedSpares?: any[];
-  initialAssignedSpares?: any[];
-  setSelectedConfigSheet?: any;
-  setHasDrift?: any;
-  setUcidsSpy?: any;
+  initialUnassignedSpares?: { part: string; qty: number; name: string; }[];
+  initialAssignedSpares?: { part: string; target: string; name: string; }[];
+  setSelectedConfigSheet?: import("vitest").Mock;
+  setHasDrift?: import("vitest").Mock;
+  setUcidsSpy?: import("vitest").Mock;
 }) => {
   const [ucids, setUcids] = React.useState<UCID[]>(initialUcids);
-  const handleSetUcids = React.useCallback((val: any) => {
+  const handleSetUcids = React.useCallback((val: import("react").SetStateAction<import("../../../types").UCID[]>) => {
     if (typeof val === 'function') {
       setUcids((prev) => {
         const result = val(prev);

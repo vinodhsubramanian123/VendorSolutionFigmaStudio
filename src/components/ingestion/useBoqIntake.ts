@@ -97,8 +97,8 @@ export function useBoqIntake(
           priority: idx === 0 ? "high" : "medium",
           projectRef: "PRJ-RECON-HUB",
           createdAt: new Date().toISOString(),
-          currentStep: "solution-design",
-          completedSteps: ["boq-intake", "pre-intelligence"],
+          currentStep: "boq-intake",
+          completedSteps: [],
           rawBOM: `Workbook parsed via central Ingestion Hub.\n\nSource sheet: ${boqResponse.sourceFile}\nVendor Profile: ${sol.vendorSubmissions?.[0]?.vendor || sol.name}\n\nComponents Detail:\n${detailsText}`,
           solutions: [
             {

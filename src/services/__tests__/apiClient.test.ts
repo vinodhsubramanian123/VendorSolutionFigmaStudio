@@ -41,7 +41,7 @@ describe('ApiClient & ApiMock Services', () => {
       } as Response);
 
       const res = await apiClient.get('/api/test');
-      expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/test', undefined);
+      expect(fetch).toHaveBeenCalledWith('/api/test', undefined);
       expect(res).toEqual(mockResponseData);
     });
 
@@ -53,7 +53,7 @@ describe('ApiClient & ApiMock Services', () => {
       } as Response);
 
       const res = await apiClient.post('/api/test', { key: 'value' });
-      expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/test', {
+      expect(fetch).toHaveBeenCalledWith('/api/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'value' }),
@@ -69,7 +69,7 @@ describe('ApiClient & ApiMock Services', () => {
       } as Response);
 
       const res = await apiClient.put('/api/test', { key: 'value' });
-      expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/test', {
+      expect(fetch).toHaveBeenCalledWith('/api/test', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'value' }),
@@ -85,7 +85,7 @@ describe('ApiClient & ApiMock Services', () => {
       } as Response);
 
       const res = await apiClient.delete('/api/test');
-      expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/test', {
+      expect(fetch).toHaveBeenCalledWith('/api/test', {
         method: 'DELETE',
       });
       expect(res).toEqual(mockResponseData);

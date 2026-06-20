@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Database } from 'lucide-react';
 import { useToast } from '../shared/ToastContext';
+import { apiClient } from '../../services/apiClient';
 
 import type { UCID, CatalogSKU, Snapshot } from '../../types';
 import { ReconciliationHeader } from './ReconciliationHeader';
@@ -30,7 +31,7 @@ export function ReconciliationOverview({
   const toast = useToast();
 
   const activeUCID = useMemo(() => {
-    return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison") ||
+    return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
       ucids?.find((u) => u.solutions?.length > 0) ||
       ucids?.[0];
   }, [ucids]);
@@ -68,17 +69,12 @@ export function ReconciliationOverview({
   const triggerReconJob = async () => {
     try {
       const ucid = activeUCID?.id || "mock-ucid";
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "reconciliation",
-          context: { ucid, config_id: "all", solution_id: "recon" },
-          parent_job_id: ""
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await apiClient.post<Record<string, unknown>>("/api/jobs", {
+        type: "reconciliation",
+        context: { ucid, config_id: "all", solution_id: "recon" },
+        parent_job_id: ""
+      }) as any;
+      if (data.job_id) {
         setReconJobId(data.job_id);
       }
     } catch(err) {

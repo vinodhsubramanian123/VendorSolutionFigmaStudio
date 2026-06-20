@@ -24,10 +24,10 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('useIngestionLogic Hook', () => {
-  let mockSetUcids: any;
-  let mockSetIsPendingAPI: any;
-  let mockSetPendingAPIMessage: any;
-  let mockSetApiProgress: any;
+  let mockSetUcids: import("vitest").Mock;
+  let mockSetIsPendingAPI: import("vitest").Mock;
+  let mockSetPendingAPIMessage: import("vitest").Mock;
+  let mockSetApiProgress: import("vitest").Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();

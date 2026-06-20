@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import type { UCID, PlaywrightRunResponse, CatalogSKU, PortalErrorItem, SourcingRule, LearningEvent, AdviceResolution } from "../../types";
 import { apiClient } from "../../services/apiClient";
-import { VENDORS } from "../../lib/mockData";
+import { VENDORS } from "../../lib/mockData/misc";
 import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import { VendorCredentialsCard, VendorConsoleLogs } from "./VendorComponents";

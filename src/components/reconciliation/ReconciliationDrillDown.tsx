@@ -48,7 +48,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
 
   const { driftTableData, configName, totalPrice, activeUCID } = React.useMemo(() => {
     const activeUCID =
-      ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison") ||
+      ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
       ucids?.find((u) => u.solutions?.length > 0) ||
       ucids?.[0];
 

@@ -212,12 +212,16 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           { timestamp: new Date().toISOString(), level: 'ok', msg: `Auto-assigned container: ${container.name} (${container.id})` },
           { timestamp: new Date().toISOString(), level: 'ok', msg: `Catalog validation finished with optimal load metrics` }
         ],
-        snapshots: []
+        snapshots: [],
+        syncStatus: 'Pending'
       };
     });
 
     setUcids(prev => {
-      const idsToExclude = generatedUcids.map(g => g.id);
+      const originalIngestedIds = ucids.filter(u => u.currentStep === 'boq-intake').map(u => u.id);
+      const generatedIds = generatedUcids.map(g => g.id);
+      const idsToExclude = Array.from(new Set([...originalIngestedIds, ...generatedIds]));
+      
       const filteredPrev = prev.filter(p => !idsToExclude.includes(p.id));
       return [...generatedUcids, ...filteredPrev];
     });

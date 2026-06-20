@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertUCIDPayloadIntegrity } from '../utils/assertPayload';
 
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -29,6 +30,15 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       
       // Verify we transitioned to BOM mode (step 2 of ingestion hub)
       await expect(page.getByText('Global Multi-UCID Batch Reconciliation Control Board').first()).toBeVisible();
+
+      // [STATE ASSERTION] Verify UCIDs were created and set to initial step
+      const ucidsPhase1 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const activeUcid = ucidsPhase1.find((u: any) => u.displayId.startsWith('UCID-'));
+      expect(activeUcid).toBeDefined();
+      expect(activeUcid?.currentStep).toBe('boq-intake');
+
+      // [PAYLOAD INTEGRITY]
+      await assertUCIDPayloadIntegrity(page, activeUcid.id);
     });
 
     // ==========================================
@@ -55,6 +65,17 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await expect(deployBtn).toBeVisible();
       await deployBtn.click();
       await delay(1500);
+
+      // [STATE ASSERTION] Verify UCID state after Solution Builder deployment
+      const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const deployed = ucidsPhase2.find((u: any) => u.displayId.startsWith('UCID-'));
+      expect(deployed).toBeDefined();
+      expect(deployed?.currentStep).toBe('solution-design');
+      expect(deployed?.completedSteps).toContain('boq-intake');
+      expect(deployed?.completedSteps).toContain('pre-intelligence');
+      expect(deployed?.syncStatus).toBe('Pending');
+      
+      await assertUCIDPayloadIntegrity(page, deployed.id);
     });
 
     // ==========================================
@@ -101,6 +122,15 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
 
       // Assert the new snapshot was added to the history list
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
+
+      // [STATE ASSERTION] Verify UCID state after snapshot creation
+      const ucidsPhase4 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidWithSnap = ucidsPhase4.find((u: any) => u.snapshots && u.snapshots.length > 0);
+      expect(ucidWithSnap).toBeDefined();
+      expect(ucidWithSnap?.currentStep).toBe('snapshot');
+      expect(ucidWithSnap?.completedSteps).toContain('comparison');
+
+      await assertUCIDPayloadIntegrity(page, ucidWithSnap.id);
 
       // Close the snapshot drawer by clicking the close button
       await page.locator('button').filter({ has: page.locator('svg.lucide-x') }).first().click();

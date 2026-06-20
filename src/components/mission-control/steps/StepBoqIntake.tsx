@@ -1,6 +1,7 @@
 import React from "react";
 import { UploadCloud, Sparkles, ArrowRight } from "lucide-react";
 import type { UCID, Solution } from "../../../types";
+import { apiClient } from "../../../services/apiClient";
 
 interface StepBoqIntakeProps {
   ucid: UCID;
@@ -33,15 +34,9 @@ export function StepBoqIntake({
         "info",
         "Connecting direct REST API to dispatch workbook to secure compiler...",
       );
-      const response = await fetch("/api/boq/ingest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName, presetType, rawText }),
-      });
+      const data = await apiClient.post<Record<string, unknown>>("/api/boq/ingest", { fileName, presetType, rawText }) as any;
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.solutions) {
+      if (data.success && data.solutions) {
           onUpdateBOM(
             data.data?.rawText +
               `\n\n[API METRIC SIGNED] Server verified with ${data.data?.parsedSummary?.initialConfidenceScore}% initial confidence score.`,
@@ -54,8 +49,6 @@ export function StepBoqIntake({
           onShowToast(`Workbook parsed by live backend API!`, "success");
           return;
         }
-      }
-      throw new Error("API return is unsynced");
     } catch (e) {
       console.error(
         "API link is unavailable. Simulation failed.",

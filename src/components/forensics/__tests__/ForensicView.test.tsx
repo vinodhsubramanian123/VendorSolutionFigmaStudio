@@ -13,7 +13,7 @@ vi.mock("../ForensicHeader", () => ({
 }));
 
 vi.mock("../ForensicIssueCard", () => ({
-  ForensicIssueCard: ({ issue }: any) => <div data-testid={`issue-card-${issue.id}`}>{issue.title}</div>
+  ForensicIssueCard: ({ issue }: { issue: import("../../../types").ForensicIssue }) => <div data-testid={`issue-card-${issue.id}`}>{issue.title}</div>
 }));
 
 vi.mock("../LearningLoopFeed", () => ({
@@ -24,7 +24,7 @@ vi.mock("../ForensicSidebar", () => ({
   ForensicSidebar: () => <div data-testid="forensic-sidebar">Sidebar</div>
 }));
 
-const mockUcids: any[] = [{ id: "1" }];
+const mockUcids: import("../../../types").UCID[] = [{ id: "1", displayId: "1", name: "1", priority: "low", projectRef: "1", createdAt: "1", currentStep: "boq-intake", completedSteps: [], rawBOM: "1", solutions: [], events: [], snapshots: [] }];
 
 describe("ForensicView", () => {
   it("renders correctly with empty issues", () => {

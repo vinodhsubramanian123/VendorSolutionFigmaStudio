@@ -16,25 +16,40 @@ vi.mock("../../shared/ToastContext", async () => {
   };
 });
 
-const mockUcid: any = {
+const mockUcid: import("../../../types").UCID = {
   id: "1",
   displayId: "UCID-1",
-  name: "Test UCID 1",
-  rawBOM: "raw bom 1",
+  name: "Test UCID",
+  priority: "low",
+  projectRef: "1",
+  createdAt: "2026-06-12",
+  currentStep: "boq-intake",
+  completedSteps: [],
+  rawBOM: "{}",
+  events: [],
+  snapshots: [],
   solutions: [
     {
       id: "sol-1",
       name: "Solution 1",
+      targetUcidId: "ucid-1",
       vendorSubmissions: [
         {
-          id: "vs-1",
+          id: "sub-1",
           vendor: "HPE",
+          totalPrice: 100,
+          originalPrice: 120,
+          label: "HPE",
+          savings: 100,
+          complianceScore: 90,
           configs: [
             {
-              id: "config-1",
-              name: "Config 1",
+              id: "cfg-1",
+              name: "Server 1",
+              totalPrice: 100,
+              originalPrice: 120,
               items: [
-                { id: "item-1", name: "Item 1", type: "Misc", quantity: 1, unitPrice: 100, partNumber: "12345678" }
+                { id: "i1", name: "Proc", type: "Processor", quantity: 2, unitPrice: 50, partNumber: "P-1" } as unknown as import("../../../types").BOMItem
               ]
             }
           ]

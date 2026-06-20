@@ -54,11 +54,7 @@ export function DocumentPipelinePanel() {
     const steps = ["init", "parse", "ocr", "extract", "rules", "complete"];
     for (const step of steps) {
       try {
-        const res = await fetch("/api/pipeline/step", {
-          method: "POST",
-          body: JSON.stringify({ jobId: job.id, step })
-        });
-        const json = await res.json();
+        const json = await apiClient.post<Record<string, unknown>>("/api/pipeline/step", { jobId: job.id, step }) as any;
         const data = json.data;
 
         setJobs((prev) =>

@@ -1,0 +1,187 @@
+
+<h2 class="sr-only">VSIP integration test coverage matrix: 7 workflow steps × 6 test dimensions. Critical finding: zero state-transition or payload-integrity assertions exist for any pipeline step.</h2>
+
+<div style="padding: 0.5rem 0 1.5rem;">
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.5rem;">
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem; text-align: center;">
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px;">Step state assertions</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-danger);">0 / 7</div>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem; text-align: center;">
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px;">Payload integrity checks</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-danger);">0 / 7</div>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem; text-align: center;">
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px;">Error recovery tests</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-danger);">0</div>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem; text-align: center;">
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 3px;">Multi-UCID isolation</div>
+      <div style="font-size: 22px; font-weight: 500; color: var(--color-text-danger);">0</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 14px; margin-bottom: 1rem; font-size: 12px; align-items: center; flex-wrap: wrap;">
+    <span style="color: var(--color-text-secondary); font-weight: 500;">Legend:</span>
+    <span style="display: flex; align-items: center; gap: 5px;">
+      <span style="width: 11px; height: 11px; border-radius: 2px; background: var(--color-background-success); border: 0.5px solid var(--color-border-success); flex-shrink:0;"></span>
+      <span style="color: var(--color-text-secondary);">Covered</span>
+    </span>
+    <span style="display: flex; align-items: center; gap: 5px;">
+      <span style="width: 11px; height: 11px; border-radius: 2px; background: var(--color-background-warning); border: 0.5px solid var(--color-border-warning); flex-shrink:0;"></span>
+      <span style="color: var(--color-text-secondary);">Partial</span>
+    </span>
+    <span style="display: flex; align-items: center; gap: 5px;">
+      <span style="width: 11px; height: 11px; border-radius: 2px; background: var(--color-background-danger); border: 0.5px solid var(--color-border-danger); flex-shrink:0;"></span>
+      <span style="color: var(--color-text-secondary);">Missing</span>
+    </span>
+    <span style="display: flex; align-items: center; gap: 5px;">
+      <span style="width: 11px; height: 11px; border-radius: 2px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); flex-shrink:0;"></span>
+      <span style="color: var(--color-text-secondary);">N/A</span>
+    </span>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px;">
+      <thead>
+        <tr style="background: var(--color-background-tertiary);">
+          <th style="text-align: left; padding: 8px 8px; color: var(--color-text-secondary); font-weight: 500; width: 170px; border-bottom: 0.5px solid var(--color-border-tertiary);">Stage / Concern</th>
+          <th style="text-align: center; padding: 8px 4px; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary);">UI<br>render</th>
+          <th style="text-align: center; padding: 8px 4px; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary);">Step<br>state</th>
+          <th style="text-align: center; padding: 8px 4px; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary);">Payload<br>integrity</th>
+          <th style="text-align: center; padding: 8px 4px; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary);">Error<br>path</th>
+          <th style="text-align: center; padding: 8px 4px; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary);">Cross-comp<br>sync</th>
+          <th style="text-align: center; padding: 8px 4px; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary);">Multi-UCID<br>isolation</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr><td colspan="7" style="padding: 8px 8px 3px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.05em; background: var(--color-background-secondary);">UCID PIPELINE — 7 STEPS</td></tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">1 ·</span> BOQ intake</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-success); color: var(--color-text-success); font-size: 11px;">✓ 02,13</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">2 ·</span> Pre-intelligence</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 11-ML</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">3 ·</span> Solution design</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 09,10</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 09-LS</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">4 ·</span> Vendor provisioning</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 07,17</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">5 ·</span> Post-intelligence</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 08,15</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">6 ·</span> BOM comparison</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 03</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="font-size: 11px; color: var(--color-text-secondary);">7 ·</span> Commit snapshot</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-success); color: var(--color-text-success); font-size: 11px;">✓ 11</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ label only</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+        </tr>
+
+        <tr><td colspan="7" style="padding: 10px 8px 3px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.05em; background: var(--color-background-secondary);">STATE INFRASTRUCTURE</td></tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);">DataPersistenceGate</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);">Job queue state machine</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);">LS custom event propagation</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 09 dispatch</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary); border-bottom: 0.5px solid var(--color-border-tertiary);">Zod schema runtime suite</td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center; border-bottom: 0.5px solid var(--color-border-tertiary);"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+        </tr>
+
+        <tr>
+          <td style="padding: 7px 8px; color: var(--color-text-primary);">ForensicIssue→Rule→Event chain</td>
+          <td style="padding: 4px; text-align: center;"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px;">~ 08,15</span></td>
+          <td style="padding: 4px; text-align: center;"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center;"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center;"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-danger); color: var(--color-text-danger); font-size: 11px;">missing</span></td>
+          <td style="padding: 4px; text-align: center;"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+          <td style="padding: 4px; text-align: center;"><span style="display:inline-block; padding: 2px 7px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 11px;">n/a</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</div>

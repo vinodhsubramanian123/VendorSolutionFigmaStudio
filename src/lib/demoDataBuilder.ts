@@ -5,7 +5,7 @@ export function generateDefaultSolutions(): Solution[] {
     {
       id: "sol-sub-hpe",
       name: "HPE Premium Architected Solution DL380 Gen11",
-      targetUcidId: "unknown",
+      targetUcidId: crypto.randomUUID(),
       vendorSubmissions: [
         {
           id: "vs-sub-hpe",
@@ -64,7 +64,7 @@ export function generateDefaultSolutions(): Solution[] {
     {
       id: "sol-sub-dell",
       name: "Dell PowerEdge Economical Solution R760",
-      targetUcidId: "unknown",
+      targetUcidId: crypto.randomUUID(),
       vendorSubmissions: [
         {
           id: "vs-sub-dell",

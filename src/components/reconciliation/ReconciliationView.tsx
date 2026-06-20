@@ -27,17 +27,17 @@ export function ReconciliationView({
   setVendors,
 }: ReconciliationViewProps) {
   const [hasDrift, setHasDrift] = useState(() => {
-    return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison");
+    return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot");
   });
   const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
 
   // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
   const activeUCIDList = useMemo(() => {
-    return ucids.filter(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison");
+    return ucids.filter(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot");
   }, [ucids]);
 
   const activeUCID = useMemo(() => {
-    return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison") ||
+    return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
       ucids?.find((u) => u.solutions?.length > 0) ||
       ucids?.[0];
   }, [ucids]);

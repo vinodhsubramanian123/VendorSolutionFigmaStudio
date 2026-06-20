@@ -62,7 +62,7 @@ export function SnapshotNewModal({
     const newSnap: Snapshot = {
       id: crypto.randomUUID(),
       label: newLabel,
-      committedAt: new Date().toISOString().split("T")[0],
+      committedAt: new Date().toISOString(),
       winnerSolution: newWinner || "Consolidated Sourcing",
       totalValue: currentTotalValue,
       notes: newNotes || "Committed following active dual-sourcing reconciliations.",
@@ -78,6 +78,8 @@ export function SnapshotNewModal({
         if (u.id === activeUCID.id) {
           return {
             ...u,
+            currentStep: 'snapshot',
+            completedSteps: Array.from(new Set([...(u.completedSteps || []), 'comparison'])),
             snapshots: [...(u.snapshots || []), newSnap]
           };
         }
