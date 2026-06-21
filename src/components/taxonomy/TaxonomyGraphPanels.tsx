@@ -1,6 +1,7 @@
 import React from "react";
 import { ShieldCheck, RefreshCw, Zap, Layers, HelpCircle } from "lucide-react";
 import type { CatalogSKU, GraphPath, GraphNode, ConstraintCheckResponse } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface MechanicalConstraintsPanelProps {
   selectedChassis: string;
@@ -226,26 +227,32 @@ export function OrphanWorkshopPanel({
         <span className="text-[9px] font-mono text-gray-500 font-bold uppercase block tracking-wider mb-1">
           Active Orphans ({unmappedIds.length})
         </span>
-        {unmappedIds.map((oId) => {
-          const sRef = catalogSkus.find((s) => s.partNumber === oId || s.id === oId);
-          return (
-            <div
-              key={oId}
-              className="flex justify-between items-center p-2 rounded bg-black/25 border border-white/5 text-[10px] group hover:border-indigo-500/20"
-            >
-              <div className="min-w-0 pr-2">
-                <span className="font-mono text-rose-300 font-semibold block truncate">{oId}</span>
-                <span className="text-gray-500 text-[8.5px] block truncate">{sRef?.name || "Unstructured name"}</span>
-              </div>
-              <button type="button"
-                onClick={() => setSelectedOrphanToMap(oId)}
-                className="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/25 border border-indigo-500/20 text-indigo-400 font-bold text-[9px] font-mono rounded cursor-pointer shrink-0 transition"
+        <AnimatePresence mode="popLayout">
+          {unmappedIds.map((oId) => {
+            const sRef = catalogSkus.find((s) => s.partNumber === oId || s.id === oId);
+            return (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                key={oId}
+                className="flex justify-between items-center p-2 rounded bg-black/25 border border-white/5 text-[10px] group hover:border-indigo-500/20"
               >
-                Map
-              </button>
-            </div>
-          );
-        })}
+                <div className="min-w-0 pr-2">
+                  <span className="font-mono text-rose-300 font-semibold block truncate">{oId}</span>
+                  <span className="text-gray-500 text-[8.5px] block truncate">{sRef?.name || "Unstructured name"}</span>
+                </div>
+                <button type="button"
+                  onClick={() => setSelectedOrphanToMap(oId)}
+                  className="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/25 border border-indigo-500/20 text-indigo-400 font-bold text-[9px] font-mono rounded cursor-pointer shrink-0 transition"
+                >
+                  Map
+                </button>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -281,24 +288,30 @@ export function PathOrchestratorPanel({
 
         {alternativePaths.length > 0 ? (
           <div className="space-y-3">
-            {alternativePaths.map((path) => (
-              <div
-                key={path.pathId}
-                onClick={() => setActiveSelectedPathId?.(path.pathId)}
-                className={`p-3 rounded-lg border cursor-pointer transition-all ${activeSelectedPathId === path.pathId ? "bg-indigo-900/30 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "bg-surface-elevated border-white/10 hover:border-indigo-400/50"}`}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-[10px] font-bold font-mono text-white">Path Rank #{path.rank}</span>
-                  <span className={`text-[10px] font-bold ${path.confidence >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
-                    {path.confidence}% Confidence
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-gray-400">Total Cost</span>
-                  <span className="text-[11px] font-bold text-white">${path.totalCost.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
+            <AnimatePresence mode="popLayout">
+              {alternativePaths.map((path) => (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  key={path.pathId}
+                  onClick={() => setActiveSelectedPathId?.(path.pathId)}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all ${activeSelectedPathId === path.pathId ? "bg-indigo-900/30 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "bg-surface-elevated border-white/10 hover:border-indigo-400/50"}`}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[10px] font-bold font-mono text-white">Path Rank #{path.rank}</span>
+                    <span className={`text-[10px] font-bold ${path.confidence >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
+                      {path.confidence}% Confidence
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-gray-400">Total Cost</span>
+                    <span className="text-[11px] font-bold text-white">${path.totalCost.toLocaleString()}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
             {activeSelectedPathId && (
               <button type="button"

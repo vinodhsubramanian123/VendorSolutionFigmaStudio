@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Edit3, Trash2, Save, X, Activity, Loader2 } from "lucide-react";
 import type { SourcingRule } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface RulesTableProps {
   sourcingRules: SourcingRule[];
@@ -87,12 +88,21 @@ export function RulesTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
-          {sourcingRules.map((rule) => {
-            const isEditing = editingRuleId === rule.id;
-            const isDraft = rule.status === "draft";
-            return (
-              <tr key={rule.id} className={`transition-colors ${isDraft ? 'bg-amber-500/5 border-l-2 border-l-amber-500' : 'hover:bg-white/2'}`}>
-                <td className="p-3 font-mono font-bold text-white whitespace-nowrap">
+          <AnimatePresence mode="popLayout">
+            {sourcingRules.map((rule) => {
+              const isEditing = editingRuleId === rule.id;
+              const isDraft = rule.status === "draft";
+              return (
+                <motion.tr 
+                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  key={rule.id} 
+                  className={`transition-colors ${isDraft ? 'bg-amber-500/5 border-l-2 border-l-amber-500' : 'hover:bg-white/2'}`}
+                >
+                  <td className="p-3 font-mono font-bold text-white whitespace-nowrap">
                   {isEditing ? (
                     <input
                       type="text"
@@ -313,9 +323,10 @@ export function RulesTable({
                     </div>
                   )}
                 </td>
-              </tr>
-            );
-          })}
+                </motion.tr>
+              );
+            })}
+          </AnimatePresence>
         </tbody>
       </table>
     </div>

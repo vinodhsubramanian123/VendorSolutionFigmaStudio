@@ -3,6 +3,7 @@ import React from 'react';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Target } from 'lucide-react';
 import { TOOLTIP_STYLE } from './DashboardTooltipStyle';
+import { motion, AnimatePresence } from "motion/react";
 
 interface VendorStatusBoardProps {
   totalCatalog: number;
@@ -65,22 +66,29 @@ export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, cha
         )}
       </div>
       <div className="space-y-1.5 mt-2">
-        {vendorPieData.map((d) => (
-          <div key={d.name} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-2 h-2 rounded-sm"
-                style={{ background: d.color }}
-              />
-              <span className="text-[11px]" style={{ color: tokens.colors.text.secondary }}> 
-                {d.name}
+        <AnimatePresence>
+          {vendorPieData.map((d) => (
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              key={d.name} 
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-sm"
+                  style={{ background: d.color }}
+                />
+                <span className="text-[11px]" style={{ color: tokens.colors.text.secondary }}> 
+                  {d.name}
+                </span>
+              </div>
+              <span className="text-[11px]" style={{ color: tokens.colors.text.primary }}> 
+                {d.value.toLocaleString()}
               </span>
-            </div>
-            <span className="text-[11px]" style={{ color: tokens.colors.text.primary }}> 
-              {d.value.toLocaleString()}
-            </span>
-          </div>
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );

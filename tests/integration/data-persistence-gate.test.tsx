@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { DataPersistenceGate } from '../../components/shared/DataPersistenceGate';
+import { DataPersistenceGate } from '../../src/components/shared/DataPersistenceGate';
 
 describe('05 - Data Persistence Gate Integration', () => {
   it('should render children if state is healthy', () => {

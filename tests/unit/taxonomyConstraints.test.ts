@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkHardwareConstraints } from '../../utils/taxonomyConstraints';
+import { checkHardwareConstraints } from '../../src/utils/taxonomyConstraints';
 
 describe('checkHardwareConstraints', () => {
   it('should pass for valid compliant configurations', () => {

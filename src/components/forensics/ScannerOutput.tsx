@@ -1,6 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from "motion/react";
 
 interface ScannerOutputProps {
   scanning: boolean;
@@ -25,9 +26,17 @@ export function ScannerOutput({ scanning, scanStdout }: ScannerOutputProps) {
         </span>
       </div>
       <div className="p-4 rounded bg-black/40 font-mono text-[10px] text-status-success space-y-1 leading-normal border border-white/5">
-        {scanStdout.map((line, i) => (
-          <p key={i}>&gt; {line}</p>
-        ))}
+        <AnimatePresence initial={false}>
+          {scanStdout.map((line, i) => (
+            <motion.p 
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              &gt; {line}
+            </motion.p>
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );

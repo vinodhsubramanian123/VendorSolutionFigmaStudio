@@ -3,7 +3,7 @@ import {
   UCIDSchema, 
   SourcingRuleSchema, 
   ForensicIssueSchema 
-} from '../../../src/types/zodSchemas';
+} from '../../src/types/zodSchemas';
 
 export async function assertUCIDPayloadIntegrity(page: any, ucidId?: string) {
   const ucids = await page.evaluate(() => JSON.parse(window.localStorage.getItem('sys_ucids') || '[]'));

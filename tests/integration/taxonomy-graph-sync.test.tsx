@@ -1,8 +1,8 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest';
-import { useCatalogGraphData } from '../../hooks/useCatalogGraphData';
-import type { Config } from '../../types';
-import { apiClient } from '../../services/apiClient';
+import { useCatalogGraphData } from '../../src/hooks/useCatalogGraphData';
+import type { Config } from '../../src/types';
+import { apiClient } from '../../src/services/apiClient';
 
 vi.mock('../../services/apiClient', () => ({
   apiClient: {
@@ -53,7 +53,7 @@ describe('07 - Taxonomy Graph Sync Hook Integration', () => {
 
     // Verify optimistic update
     expect(result.current.data.unmappedIds).not.toContain('child-1');
-    expect(result.current.data.nodes.some(n => n.id === 'child-1')).toBe(true);
-    expect(result.current.data.edges.some(e => e.source === 'parent-1' && e.target === 'child-1')).toBe(true);
+    expect(result.current.data.nodes.some((n: any) => n.id === 'child-1')).toBe(true);
+    expect(result.current.data.edges.some((e: any) => e.source === 'parent-1' && e.target === 'child-1')).toBe(true);
   });
 });

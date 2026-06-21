@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Edit2, X, AlertTriangle } from "lucide-react";
 import type { UCID } from "../../types";
+import { motion } from "motion/react";
 
 interface UCIDEditModalProps {
   editingUcid: UCID;
@@ -19,11 +20,19 @@ export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEdi
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-[60] select-none leading-normal">
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         onClick={() => setEditingUcid(null)}
         className="absolute inset-0 bg-black/65 backdrop-blur-sm"
       />
-      <div className="w-full max-w-md rounded-xl border p-5 space-y-4 bg-surface-header border-indigo-500/20 shadow-2xl shadow-black/50 relative z-10 text-xs text-left">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="w-full max-w-md rounded-xl border p-5 space-y-4 bg-surface-header border-indigo-500/20 shadow-2xl shadow-black/50 relative z-10 text-xs text-left"
+      >
         <div className="flex items-center justify-between pb-2 border-b border-indigo-500/10">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <Edit2 className="w-4 h-4 text-indigo-400" /> Edit Parallel Flow ({editingUcid.displayId})
@@ -105,7 +114,7 @@ export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEdi
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -135,11 +144,19 @@ export function UCIDDeleteConfirmModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-[60] select-none leading-normal">
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         onClick={() => setConfirmDeleteUcid(null)}
         className="absolute inset-0 bg-black/65 backdrop-blur-sm"
       />
-      <div className="w-full max-w-md rounded-xl border p-5 space-y-4 bg-surface-header border-red-500/20 shadow-2xl shadow-black/50 relative z-10 text-xs text-left">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="w-full max-w-md rounded-xl border p-5 space-y-4 bg-surface-header border-red-500/20 shadow-2xl shadow-black/50 relative z-10 text-xs text-left"
+      >
         <div className="flex items-center gap-2 pb-2 border-b border-red-500/10 text-red-400">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           <h3 className="text-sm font-bold uppercase tracking-wider">Confirm Deletion</h3>
@@ -192,7 +209,7 @@ export function UCIDDeleteConfirmModal({
             Permanently Delete
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -3,9 +3,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterEach, afterAll } from 'vitest';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
-import { IngestionHub } from '../../components/ingestion/IngestionHub';
-import type { UCID } from '../../types';
-import { ToastProvider } from '../../components/shared/ToastContext';
+import { IngestionHub } from '../../src/components/ingestion/IngestionHub';
+import type { UCID } from '../../src/types';
+import { ToastProvider } from '../../src/components/shared/ToastContext';
 
 // Setup MSW Server
 const server = setupServer(

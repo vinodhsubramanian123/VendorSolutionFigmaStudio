@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Radio, Trash2, Filter } from "lucide-react";
 import type { UCID } from "../../types";
 import { Virtuoso } from "react-virtuoso";
+import { motion } from "motion/react";
 
 interface UCIDEventLedgerProps {
   ucid: UCID;
@@ -94,7 +95,12 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
             itemContent={(i, ev) => {
               const stableKey = `${ev.timestamp}-${ev.level}-${ev.msg.substring(0, 10)}-${i}`;
               return (
-                <div key={stableKey} className="flex gap-3 items-start border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0 mb-1.5 font-mono text-[10px]">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex gap-3 items-start border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0 mb-1.5 font-mono text-[10px]"
+                >
                   <span className="text-gray-500 shrink-0 select-none font-semibold">{ev.timestamp}</span>
                   <span
                     className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase select-none ${
@@ -112,7 +118,7 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
                   <span className="text-gray-300 flex-1 leading-normal break-all">
                     {ev.msg}
                   </span>
-                </div>
+                </motion.div>
               );
             }}
             className="scrollbar-thin scrollbar-thumb-white/10"

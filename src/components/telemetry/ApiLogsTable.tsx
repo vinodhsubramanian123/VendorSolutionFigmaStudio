@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import type { ApiLogEntry } from "./types";
 
 function getHttpColor(code: number): string {
@@ -38,27 +38,37 @@ export function ApiLogsTable({ apiLogs }: ApiLogsTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.03]">
-            {apiLogs.map((log) => (
-              <tr key={log.id} className="hover:bg-white/[0.015] transition-colors">
-                <td className="p-2.5 text-gray-500 font-mono whitespace-nowrap">
-                  {new Date(log.timestamp).toLocaleTimeString()}
-                </td>
-                <td className="p-2.5">
-                  <span className={`font-bold font-mono ${
-                    log.method === "GET" ? "text-emerald-400" :
-                    log.method === "POST" ? "text-indigo-400" :
-                    log.method === "DELETE" ? "text-red-400" : "text-amber-400"
-                  }`}>{log.method}</span>
-                </td>
-                <td className="p-2.5 font-mono text-gray-300">{log.endpoint}</td>
-                <td className="p-2.5 text-center">
-                  <span className={`font-bold font-mono ${getHttpColor(log.statusCode)}`}>
-                    {log.statusCode}
-                  </span>
-                </td>
-                <td className="p-2.5 text-right text-gray-500 font-mono">{log.durationMs}ms</td>
-              </tr>
-            ))}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {apiLogs.map((log) => (
+                <motion.tr
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  key={log.id}
+                  className="hover:bg-white/[0.015] transition-colors"
+                >
+                  <td className="p-2.5 text-gray-500 font-mono whitespace-nowrap">
+                    {new Date(log.timestamp).toLocaleTimeString()}
+                  </td>
+                  <td className="p-2.5">
+                    <span className={`font-bold font-mono ${
+                      log.method === "GET" ? "text-emerald-400" :
+                      log.method === "POST" ? "text-indigo-400" :
+                      log.method === "DELETE" ? "text-red-400" : "text-amber-400"
+                    }`}>{log.method}</span>
+                  </td>
+                  <td className="p-2.5 font-mono text-gray-300">{log.endpoint}</td>
+                  <td className="p-2.5 text-center">
+                    <span className={`font-bold font-mono ${getHttpColor(log.statusCode)}`}>
+                      {log.statusCode}
+                    </span>
+                  </td>
+                  <td className="p-2.5 text-right text-gray-500 font-mono">{log.durationMs}ms</td>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
             {apiLogs.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-6 text-center text-[10px] text-gray-600">

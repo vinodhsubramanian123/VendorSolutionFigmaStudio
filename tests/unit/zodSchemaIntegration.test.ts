@@ -5,9 +5,9 @@ import {
   CatalogSKUSchema, 
   ForensicIssueSchema, 
   BOMItemSchema
-} from '../../types/zodSchemas';
-import { UCIDS, VENDORS, CATALOG_SKUS, FORENSIC_ISSUES } from '../../lib/mockData';
-import { UCID, Vendor, CatalogSKU, ForensicIssue } from '../../types';
+} from '../../src/types/zodSchemas';
+import { UCIDS, VENDORS, CATALOG_SKUS, FORENSIC_ISSUES } from '../../src/lib/mockData';
+import { UCID, Vendor, CatalogSKU, ForensicIssue } from '../../src/types';
 
 describe('Zod Schema Integration Tests', () => {
   it('should validate mock UCIDs against UCIDSchema', () => {

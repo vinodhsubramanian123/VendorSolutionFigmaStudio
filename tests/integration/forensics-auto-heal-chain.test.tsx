@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
-import { ForensicView } from '../../components/forensics/ForensicView';
-import type { ForensicIssue, SourcingRule, LearningEvent, UCID, Vendor, CatalogSKU } from '../../types';
-import { ToastProvider } from '../../components/shared/ToastContext';
+import { ForensicView } from '../../src/components/forensics/ForensicView';
+import type { ForensicIssue, SourcingRule, LearningEvent, UCID, Vendor, CatalogSKU } from '../../src/types';
+import { ToastProvider } from '../../src/components/shared/ToastContext';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 

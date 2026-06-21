@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Upload, FileSpreadsheet, AlertCircle, ListFilter, FileText, Check, ArrowUpRight } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 import type { SourcingRule } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 export interface AdviceTriageItem {
   id: string;
@@ -208,17 +209,23 @@ export function AdviceFileIngestion({
             {fileSubTab === "advice" && (
               <div className="space-y-2.5">
                 {adviceItems.length > 0 ? (
-                  <div className="space-y-2">
-                    {adviceItems.map((item) => {
-                      const inActiveBOM = bomItems.some(bom => {
-                        const bomSku = String(bom["Product #"] || bom["Product Number"] || bom["SKU"] || "").trim().split(/\s+/)[0];
-                        return bomSku && String(item.productNumber).includes(bomSku);
-                      });
+                  <motion.div layout className="space-y-2">
+                    <AnimatePresence mode="popLayout">
+                      {adviceItems.map((item) => {
+                        const inActiveBOM = bomItems.some(bom => {
+                          const bomSku = String(bom["Product #"] || bom["Product Number"] || bom["SKU"] || "").trim().split(/\s+/)[0];
+                          return bomSku && String(item.productNumber).includes(bomSku);
+                        });
 
-                      return (
-                        <div 
-                          key={item.id} 
-                          className={`p-3 rounded-lg border text-left flex flex-col gap-2 transition-all duration-200 ${
+                        return (
+                          <motion.div 
+                            layout
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ duration: 0.2 }}
+                            key={item.id} 
+                            className={`p-3 rounded-lg border text-left flex flex-col gap-2 transition-all duration-200 ${
                             item.drafted 
                               ? "bg-emerald-500/5 border-emerald-500/40 opacity-70" 
                               : "bg-surface-elevated/60 border-white/5 hover:border-white/10"
@@ -276,10 +283,11 @@ export function AdviceFileIngestion({
                               )}
                             </button>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
-                  </div>
+                    </AnimatePresence>
+                  </motion.div>
                 ) : (
                   <div className="text-center py-6 text-xs text-gray-500 italic">
                     No validation issues discovered in sheet.
@@ -301,21 +309,31 @@ export function AdviceFileIngestion({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {bomItems.map((item, idx) => {
-                        const part = String(item["Product #"] || item["Product Number"] || item["SKU"] || "Unknown");
-                        const desc = String(item["Product Description"] || item["Description"] || "");
-                        const qty = item["Qty"] || item["Quantity"] || 1;
-                        const price = item["Unit Price (USD)"] || item["Price"] || "0.00";
+                      <AnimatePresence mode="popLayout">
+                        {bomItems.map((item, idx) => {
+                          const part = String(item["Product #"] || item["Product Number"] || item["SKU"] || "Unknown");
+                          const desc = String(item["Product Description"] || item["Description"] || "");
+                          const qty = item["Qty"] || item["Quantity"] || 1;
+                          const price = item["Unit Price (USD)"] || item["Price"] || "0.00";
 
-                        return (
-                          <tr key={idx} className="hover:bg-white/2 font-mono text-gray-300">
+                          return (
+                            <motion.tr 
+                              layout
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              key={idx} 
+                              className="hover:bg-white/2 font-mono text-gray-300"
+                            >
                             <td className="p-2 font-bold text-white whitespace-nowrap">{part}</td>
                             <td className="p-2 max-w-[150px] truncate text-gray-400" title={desc}>{desc}</td>
                             <td className="p-2 text-center">{qty}</td>
                             <td className="p-2 text-right text-emerald-400">${Number(price).toLocaleString()}</td>
-                          </tr>
-                        );
-                      })}
+                            </motion.tr>
+                          );
+                        })}
+                      </AnimatePresence>
                     </tbody>
                   </table>
                 ) : (

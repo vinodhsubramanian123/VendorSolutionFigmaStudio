@@ -2,6 +2,7 @@ import { tokens } from "../../styles/tokens";
 import React, { useMemo } from 'react';
 import { ChevronRight, Users } from 'lucide-react';
 import type { Vendor, AppView } from '../../types';
+import { motion, AnimatePresence } from "motion/react";
 
 interface VendorHealthListProps {
   vendors: Vendor[];
@@ -23,56 +24,67 @@ export function VendorHealthList({ vendors, onNavigate }: VendorHealthListProps)
         </div>
       );
     }
-    return vendors.map((v) => (
-      <div key={v.name} className="flex items-center gap-2">
-        <div
-          className="w-2 h-2 rounded-full shrink-0"
-          style={{ background: v.color }}
-        />
-        <span
-          className="text-[11px] flex-1 truncate"
-          style={{ color: tokens.colors.text.secondary }} 
-        >
-          {v.name}
-        </span>
-        <div
-          className="w-16 h-1 rounded-full overflow-hidden"
-          style={{ background: "rgba(74, 133, 253,0.1)" }}
-        >
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: `${v.apiHealth}%`,
-              background:
-                v.apiHealth > 97
-                  ? tokens.colors.status.success 
-                  : v.apiHealth > 90
-                    ? tokens.colors.status.warning 
-                    : tokens.colors.status.error, 
-            }}
-          />
-        </div>
-        <span
-          className="text-[10px] w-8 text-right font-mono"
-          style={{
-            color: v.apiHealth > 97 ? tokens.colors.status.success : tokens.colors.status.warning, 
-          }}
-        >
-          {v.apiHealth}%
-        </span>
-        <span
-          className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{
-            background:
-              v.status === "connected"
-                ? tokens.colors.status.success 
-                : v.status === "syncing"
-                  ? tokens.colors.accent.violet 
-                  : tokens.colors.text.muted, 
-          }}
-        />
-      </div>
-    ));
+    return (
+      <AnimatePresence mode="popLayout">
+        {vendors.map((v) => (
+          <motion.div 
+            layout
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            key={v.name} 
+            className="flex items-center gap-2"
+          >
+            <div
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ background: v.color }}
+            />
+            <span
+              className="text-[11px] flex-1 truncate"
+              style={{ color: tokens.colors.text.secondary }} 
+            >
+              {v.name}
+            </span>
+            <div
+              className="w-16 h-1 rounded-full overflow-hidden"
+              style={{ background: "rgba(74, 133, 253,0.1)" }}
+            >
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${v.apiHealth}%`,
+                  background:
+                    v.apiHealth > 97
+                      ? tokens.colors.status.success 
+                      : v.apiHealth > 90
+                        ? tokens.colors.status.warning 
+                        : tokens.colors.status.error, 
+                }}
+              />
+            </div>
+            <span
+              className="text-[10px] w-8 text-right font-mono"
+              style={{
+                color: v.apiHealth > 97 ? tokens.colors.status.success : tokens.colors.status.warning, 
+              }}
+            >
+              {v.apiHealth}%
+            </span>
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0"
+              style={{
+                background:
+                  v.status === "connected"
+                    ? tokens.colors.status.success 
+                    : v.status === "syncing"
+                      ? tokens.colors.accent.violet 
+                      : tokens.colors.text.muted, 
+              }}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    );
   }, [vendors]);
 
   return (

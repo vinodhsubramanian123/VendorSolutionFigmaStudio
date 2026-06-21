@@ -3,6 +3,7 @@ import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Select } from '../shared/Select';
 import type { ConfigItem, UcidContainer } from '../../types/data';
+import { motion } from "motion/react";
 
 interface ConfigLibraryItemProps {
   cfg: ConfigItem;
@@ -22,12 +23,17 @@ export function ConfigLibraryItem({
   assignConfigToUcid
 }: ConfigLibraryItemProps) {
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.2 }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter") onSelect(); }}
       onClick={onSelect}
-      className={`p-3 rounded-lg border transition duration-150 cursor-pointer text-left block ${
+      className={`p-3 rounded-lg border transition-colors duration-150 cursor-pointer text-left block ${
         isSelected
           ? "bg-indigo-500/5 border-indigo-500"
           : "bg-black/10 border-white/5 hover:bg-black/20"
@@ -88,6 +94,6 @@ export function ConfigLibraryItem({
           </Select>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

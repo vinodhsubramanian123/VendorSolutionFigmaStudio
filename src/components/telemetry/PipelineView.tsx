@@ -208,7 +208,7 @@ export function PipelineView() {
               Clear Completed
             </button>
           </div>
-          <AnimatePresence initial={false}>
+          <AnimatePresence mode="popLayout" initial={false}>
             {jobs.map((job) => {
               const cfg = STATUS_STYLES[job.status];
               const Icon = DOC_ICON[job.category];

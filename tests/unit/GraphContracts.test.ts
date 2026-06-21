@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GraphNodeSchema, GraphEdgeSchema, GraphPathSchema } from '../types/zodSchemas';
+import { GraphNodeSchema, GraphEdgeSchema, GraphPathSchema } from '../../src/types/zodSchemas';
 
 describe('Graph Data Contracts (Zod Validation)', () => {
   describe('GraphNodeSchema', () => {

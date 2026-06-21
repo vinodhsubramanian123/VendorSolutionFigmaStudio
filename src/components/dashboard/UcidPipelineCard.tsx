@@ -3,6 +3,7 @@ import { Target, ChevronRight } from "lucide-react";
 import { tokens } from "../../styles/tokens";
 import { UCID_STEPS } from "../../lib/mockData";
 import type { UCID, AppView } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface UcidPipelineCardProps {
   ucids: UCID[];
@@ -27,92 +28,102 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
         </div>
       );
     }
-    return ucids.map((u) => {
-      const stepIdx = UCID_STEPS.findIndex(
-        (s) => s.id === u.currentStep,
-      );
-      const pct = Math.round(
-        (stepIdx / (UCID_STEPS.length - 1)) * 100,
-      );
-      const PRIORITY_COLOR: Record<string, string> = {
-        critical: tokens.colors.status.error,
-        high: tokens.colors.status.warning,
-        medium: tokens.colors.accent.indigo,
-        low: tokens.colors.text.muted,
-      };
       return (
-        <button type="button"
-          key={u.id}
-          onClick={() => onNavigate("mission-control")}
-          className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block"
-        >
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-2">
-              <span
-                className="w-1.5 h-1.5 rounded-full shrink-0"
-                style={{ background: PRIORITY_COLOR[u.priority] }}
-              />
-              <span
-                className="text-xs font-semibold"
-                style={{ color: tokens.colors.text.primary }}
+        <AnimatePresence mode="popLayout" key="pipeline-list">
+          {ucids.map((u) => {
+            const stepIdx = UCID_STEPS.findIndex(
+              (s) => s.id === u.currentStep,
+            );
+            const pct = Math.round(
+              (stepIdx / (UCID_STEPS.length - 1)) * 100,
+            );
+            const PRIORITY_COLOR: Record<string, string> = {
+              critical: tokens.colors.status.error,
+              high: tokens.colors.status.warning,
+              medium: tokens.colors.accent.indigo,
+              low: tokens.colors.text.muted,
+            };
+            return (
+              <motion.button 
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                type="button"
+                key={u.id}
+                onClick={() => onNavigate("mission-control")}
+                className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block"
               >
-                {u.displayId}
-              </span>
-              <span
-                className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
-                style={{
-                  background: "rgba(74, 133, 253,0.1)",
-                  color: tokens.colors.text.secondary,
-                }}
-              >
-                {u.priority}
-              </span>
-            </div>
-            <span
-              className="text-[11px]"
-              style={{
-                color:
-                  u.currentStep === "snapshot"
-                    ? tokens.colors.status.success
-                    : tokens.colors.status.warning,
-              }}
-            >
-              {UCID_STEPS.find((s) => s.id === u.currentStep)
-                ?.label || u.currentStep}
-            </span>
-          </div>
-          <p
-            className="text-[11px] mb-2 text-left"
-            style={{ color: tokens.colors.text.muted }}
-          >
-            {u.name}
-          </p>
-          <div className="flex items-center gap-3">
-            <div
-              className="flex-1 h-1 rounded-full overflow-hidden"
-              style={{ background: "rgba(74, 133, 253,0.1)" }}
-            >
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${pct}%`,
-                  background:
-                    u.currentStep === "snapshot"
-                      ? tokens.colors.status.success
-                      : `linear-gradient(90deg, ${tokens.colors.accent.indigo}, ${tokens.colors.status.success})`,
-                }}
-              />
-            </div>
-            <span
-              className="text-[10px] shrink-0"
-              style={{ color: tokens.colors.text.tertiary }}
-            >
-              {pct}%
-            </span>
-          </div>
-        </button>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: PRIORITY_COLOR[u.priority] }}
+                    />
+                    <span
+                      className="text-xs font-semibold"
+                      style={{ color: tokens.colors.text.primary }}
+                    >
+                      {u.displayId}
+                    </span>
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
+                      style={{
+                        background: "rgba(74, 133, 253,0.1)",
+                        color: tokens.colors.text.secondary,
+                      }}
+                    >
+                      {u.priority}
+                    </span>
+                  </div>
+                  <span
+                    className="text-[11px]"
+                    style={{
+                      color:
+                        u.currentStep === "snapshot"
+                          ? tokens.colors.status.success
+                          : tokens.colors.status.warning,
+                    }}
+                  >
+                    {UCID_STEPS.find((s) => s.id === u.currentStep)
+                      ?.label || u.currentStep}
+                  </span>
+                </div>
+                <p
+                  className="text-[11px] mb-2 text-left"
+                  style={{ color: tokens.colors.text.muted }}
+                >
+                  {u.name}
+                </p>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex-1 h-1 rounded-full overflow-hidden"
+                    style={{ background: "rgba(74, 133, 253,0.1)" }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        background:
+                          u.currentStep === "snapshot"
+                            ? tokens.colors.status.success
+                            : `linear-gradient(90deg, ${tokens.colors.accent.indigo}, ${tokens.colors.status.success})`,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="text-[10px] shrink-0"
+                    style={{ color: tokens.colors.text.tertiary }}
+                  >
+                    {pct}%
+                  </span>
+                </div>
+              </motion.button>
+            );
+          })}
+        </AnimatePresence>
       );
-    });
   }, [ucids, onNavigate]);
 
   return (

@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterEach, afterAll } from 'vitest';
-import { CleansingView } from '../../components/cleansing/CleansingView';
-import { ToastProvider } from '../../components/shared/ToastContext';
-import type { CatalogSKU } from '../../types';
+import { CleansingView } from '../../src/components/cleansing/CleansingView';
+import { ToastProvider } from '../../src/components/shared/ToastContext';
+import type { CatalogSKU } from '../../src/types';
 
 // Mock API calls for MSW
 import { setupServer } from 'msw/node';

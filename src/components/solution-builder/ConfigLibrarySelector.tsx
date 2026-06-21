@@ -5,6 +5,7 @@ import { useToast } from "../shared/ToastContext";
 import type { ConfigItem, UcidContainer } from "../../types/data";
 import { ConfigLibraryItem } from "./ConfigLibraryItem";
 import { checkHardwareConstraints } from "../../utils/taxonomyConstraints";
+import { motion, AnimatePresence } from "motion/react";
 
 type HardwareConstraints = ReturnType<typeof checkHardwareConstraints> | null;
 
@@ -44,32 +45,34 @@ export function ConfigLibrarySelector({
         </div>
 
         <div className="pr-1 space-y-3">
-          {configs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-              <div className="w-12 h-12 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-3 border border-brand-indigo/20">
-                <LayoutTemplate className="w-6 h-6 text-brand-indigo" />
-              </div>
-              <h3 className="text-sm font-bold text-content-primary mb-1">Solution Workspace Empty</h3>
-              <p className="text-[10px] text-content-muted max-w-[200px] mb-4">
-                Construct components or import an approved BOM.
-              </p>
-              <button type="button" onClick={() => toast.success("Opening component library...")} className="px-4 py-2 rounded-lg bg-surface-card border border-white/10 text-white font-bold tracking-wide text-[10px] cursor-pointer hover:bg-white/5 transition-all">
-                Add First Component
-              </button>
-            </div>
-          ) : (
-            configs.map((cfg) => (
-              <ConfigLibraryItem
-                key={cfg.id}
-                cfg={cfg}
-                isSelected={selectedConfigId === cfg.id}
-                onSelect={() => setSelectedConfigId(cfg.id)}
-                isMultiUcid={isMultiUcid}
-                ucidsList={ucidsList}
-                assignConfigToUcid={assignConfigToUcid}
-              />
-            ))
-          )}
+          <AnimatePresence mode="popLayout">
+            {configs.length === 0 ? (
+              <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center h-full py-12 text-center">
+                <div className="w-12 h-12 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-3 border border-brand-indigo/20">
+                  <LayoutTemplate className="w-6 h-6 text-brand-indigo" />
+                </div>
+                <h3 className="text-sm font-bold text-content-primary mb-1">Solution Workspace Empty</h3>
+                <p className="text-[10px] text-content-muted max-w-[200px] mb-4">
+                  Construct components or import an approved BOM.
+                </p>
+                <button type="button" onClick={() => toast.success("Opening component library...")} className="px-4 py-2 rounded-lg bg-surface-card border border-white/10 text-white font-bold tracking-wide text-[10px] cursor-pointer hover:bg-white/5 transition-all">
+                  Add First Component
+                </button>
+              </motion.div>
+            ) : (
+              configs.map((cfg) => (
+                <ConfigLibraryItem
+                  key={cfg.id}
+                  cfg={cfg}
+                  isSelected={selectedConfigId === cfg.id}
+                  onSelect={() => setSelectedConfigId(cfg.id)}
+                  isMultiUcid={isMultiUcid}
+                  ucidsList={ucidsList}
+                  assignConfigToUcid={assignConfigToUcid}
+                />
+              ))
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import express from "express";
+import { logger } from "./server/logger";
 import { IngestRequest, IngestResponse, ReconciliationRequest, ReconciliationResponse, ConstraintCheckRequest, ConstraintCheckResponse, WebhookDispatchRequest, WebhookDispatchResponse, PlaywrightRunRequest, PlaywrightRunResponse } from "./src/types/data";
 import path from "path";
 import crypto from "crypto";
@@ -61,7 +62,7 @@ async function startServer() {
   // Log all API hits for easy debugging
   app.use((req, res, next) => {
     if (req.url.startsWith("/api")) {
-      console.log(`[API REQUEST] => ${req.method} ${req.url}`);
+      logger.info(`[API REQUEST] => ${req.method} ${req.url}`);
     }
     next();
   });
@@ -468,7 +469,7 @@ async function startServer() {
       });
     }
 
-    console.log(`[SNAPSHOT API] => Persisted snapshot version v${snapshot.version} for UCID unit: ${unit}`);
+    logger.info(`[SNAPSHOT API] => Persisted snapshot version v${snapshot.version} for UCID unit: ${unit}`);
 
     res.status(200).json({
       success: true,
@@ -481,7 +482,7 @@ async function startServer() {
   // REST API: Endpoint 9: Vendor Portal Mock Adapter Gateway
   app.post("/api/vendor/portal", (req, res) => {
     const reqData = req.body;
-    console.log(`[VENDOR PORTAL API] Received request for ${reqData.vendor} action ${reqData.action}`);
+    logger.info(`[VENDOR PORTAL API] Received request for ${reqData.vendor} action ${reqData.action}`);
     
     res.status(200).json({
       success: true,
@@ -551,17 +552,17 @@ app.get("/api/jobs/:job_id/children", (req, res) => {
 });
 
   const server = app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[FULL-STACK ENGINE] Procurement Server running securely on http://localhost:${PORT}`);
+    logger.info(`[FULL-STACK ENGINE] Procurement Server running securely on http://localhost:${PORT}`);
   });
 
   const gracefulShutdown = async () => {
-    console.log("Shutting down gracefully...");
+    logger.info("Shutting down gracefully...");
     server.close(() => {
-      console.log("HTTP server closed.");
+      logger.info("HTTP server closed.");
     });
     if (vite) {
       await vite.close();
-      console.log("Vite server closed.");
+      logger.info("Vite server closed.");
     }
     process.exit(0);
   };

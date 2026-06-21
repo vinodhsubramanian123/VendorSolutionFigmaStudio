@@ -169,6 +169,11 @@ export const ForensicIssueSchema = z.object({
   status: z.enum(["open", "fixing", "resolved"]),
   affectedItems: z.number().int().nonnegative(),
   suggestedAction: z.string(),
+  autoRepairDiff: z.object({
+    before: z.string(),
+    after: z.string(),
+    reason: z.string(),
+  }).optional(),
 });
 
 // 11. LineReconciliationDiff Zod Schema
@@ -270,6 +275,32 @@ export const PlaywrightAgentTaskSchema = z.object({
   extractedItemsCount: z.number().int().nonnegative(),
 });
 
+// 19. CleansingEntry Zod Schema (For Pre-Commit Ingestion Review)
+export const ResolutionSuggestionSchema = z.object({
+  catalogSkuId: z.string(),
+  partNumber: z.string(),
+  name: z.string(),
+  matchScore: z.number().min(0).max(100), // e.g., Cosine similarity score (normalized to 100)
+  matchType: z.enum(["lexical", "semantic", "cosine", "pattern"]),
+});
+
+export const CleansingEntrySchema = z.object({
+  id: z.string(),
+  rawValue: z.string(), // e.g., "HPE 3Y Tech Care Basic# Service"
+  detectedPartNumber: z.string().optional(),
+  normalizedName: z.string().optional(),
+  matchStatus: z.enum(["matched", "fuzzy", "semantic_match", "unmatched", "quarantined", "mapped"]),
+  confidence: z.number().min(0).max(100),
+  matchedSkuId: z.string().optional(),
+  matchedPartNumber: z.string().optional(),
+  mappedOutput: z.string().optional(),
+  vendor: z.string().optional(),
+  flagReason: z.string().optional(),
+  reviewedAt: z.string().optional(),
+  suggestedResolutions: z.array(ResolutionSuggestionSchema).optional(),
+  sourceEvidenceUrl: z.string().url().optional(), // Bounding box image reference
+});
+
 
 // Helper validation assertions for enterprise safety
 export const validators = {
@@ -288,6 +319,7 @@ export const validators = {
   validateSourcingRule: (data: unknown) => SourcingRuleSchema.parse(data),
   validateLearningEvent: (data: unknown) => LearningEventSchema.parse(data),
   validatePortalErrorItem: (data: unknown) => PortalErrorItemSchema.parse(data),
+  validateCleansingEntry: (data: unknown) => CleansingEntrySchema.parse(data),
 };
 
 // ============================================================================
@@ -514,8 +546,6 @@ export const GraphNodeSchema = z.object({
   status: z.enum(["healthy", "warning", "error"]).optional(),
   constraints: z.array(z.string()).optional(),
   dependencies: z.array(z.string()).optional(),
-  x: z.number().optional(),
-  y: z.number().optional(),
   data: z.object({
     partNumber: z.string().optional(),
     price: z.number().optional(),

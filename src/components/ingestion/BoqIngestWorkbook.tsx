@@ -12,6 +12,7 @@ import { StatusBadge } from "../shared/StatusBadge";
 import { Select } from "../shared/Select";
 import { Button } from "../shared/Button";
 import type { Solution, Config } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface BoqResponsePayload {
   ucid: string;
@@ -218,72 +219,84 @@ export function BoqIngestWorkbook({
           )}
 
           {/* API Response Display & Split Execution */}
-          {boqResponse && (
-            <div className="space-y-4 pt-4 border-t border-white/5 animate-fadeIn">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="p-3 rounded-lg bg-surface-card border border-white/5">
-                  <p className="text-[9px] text-gray-500 font-mono lowercase">
-                    vendor brand
-                  </p>
-                  <p className="text-xs font-bold text-white mt-1">
-                    {boqResponse.parsedSummary?.vendorBrand}
-                  </p>
+          <AnimatePresence mode="popLayout">
+            {boqResponse && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4 pt-4 border-t border-white/5"
+              >
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-3 rounded-lg bg-surface-card border border-white/5">
+                    <p className="text-[9px] text-gray-500 font-mono lowercase">
+                      vendor brand
+                    </p>
+                    <p className="text-xs font-bold text-white mt-1">
+                      {boqResponse.parsedSummary?.vendorBrand}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface-card border border-white/5 col-span-2">
+                    <p className="text-[9px] text-gray-500 font-mono lowercase">
+                      detected key chassis sku
+                    </p>
+                    <p className="text-xs font-bold text-white mt-1 truncate">
+                      {boqResponse.parsedSummary?.detectedChassis}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface-card border border-white/5">
+                    <p className="text-[9px] text-gray-500 font-mono lowercase">
+                      initial integrity confidence
+                    </p>
+                    <p className="text-xs font-mono font-bold text-emerald-400 mt-1">
+                      {boqResponse.parsedSummary?.initialConfidenceScore}%
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3 rounded-lg bg-surface-card border border-white/5 col-span-2">
-                  <p className="text-[9px] text-gray-500 font-mono lowercase">
-                    detected key chassis sku
-                  </p>
-                  <p className="text-xs font-bold text-white mt-1 truncate">
-                    {boqResponse.parsedSummary?.detectedChassis}
-                  </p>
-                </div>
-                <div className="p-3 rounded-lg bg-surface-card border border-white/5">
-                  <p className="text-[9px] text-gray-500 font-mono lowercase">
-                    initial integrity confidence
-                  </p>
-                  <p className="text-xs font-mono font-bold text-emerald-400 mt-1">
-                    {boqResponse.parsedSummary?.initialConfidenceScore}%
-                  </p>
-                </div>
-              </div>
 
-              <div className="bg-black/25 rounded-lg border border-white/5 p-4 space-y-2">
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">
-                  extricated pipeline configs list
-                </p>
+                <div className="bg-black/25 rounded-lg border border-white/5 p-4 space-y-2">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">
+                    extricated pipeline configs list
+                  </p>
                 <div className="space-y-2 pt-1">
-                  {(boqResponse?.solutions)?.map((sol: Solution, idx: number) => {
-                    const firstVs = sol.vendorSubmissions?.[0];
-                    const items =
-                      firstVs?.configs?.flatMap((c: Config) => c.items) || [];
-                    return (
-                      <div
-                        key={idx}
-                        className="flex justify-between items-center bg-surface-card/60 p-3 rounded border border-white/5 hover:border-white/10"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                          <div>
-                            <p className="text-xs font-bold text-white">
-                              {firstVs?.label || sol.name}
+                  <AnimatePresence mode="popLayout">
+                    {(boqResponse?.solutions)?.map((sol: Solution, idx: number) => {
+                      const firstVs = sol.vendorSubmissions?.[0];
+                      const items =
+                        firstVs?.configs?.flatMap((c: Config) => c.items) || [];
+                      return (
+                        <motion.div
+                          layout
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          key={sol.name || idx}
+                          className="flex justify-between items-center bg-surface-card/60 p-3 rounded border border-white/5 hover:border-white/10"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                            <div>
+                              <p className="text-xs font-bold text-white">
+                                {firstVs?.label || sol.name}
+                              </p>
+                              <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                                {items.length} hardware items mapped natively
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-mono font-bold text-white">
+                              ${firstVs?.totalPrice?.toLocaleString()}
                             </p>
-                            <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                              {items.length} hardware items mapped natively
+                            <p className="text-[9px] text-emerald-400 font-medium">
+                              calculated sav. $
+                              {firstVs?.savings?.toLocaleString()}
                             </p>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs font-mono font-bold text-white">
-                            ${firstVs?.totalPrice?.toLocaleString()}
-                          </p>
-                          <p className="text-[9px] text-emerald-400 font-medium">
-                            calculated sav. $
-                            {firstVs?.savings?.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
               </div>
 
@@ -299,8 +312,9 @@ export function BoqIngestWorkbook({
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
           {boqError && (
             <div className="p-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">

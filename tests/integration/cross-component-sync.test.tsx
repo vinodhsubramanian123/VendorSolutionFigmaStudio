@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { useLocalStorageState } from '../../hooks/useLocalStorageState';
+import { useLocalStorageState } from '../../src/hooks/useLocalStorageState';
 
 function SyncTestComponent() {
   const [ucids] = useLocalStorageState<any[]>('sys_ucids', []);
@@ -9,7 +9,7 @@ function SyncTestComponent() {
   return (
     <div>
       <div data-testid="ucid-count">{ucids.length}</div>
-      {ucids.map((u, idx) => (
+      {ucids.map((u: any, idx: any) => (
         <div key={idx} data-testid={`ucid-step-${idx}`}>{u.currentStep}</div>
       ))}
     </div>

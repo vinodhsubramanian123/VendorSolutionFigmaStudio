@@ -143,13 +143,8 @@ Before a feature Phase is considered "done", a visual freeze gate must be passed
 
 ---
 
-## 5. Compilation Stability & Lint Checks
+## 5. (Merged into Section 9 - Mandatory Pre-Flight Verification)
 
-Before completing your turn, always execute:
-1.  `npm run lint` (or use `lint_applet` tool) to catch typescript warnings.
-2.  `npm run build` (or `compile_applet` tool) to ensure proper package distribution.
-
-Keep all modifications clean, explicit, and perfectly typed. Never leave dangling comments such as `style-=` or malformed JSX statements.
 
 
 ## 6. Strict Data Hydration
@@ -189,17 +184,24 @@ To ensure seamless coordination between frontend UI triage overlays and the back
 
 ## 9. Mandatory Pre-Flight Verification (Ownership & Quality Control)
 
-To prevent architectural regression, broken types, and memory leaks from bleeding into the master branch, all AI agents must assume full ownership of code quality by adhering to the following strict pre-flight protocols:
+To prevent architectural regression, broken types, and memory leaks from bleeding into the master branch, all AI agents must assume full ownership of code quality by adhering to the following strict, sequential pre-flight protocols before completing ANY task:
 
-### 9.1 Zero Tolerance for TypeScript Drift
-*   **Rule**: Never declare a task "complete" without running `npm run lint` (or `tsc --noEmit --skipLibCheck`) first.
-*   **Action**: If the linter reports any errors (e.g., missing props, incorrect schema derivations, or failed third-party imports), you must halt, fix the types, and re-run until it passes 100%.
+### 9.1 The Master Pre-Flight Checklist
+You must execute these exact commands in this order before finishing:
+1.  **Static Analysis**: `npm run lint` (Ensures zero TypeScript drift. If it fails, halt and fix).
+2.  **Production Build**: `npm run build` (Ensures Vite and ESBuild compilation succeeds).
+3.  **Unit & Component Tests**: `npm run test:vitest` (Validates pure functions, hooks, and isolated UI components).
+4.  **End-to-End Tests**: `npm run test:e2e` (Validates full Playwright browser workflows).
 
-### 9.2 Comprehensive Test Harness Execution
-*   **Rule**: Code logic changes (especially to shared components like `CatalogManager` or `DataPersistenceGate`) require a functional test run.
-*   **Action**: Execute `npx vitest run` and `npx playwright test`. Any crash indicating "Element type is invalid", or failing component tests, MUST be analyzed and resolved (via JSDOM mocks in `tests/setup.ts` or component fixes).
+### 9.2 Zero Tolerance for TypeScript Drift
+*   **Rule**: Never declare a task "complete" without passing `npm run lint`.
+*   **Action**: If the linter reports any errors (e.g., missing props, incorrect schema derivations, or failed third-party imports), you must halt, fix the types, and re-run until it passes 100%. Keep all modifications clean, explicit, and perfectly typed. Never leave dangling comments such as `style-=` or malformed JSX statements.
 
-### 9.3 Vitest Fetch & MSW Mock Topography
+### 9.3 Comprehensive Test Harness Execution
+*   **Rule**: Code logic changes require a functional test run.
+*   **Action**: Any crash indicating "Element type is invalid", or failing component tests, MUST be analyzed and resolved. Do not skip `test:e2e` even for minor layout changes.
+
+### 9.4 Vitest Fetch & MSW Mock Topography
 *   **Issue**: Global fetch mocks in Vitest (e.g., `vi.stubGlobal('fetch')`) fail when matching relative URL paths across the API client interceptors.
 *   **Solution**: All `apiClient.ts` test expectations must assert full absolute domain mappings (e.g. `expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/endpoint', ...)`). Additionally, chained mocked methods (like `apiClient.delete`) must explicitly return promises using `.mockResolvedValue` or `.mockRejectedValue` rather than returning `undefined` or throwing synchronously.
 
@@ -357,11 +359,11 @@ These patterns were identified during the Zod integration and Integration test s
 
 ---
 
-## 13. Zero "Any" Type Tolerance in Vitest Mocking (Phase 7 Learnings)
+## 15. Zero "Any" Type Tolerance in Vitest Mocking (Phase 7 Learnings)
 
 When refactoring test suites to adhere to the strict "Zero `any` Tolerance" rule, agents frequently encounter cyclic TypeScript errors (e.g., `TS18046: 'X' is of type 'unknown'` or missing properties in complex Zod objects). To prevent burning credits on endless TypeScript assignment loops, enforce these strict mocking standards:
 
-### 13.1 Mocking React Component Props
+### 15.1 Mocking React Component Props
 *   **Issue**: Using generic `Record<string, unknown>` for mocked component props causes React rendering failures because `unknown` is not assignable to `ReactNode` or `MouseEventHandler`. Using `React.ComponentProps<typeof Component>` without default exports causes "no exported member 'default'" errors.
 *   **Solution**: Write explicit, perfect inline interfaces for mock props. Never use `any`, and avoid generic `unknown`. 
     *   *Event Handlers*: Must be typed as `import("react").MouseEventHandler` or `() => void`.
@@ -373,7 +375,120 @@ When refactoring test suites to adhere to the strict "Zero `any` Tolerance" rule
     }));
     ```
 
-### 13.2 Mocking Complex Zod Domain Objects (UCID, Solutions, VendorSubmissions)
+### 15.2 Mocking Complex Zod Domain Objects (UCID, Solutions, VendorSubmissions)
 *   **Issue**: Mocking deep nested structures like `UCID` or `VendorSubmission` by passing incomplete object literals (`{ label: "test" }`) violently fails Zod-backed type assertions for missing fields (e.g. `totalPrice`, `createdAt`, `projectRef`).
 *   **Solution**: Never try to cast partial objects as `any`. You must strictly define **every single required property** mandated by `data.ts`. If a property is deeply nested, provide fully compliant dummy properties inline to satisfy the compiler natively.
     *   *Example*: If `Solution` requires `targetUcidId`, do not omit it. Write `targetUcidId: "dummy-id"`.
+
+## 16. Loading, Zero-State & Error Specifications
+
+This document defines the exact contract for empty states, loading indicators, and error boundaries for all major views.
+
+### 16.1 Zero-State (Empty State) Contracts
+
+Every view must handle the scenario where data is empty gracefully. Do not show empty tables.
+
+#### 15.1.1 LiveMission
+- **Icon**: `Rocket` (lucide-react)
+- **Copy Title**: "No Active Missions"
+- **Copy Subtitle**: "Initialize a new UCID campaign to begin intelligence tracking."
+- **CTA**: "Create New Mission" button.
+
+#### 15.1.2 IngestionHub
+- **Icon**: `UploadCloud` (lucide-react)
+- **Copy Title**: "Awaiting Data Payload"
+- **Copy Subtitle**: "Upload a Vendor CSV or initiate a direct integration fetch."
+- **CTA**: Drag-and-drop zone or "Select File" button.
+
+#### 15.1.3 SolutionBuilder
+- **Icon**: `LayoutTemplate` (lucide-react)
+- **Copy Title**: "Solution Workspace Empty"
+- **Copy Subtitle**: "Construct components or import an approved BOM."
+- **CTA**: "Add First Component" button.
+
+#### 15.1.4 ForensicView
+- **Icon**: `ShieldCheck` (lucide-react)
+- **Copy Title**: "No Anomalies Detected"
+- **Copy Subtitle**: "The current workspace cache is empty or all constraints have passed."
+- **CTA**: "Run Deep Scan" button (optional).
+
+#### 15.1.5 ReconciliationView
+- **Icon**: `FileDiff` (lucide-react)
+- **Copy Title**: "No Reconciliation Discrepancies"
+- **Copy Subtitle**: "Sourced configurations match baseline parameters perfectly."
+- **CTA**: None.
+
+### 16.2 Loading State Contracts
+
+All loading states must prevent layout shift. The container height must match the expected content height.
+
+- **Lists / Tables**: Use *Skeleton Row* rendering (minimum 5 rows). Do NOT use spinners for tables.
+- **Cards / Summaries**: Use *Shimmering Block* (skeleton) matching the card dimension.
+- **Submit Buttons**: Render inline spinner inside the button. Change text from "Submit" to "Processing...". Disable button to prevent double submission.
+- **Full Page / Initialization**: Only use a centered spinner during initial app load, never during intra-app navigation.
+
+### 16.3 Error Boundary Contracts
+
+- Apply `<ErrorBoundary>` at the root of the routing layout (around child routes).
+- Apply `<ErrorBoundary>` around specific heavy modules (e.g., `TaxonomyGraphEditor`, `PlaywrightConsole`).
+- **Render Output**:
+  - **Background**: Dark overlay (`#03050a`).
+  - **Icon**: `AlertTriangle` (color: error red `#ff3d5a`).
+  - **Title**: "Module Failure"
+  - **Message**: `{error.message}`. Do not show system stack traces in production.
+  - **Recovery**: "Attempt Recovery" (reloads the module or resets specific component state).
+
+---
+
+## Appendix A: Agent Knowledge References (Knowledge Graph Directory)
+
+To prevent architectural bleeding, agents must clearly distinguish between **UI/UX Skill Knowledge** (which dictates how the system looks, feels, and interacts) and **Backend Skill Knowledge** (the deep algorithmic rules and schema transformations that happen asynchronously or server-side).
+
+> [!CAUTION]
+> The backend skills listed below represent capabilities that the UI layer must interact with but must **NEVER implement directly**. The UI remains a presentation layer for these services. Do not duplicate backend parsing logic inside React components.
+
+### UI/UX Skill Knowledge
+These files define the presentation layer, component styling, animations, global states, and visual regressions. Always consult these when building or modifying React components:
+- [UI/UX Best Practices](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/ui-architecture/ui-ux-best-practices.md)
+- [UI States & Transitions](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-states.md)
+- [State Architecture Contracts](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/state-contracts.md)
+- [UI Snapshots Directory](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-snapshots/README.md)
+- [Loading, Zero-State & Error Specs](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/loading-error-specs.md)
+
+### Backend Skill Knowledge
+These files define the core business logic, schema engines, and deep algorithmic processing. Use these to understand how data is structured and processed by the backend before the UI consumes it:
+
+#### 1. Sizing Engine & Modellers
+- [Budget Constraint Modeller](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-fit-engine/budget-constraint-modeller.md)
+- [Provisioning Boundary Check](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-fit-engine/provisioning-boundary-check.md)
+- [Headroom Calculator](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-growth-modeller/headroom-calculator.md)
+- [Priority Ranker](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-requirements/priority-ranker.md)
+- [Workload Profile Extractor](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-requirements/workload-profile-extractor.md)
+
+#### 2. Forensic Self-Heal & Tracing
+- [Root Cause Identifier](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/forensic-self-heal/root-cause-identifier.md)
+- [Schema Repair](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/forensic-self-heal/schema-repair.md)
+- [Mission Orchestrator](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/monitoring-tracing/mission-orchestrator.md)
+- [Shadow Audit Sandbox](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/monitoring-tracing/shadow-audit-sandbox.md)
+
+#### 3. Core BOM Engine & Sku Dependencies
+- [Mandatory Part Sync](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-bom-engine/mandatory-part-sync.md)
+- [High Fidelity Diff](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-bom-engine/high-fidelity-diff.md)
+- [Compatibility Checker](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sku-rules-dependencies/compatibility-checker.md)
+- [Dependency Resolver](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sku-rules-dependencies/dependency-resolver.md)
+- [SKU Chain Parent-Child Resolver](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sku-chain-parent-child/sku-chain-resolver.md)
+
+#### 4. Core Ingestion & Classification
+- [Excel / PDF / OCR Extractors](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-ingestion/excel-doc-parsing.md)
+- [Lexical & Semantic Extractors](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-classification/semantic-extractor.md)
+- [Fuzzy Typo Healer](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-classification/fuzzy-typo-healer.md)
+
+#### 5. Rules Governance & Graph Architecture
+- [Vendor Cross-Pollution Guard](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/rules-governance/vendor-cross-pollution-guard.md)
+- [Regulatory & Financial Auditors](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/rules-governance/financial-auditor.md)
+- [Variant Mapper (Taxonomy)](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/taxonomy-hierarchy/variant-mapper.md)
+
+#### 6. Generative AI Engine
+- [Alternative Solution Solver](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/generative-engine/alternative-solution-solver.md)
+- [Persona Scoring Model](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/generative-engine/persona-scoring-model.md)
+

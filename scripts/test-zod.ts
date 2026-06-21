@@ -1,5 +1,5 @@
-import { UCIDS, VENDORS, CATALOG_SKUS, FORENSIC_ISSUES } from './src/lib/mockData';
-import { UCIDSchema, VendorSchema, CatalogSKUSchema, ForensicIssueSchema } from './src/types/zodSchemas';
+import { UCIDS, VENDORS, CATALOG_SKUS, FORENSIC_ISSUES } from '../src/lib/mockData';
+import { UCIDSchema, VendorSchema, CatalogSKUSchema, ForensicIssueSchema } from '../src/types/zodSchemas';
 import { z } from 'zod';
 
 console.log("Testing UCIDS...");

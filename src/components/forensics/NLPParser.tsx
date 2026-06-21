@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { BrainCircuit, Send, Loader2 } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 import type { SourcingRule } from "../../types";
+import { logger } from "../../utils/logger";
+import { motion, AnimatePresence } from "motion/react";
 
 interface ChatMessage {
   id: string;
@@ -57,7 +59,9 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
             isActionable: true,
           }
         ]);
-      } catch (e) {}
+      } catch (e) {
+        logger.error("Failed to map semantic intent", e);
+      }
     } else if (state === "clarifying_target") {
       setParsedIntent(prev => ({ ...prev, partNumber: userText }));
       setState("parsing");
@@ -73,7 +77,9 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
             isActionable: true,
           }
         ]);
-      } catch (e) {}
+      } catch (e) {
+        logger.error("Failed to run agent scope parsing", e);
+      }
     } else if (state === "clarifying_scope") {
       const allowedScopes = ["Global Brand", "Specific Category Only", "Exact SKU Match Only"];
       const scopeMatch = allowedScopes.find(s => s.toLowerCase() === userText.toLowerCase());
@@ -95,7 +101,9 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
       try {
         await apiClient.post("/api/agents/run", { message: scopeMatch });
         await finalizeRule(scopeMatch);
-      } catch (e) {}
+      } catch (e) {
+        logger.error("Failed to finalize semantic rule scope", e);
+      }
     }
   };
 
@@ -125,14 +133,24 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
     try {
       await apiClient.post("/api/taxonomy/rules", rule);
       onRuleDrafted(rule);
-    } catch (e) {}
+    } catch (e) {
+      logger.error("Failed to persist drafting rule to taxonomy", e);
+    }
   };
 
   return (
     <>
       <div className="p-4 flex flex-col gap-3 max-h-[300px] overflow-y-auto custom-scrollbar flex-1">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === "human" ? "justify-end" : "justify-start"}`}>
+        <AnimatePresence initial={false}>
+          {messages.map((msg) => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.2 }}
+              key={msg.id} 
+              className={`flex ${msg.sender === "human" ? "justify-end" : "justify-start"}`}
+            >
             <div className={`max-w-[80%] rounded-lg p-3 text-xs leading-relaxed ${
               msg.sender === "human" 
                 ? "bg-indigo-500/20 border border-indigo-500/30 text-indigo-100 rounded-br-sm" 
@@ -144,18 +162,26 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
                 </div>
               )}
               {msg.text}
-            </div>
-          </div>
-        ))}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
-        {state === "parsing" && (
-          <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-lg p-3 bg-white/5 border border-white/10 text-gray-400 rounded-bl-sm flex items-center gap-2 text-xs">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
-              Parsing semantic intent...
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {state === "parsing" && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="flex justify-start"
+            >
+              <div className="max-w-[80%] rounded-lg p-3 bg-white/5 border border-white/10 text-gray-400 rounded-bl-sm flex items-center gap-2 text-xs">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                Parsing semantic intent...
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div ref={messagesEndRef} />
       </div>

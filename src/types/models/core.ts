@@ -181,6 +181,11 @@ export interface ForensicIssue {
   status: "open" | "fixing" | "resolved"; // Correction status
   affectedItems: number; // Number of line items affected by this rule
   suggestedAction: string; // Automated repair trigger description
+  autoRepairDiff?: {
+    before: string;
+    after: string;
+    reason: string;
+  };
 }
 
 /**

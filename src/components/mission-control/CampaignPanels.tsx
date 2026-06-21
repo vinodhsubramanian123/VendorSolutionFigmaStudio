@@ -3,6 +3,7 @@ import * as import_lucide from "lucide-react";
 import { FileSpreadsheet, Sparkles } from "lucide-react";
 import type { UCID } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
+import { motion, AnimatePresence } from "motion/react";
 
 interface SourcingStrategyPanelProps {
   isLocked: boolean;
@@ -136,41 +137,51 @@ export function CampaignReconciliationMatrix({ campaignUcids, completedPipes }: 
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {campaignUcids.map((u) => {
-                const masterSolution = u.solutions[0];
-                const currentSelected = masterSolution?.vendorSubmissions?.[0];
-                const hpeS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "HPE") ?? masterSolution?.vendorSubmissions?.[0];
-                const dellS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "Dell") ?? masterSolution?.vendorSubmissions?.[0];
+              <AnimatePresence mode="popLayout">
+                {campaignUcids.map((u) => {
+                  const masterSolution = u.solutions[0];
+                  const currentSelected = masterSolution?.vendorSubmissions?.[0];
+                  const hpeS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "HPE") ?? masterSolution?.vendorSubmissions?.[0];
+                  const dellS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "Dell") ?? masterSolution?.vendorSubmissions?.[0];
 
-                return (
-                  <tr key={u.id} className="hover:bg-white/5 transition duration-150">
-                    <td className="p-3">
-                      <div className="space-y-0.5">
-                        <p className="font-bold text-white leading-none flex items-center gap-1.5">
-                          <span className="text-[8.5px] text-gray-500 font-mono tracking-wider">{u.displayId}</span>
-                          <span className="truncate max-w-[150px] font-sans text-[10px]">
-                            {u.name.includes(" — ") ? u.name.split(" — ").slice(1).join(" — ") : u.name}
-                          </span>
-                        </p>
-                        <p className="text-[8.5px] text-gray-500 font-mono">Ref: {u.projectRef}</p>
-                      </div>
-                    </td>
-                    <td className="p-3 font-semibold">
-                      {currentSelected ? (
-                        <StatusBadge status={currentSelected.vendor} variant={currentSelected.vendor === "HPE" ? "success" : "info"} size="sm" />
-                      ) : (
-                        <span className="text-gray-500 italic">Unassigned</span>
-                      )}
-                    </td>
-                    <td className="p-3 text-right font-mono font-bold text-[10px] text-white">${(currentSelected?.totalPrice ?? 0).toLocaleString()}</td>
-                    <td className="p-3 text-right font-mono text-gray-400">${(hpeS?.totalPrice ?? 0).toLocaleString()}</td>
-                    <td className="p-3 text-right font-mono text-gray-400">${(dellS?.totalPrice ?? 0).toLocaleString()}</td>
-                    <td className="p-3 text-center">
-                      <StatusBadge status={u.currentStep.replace("-", " ")} variant={getVariant(u.currentStep)} size="sm" />
-                    </td>
-                  </tr>
-                );
-              })}
+                  return (
+                    <motion.tr 
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      key={u.id} 
+                      className="hover:bg-white/5 transition duration-150"
+                    >
+                      <td className="p-3">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-white leading-none flex items-center gap-1.5">
+                            <span className="text-[8.5px] text-gray-500 font-mono tracking-wider">{u.displayId}</span>
+                            <span className="truncate max-w-[150px] font-sans text-[10px]">
+                              {u.name.includes(" — ") ? u.name.split(" — ").slice(1).join(" — ") : u.name}
+                            </span>
+                          </p>
+                          <p className="text-[8.5px] text-gray-500 font-mono">Ref: {u.projectRef}</p>
+                        </div>
+                      </td>
+                      <td className="p-3 font-semibold">
+                        {currentSelected ? (
+                          <StatusBadge status={currentSelected.vendor} variant={currentSelected.vendor === "HPE" ? "success" : "info"} size="sm" />
+                        ) : (
+                          <span className="text-gray-500 italic">Unassigned</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-right font-mono font-bold text-[10px] text-white">${(currentSelected?.totalPrice ?? 0).toLocaleString()}</td>
+                      <td className="p-3 text-right font-mono text-gray-400">${(hpeS?.totalPrice ?? 0).toLocaleString()}</td>
+                      <td className="p-3 text-right font-mono text-gray-400">${(dellS?.totalPrice ?? 0).toLocaleString()}</td>
+                      <td className="p-3 text-center">
+                        <StatusBadge status={u.currentStep.replace("-", " ")} variant={getVariant(u.currentStep)} size="sm" />
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>

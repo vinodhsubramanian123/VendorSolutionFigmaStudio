@@ -1,5 +1,6 @@
 import React from "react";
 import { KeyRound, Radio, Shield, Terminal, Play, RotateCw, Eye, EyeOff } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { tokens } from "../../styles/tokens";
 
 interface VendorCredentialsCardProps {
@@ -214,19 +215,29 @@ export function VendorConsoleLogs({ lastTested, consoleLogs }: VendorConsoleLogs
       </div>
 
       <div className="h-44 rounded-lg bg-surface-canvas border border-white/5 p-2.5 font-mono text-[9px] text-gray-400 overflow-y-auto space-y-1 scrollbar-thin select-text text-left">
-        {consoleLogs.map((log, idx) => (
-          <div key={idx} className={
-            log.includes("[Success]") || log.includes("AUTH SUCCESS")
-              ? "text-status-success font-semibold"
-              : log.includes("EXPIRED") || log.includes("expired")
-                ? "text-red-400"
-                : log.startsWith("---")
-                  ? "text-indigo-400 font-bold border-y border-white/5 py-1 my-1"
-                  : "text-gray-400"
-          }>
-            {log}
-          </div>
-        ))}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {consoleLogs.map((log, idx) => (
+            <motion.div
+              layout
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              key={log + idx}
+              className={
+                log.includes("[Success]") || log.includes("AUTH SUCCESS")
+                  ? "text-status-success font-semibold"
+                  : log.includes("EXPIRED") || log.includes("expired")
+                    ? "text-red-400"
+                    : log.startsWith("---")
+                      ? "text-indigo-400 font-bold border-y border-white/5 py-1 my-1"
+                      : "text-gray-400"
+              }
+            >
+              {log}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );

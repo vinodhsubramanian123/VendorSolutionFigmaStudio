@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
-import { server } from '../mocks/server';
-import { apiClient } from '../services/apiClient';
+import { server } from '../../src/mocks/server';
+import { apiClient } from '../../src/services/apiClient';
 import { 
   CatalogSKUSchema, 
   SnapshotSchema, 
@@ -10,14 +10,14 @@ import {
   ReconciliationSessionSchema, 
   PortalErrorItemSchema,
   SourcingRuleSchema
-} from '../types/zodSchemas';
+} from '../../src/types/zodSchemas';
 import { 
   VENDORS, 
   CATALOG_SKUS, 
   FORENSIC_ISSUES, 
   UCIDS
-} from '../lib/mockData';
-import { INITIAL_RULES } from '../mocks/sourcingMocks';
+} from '../../src/lib/mockData';
+import { INITIAL_RULES } from '../../src/mocks/sourcingMocks';
 
 describe('Data Contract & Integrity Validation Tests', () => {
 

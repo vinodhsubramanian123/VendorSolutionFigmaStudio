@@ -2,6 +2,7 @@ import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { ChevronRight, CheckCircle } from 'lucide-react';
 import type { ForensicIssue, AppView } from '../../types';
+import { motion, AnimatePresence } from "motion/react";
 
 interface ActiveIssuesListProps {
   forensicIssues: ForensicIssue[];
@@ -50,38 +51,45 @@ export function ActiveIssuesList({ forensicIssues, onNavigate }: ActiveIssuesLis
             </p>
           </div>
         ) : (
-          activeIssues.slice(0, 3).map((issue) => (
-            <div
-              key={issue.id}
-              className="px-4 py-2.5 flex items-start gap-2"
-            >
-              <div
-                className="mt-1 w-1.5 h-1.5 rounded-full shrink-0"
-                style={{
-                  background:
-                    issue.severity === "critical"
-                      ? tokens.colors.status.error 
-                      : issue.severity === "warning"
-                        ? tokens.colors.status.warning 
-                        : tokens.colors.accent.indigo, 
-                }}
-              />
-              <div className="min-w-0 flex-1">
-                <p
-                  className="text-[11px] leading-snug font-medium truncate"
-                  style={{ color: tokens.colors.text.primary }} 
-                >
-                  {issue.title}
-                </p>
-                <p
-                  className="text-[10px] mt-0.5"
-                  style={{ color: tokens.colors.text.muted }} 
-                >
-                  {issue.vendor} · {issue.affectedItems} items
-                </p>
-              </div>
-            </div>
-          ))
+          <AnimatePresence mode="popLayout">
+            {activeIssues.slice(0, 3).map((issue) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                key={issue.id}
+                className="px-4 py-2.5 flex items-start gap-2"
+              >
+                <div
+                  className="mt-1 w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{
+                    background:
+                      issue.severity === "critical"
+                        ? tokens.colors.status.error 
+                        : issue.severity === "warning"
+                          ? tokens.colors.status.warning 
+                          : tokens.colors.accent.indigo, 
+                  }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="text-[11px] leading-snug font-medium truncate"
+                    style={{ color: tokens.colors.text.primary }} 
+                  >
+                    {issue.title}
+                  </p>
+                  <p
+                    className="text-[10px] mt-0.5"
+                    style={{ color: tokens.colors.text.muted }} 
+                  >
+                    {issue.vendor} · {issue.affectedItems} items
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         )}
       </div>
       <div

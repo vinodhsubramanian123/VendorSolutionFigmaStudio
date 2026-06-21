@@ -3,6 +3,7 @@ import { Lock, Unlock, Sparkles, ArrowRight } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import type { UCID } from "../../types";
 import type { ConfigItem, UcidContainer } from "../../types/data";
+import { motion, AnimatePresence } from "motion/react";
 
 interface UcidContainerListProps {
   isMultiUcid: boolean;
@@ -31,40 +32,46 @@ export function UcidContainerList({
         UCID Deployment Containers Grid
       </span>
       <div className="pr-1 space-y-4">
-        {/* Filter dynamic ucids */}
-        {(isMultiUcid ? ucidsList : [ucidsList[0]]).map((container) => {
-          const assignedConfigs = configs.filter(
-            (c) => c.targetUcidId === container.id || !isMultiUcid,
-          );
-          const containerBudget = assignedConfigs.reduce(
-            (s, c) => s + c.totalPrice,
-            0,
-          );
-          const isPowerExceeded =
-            assignedConfigs.reduce(
-              (s, c) =>
-                s + c.items.reduce((acc, i) => acc + i.quantity * 8, 0),
+        <AnimatePresence mode="popLayout">
+          {/* Filter dynamic ucids */}
+          {(isMultiUcid ? ucidsList : [ucidsList[0]]).map((container) => {
+            const assignedConfigs = configs.filter(
+              (c) => c.targetUcidId === container.id || !isMultiUcid,
+            );
+            const containerBudget = assignedConfigs.reduce(
+              (s, c) => s + c.totalPrice,
               0,
-            ) > 600;
+            );
+            const isPowerExceeded =
+              assignedConfigs.reduce(
+                (s, c) =>
+                  s + c.items.reduce((acc, i) => acc + i.quantity * 8, 0),
+                0,
+              ) > 600;
 
-          const matchGlobalUcid = ucids.find(
-            (u) => u.displayId === container.id,
-          );
-          const resolvedSyncStatus =
-            matchGlobalUcid?.syncStatus ||
-            container.syncStatus ||
-            "Synced";
+            const matchGlobalUcid = ucids.find(
+              (u) => u.displayId === container.id,
+            );
+            const resolvedSyncStatus =
+              matchGlobalUcid?.syncStatus ||
+              container.syncStatus ||
+              "Synced";
 
-          return (
-            <div
-              key={container.id}
-              className="bg-surface-elevated border rounded-xl p-4 space-y-4 relative overflow-hidden transition"
-              style={{
-                borderColor: container.locked
-                  ? "rgba(0,212,160,0.15)"
-                  : "rgba(74, 133, 253,0.08)",
-              }}
-            >
+            return (
+              <motion.div
+                key={container.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="bg-surface-elevated border rounded-xl p-4 space-y-4 relative overflow-hidden transition-colors"
+                style={{
+                  borderColor: container.locked
+                    ? "rgba(0,212,160,0.15)"
+                    : "rgba(74, 133, 253,0.08)",
+                }}
+              >
               {/* Top title bar */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
                 <div className="flex items-center gap-2">
@@ -130,21 +137,27 @@ export function UcidContainerList({
                     Config Library dropdown.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {assignedConfigs.map((cfg) => (
-                      <div
-                        key={cfg.id}
-                        className="bg-black/15 border border-white/3 p-2 rounded-lg flex justify-between items-center font-bold text-[10.5px]"
-                      >
-                        <span className="text-white truncate pr-2">
-                          {cfg.name}
-                        </span>
-                        <span className="text-indigo-400 font-mono shrink-0">
-                          ${cfg.totalPrice.toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <AnimatePresence mode="popLayout">
+                      {assignedConfigs.map((cfg) => (
+                        <motion.div
+                          layout
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          key={cfg.id}
+                          className="bg-black/15 border border-white/3 p-2 rounded-lg flex justify-between items-center font-bold text-[10.5px]"
+                        >
+                          <span className="text-white truncate pr-2">
+                            {cfg.name}
+                          </span>
+                          <span className="text-indigo-400 font-mono shrink-0">
+                            ${cfg.totalPrice.toLocaleString()}
+                          </span>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
                 )}
               </div>
 
@@ -195,9 +208,10 @@ export function UcidContainerList({
                   </p>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {/* Glowing grand CTA block to Deploy to Live Parallel Control pipeline */}

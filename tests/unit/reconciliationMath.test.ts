@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateReconciliation, SolutionInput } from '../../utils/reconciliationMath';
+import { calculateReconciliation, SolutionInput } from '../../src/utils/reconciliationMath';
 
 describe('calculateReconciliation', () => {
   it('should return null for empty solutions', () => {

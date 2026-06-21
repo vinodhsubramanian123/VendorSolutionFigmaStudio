@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { Shield, Zap } from "lucide-react";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
@@ -66,40 +66,50 @@ export function WebhookMonitor({ webhooks }: WebhookMonitorProps) {
           <p className="text-[9px] text-gray-600 font-mono">HMAC verified status shown</p>
         </div>
         <div className="divide-y divide-white/[0.04]">
-          {webhooks.map((wh) => (
-            <div key={wh.id} className="p-3 hover:bg-white/[0.015] transition-colors">
-              <div className="flex items-start gap-3">
-                <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${wh.hmacVerified ? "bg-emerald-400" : "bg-red-400 animate-pulse"}`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span className="text-[11px] font-bold text-white font-mono">{wh.event}</span>
-                    <span className={`text-[9px] font-bold font-mono ${getHttpColor(wh.statusCode)}`}>{wh.statusCode}</span>
-                    {wh.retries > 0 && (
-                      <span className="text-[9px] text-amber-400 font-mono">{wh.retries} retries</span>
-                    )}
-                    {!wh.hmacVerified && (
-                      <span className="text-[9px] font-bold text-red-400 border border-red-500/20 bg-red-500/8 px-1.5 py-0.5 rounded font-mono">
-                        HMAC FAIL
-                      </span>
-                    )}
-                    {wh.hmacVerified && (
-                      <span className="text-[9px] font-bold text-emerald-400 border border-emerald-500/20 bg-emerald-500/8 px-1.5 py-0.5 rounded font-mono">
-                        ✓ SIGNED
-                      </span>
-                    )}
+          <AnimatePresence mode="popLayout" initial={false}>
+            {webhooks.map((wh) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                key={wh.id}
+                className="p-3 hover:bg-white/[0.015] transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${wh.hmacVerified ? "bg-emerald-400" : "bg-red-400 animate-pulse"}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span className="text-[11px] font-bold text-white font-mono">{wh.event}</span>
+                      <span className={`text-[9px] font-bold font-mono ${getHttpColor(wh.statusCode)}`}>{wh.statusCode}</span>
+                      {wh.retries > 0 && (
+                        <span className="text-[9px] text-amber-400 font-mono">{wh.retries} retries</span>
+                      )}
+                      {!wh.hmacVerified && (
+                        <span className="text-[9px] font-bold text-red-400 border border-red-500/20 bg-red-500/8 px-1.5 py-0.5 rounded font-mono">
+                          HMAC FAIL
+                        </span>
+                      )}
+                      {wh.hmacVerified && (
+                        <span className="text-[9px] font-bold text-emerald-400 border border-emerald-500/20 bg-emerald-500/8 px-1.5 py-0.5 rounded font-mono">
+                          ✓ SIGNED
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[9px] text-gray-500">
+                      <span>{wh.source}</span>
+                      <span>·</span>
+                      <span className="font-mono">{new Date(wh.timestamp).toLocaleString()}</span>
+                    </div>
+                    <code className="text-[9px] text-gray-600 font-mono mt-1 block truncate max-w-md">
+                      {wh.payload}
+                    </code>
                   </div>
-                  <div className="flex items-center gap-2 text-[9px] text-gray-500">
-                    <span>{wh.source}</span>
-                    <span>·</span>
-                    <span className="font-mono">{new Date(wh.timestamp).toLocaleString()}</span>
-                  </div>
-                  <code className="text-[9px] text-gray-600 font-mono mt-1 block truncate max-w-md">
-                    {wh.payload}
-                  </code>
                 </div>
-              </div>
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
           {webhooks.length === 0 && (
             <div className="p-6 text-center text-[10px] text-gray-600">
               No webhook events received yet.

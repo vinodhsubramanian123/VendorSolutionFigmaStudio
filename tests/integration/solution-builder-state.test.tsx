@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { SolutionBuilder } from '../../components/solution-builder/SolutionBuilder';
-import type { UCID } from '../../types';
-import { ToastProvider } from '../../components/shared/ToastContext';
+import { SolutionBuilder } from '../../src/components/solution-builder/SolutionBuilder';
+import type { UCID } from '../../src/types';
+import { ToastProvider } from '../../src/components/shared/ToastContext';
 
 function TestWrapper() {
   const [ucids, setUcids] = useState<UCID[]>([
