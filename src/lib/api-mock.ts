@@ -74,13 +74,11 @@ export const MockTaxonomyApi = {
     allSkus: CatalogSKU[],
     vendor?: string
   ): Promise<GraphAPIResponse> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const nodes: GraphNode[] = [];
-        const edges: GraphEdge[] = [];
-        const unmappedIds: string[] = [];
+    const nodes: GraphNode[] = [];
+    const edges: GraphEdge[] = [];
+    const unmappedIds: string[] = [];
 
-        // Realistic Sample Data for demonstration
+    // Realistic Sample Data for demonstration
         const sampleBoqItems = [
           { type: 'Server', partNumber: 'P73282-B21', name: 'HPE ProLiant Compute DL380 Gen12 SFF NC Configure-to-order Server' },
           { type: 'Processor', partNumber: 'P73829-B21', name: 'Intel Xeon 6740P 2.1GHz 48-core 270W Processor for HPE' },
@@ -172,48 +170,32 @@ export const MockTaxonomyApi = {
         const unmapped = sampleBoqItems.filter(i => i.type === 'Unknown' && !serverState.manualLinks.some(l => l.childId === i.partNumber));
         unmapped.forEach(u => unmappedIds.push(u.partNumber));
 
-        resolve({ nodes, edges, unmappedIds });
-      }, 700); // 700ms latency simulation
-    });
+        return { nodes, edges, unmappedIds };
   },
 
   // CRUD endpoints for manual operations
   mapOrphanNode: async (payload: { childId: string, parentId: string, childInfo: { partNumber: string; name: string } }) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        serverState.manualLinks.push(payload);
-        resolve({ success: true });
-      }, 300);
-    });
+    serverState.manualLinks.push(payload);
+    return { success: true };
   },
 
   unmapNode: async (childId: string) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        serverState.manualLinks = serverState.manualLinks.filter(l => l.childId !== childId);
-        resolve({ success: true });
-      }, 300);
-    });
+    serverState.manualLinks = serverState.manualLinks.filter(l => l.childId !== childId);
+    return { success: true };
   },
 
   addRule: async (nodeId: string, type: "requires"|"exclusive", note: string) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (!serverState.customRules[nodeId]) {
-          serverState.customRules[nodeId] = [];
-        }
-        serverState.customRules[nodeId].push({ type, note });
-        resolve({ success: true });
-      }, 300);
-    });
+    if (!serverState.customRules[nodeId]) {
+      serverState.customRules[nodeId] = [];
+    }
+    serverState.customRules[nodeId].push({ type, note });
+    return { success: true };
   }
 };
 
 export const MockSolutionApi = {
   getSolutionBuilderInit: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
+    return {
           ucidsList: [
             {
               id: 'UCID-2026-1699',
@@ -265,8 +247,6 @@ export const MockSolutionApi = {
               ]
             }
           ]
-        });
-      }, 500);
-    });
+        };
   }
 };

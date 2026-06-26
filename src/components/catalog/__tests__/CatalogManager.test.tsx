@@ -16,7 +16,7 @@ vi.mock('../../../services/apiClient', () => ({
 
 // Mock CatalogTaxonomyTree to easily trigger path filtering branches
 vi.mock('../CatalogTaxonomyTree', () => ({
-  CatalogTaxonomyTree: vi.fn(({ selectPathFn, toggleNode, expandedNodes }) => (
+  CatalogTaxonomyTree: vi.fn(({ selectPathFn }) => (
     <div data-testid="mock-taxonomy-tree">
       <button type="button" onClick={() => selectPathFn({ vendor: 'all', solution: 'all', product: 'all', generation: 'all', chassis: 'all' })}>
         Select All
@@ -54,10 +54,6 @@ vi.mock('../CatalogTaxonomyTree', () => ({
       <button type="button" onClick={() => selectPathFn({ vendor: 'Cisco', solution: 'Networking', product: 'UCS', generation: 'all', chassis: 'all' })}>
         Select Cisco UCS
       </button>
-      <button type="button" onClick={() => toggleNode('hpe')}>
-        Toggle HPE
-      </button>
-      <span data-testid="hpe-expanded-status">{expandedNodes.hpe ? 'expanded' : 'collapsed'}</span>
     </div>
   ))
 }));
@@ -226,6 +222,12 @@ describe('CatalogManager Component', () => {
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledTimes(3);
     });
+    
+    // Assert optimistic rollbacks occurred
+    expect(screen.getByText('Server Part 1')).toBeInTheDocument(); // delete rollback
+    expect(screen.queryByText('Err Name')).not.toBeInTheDocument(); // add rollback
+    expect(screen.getByText('$500')).toBeInTheDocument(); // edit rollback (sku-2 price)
+    
     consoleSpy.mockRestore();
   });
 
@@ -271,6 +273,8 @@ describe('CatalogManager Component', () => {
       expect(screen.getByText('Server Part 1')).toBeInTheDocument();
       expect(screen.getByText('DL80 Server')).toBeInTheDocument();
       expect(screen.getByText('DL380a Server')).toBeInTheDocument();
+      // MUST NOT exclude non-chassis items under HPE server! (C-1 fix)
+      expect(screen.getByText('Chassis Child Component')).toBeInTheDocument();
       expect(screen.queryByText('MSA Storage')).not.toBeInTheDocument();
       expect(screen.queryByText('Aruba Switch')).not.toBeInTheDocument();
     });
@@ -344,8 +348,8 @@ describe('CatalogManager Component', () => {
       fireEvent.click(screen.getByText('Select HPE DL380 Chassis All'));
 
       // DL380 Chassis is sku-1. sku-9 is DL380 Memory.
-      expect(screen.getByText('Server Part 1')).toBeInTheDocument(); // Chassis
-      expect(screen.queryByText('Chassis Child Component')).not.toBeInTheDocument(); // Memory
+      expect(screen.getByText('Server Part 1')).toBeInTheDocument(); // sku-1
+      expect(screen.getByText('Chassis Child Component')).toBeInTheDocument(); // sku-9
     });
 
     it('handles chassis matching (chassis !== all filters matches sku.chassisRef or sku.id)', () => {
@@ -357,14 +361,6 @@ describe('CatalogManager Component', () => {
       expect(screen.getByText('Server Part 1')).toBeInTheDocument();
       expect(screen.getByText('Chassis Child Component')).toBeInTheDocument();
       expect(screen.queryByText('DL80 Server')).not.toBeInTheDocument();
-    });
-
-    it('handles toggleNode and updates expandedNodes list', () => {
-      render(<CatalogManagerTestContainer />, { wrapper: Wrapper });
-
-      expect(screen.getByTestId('hpe-expanded-status')).toHaveTextContent('expanded');
-      fireEvent.click(screen.getByText('Toggle HPE'));
-      expect(screen.getByTestId('hpe-expanded-status')).toHaveTextContent('collapsed');
     });
   });
 });

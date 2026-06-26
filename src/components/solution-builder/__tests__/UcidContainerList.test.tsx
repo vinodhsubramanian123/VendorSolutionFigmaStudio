@@ -38,6 +38,7 @@ describe('UcidContainerList Component', () => {
         updateContainerReasoning={vi.fn()}
         toggleContainerLock={vi.fn()}
         handleDeployToMissionControl={vi.fn()}
+        assignConfigToUcid={vi.fn()}
       />
     );
 
@@ -58,6 +59,7 @@ describe('UcidContainerList Component', () => {
         updateContainerReasoning={vi.fn()}
         toggleContainerLock={vi.fn()}
         handleDeployToMissionControl={vi.fn()}
+        assignConfigToUcid={vi.fn()}
       />
     );
 
@@ -78,6 +80,7 @@ describe('UcidContainerList Component', () => {
         updateContainerReasoning={vi.fn()}
         toggleContainerLock={toggleLockFn}
         handleDeployToMissionControl={vi.fn()}
+        assignConfigToUcid={vi.fn()}
       />
     );
 
@@ -97,6 +100,7 @@ describe('UcidContainerList Component', () => {
         updateContainerReasoning={vi.fn()}
         toggleContainerLock={vi.fn()}
         handleDeployToMissionControl={vi.fn()}
+        assignConfigToUcid={vi.fn()}
       />
     );
 

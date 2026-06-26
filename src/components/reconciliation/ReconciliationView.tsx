@@ -5,10 +5,9 @@ import { ReconciliationEmpty } from "./ReconciliationEmpty";
 import { ReconciliationOverview } from "./ReconciliationOverview";
 import { ReconciliationDrillDown } from "./ReconciliationDrillDown";
 import type { UCID, CatalogSKU, Vendor, ForensicIssue } from "../../types";
-import { Loader2, Camera } from "lucide-react";
+import {  Camera } from "lucide-react";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { SnapshotsPanel } from "./SnapshotsPanel";
-
 interface ReconciliationViewProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
@@ -17,7 +16,6 @@ interface ReconciliationViewProps {
   setForensicIssues?: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
   setVendors?: React.Dispatch<React.SetStateAction<Vendor[]>>;
 }
-
 export function ReconciliationView({
   ucids,
   setUcids,
@@ -29,28 +27,25 @@ export function ReconciliationView({
   const [hasDrift, setHasDrift] = useState(() => {
     return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot");
   });
-  const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
-
-  // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
-  const activeUCIDList = useMemo(() => {
-    return ucids.filter(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHasDrift(ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot"));
   }, [ucids]);
+  const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
+  // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
 
   const activeUCID = useMemo(() => {
     return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
       ucids?.find((u) => u.solutions?.length > 0) ||
       ucids?.[0];
   }, [ucids]);
-
   // BOM Reconciliation state
   const [selectedConfigSheet, setSelectedConfigSheet] = useState<string | null>(
     null,
   );
-
   if (!hasDrift) {
     return <ReconciliationEmpty />;
   }
-
   return (
     <ErrorBoundary>
       <motion.div 
@@ -71,7 +66,6 @@ export function ReconciliationView({
             BOM DRIFT RECONCILIATION · FIRST CLASS SUITE
           </span>
         </div>
-
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -96,7 +90,6 @@ export function ReconciliationView({
           </div>
         </div>
       </div>
-
       <ReconciliationOverview 
         setHasDrift={setHasDrift} 
         setSelectedConfigSheet={setSelectedConfigSheet} 
@@ -104,7 +97,6 @@ export function ReconciliationView({
         setUcids={setUcids}
         catalogSkus={catalogSkus}
       />
-
       <AnimatePresence>
         {selectedConfigSheet && (
           <>
@@ -136,7 +128,6 @@ export function ReconciliationView({
           </>
         )}
       </AnimatePresence>
-
       <SnapshotsPanel
         isOpen={isSnapshotPanelOpen}
         onClose={() => setIsSnapshotPanelOpen(false)}

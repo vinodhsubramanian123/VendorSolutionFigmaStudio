@@ -42,25 +42,17 @@ export const DriftTableRow = React.memo(function DriftTableRow({
         )}
       </td>
       <td className="py-3 px-2 font-mono text-gray-400 text-left">{row.boqPart}</td>
-      <td className={`py-3 px-2 text-center font-mono ${row.boqQty !== row.bomQty && row.boqQty !== "—" && row.bomQty !== "—" ? "text-rose-400 font-bold" : "text-white"}`}>{row.boqQty}</td>
+      <td className={`py-3 px-2 text-center font-mono ${getQtyColorClass(row.boqQty, row.bomQty, true)}`}>{row.boqQty}</td>
       <td className="py-3 px-3 text-center">
         <StatusBadge
           status={row.status}
-          variant={
-            row.status === "Matched"
-              ? "success"
-              : row.status === "Missing"
-                ? "error"
-                : row.status === "Spec !="
-                  ? "warning"
-                  : "info"
-          }
+          variant={getStatusVariant(row.status)}
           size="sm"
         />
       </td>
-      <td className={`py-3 px-2 font-mono text-left ${row.boqPart !== row.bomPart && row.boqPart !== "—" && row.bomPart !== "—" ? "text-amber-400 font-bold" : "text-gray-400"}`}>{row.bomPart}</td>
+      <td className={`py-3 px-2 font-mono text-left ${getPartColorClass(row.boqPart, row.bomPart)}`}>{row.bomPart}</td>
       <td className="py-3 px-4 text-white font-semibold truncate max-w-xs text-left">{row.bomItem}</td>
-      <td className={`py-3 px-2 text-center font-mono ${row.boqQty !== row.bomQty && row.boqQty !== "—" && row.bomQty !== "—" ? "text-emerald-400 font-bold" : "text-white"}`}>{row.bomQty}</td>
+      <td className={`py-3 px-2 text-center font-mono ${getQtyColorClass(row.boqQty, row.bomQty, false)}`}>{row.bomQty}</td>
       <td className="py-3 px-2 text-right font-mono text-gray-500">
         {row.unitPrice !== "—" ? `$${row.unitPrice}` : "—"}
       </td>
@@ -70,3 +62,24 @@ export const DriftTableRow = React.memo(function DriftTableRow({
     </motion.tr>
   );
 });
+
+function getQtyColorClass(boqQty: string | number, bomQty: string | number, isBoq: boolean) {
+  if (boqQty !== bomQty && boqQty !== "—" && bomQty !== "—") {
+    return isBoq ? "text-rose-400 font-bold" : "text-emerald-400 font-bold";
+  }
+  return "text-white";
+}
+
+function getPartColorClass(boqPart: string, bomPart: string) {
+  if (boqPart !== bomPart && boqPart !== "—" && bomPart !== "—") {
+    return "text-amber-400 font-bold";
+  }
+  return "text-gray-400";
+}
+
+function getStatusVariant(status: string) {
+  if (status === "Matched") return "success";
+  if (status === "Missing") return "error";
+  if (status === "Spec !=") return "warning";
+  return "info";
+}

@@ -1,10 +1,9 @@
 import React from "react";
 import { CheckCircle, RefreshCw } from "lucide-react";
-import type { UCID, Solution, VendorSubmission } from "../../../types";
+import type { UCID, Solution} from "../../../types";
 import { StatusBadge } from "../../shared/StatusBadge";
 import { SourcingReconciliationDiff } from "../SourcingReconciliationDiff";
 import { tokens } from "../../../styles/tokens";
-
 interface StepComparisonProps {
   ucid: UCID;
   committingSnapshot: boolean;
@@ -12,7 +11,6 @@ interface StepComparisonProps {
   onUpdateSolutions: (sols: Solution[]) => void;
   appendLogEvent: (level: "info" | "warn" | "ok" | "err", msg: string) => void;
 }
-
 export function StepComparison({
   ucid,
   committingSnapshot,
@@ -83,7 +81,6 @@ export function StepComparison({
                   </p>
                 </div>
               </div>
-
               {/* Active Selection Indicator button */}
               <div className="mt-2 pt-2.5 border-t border-white/5 flex justify-end">
                 {isActiveChoice ? (
@@ -113,7 +110,6 @@ export function StepComparison({
           );
         })}
       </div>
-
       {/* Sourcing side-by-side spec alignment diff table */}
       {ucid.solutions[0]?.vendorSubmissions?.length &&
         ucid.solutions[0].vendorSubmissions.length >= 2 && (
@@ -121,7 +117,6 @@ export function StepComparison({
             submissions={ucid.solutions[0].vendorSubmissions}
           />
         )}
-
       <div className="border-t pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-indigo-500/10 text-left">
         <span className="text-xs text-gray-500">
           Choosing the winner will generate a final digital snap PO for sign-off.

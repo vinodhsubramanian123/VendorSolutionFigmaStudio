@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import React, { useState } from "react";
 import { Edit3, Trash2, Save, X, Activity, Loader2 } from "lucide-react";
 import type { SourcingRule } from "../../types";
@@ -89,6 +90,7 @@ export function RulesTable({
         </thead>
         <tbody className="divide-y divide-white/5">
           <AnimatePresence mode="popLayout">
+            {/* eslint-disable-next-line complexity */}
             {sourcingRules.map((rule) => {
               const isEditing = editingRuleId === rule.id;
               const isDraft = rule.status === "draft";
@@ -148,8 +150,9 @@ export function RulesTable({
                   {isEditing ? (
                     <div className="space-y-2 max-w-[280px]">
                       <div>
-                        <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Label Narrative</label>
+                        <label htmlFor={`edit-label-${rule.id}`} className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Label Narrative</label>
                         <input
+                          id={`edit-label-${rule.id}`}
                           type="text"
                           value={editLabel}
                           onChange={(e) => setEditLabel(e.target.value)}
@@ -158,8 +161,9 @@ export function RulesTable({
                       </div>
                       <div className="grid grid-cols-2 gap-1.5">
                         <div>
-                          <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Combo SKUs</label>
+                          <label htmlFor={`edit-combo-${rule.id}`} className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Combo SKUs</label>
                           <input
+                            id={`edit-combo-${rule.id}`}
                             type="text"
                             value={editAssociatedSkus}
                             onChange={(e) => setEditAssociatedSkus(e.target.value)}
@@ -168,8 +172,9 @@ export function RulesTable({
                           />
                         </div>
                         <div>
-                          <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">CLI Command</label>
+                          <label htmlFor={`edit-cli-${rule.id}`} className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">CLI Command</label>
                           <input
+                            id={`edit-cli-${rule.id}`}
                             type="text"
                             value={editCliScript}
                             onChange={(e) => setEditCliScript(e.target.value)}
@@ -179,8 +184,9 @@ export function RulesTable({
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Human Notes</label>
+                        <label htmlFor={`edit-notes-${rule.id}`} className="block text-[8px] text-gray-500 uppercase font-mono mb-0.5">Human Notes</label>
                         <textarea
+                          id={`edit-notes-${rule.id}`}
                           value={editNotes}
                           onChange={(e) => setEditNotes(e.target.value)}
                           placeholder="Provide additional details..."
@@ -327,6 +333,17 @@ export function RulesTable({
               );
             })}
           </AnimatePresence>
+          {sourcingRules.length === 0 && (
+            <tr>
+              <td colSpan={8} className="p-8 text-center text-[11px] text-gray-500 font-mono">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <span className="text-xl">📭</span>
+                  <p>No custom sourcing rules configured yet.</p>
+                  <p className="text-[9px] opacity-70">Add a new directive to override defaults.</p>
+                </div>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

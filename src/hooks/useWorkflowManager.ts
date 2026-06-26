@@ -1,16 +1,6 @@
 import { WorkflowStepStatus } from "../types";
-import { useLocalStorageState } from "./useLocalStorageState";
+import { useWorkflowStore, WorkflowManagerState } from "../store/workflowStore";
 
-interface WorkflowManagerState {
-  currentStepIndex: number;
-  stepStatuses: Record<string, WorkflowStepStatus>;
-  auditLogs: Array<{
-    timestamp: string;
-    fromStep?: string;
-    toStep: string;
-    action: string;
-  }>;
-}
 
 export function useWorkflowManager(
   workflowKey: string,
@@ -24,14 +14,22 @@ export function useWorkflowManager(
     {} as Record<string, WorkflowStepStatus>,
   );
 
-  const [state, setState] = useLocalStorageState<WorkflowManagerState>(
-    `${workflowKey}_state`,
-    {
-      currentStepIndex: 0,
-      stepStatuses: defaultStatuses,
-      auditLogs: [],
-    },
-  );
+  const workflows = useWorkflowStore(s => s.workflows);
+  const setWorkflowState = useWorkflowStore(s => s.setWorkflowState);
+
+  // Initialize or get state
+  const state: WorkflowManagerState = workflows[workflowKey] || {
+    currentStepIndex: 0,
+    stepStatuses: defaultStatuses,
+    auditLogs: [],
+  };
+
+  const setState = (updater: WorkflowManagerState | ((prev: WorkflowManagerState) => WorkflowManagerState)) => {
+    setWorkflowState(workflowKey, (prevStoreState) => {
+      const actualPrev = prevStoreState || state;
+      return typeof updater === 'function' ? updater(actualPrev) : updater;
+    });
+  };
 
   const currentStepIndex = state.currentStepIndex;
   const stepStatuses = state.stepStatuses;

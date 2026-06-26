@@ -60,8 +60,12 @@ describe('CatalogFilterBar', () => {
 
     render(<CatalogFilterBar {...defaultProps} selectedPath={customPath} />);
     
-    // Check if the path text is rendered correctly
-    expect(screen.getByText('HPE > Compute > ProLiant > Gen10 > CHASSIS')).toBeInTheDocument();
+    // Check if the path nodes are rendered correctly in the breadcrumb list
+    expect(screen.getByText('HPE')).toBeInTheDocument();
+    expect(screen.getByText('Compute')).toBeInTheDocument();
+    expect(screen.getByText('ProLiant')).toBeInTheDocument();
+    expect(screen.getByText('Gen10')).toBeInTheDocument();
+    expect(screen.getByText('CHASSIS')).toBeInTheDocument();
   });
 
   it('shows clear path button and handles click', () => {

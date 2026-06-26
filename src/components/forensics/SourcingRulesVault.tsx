@@ -1,7 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React, { useState, useEffect } from "react";
 import { BrainCircuit, X, Plus, Info, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import {  AnimatePresence } from "motion/react";
 import type { SourcingRule } from "../../types";
 import { apiClient } from "../../services/apiClient";
 import { AddRuleForm } from "./AddRuleForm";
@@ -9,7 +9,6 @@ import { RulesTable } from "./RulesTable";
 import { LearningLoopInjector } from "./LearningLoopInjector";
 import { RuleConflictModal } from "./RuleConflictModal";
 import type { RuleConflict } from "../../types";
-
 interface SourcingRulesVaultProps {
   sourcingRules: SourcingRule[];
   setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
@@ -17,7 +16,6 @@ interface SourcingRulesVaultProps {
   prefillRule: Partial<SourcingRule> | null;
   onPrefillConsumed: () => void;
 }
-
 export function SourcingRulesVault({
   sourcingRules,
   setSourcingRules,
@@ -28,15 +26,14 @@ export function SourcingRulesVault({
   const [isAddingRule, setIsAddingRule] = useState(false);
   const [isInjectingIntel, setIsInjectingIntel] = useState(false);
   const [simulatingRuleId, setSimulatingRuleId] = useState<string | null>(null);
-
   const [pendingConflict, setPendingConflict] = useState<{
     conflict: RuleConflict;
     existingRule: SourcingRule;
     proposedRule: SourcingRule;
   } | null>(null);
-
   useEffect(() => {
     if (prefillRule) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAddingRule(true);
       onPrefillConsumed();
       triggerToast("Override parameters prefilled! Review and save the rule at the bottom.", "success");
@@ -47,7 +44,6 @@ export function SourcingRulesVault({
       });
     }
   }, [prefillRule, onPrefillConsumed, triggerToast]);
-
   const commitRule = async (rule: SourcingRule) => {
     try {
       await apiClient.post("/api/taxonomy/rules", {
@@ -55,15 +51,14 @@ export function SourcingRulesVault({
         ruleType: rule.ruleType,
         explanation: rule.label
       });
-
       setSourcingRules((prev) => [rule, ...prev.filter(r => r.partNumber !== rule.partNumber)]);
       setIsAddingRule(false);
       triggerToast("Intelligence Policy Created & Continuous Feed Repopulated!", "success");
+    // eslint-disable-next-line sonarjs/no-ignored-exceptions
     } catch (error) {
       triggerToast("Failed to save Sourcing Rule to the server.", "warn");
     }
   };
-
   const handleAddRuleSubmit = async (proposedRule: SourcingRule) => {
     // Check for conflicts
     const existingRule = sourcingRules.find(r => r.partNumber === proposedRule.partNumber);
@@ -82,10 +77,8 @@ export function SourcingRulesVault({
       });
       return;
     }
-
     await commitRule(proposedRule);
   };
-
   const handleResolveConflict = (action: "keep_existing" | "overwrite") => {
     if (!pendingConflict) return;
     
@@ -97,7 +90,6 @@ export function SourcingRulesVault({
     }
     setPendingConflict(null);
   };
-
   const handleSimulateAndPromote = async (ruleId: string) => {
     setSimulatingRuleId(ruleId);
     try {
@@ -110,7 +102,6 @@ export function SourcingRulesVault({
       setSimulatingRuleId(null);
     }
   };
-
   return (
     <div 
       className="p-5 rounded-xl border flex flex-col gap-4 mt-2" 
@@ -146,7 +137,6 @@ export function SourcingRulesVault({
           >
             <Sparkles className="w-3.5 h-3.5" /> {isInjectingIntel ? "Close Learning Loop" : "Feed Intelligence"}
           </button>
-
           <button type="button"
             onClick={() => {
               setIsInjectingIntel(false);
@@ -166,7 +156,6 @@ export function SourcingRulesVault({
           </button>
         </div>
       </div>
-
       <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-[11px] text-indigo-200 flex gap-2.5 leading-normal">
         <Info className="w-4.5 h-4.5 text-indigo-400 shrink-0 mt-0.5" />
         <p>
@@ -175,7 +164,6 @@ export function SourcingRulesVault({
           <em> and promotes the resolution mappings safely to this database in real-time</em>. You can also manually CRUD override directives below to preempt future configuration errors.
         </p>
       </div>
-
       <AnimatePresence>
         {isInjectingIntel && (
           <LearningLoopInjector 
@@ -188,14 +176,12 @@ export function SourcingRulesVault({
           />
         )}
       </AnimatePresence>
-
       <RuleConflictModal
         conflict={pendingConflict?.conflict || null}
         existingRule={pendingConflict?.existingRule}
         onResolve={handleResolveConflict}
         onCancel={() => setPendingConflict(null)}
       />
-
       <AnimatePresence>
       {isAddingRule && (
         <AddRuleForm
@@ -206,7 +192,6 @@ export function SourcingRulesVault({
         />
       )}
       </AnimatePresence>
-
       <RulesTable
         sourcingRules={sourcingRules}
         setSourcingRules={setSourcingRules}

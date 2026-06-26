@@ -1,11 +1,11 @@
 import type { Solution } from "../types";
 
-export function generateDefaultSolutions(): Solution[] {
+export function generateDefaultSolutions(targetUcidId: string): Solution[] {
   return [
     {
       id: "sol-sub-hpe",
       name: "HPE Premium Architected Solution DL380 Gen11",
-      targetUcidId: crypto.randomUUID(),
+      targetUcidId,
       vendorSubmissions: [
         {
           id: "vs-sub-hpe",
@@ -64,7 +64,7 @@ export function generateDefaultSolutions(): Solution[] {
     {
       id: "sol-sub-dell",
       name: "Dell PowerEdge Economical Solution R760",
-      targetUcidId: crypto.randomUUID(),
+      targetUcidId,
       vendorSubmissions: [
         {
           id: "vs-sub-dell",

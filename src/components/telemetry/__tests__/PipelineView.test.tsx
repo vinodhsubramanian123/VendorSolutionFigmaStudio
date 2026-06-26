@@ -1,8 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen} from "@testing-library/react";
 import { PipelineView } from "../PipelineView";
 import { ToastProvider } from "../../shared/ToastContext";
-import { describe, it, expect, vi } from "vitest";
-
+import { describe, it, expect} from "vitest";
 describe("PipelineView", () => {
   it("renders correctly", () => {
     render(

@@ -8,25 +8,24 @@ import {
   Database,
   Globe,
   ShieldAlert,
-  Sparkles,
+  
   Menu,
   ChevronLeft,
-  ChevronRight,
+  
   Network,
-  FileText,
+  
   Atom,
-  Wrench,
+  
   Cable,
   FolderSync,
   UploadCloud,
-  Activity,
-  Book,
+  
+  
   Search,
   Scissors,
   Radio,
 } from "lucide-react";
 import { UCID, Vendor, ForensicIssue } from "../../types";
-
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -36,7 +35,6 @@ interface SidebarProps {
   vendors: Vendor[];
   forensicIssues: ForensicIssue[];
 }
-
 export function Sidebar({
   collapsed,
   onToggle,
@@ -49,7 +47,6 @@ export function Sidebar({
   const navigate = useNavigate();
   const location = useLocation();
   const activePath = location.pathname;
-
   const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
   const openIssues = useMemo(() => forensicIssues.filter(
     (f) => f.status !== "resolved",
@@ -57,7 +54,6 @@ export function Sidebar({
   const connectedVendors = useMemo(() => vendors.filter(
     (v) => v.status === "connected" || v.status === "syncing",
   ).length, [vendors]);
-
   const navItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
     {
@@ -131,8 +127,8 @@ export function Sidebar({
       iconColor: tokens.colors.accent.violet,
     },
   ];
-
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
     <div
       className={`flex flex-col h-screen shrink-0 border-r transition-all duration-300 z-50 bg-background-card ${collapsed ? "cursor-pointer hover:bg-white/[0.01] w-[4.5rem]" : "w-[4.5rem] lg:w-[17.5rem]"} absolute lg:relative`}
       onClick={collapsed ? onToggle : undefined}
@@ -144,7 +140,6 @@ export function Sidebar({
       {/* Header Panel */}
       <div
         className={`flex items-center justify-center lg:${collapsed ? "justify-center p-2" : "justify-between p-4"} h-16 border-b shrink-0`}
-
         style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
       >
         {!collapsed && (
@@ -177,7 +172,6 @@ export function Sidebar({
           )}
         </button>
       </div>
-
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
         {navItems.map((item) => {
@@ -208,7 +202,6 @@ export function Sidebar({
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
-
               <IconComponent
                 className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110`}
                 style={{
@@ -219,11 +212,9 @@ export function Sidebar({
                       : tokens.colors.text.muted, 
                 }}
               />
-
               {!collapsed && (
                 <span className="flex-1 truncate hidden lg:inline">{item.label}</span>
               )}
-
               {item.badge && !collapsed && (
                 <span
                   className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 hidden lg:inline-block"
@@ -235,7 +226,6 @@ export function Sidebar({
                   {item.badge}
                 </span>
               )}
-
               {/* Hover tooltip when sidebar is collapsed */}
               {collapsed && (
                 <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-white text-[10px] rounded border border-indigo-500/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl"> 
@@ -246,7 +236,6 @@ export function Sidebar({
           );
         })}
       </div>
-
       {/* Parallel UCID Live Monitors (only when expanded) */}
       {!collapsed && activeUCIDs.length > 0 && (
         <div

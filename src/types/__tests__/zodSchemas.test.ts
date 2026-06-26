@@ -83,7 +83,12 @@ describe('Zod Schemas and Validators', () => {
       rawBOM: "raw",
       solutions: [],
       events: [],
-      snapshots: []
+      snapshots: [],
+      solutionId: "11111111-1111-1111-8111-111111111111",
+      solutionDisplayId: "SOL-2026-001",
+      configIndex: 1,
+      configLabel: "Config 1",
+      parallelGroup: null
     };
     expect(validators.validateUCID(mockUCID)).toBeDefined();
 
@@ -233,7 +238,12 @@ describe('Zod Schemas and Validators', () => {
         rawBOM: "raw",
         solutions: [],
         events: [],
-        snapshots: []
+        snapshots: [],
+        solutionId: "11111111-1111-1111-8111-111111111111",
+        solutionDisplayId: "SOL-2026-001",
+        configIndex: 1,
+        configLabel: "Config 1",
+        parallelGroup: null
       };
       
       const result = UCIDSchema.safeParse(mockUCIDInvalidDisplayId);

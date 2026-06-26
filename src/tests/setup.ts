@@ -9,6 +9,27 @@ window.HTMLElement.prototype.scrollIntoView = () => {};
 // Extend vitest's expect with axe matchers
 expect.extend(matchers);
 
+import { beforeEach } from 'vitest';
+import { useCoreStore } from '../store/coreStore';
+import { useWorkflowStore } from '../store/workflowStore';
+import { useIngestionStore } from '../store/ingestionStore';
+import { useAuditStore } from '../store/auditStore';
+
+beforeEach(() => {
+  useCoreStore.setState({ ucids: [], vendors: [] });
+  useWorkflowStore.setState({ workflows: {} });
+  // Set selectedPreset to default literal
+  useIngestionStore.setState({ 
+    selectedPreset: "hpe-legacy", 
+    boqFile: "", 
+    boqResponse: null, 
+    activeBOMFile: "", 
+    bomVerifyResult: null, 
+    bomReconResult: null 
+  });
+  useAuditStore.setState({ logs: [] });
+});
+
 // Mock window.matchMedia if needed
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -33,7 +54,7 @@ class ResizeObserverMock {
 window.ResizeObserver = ResizeObserverMock;
 
 // Mock HTMLCanvasElement for Recharts
-HTMLCanvasElement.prototype.getContext = () => {
+HTMLCanvasElement.prototype.getContext = (() => {
   return {
     fillRect: () => {},
     clearRect: () => {},
@@ -59,33 +80,34 @@ HTMLCanvasElement.prototype.getContext = () => {
     transform: () => {},
     rect: () => {},
     clip: () => {},
-  } as any;
-};
+  } as unknown as CanvasRenderingContext2D;
+}) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
 // Mock react-virtuoso for testing to render all elements in JSDOM
 import React from 'react';
 import { vi } from 'vitest';
 
 vi.mock('react-virtuoso', async () => {
+  type ItemContentFn = (index: number, item?: unknown) => React.ReactNode;
   return {
-    Virtuoso: ({ data, totalCount, itemContent }: any) => {
+    Virtuoso: ({ data, totalCount, itemContent }: Record<string, unknown>) => {
       const items = [];
-      if (data) {
-        items.push(...data.map((item: any, index: number) => itemContent(index, item)));
-      } else if (totalCount !== undefined) {
+      if (data && Array.isArray(data)) {
+        items.push(...data.map((item: unknown, index: number) => (itemContent as ItemContentFn)(index, item)));
+      } else if (typeof totalCount === 'number') {
         for (let i = 0; i < totalCount; i++) {
-          items.push(itemContent(i));
+          items.push((itemContent as ItemContentFn)(i));
         }
       }
       return React.createElement('div', { 'data-testid': 'mock-virtuoso' }, items);
     },
-    VirtuosoGrid: ({ data, totalCount, itemContent }: any) => {
+    VirtuosoGrid: ({ data, totalCount, itemContent }: Record<string, unknown>) => {
       const items = [];
-      if (data) {
-        items.push(...data.map((item: any, index: number) => itemContent(index, item)));
-      } else if (totalCount !== undefined) {
+      if (data && Array.isArray(data)) {
+        items.push(...data.map((item: unknown, index: number) => (itemContent as ItemContentFn)(index, item)));
+      } else if (typeof totalCount === 'number') {
         for (let i = 0; i < totalCount; i++) {
-          items.push(itemContent(i));
+          items.push((itemContent as ItemContentFn)(i));
         }
       }
       return React.createElement('div', { 'data-testid': 'mock-virtuoso-grid' }, items);
@@ -102,5 +124,5 @@ if (typeof window.crypto === 'undefined') {
     }
   });
 } else if (typeof window.crypto.randomUUID === 'undefined') {
-  window.crypto.randomUUID = () => randomUUID() as any;
+  window.crypto.randomUUID = () => randomUUID() as ReturnType<typeof crypto.randomUUID>;
 }

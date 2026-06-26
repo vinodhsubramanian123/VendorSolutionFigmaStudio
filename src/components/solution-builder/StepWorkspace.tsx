@@ -84,6 +84,7 @@ export function StepWorkspace({
         updateContainerReasoning={updateContainerReasoning}
         toggleContainerLock={toggleContainerLock}
         handleDeployToMissionControl={handleDeployToMissionControl}
+        assignConfigToUcid={assignConfigToUcid}
       />
     </div>
   );

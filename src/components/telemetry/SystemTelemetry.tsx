@@ -51,7 +51,7 @@ export function SystemTelemetry() {
                 System Telemetry &amp; Intelligence Pipeline
               </h1>
               <p className="text-[11px] text-gray-500 mt-0.5">
-                PRD §3.10 — Document upload queue · API logs · Webhook monitor · HMAC validation
+                Document upload queue · API logs · Webhook monitor · HMAC validation
               </p>
             </div>
           </div>

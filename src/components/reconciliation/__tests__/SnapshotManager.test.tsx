@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 
 // Mock child components
 vi.mock("../CreateSnapshotForm", () => ({
-  CreateSnapshotForm: ({ onSubmit, setIsCreateOpen }: { onSubmit?: Function, setIsCreateOpen?: Function }) => (
+  CreateSnapshotForm: ({ onSubmit, setIsCreateOpen }: { onSubmit?: (e: any) => void, setIsCreateOpen?: (open: boolean) => void }) => (
     <div data-testid="create-snapshot-form">
       <button type="button" onClick={() => onSubmit?.(new Event("submit") as any)}>Save</button>
       <button type="button" onClick={() => setIsCreateOpen?.(false)}>Cancel</button>
@@ -52,6 +52,11 @@ const mockUcids: import("../../../types").UCID[] = [
         ]
       }
     ],
+    solutionId: "11111111-1111-1111-8111-111111111111",
+    solutionDisplayId: "SOL-2026-001",
+    configIndex: 1,
+    configLabel: "Config 1",
+    parallelGroup: null,
     snapshots: [
       {
         id: "snap-1",

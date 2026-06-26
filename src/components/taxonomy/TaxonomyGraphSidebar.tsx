@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Layers, HelpCircle, RefreshCw, Zap, Network } from 'lucide-react';
 import type { CatalogSKU, ConstraintCheckResponse } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
@@ -10,7 +9,6 @@ import {
   OrphanWorkshopPanel,
   PathOrchestratorPanel,
 } from "./TaxonomyGraphPanels";
-
 interface TaxonomyGraphSidebarProps {
   catalogSkus: CatalogSKU[];
   setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
@@ -37,7 +35,6 @@ interface TaxonomyGraphSidebarProps {
   addGraphEdge?: (edge: Partial<import('../../types/data').GraphEdge>) => Promise<boolean>;
   deleteGraphEdge?: (edgeId: string) => Promise<boolean>;
 }
-
 export function TaxonomyGraphSidebar({
   catalogSkus,
   setCatalogSkus,
@@ -65,7 +62,6 @@ export function TaxonomyGraphSidebar({
   deleteGraphEdge
 }: TaxonomyGraphSidebarProps) {
   const { toast } = useToast();
-
   // State for constraints...
   const [selectedChassis, setSelectedChassis] = useState("");
   const [selectedCpu, setSelectedCpu] = useState("");
@@ -73,7 +69,6 @@ export function TaxonomyGraphSidebar({
   const [psuWatts, setPsuWatts] = useState(1600);
   const [isValidatingConstraints, setIsValidatingConstraints] = useState(false);
   const [validationResult, setValidationResult] = useState<ConstraintCheckResponse | null>(null);
-
   const handleValidateConstraints = async () => {
     if (!selectedChassis || !selectedCpu) {
       toast("Please select a Chassis SKU and CPU SKU to check compatibility.", "warn");
@@ -101,7 +96,6 @@ export function TaxonomyGraphSidebar({
       setIsValidatingConstraints(false);
     }
   };
-
   const handleMapOrphanNode = async (orphanId: string, categoryId: string) => {
     const orphanNodeName = catalogSkus.find(s => s.partNumber === orphanId || s.id === orphanId)?.name || "Mapped Item";
     
@@ -114,7 +108,6 @@ export function TaxonomyGraphSidebar({
     else if (categoryId.includes("Power")) type = "Power";
     else if (categoryId.includes("Cooling")) type = "Cooling";
     else if (categoryId.includes("Chassis")) type = "Chassis Option";
-
     try {
       await mapNode(orphanId, categoryId, { partNumber: orphanId, name: orphanNodeName, type });
       
@@ -128,7 +121,6 @@ export function TaxonomyGraphSidebar({
         }
         return s;
       }));
-
       setSelectedOrphanToMap(null);
       toast(`Successfully mapped ${orphanId} to ${type} Category node.`, "success");
     } catch (e) {
@@ -136,8 +128,6 @@ export function TaxonomyGraphSidebar({
       toast("Failed to commit mapping to server state.", "error");
     }
   };
-
-
   return (
     <div 
       className="w-full lg:w-80 p-5 rounded-xl border flex flex-col gap-4 bg-surface-card"
@@ -190,7 +180,6 @@ export function TaxonomyGraphSidebar({
           Nodes
         </button>
       </div>
-
       {activeTab === "constraints" && (
         <MechanicalConstraintsPanel
           selectedChassis={selectedChassis}
@@ -208,7 +197,6 @@ export function TaxonomyGraphSidebar({
           handleValidateConstraints={handleValidateConstraints}
         />
       )}
-
       {activeTab === "orphans" && (
         <OrphanWorkshopPanel
           selectedOrphanToMap={selectedOrphanToMap}
@@ -219,7 +207,6 @@ export function TaxonomyGraphSidebar({
           unmappedIds={data.unmappedIds || []}
         />
       )}
-
       {activeTab === "edges" && (
         <EdgeEditorPanel
           data={data}
@@ -229,7 +216,6 @@ export function TaxonomyGraphSidebar({
           addGraphEdge={addGraphEdge}
         />
       )}
-
       {activeTab === "paths" && (
         <PathOrchestratorPanel
           alternativePaths={alternativePaths}
@@ -245,7 +231,6 @@ export function TaxonomyGraphSidebar({
           toast={toast}
         />
       )}
-
       {activeTab === "nodes" && (
         <NodeEditorPanel
           data={data}

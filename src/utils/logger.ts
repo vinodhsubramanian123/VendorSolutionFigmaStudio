@@ -13,22 +13,22 @@ const currentLevel: LogLevel =
   || 'info';
 
 export const logger = {
-  debug: (message: string, ...optionalParams: any[]) => {
+  debug: (message: string, ...optionalParams: unknown[]) => {
     if (LogLevels[currentLevel] <= LogLevels.debug) {
       console.debug(`[DEBUG] ${message}`, ...optionalParams);
     }
   },
-  info: (message: string, ...optionalParams: any[]) => {
+  info: (message: string, ...optionalParams: unknown[]) => {
     if (LogLevels[currentLevel] <= LogLevels.info) {
       console.info(`[INFO] ${message}`, ...optionalParams);
     }
   },
-  warn: (message: string, ...optionalParams: any[]) => {
+  warn: (message: string, ...optionalParams: unknown[]) => {
     if (LogLevels[currentLevel] <= LogLevels.warn) {
       console.warn(`[WARN] ${message}`, ...optionalParams);
     }
   },
-  error: (message: string, ...optionalParams: any[]) => {
+  error: (message: string, ...optionalParams: unknown[]) => {
     if (LogLevels[currentLevel] <= LogLevels.error) {
       console.error(`[ERROR] ${message}`, ...optionalParams);
     }

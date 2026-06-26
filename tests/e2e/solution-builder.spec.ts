@@ -9,9 +9,9 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
     await delay(1000);
     // Dispatch the event to update React state directly, which also updates localStorage
     await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('vsip_localstorage_update', { detail: { key: 'sys_ucids', value: [] } }));
-      window.dispatchEvent(new CustomEvent('vsip_localstorage_update', { detail: { key: 'sys_vendors', value: [] } }));
+      window.localStorage.setItem('vsip-core-storage', JSON.stringify({ state: { ucids: [], vendors: [], catalogSkus: [], forensicIssues: [], sourcingRules: [], learningEvents: [] }, version: 0 }));
     });
+    await page.reload();
     // Wait for state to settle
     await delay(1000);
     await delay(500);

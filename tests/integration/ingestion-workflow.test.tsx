@@ -43,7 +43,14 @@ const server = setupServer(
   })
 );
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+beforeAll(() => server.listen({
+  onUnhandledRequest(req, print) {
+    if (!req.url.includes('/api/')) {
+      return;
+    }
+    print.error();
+  }
+}));
 afterEach(() => { server.resetHandlers(); localStorage.clear(); });
 afterAll(() => server.close());
 

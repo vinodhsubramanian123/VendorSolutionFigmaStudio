@@ -5,13 +5,15 @@ import { IngestionMode } from "../../types/data";
 import { useBoqIntake } from "./useBoqIntake";
 import { useBomConversion } from "./useBomConversion";
 import { usePortfolioComparison } from "./usePortfolioComparison";
-import { useLocalStorageState } from "../../hooks/useLocalStorageState";
+import { useIngestionStore } from "../../store/ingestionStore";
 import type { UCID, Solution } from "../../types";
 
 export interface BoqResponsePayload {
   ucid: string;
   solutions?: Solution[];
   sourceFile?: string;
+  rawText?: string;
+  configsCreated?: number;
   parsedSummary?: {
     vendorBrand: string;
     detectedChassis: string;
@@ -53,16 +55,22 @@ export function useIngestionLogic({
   const mode = currentStepId;
   const setMode = jumpToStep;
 
-  const [selectedUcidId, setSelectedUcidId] = useLocalStorageState<string>(
-    "ingestion_bom_ucid",
-    ucids[0]?.id || "u1",
-  );
+  const selectedUcidId = useIngestionStore(s => s.selectedUcidId);
+  const setSelectedUcidId = useIngestionStore(s => s.setSelectedUcidId);
+  
+  // Set default if empty initially, though the store initializes it to 'u1'
+  useEffect(() => {
+    if (!selectedUcidId && ucids[0]?.id) {
+      setSelectedUcidId(ucids[0].id);
+    }
+  }, [ucids, selectedUcidId, setSelectedUcidId]);
 
   const boqIntake = useBoqIntake(setUcids, setMode, toast, setSelectedUcidId);
   
   const [selectedBomsForBatch, setSelectedBomsForBatch] = useState<string[]>([]);
   useEffect(() => {
     if (ucids.length > 0 && selectedBomsForBatch.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedBomsForBatch(ucids.map((u) => u.id));
     }
   }, [ucids, selectedBomsForBatch.length]);

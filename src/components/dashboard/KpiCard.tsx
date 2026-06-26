@@ -1,7 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, animate } from 'motion/react';
 
 interface KpiCardProps {
   id: string;
@@ -46,37 +46,24 @@ export function KpiCard({
       const suffix = numMatch[3] || '';
       const hasDecimals = numMatch[2].includes('.');
       
-      let frame: ReturnType<typeof setTimeout>;
-      const duration = 800; // ms
-      const steps = 30;
-      const stepTime = duration / steps;
-      let currentStep = 0;
-      
-      const update = () => {
-        currentStep++;
-        const progress = currentStep / steps;
-        // easeOutQuart
-        const easeProgress = 1 - Math.pow(1 - progress, 4);
-        const currentVal = num * easeProgress;
-        
-        let formattedVal = currentVal.toFixed(hasDecimals ? 1 : 0);
-        // add commas back if it was large
-        if (!hasDecimals && num >= 1000) {
-           formattedVal = parseInt(formattedVal, 10).toLocaleString();
-        }
-        
-        setDisplayValue(`${prefix}${formattedVal}${suffix}`);
-        
-        if (currentStep < steps) {
-          frame = setTimeout(update, stepTime);
-        } else {
+      const controls = animate(0, num, {
+        duration: 0.8,
+        ease: "easeOut",
+        onUpdate: (currentVal) => {
+          let formattedVal = currentVal.toFixed(hasDecimals ? 1 : 0);
+          if (!hasDecimals && num >= 1000) {
+             formattedVal = parseInt(formattedVal, 10).toLocaleString();
+          }
+          setDisplayValue(`${prefix}${formattedVal}${suffix}`);
+        },
+        onComplete: () => {
           setDisplayValue(value);
         }
-      };
+      });
       
-      frame = setTimeout(update, stepTime);
-      return () => clearTimeout(frame);
+      return controls.stop;
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayValue(value);
     }
   }, [value]);

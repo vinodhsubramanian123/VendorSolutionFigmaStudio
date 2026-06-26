@@ -36,6 +36,7 @@ export function RefineRuleOverlay({
 
   useEffect(() => {
     if (refiningItem) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRefineTargetSku(refiningItem.productNumber);
       setRefineSeverity(refiningItem.severity);
       
@@ -211,8 +212,9 @@ export function RefineRuleOverlay({
             {/* Form Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Sourcing Remedy Type</label>
+                <label htmlFor="refineRuleType" className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Sourcing Remedy Type</label>
                 <select
+                  id="refineRuleType"
                   value={refineRuleType}
                   onChange={(e) => setRefineRuleType(e.target.value as SourcingRule["ruleType"])}
                   className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
@@ -225,8 +227,9 @@ export function RefineRuleOverlay({
               </div>
 
               <div>
-                <label className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Severity Level</label>
+                <label htmlFor="refineSeverity" className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Severity Level</label>
                 <select
+                  id="refineSeverity"
                   value={refineSeverity}
                   onChange={(e) => setRefineSeverity(e.target.value as "critical" | "warning" | "info")}
                   className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
@@ -238,8 +241,9 @@ export function RefineRuleOverlay({
               </div>
 
               <div>
-                <label className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Target SKU Code</label>
+                <label htmlFor="refineTargetSku" className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Target SKU Code</label>
                 <input
+                  id="refineTargetSku"
                   type="text"
                   value={refineTargetSku}
                   onChange={(e) => setRefineTargetSku(e.target.value)}
@@ -248,8 +252,9 @@ export function RefineRuleOverlay({
               </div>
 
               <div>
-                <label className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Blast Radius Policy Scope</label>
+                <label htmlFor="refineScope" className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Blast Radius Policy Scope</label>
                 <select
+                  id="refineScope"
                   value={refineScope}
                   onChange={(e) => setRefineScope(e.target.value)}
                   className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
@@ -282,12 +287,17 @@ export function RefineRuleOverlay({
                 </div>
                 
                 <div className="divide-y divide-white/5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
-                  {remedyOptions.map((opt) => (
-                    <label 
-                      key={opt.sku} 
-                      className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none"
-                    >
+                  {remedyOptions.map((opt) => {
+                     
+                    return (
+                      // eslint-disable-next-line jsx-a11y/label-has-associated-control
+                      <label 
+                        key={opt.sku} 
+                        htmlFor={`remedy-${opt.sku}`}
+                        className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none"
+                      >
                       <input
+                        id={`remedy-${opt.sku}`}
                         type="checkbox"
                         checked={opt.checked}
                         onChange={() => handleToggleRemedyOption(opt.sku)}
@@ -298,12 +308,13 @@ export function RefineRuleOverlay({
                         <span className="text-gray-400 font-medium">{opt.desc}</span>
                       </div>
                     </label>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : suggestedSkus.length > 0 ? (
               <div className="space-y-1.5">
-                <label className="block text-gray-400 font-medium uppercase text-[9px] font-mono">Suggested Remedy SKUs (Click to Add)</label>
+                <div className="block text-gray-400 font-medium uppercase text-[9px] font-mono mb-1.5">Suggested Remedy SKUs (Click to Add)</div>
                 <div className="flex flex-wrap gap-1.5">
                   {suggestedSkus.map((sku) => (
                     <button
@@ -330,8 +341,9 @@ export function RefineRuleOverlay({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Associated SKUs (Combination)</label>
+                <label htmlFor="refineAssociatedSkus" className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Associated SKUs (Combination)</label>
                 <input
+                  id="refineAssociatedSkus"
                   type="text"
                   value={refineAssociatedSkus}
                   onChange={(e) => setRefineAssociatedSkus(e.target.value)}
@@ -341,8 +353,9 @@ export function RefineRuleOverlay({
               </div>
 
               <div>
-                <label className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">CLI Automation Script Command</label>
+                <label htmlFor="refineCliScript" className="block text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">CLI Automation Script Command</label>
                 <input
+                  id="refineCliScript"
                   type="text"
                   value={refineCliScript}
                   onChange={(e) => setRefineCliScript(e.target.value)}
@@ -353,8 +366,9 @@ export function RefineRuleOverlay({
             </div>
 
             <div>
-              <label className="block text-xs text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Human Remedy Notes / Rationale</label>
+              <label htmlFor="refineNotes" className="block text-xs text-gray-400 font-medium mb-1 uppercase text-[9px] font-mono">Human Remedy Notes / Rationale</label>
               <textarea
+                id="refineNotes"
                 value={refineNotes}
                 onChange={(e) => setRefineNotes(e.target.value)}
                 placeholder="Explain the remedy rules and lessons learned..."

@@ -113,10 +113,11 @@ export function StepIntake({
 
             {/* Raw Text Input Section */}
             <div className="pt-4 space-y-2">
-              <label className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+              <label htmlFor="rawBoqText" className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
                 Or Paste Raw BOQ Text
               </label>
               <textarea
+                id="rawBoqText"
                 value={rawBoqText}
                 onChange={(e) => setRawBoqText(e.target.value)}
                 placeholder="E.g. 2x P40424-B21 Server Processor..."

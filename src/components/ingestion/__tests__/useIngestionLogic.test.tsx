@@ -15,8 +15,8 @@ vi.mock('../../../services/apiClient', () => ({
 }));
 
 const mockUcids: UCID[] = [
-  { id: 'UCID-1', name: 'Primary deployment', displayId: 'UCID-1', priority: 'high', projectRef: 'P1', createdAt: '', currentStep: 'boq-intake', completedSteps: [], rawBOM: '', solutions: [], events: [], snapshots: [] },
-  { id: 'UCID-2', name: 'Secondary deployment', displayId: 'UCID-2', priority: 'medium', projectRef: 'P2', createdAt: '', currentStep: 'boq-intake', completedSteps: [], rawBOM: '', solutions: [], events: [], snapshots: [] },
+  { id: 'UCID-1', name: 'Primary deployment', displayId: 'UCID-1', priority: 'high', projectRef: 'P1', createdAt: '', currentStep: 'boq-intake', completedSteps: [], rawBOM: '', solutions: [], events: [], snapshots: [], solutionId: "11111111-1111-1111-8111-111111111111", solutionDisplayId: "SOL-2026-001", configIndex: 1, configLabel: "Config 1", parallelGroup: null },
+  { id: 'UCID-2', name: 'Secondary deployment', displayId: 'UCID-2', priority: 'medium', projectRef: 'P2', createdAt: '', currentStep: 'boq-intake', completedSteps: [], rawBOM: '', solutions: [], events: [], snapshots: [], solutionId: "11111111-1111-1111-8111-111111111111", solutionDisplayId: "SOL-2026-001", configIndex: 2, configLabel: "Config 2", parallelGroup: null },
 ];
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (

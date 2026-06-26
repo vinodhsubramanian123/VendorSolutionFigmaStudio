@@ -1,11 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {    vi} from 'vitest';
 import { IngestionHub } from '../IngestionHub';
 import { ToastProvider } from '../../shared/ToastContext';
-import { apiClient } from '../../../services/apiClient';
 import type { UCID } from '../../../types';
-
 // Mock child components to isolate IngestionHub testing and expose control buttons
 vi.mock('../BoqIngestWorkbook', () => ({
   BoqIngestWorkbook: ({
@@ -38,7 +35,6 @@ vi.mock('../BoqIngestWorkbook', () => ({
     </div>
   )
 }));
-
 vi.mock('../TechnicalBomWorkspace', () => ({
   TechnicalBomWorkspace: ({
     bomVerifyResult,
@@ -74,7 +70,6 @@ vi.mock('../TechnicalBomWorkspace', () => ({
     </div>
   )
 }));
-
 vi.mock('../HybridPortfolioOrchestration', () => ({
   HybridPortfolioOrchestration: ({ onAdvanceStep }: any) => (
     <div data-testid="portfolio-orchestration">
@@ -85,7 +80,6 @@ vi.mock('../HybridPortfolioOrchestration', () => ({
     </div>
   )
 }));
-
 vi.mock('../LaunchStep', () => ({
   LaunchStep: ({ onNavigate }: any) => (
     <div data-testid="launch-step">
@@ -96,7 +90,6 @@ vi.mock('../LaunchStep', () => ({
     </div>
   )
 }));
-
 vi.mock('../../shared/JobStreamer', () => ({
   JobStreamer: ({ jobId, context, onSuccess, onError }: any) => (
     <div data-testid="job-streamer">
@@ -110,7 +103,6 @@ vi.mock('../../shared/JobStreamer', () => ({
     </div>
   )
 }));
-
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
     post: vi.fn(),
@@ -119,11 +111,9 @@ vi.mock('../../../services/apiClient', () => ({
     delete: vi.fn()
   }
 }));
-
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <ToastProvider>{children}</ToastProvider>
 );
-
 const mockUcid: UCID = {
   id: "u1",
   displayId: "UCID-2026-1701",
@@ -195,9 +185,13 @@ const mockUcid: UCID = {
     }
   ],
   events: [],
-  snapshots: []
+  snapshots: [],
+  solutionId: "11111111-1111-1111-8111-111111111111",
+  solutionDisplayId: "SOL-2026-001",
+  configIndex: 1,
+  configLabel: "Config 1",
+  parallelGroup: null
 };
-
 // Stateful Wrapper to let real state setter functions execute
 const IngestionHubTestWrapper = ({
   initialUcids = [mockUcid],
@@ -223,7 +217,6 @@ const IngestionHubTestWrapper = ({
       setUcidsSpy(val);
     }
   }, [setUcidsSpy]);
-
   return (
     <IngestionHub
       ucids={ucids}
@@ -233,5 +226,4 @@ const IngestionHubTestWrapper = ({
     />
   );
 };
-
 export { IngestionHubTestWrapper, Wrapper, mockUcid };

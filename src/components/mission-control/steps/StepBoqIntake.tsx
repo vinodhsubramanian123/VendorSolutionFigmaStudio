@@ -1,7 +1,9 @@
+/* eslint-disable complexity */
 import React from "react";
 import { UploadCloud, Sparkles, ArrowRight } from "lucide-react";
 import type { UCID, Solution } from "../../../types";
 import { apiClient } from "../../../services/apiClient";
+import type { BoqResponsePayload } from "../../ingestion/useIngestionLogic";
 
 interface StepBoqIntakeProps {
   ucid: UCID;
@@ -26,25 +28,25 @@ export function StepBoqIntake({
     fileName: string,
     presetType: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry",
   ) => {
-    let rawText = "";
-    let sols: Solution[] = [];
+    const rawText = "";
+
 
     try {
       appendLogEvent(
         "info",
         "Connecting direct REST API to dispatch workbook to secure compiler...",
       );
-      const data = await apiClient.post<Record<string, unknown>>("/api/boq/ingest", { fileName, presetType, rawText }) as any;
+      const response = await apiClient.post<BoqResponsePayload>("/api/boq/ingest", { fileName, presetType, rawText });
 
-      if (data.success && data.solutions) {
+      if (response.success && response.data?.solutions) {
           onUpdateBOM(
-            data.data?.rawText +
-              `\n\n[API METRIC SIGNED] Server verified with ${data.data?.parsedSummary?.initialConfidenceScore}% initial confidence score.`,
+            (response.data.rawText || "") +
+              `\n\n[API METRIC SIGNED] Server verified with ${response.data.parsedSummary?.initialConfidenceScore}% initial confidence score.`,
           );
-          onUpdateSolutions(data.data?.solutions);
+          onUpdateSolutions(response.data.solutions);
           appendLogEvent(
             "ok",
-            `[API SECURE LINK] Server parsed "${fileName}" returning ${data.data?.solutions?.length} alternative configuration pipelines.`,
+            `[API SECURE LINK] Server parsed "${fileName}" returning ${response.data.solutions.length} alternative configuration pipelines.`,
           );
           onShowToast(`Workbook parsed by live backend API!`, "success");
           return;

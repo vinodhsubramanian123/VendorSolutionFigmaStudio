@@ -1,11 +1,8 @@
 import React, { useMemo } from "react";
 import { motion } from "motion/react";
 import { Upload, Check, Clock, Play } from "lucide-react";
-import { useToast } from "../shared/ToastContext";
-import { apiClient } from "../../services/apiClient";
 import type { UCID, AppView } from "../../types";
 import { IngestionMode } from "../../types/data";
-
 import { BoqIngestWorkbook } from "./BoqIngestWorkbook";
 import { TechnicalBomWorkspace } from "./TechnicalBomWorkspace";
 import { HybridPortfolioOrchestration } from "./HybridPortfolioOrchestration";
@@ -13,7 +10,6 @@ import { LaunchStep } from "./LaunchStep";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useIngestionLogic } from "./useIngestionLogic";
 import { JobStreamer } from "../shared/JobStreamer";
-
 interface IngestionHubProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
@@ -25,7 +21,6 @@ interface IngestionHubProps {
   setPendingAPIMessage?: (msg: string) => void;
   setApiProgress?: (progress: number) => void;
 }
-
 export function IngestionHub({
   ucids,
   setUcids,
@@ -43,14 +38,12 @@ export function IngestionHub({
     setPendingAPIMessage,
     setApiProgress,
   });
-
   const stepperSteps = useMemo(() => [
     { id: IngestionMode.BOQ, label: "1. BOQ Intake" },
     { id: IngestionMode.BOM, label: "2. BOM Compile" },
     { id: IngestionMode.PORTFOLIO, label: "3. Hybrid Automation" },
     { id: IngestionMode.LAUNCH, label: "4. Launch", icon: Play },
   ], []);
-
   return (
     <ErrorBoundary>
       <motion.div 
@@ -83,7 +76,6 @@ export function IngestionHub({
               </span>
             </div>
           </div>
-
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-3 w-full">
               <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shrink-0">
@@ -118,7 +110,6 @@ export function IngestionHub({
                 </div>
               )}
             </div>
-
             {/* Lifecycle Workflow Stepper */}
             <div className="flex mt-5 bg-surface-elevated rounded-lg border border-white/5 shrink-0 overflow-hidden relative">
               <div className="absolute inset-0 bg-indigo-500/5" />
@@ -128,7 +119,6 @@ export function IngestionHub({
                   const isPast =
                     ["boq", "bom", "portfolio", "launch"].indexOf(logic.currentStepId) >
                     idx;
-
                   return (
                     <button
                       key={step.id}
@@ -161,7 +151,6 @@ export function IngestionHub({
             </div>
           </div>
         </div>
-
       {logic.mode === "boq" && (
         <>
           <BoqIngestWorkbook
@@ -185,7 +174,6 @@ export function IngestionHub({
           )}
         </>
       )}
-
       {logic.mode === "bom" && (
         <TechnicalBomWorkspace
           ucids={ucids}
@@ -209,7 +197,6 @@ export function IngestionHub({
           onSelectMission={onSelectMission}
         />
       )}
-
       {logic.mode === "portfolio" && (
         <HybridPortfolioOrchestration
           isPortfolioActive={logic.isPortfolioActive}
@@ -224,7 +211,6 @@ export function IngestionHub({
           ucids={ucids}
         />
       )}
-
       {logic.mode === "launch" && <LaunchStep onNavigate={onNavigate} />}
       </motion.div>
     </ErrorBoundary>

@@ -1,33 +1,27 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Radio, Trash2, Filter } from "lucide-react";
+import { Radio, Trash2} from "lucide-react";
 import type { UCID } from "../../types";
 import { Virtuoso } from "react-virtuoso";
 import { motion } from "motion/react";
-
 interface UCIDEventLedgerProps {
   ucid: UCID;
   onClear: () => void;
 }
-
 type LogLevel = "all" | "ok" | "warn" | "err" | "info";
-
 export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
   const [filter, setFilter] = useState<LogLevel>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
-
   // Filter events based on selected level
   const filteredEvents = useMemo(() => {
     if (filter === "all") return ucid.events;
     return ucid.events.filter((ev) => ev.level === filter);
   }, [ucid.events, filter]);
-
   // Auto-scroll to bottom on new events
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [filteredEvents]);
-
   return (
     <div className="p-4 rounded-xl border space-y-3 bg-surface-elevated border-indigo-500/10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-500/10 pb-2.5">
@@ -50,7 +44,6 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
               if (lvl === "ok") activeClass = "bg-emerald-500/25 text-emerald-400 border border-emerald-500/30";
               if (lvl === "warn") activeClass = "bg-amber-500/25 text-amber-400 border border-amber-500/30";
               if (lvl === "err") activeClass = "bg-red-500/25 text-red-400 border border-red-500/30";
-
               return (
                 <button
                   key={lvl}
@@ -78,7 +71,6 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
           </button>
         </div>
       </div>
-
       <div
         ref={scrollRef}
         className="rounded-lg p-3 font-mono text-[10px] bg-surface-card text-left h-48 overflow-hidden"
@@ -93,7 +85,7 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
             data={filteredEvents}
             followOutput="smooth"
             itemContent={(i, ev) => {
-              const stableKey = `${ev.timestamp}-${ev.level}-${ev.msg.substring(0, 10)}-${i}`;
+              
               return (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}

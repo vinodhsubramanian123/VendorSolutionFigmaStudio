@@ -1,11 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react";
-import type { UCID, PlaywrightRunResponse, CatalogSKU, PortalErrorItem, SourcingRule, LearningEvent, AdviceResolution } from "../../types";
+import React, { useState } from "react";
+import type { UCID, PlaywrightRunResponse, CatalogSKU,  SourcingRule, LearningEvent, AdviceResolution } from "../../types";
 import { apiClient } from "../../services/apiClient";
 import { VENDORS } from "../../lib/mockData/misc";
 import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
-import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import { VendorCredentialsCard, VendorConsoleLogs } from "./VendorComponents";
-
 interface VendorIngestionDeskProps {
   ucids: UCID[];
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
@@ -16,7 +14,6 @@ interface VendorIngestionDeskProps {
   learningEvents: LearningEvent[];
   setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
 }
-
 export function VendorIngestionDesk({
   ucids,
   setUcids,
@@ -40,64 +37,24 @@ export function VendorIngestionDesk({
   ]);
   // Advice sheet resolution state
   const [adviceResolutions, setAdviceResolutions] = useState<AdviceResolution[]>([]);
-
-  // Derive ALL credential config from selectedPortal synchronously — no useEffect needed.
-  // This is the correct pattern per AGENTS.md §3.2: avoid setState in useEffect.
-  const portalConfig = useMemo(() => {
-    const vendorData = VENDORS.find(v => v.shortName === selectedPortal) || VENDORS[0];
-    if (selectedPortal === "HPE") {
-      return {
-        username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",
-        password: vendorData.credentials?.passwordHash || "HPE-S0urcing-2026!",
-        mfaToken: vendorData.credentials?.mfaToken || "RO7K-9154-A24B",
-        authStatus: "authorized" as const,
-        defaultLogs: [
-          "[08:34:10] [Manager] - Loading HPE Partner Ready configuration credentials...",
-          "[08:34:11] [CredentialVault] - Decrypted corporate client TLS connection certificates.",
-          "[08:34:12] [Daemon] - Playwright connection verified with hpe.com secure tunnel gateway.",
-        ],
-      };
-    }
-    if (selectedPortal === "Dell") {
-      return {
-        username: vendorData.credentials?.username || "dell_premier_procurement_lead",
-        password: vendorData.credentials?.passwordHash || "DellAdminSecure3902!!",
-        mfaToken: vendorData.credentials?.mfaToken || "DL-9824-MFA-X2",
-        authStatus: "authorized" as const,
-        defaultLogs: [
-          "[09:10:02] [Manager] - Dell Premier portal authentication state valid.",
-          "[09:10:05] [Scraper] - Handshake completed. 1 corporate customer account linked.",
-        ],
-      };
-    }
-    return {
-      username: vendorData.credentials?.username || "cisco_commerce_workspace_api",
-      password: vendorData.credentials?.passwordHash || "Cisco#CCW#Tunnel99",
-      mfaToken: vendorData.credentials?.mfaToken || "CSCO-AUTH-9999",
-      authStatus: "expired" as const,
-      defaultLogs: [
-        "[10:12:05] [Manager] - CCW token detected: EXPIRED.",
-        "[10:12:06] [CCW-Gate] - Playwright browser automation requires rotating session refresh token.",
-        "[10:12:07] [MFA-Gate] - Awaiting manual MFA trigger or Playwright browser re-authentication.",
-      ],
-    };
-  }, [selectedPortal]);
-
+  const portalConfig = resolvePortalConfig(selectedPortal);
+  
   // User overrideable credential fields — initialized from portalConfig defaults
   const [username, setUsername] = useState(portalConfig.username);
   const [password, setPassword] = useState(portalConfig.password);
   const [mfaToken, setMfaToken] = useState(portalConfig.mfaToken);
   const [authStatus, setAuthStatus] = useState<"authorized" | "expired" | "verifying">(portalConfig.authStatus);
+  const [prevPortal, setPrevPortal] = useState(selectedPortal);
 
-  // Sync console logs and overrides when portal switches
-  useEffect(() => {
+  // Sync console logs and overrides when portal switches synchronously during render
+  if (selectedPortal !== prevPortal) {
+    setPrevPortal(selectedPortal);
     setConsoleLogs(portalConfig.defaultLogs);
     setUsername(portalConfig.username);
     setPassword(portalConfig.password);
     setMfaToken(portalConfig.mfaToken);
     setAuthStatus(portalConfig.authStatus);
-  }, [selectedPortal, portalConfig]);
-
+  }
   function getMockAdviceResolutions(vendor: string): AdviceResolution[] {
     if (vendor === "Cisco") {
       return [{
@@ -131,7 +88,6 @@ export function VendorIngestionDesk({
       contextRef: "Intel Xeon Gold 6430 Gen11 Processor",
     }];
   }
-
   function populateMockError(err: unknown) {
     setIsRunningTest(false);
     setAuthStatus("expired");
@@ -141,7 +97,6 @@ export function VendorIngestionDesk({
     // Parse mock portal errors into generic advice structures
     setAdviceResolutions(getMockAdviceResolutions(selectedPortal));
   }
-
   async function handleRunPortalTest() {
     setIsRunningTest(true);
     setAuthStatus("verifying");
@@ -150,7 +105,6 @@ export function VendorIngestionDesk({
       ...prev,
       `--- PLAYWRIGHT DIAGNOSTIC HANDSHAKE COMMENCED [VENDOR = ${selectedPortal}] ---`
     ]);
-
     try {
       const response = await apiClient.post<PlaywrightRunResponse>("/api/agents/run", {
         agentName: selectedPortal === "HPE" ? "HPEMarketplace" : selectedPortal === "Dell" ? "DellPremierPortal" : "AribaScraper",
@@ -158,7 +112,6 @@ export function VendorIngestionDesk({
         targetPortalUrl: selectedPortal === "HPE" ? "https://partner.hpe.com/ready/login" : selectedPortal === "Dell" ? "https://premier.dell.com" : "https://commerce.cisco.com/ccw",
         bypassCaptchas: true
       });
-
       const data = response.data;
       if (data.logTrail && Array.isArray(data.logTrail)) {
         setConsoleLogs((prev) => [
@@ -195,7 +148,6 @@ export function VendorIngestionDesk({
       populateMockError(err);
     }
   }
-
   function handleSaveCredentials() {
     showToast(`${selectedPortal} Sourcing portal credentials stored securely.`, "success");
     setConsoleLogs((prev) => [
@@ -203,7 +155,6 @@ export function VendorIngestionDesk({
       `[Vault] Credentials altered and re-committed into secure memory vault.`
     ]);
   }
-
   function handleSubstitute(adviceId: string, partNumber: string, name: string) {
     setAdviceResolutions((prev) => prev.filter(a => a.id !== adviceId));
     setConsoleLogs((prev) => [
@@ -213,13 +164,11 @@ export function VendorIngestionDesk({
     ]);
     showToast(`SKU substituted to ${partNumber} — error resolved & rule learned!`, "success");
   }
-
   function handleLearn(targetSku: string, resolvedSku: string, vendorId: string, issueId: string) {
     setConsoleLogs((prev) => [
       ...prev,
       `[LEARNING] Intelligence rule created: ${targetSku} → ${resolvedSku}. Future BOQ scans will auto-resolve this pattern.`,
     ]);
-
     const newLearnedRule: SourcingRule = {
       id: crypto.randomUUID(),
       ruleType: "substitution",
@@ -245,16 +194,13 @@ export function VendorIngestionDesk({
       vendor: vendorId,
       preventedMismatchCount: 1,
     };
-
     setSourcingRules((prev) => {
       const exists = prev.some(r => r.partNumber === targetSku && r.mappedOutput === resolvedSku);
       if (exists) return prev;
       return [newLearnedRule, ...prev];
     });
-
     setLearningEvents((prev) => [newEvent, ...prev].slice(0, 50));
   }
-
   return (
     <div className="p-4 rounded-xl border bg-surface-elevated/80 border-indigo-500/15 flex flex-col gap-4 shadow-xl">
       <VendorCredentialsCard
@@ -276,9 +222,7 @@ export function VendorIngestionDesk({
         handleRunPortalTest={handleRunPortalTest}
         showToast={showToast}
       />
-
       <VendorConsoleLogs lastTested={lastTested} consoleLogs={consoleLogs} />
-
       {/* Generic Advice Sheet Resolution Panel */}
       {adviceResolutions.length > 0 && (
         <AdviceResolutionPanel
@@ -295,4 +239,48 @@ export function VendorIngestionDesk({
       )}
     </div>
   );
+}
+
+// eslint-disable-next-line complexity
+function resolvePortalConfig(selectedPortal: string) {
+  const vendorData = VENDORS.find(v => v.shortName === selectedPortal) || VENDORS[0];
+  if (selectedPortal === "HPE") {
+    return {
+      username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",
+      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
+      password: vendorData.credentials?.password || "HPE-S0urcing-2026!",
+      mfaToken: vendorData.credentials?.mfaToken || "RO7K-9154-A24B",
+      authStatus: "authorized" as const,
+      defaultLogs: [
+        "[08:34:10] [Manager] - Loading HPE Partner Ready configuration credentials...",
+        "[08:34:11] [CredentialVault] - Decrypted corporate client TLS connection certificates.",
+        "[08:34:12] [Daemon] - Playwright connection verified with hpe.com secure tunnel gateway.",
+      ],
+    };
+  }
+  if (selectedPortal === "Dell") {
+    return {
+      username: vendorData.credentials?.username || "dell_premier_procurement_lead",
+      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
+      password: vendorData.credentials?.password || "DellAdminSecure3902!!",
+      mfaToken: vendorData.credentials?.mfaToken || "DL-9824-MFA-X2",
+      authStatus: "authorized" as const,
+      defaultLogs: [
+        "[09:10:02] [Manager] - Dell Premier portal authentication state valid.",
+        "[09:10:05] [Scraper] - Handshake completed. 1 corporate customer account linked.",
+      ],
+    };
+  }
+  return {
+    username: vendorData.credentials?.username || "cisco_commerce_workspace_api",
+    // eslint-disable-next-line sonarjs/no-hardcoded-passwords
+    password: vendorData.credentials?.password || "Cisco#CCW#Tunnel99",
+    mfaToken: vendorData.credentials?.mfaToken || "CSCO-AUTH-9999",
+    authStatus: "expired" as const,
+    defaultLogs: [
+      "[10:12:05] [Manager] - CCW token detected: EXPIRED.",
+      "[10:12:06] [CCW-Gate] - Playwright browser automation requires rotating session refresh token.",
+      "[10:12:07] [MFA-Gate] - Awaiting manual MFA trigger or Playwright browser re-authentication.",
+    ],
+  };
 }

@@ -6,7 +6,7 @@ import { DataPersistenceGate } from '../../src/components/shared/DataPersistence
 describe('05 - Data Persistence Gate Integration', () => {
   it('should render children if state is healthy', () => {
     render(
-      <DataPersistenceGate ucids={[]} vendors={[]} catalogSkus={[]}>
+      <DataPersistenceGate solutions={[]} ucids={[]} vendors={[]} catalogSkus={[]}>
         <div data-testid="healthy-child">Healthy Content</div>
       </DataPersistenceGate>
     );
@@ -16,7 +16,7 @@ describe('05 - Data Persistence Gate Integration', () => {
 
   it('should trap malformed arrays and render corruption view without crashing', () => {
     render(
-      <DataPersistenceGate ucids={null as any} vendors={[]} catalogSkus={[]}>
+      <DataPersistenceGate solutions={[]} ucids={null as any} vendors={[]} catalogSkus={[]}>
         <div data-testid="healthy-child">Healthy Content</div>
       </DataPersistenceGate>
     );
@@ -29,7 +29,7 @@ describe('05 - Data Persistence Gate Integration', () => {
     const corruptedUcids = [{ id: 'missing-display-id' }] as any;
 
     render(
-      <DataPersistenceGate ucids={corruptedUcids} vendors={[]} catalogSkus={[]}>
+      <DataPersistenceGate solutions={[]} ucids={corruptedUcids} vendors={[]} catalogSkus={[]}>
         <div data-testid="healthy-child">Healthy Content</div>
       </DataPersistenceGate>
     );

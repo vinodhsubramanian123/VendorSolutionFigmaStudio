@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { Plus, Layers, Camera } from "lucide-react";
+import {  Layers, Camera } from "lucide-react";
 import { useToast } from "../shared/ToastContext";
 import type { UCID, Snapshot } from "../../types";
 import { useSnapshotManagerLogic } from "./useSnapshotManagerLogic";
 import { CreateSnapshotForm } from "./CreateSnapshotForm";
 import { SnapshotListItem } from "./SnapshotListItem";
-
 interface SnapshotManagerProps {
   activeUCID: UCID | undefined;
   ucids: UCID[];
@@ -15,7 +14,6 @@ interface SnapshotManagerProps {
   toggleCompareSelected: (snapId: string) => void;
   compareAgainstCurrent: boolean;
 }
-
 export function SnapshotManager({
   activeUCID,
   ucids,
@@ -25,32 +23,19 @@ export function SnapshotManager({
   compareAgainstCurrent,
 }: SnapshotManagerProps) {
   const toast = useToast();
-
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [expandedBoms, setExpandedBoms] = useState<Record<string, boolean>>({});
-
   // Creation form inputs
   const [newLabel, setNewLabel] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [newWinner, setNewWinner] = useState("");
-
   const snapshotsList = activeUCID?.snapshots || [];
-
   const {
     handleCreateSnapshot,
     handleToggleLock,
     handleDeleteSnapshot
   } = useSnapshotManagerLogic(activeUCID, ucids, setUcids, setIsCreateOpen);
-
-  // Fill in helper default text whenever active UCID changes or modal opens
-  useEffect(() => {
-    if (activeUCID) {
-      setNewLabel(`Snapshot v${(activeUCID.snapshots?.length || 0) + 1}.0 — Compliance Baseline`);
-      setNewWinner(activeUCID.solutions?.[0]?.vendorSubmissions?.[0]?.label || "Consolidated Sourcing");
-      setNewNotes("");
-    }
-  }, [activeUCID, isCreateOpen]);
-
+  // State is populated on button click instead of using useEffect
   const getBomConfigs = (snap: Snapshot) => {
     if (snap.bomSnapshot && Array.isArray(snap.bomSnapshot) && snap.bomSnapshot.length > 0) {
       return snap.bomSnapshot;
@@ -60,14 +45,12 @@ export function SnapshotManager({
     }
     return [];
   };
-
   const toggleBomExpanded = (snapId: string) => {
     setExpandedBoms((prev) => ({
       ...prev,
       [snapId]: !prev[snapId],
     }));
   };
-
   return (
     <div className="space-y-4">
       {/* Action Header bar */}
@@ -80,7 +63,6 @@ export function SnapshotManager({
             {activeUCID?.displayId || "No UCID"} • Baseline Ledger
           </span>
         </div>
-
         <button
           type="button"
           data-testid="btn-capture-snapshot"
@@ -88,6 +70,11 @@ export function SnapshotManager({
             if (!activeUCID?.solutions?.length || activeUCID.solutions.length === 0) {
               toast.error("Please ensure the configuration is ingested before saving a snapshot.");
               return;
+            }
+            if (!isCreateOpen) {
+              setNewLabel(`Snapshot v${(activeUCID.snapshots?.length || 0) + 1}.0 — Compliance Baseline`);
+              setNewWinner(activeUCID.solutions?.[0]?.vendorSubmissions?.[0]?.label || "Consolidated Sourcing");
+              setNewNotes("");
             }
             setIsCreateOpen(!isCreateOpen);
           }}
@@ -97,7 +84,6 @@ export function SnapshotManager({
           <span>Capture Snapshot</span>
         </button>
       </div>
-
       {/* Embedded New Snapshot Creation Drawer/Form */}
       <AnimatePresence>
         {isCreateOpen && (
@@ -114,7 +100,6 @@ export function SnapshotManager({
           />
         )}
       </AnimatePresence>
-
       {/* SNAPSHOT LIST VIEW */}
       <div className="space-y-2.5">
         {snapshotsList.length === 0 ? (
@@ -130,7 +115,6 @@ export function SnapshotManager({
             const isPicked = selectedForCompare.includes(snap.id);
             const configs = getBomConfigs(snap);
             const isExpanded = !!expandedBoms[snap.id];
-
             return (
               <SnapshotListItem
                 key={snap.id}

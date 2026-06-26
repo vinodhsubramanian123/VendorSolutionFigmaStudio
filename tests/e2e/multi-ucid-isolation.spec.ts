@@ -37,7 +37,7 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
 
   test('completing a step on one UCID must not alter sibling UCIDs and must save selectedVendorSubmissionId', async ({ page }) => {
     // 1. Capture base state of UCIDs
-    const baseUcids = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+    const baseUcids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
     const ucid1 = baseUcids[0];
     const ucid2 = baseUcids[1];
 
@@ -61,7 +61,7 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
     }
 
     // 4. Assert mutations
-    const updatedUcids = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+    const updatedUcids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
     const u1After = updatedUcids.find((u: any) => u.id === ucid1.id);
     const u2After = updatedUcids.find((u: any) => u.id === ucid2.id);
 

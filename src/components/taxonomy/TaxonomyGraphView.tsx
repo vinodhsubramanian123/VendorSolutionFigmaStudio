@@ -2,25 +2,49 @@ import React, { useState, useMemo } from 'react';
 import { 
   Network, 
   RefreshCw, 
-  Filter
+  Filter,
+  ChevronDown
 } from 'lucide-react';
+import { useCoreStore } from "../../store/coreStore";
 import { useCatalogGraphData } from "../../hooks/useCatalogGraphData";
 import type { Config, CatalogSKU, Vendor } from "../../types";
-import { TaxonomyCategoryTree } from "./TaxonomyCategoryTree";
-import { TaxonomyOrphanBox } from "./TaxonomyOrphanBox";
 import { TaxonomyGraphSidebar } from "./TaxonomyGraphSidebar";
 import { KnowledgeGraphCanvas } from "./KnowledgeGraphCanvas";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
-
 const DEFAULT_CONFIGS: Config[] = [{ id: "cfg-base", vendor: "HPE", name: "Base Configuration", totalPrice: 0, originalPrice: 0, items: [] }];
-
 interface TaxonomyGraphViewProps {
   catalogSkus: CatalogSKU[];
   setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
   vendors: Vendor[];
 }
-
 export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: TaxonomyGraphViewProps) {
+  const solutions = useCoreStore(s => s.solutions);
+  const ucids = useCoreStore(s => s.ucids);
+  const activeSolutionIdFromStore = useCoreStore(s => s.activeSolutionId);
+  
+  const [selectedSolutionId, setSelectedSolutionId] = useState<string>(activeSolutionIdFromStore || solutions[0]?.id || "");
+  const selectedSolution = useMemo(() => solutions.find(s => s.id === selectedSolutionId), [solutions, selectedSolutionId]);
+  
+  const availableUcids = useMemo(() => ucids.filter(u => selectedSolution?.ucidIds.includes(u.id)), [ucids, selectedSolution]);
+  
+  const [selectedUcidId, setSelectedUcidId] = useState<string>(availableUcids[0]?.id || "");
+
+  React.useEffect(() => {
+    if (selectedSolution && availableUcids.length > 0 && !availableUcids.some(u => u.id === selectedUcidId)) {
+      setSelectedUcidId(availableUcids[0].id);
+    }
+  }, [selectedSolution, availableUcids, selectedUcidId]);
+
+  const activeUcid = useMemo(() => ucids.find(u => u.id === selectedUcidId), [ucids, selectedUcidId]);
+  
+  const activeConfigs = useMemo(() => {
+    if (!activeUcid) return DEFAULT_CONFIGS;
+    // Extract configs from the primary solution of the UCID if available
+    const primarySol = activeUcid.solutions?.[0];
+    const configs = primarySol?.vendorSubmissions?.[0]?.configs;
+    return configs && configs.length > 0 ? configs : DEFAULT_CONFIGS;
+  }, [activeUcid]);
+
   const { 
     data, 
     isLoading, 
@@ -35,13 +59,12 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
     addGraphEdge,
     deleteGraphEdge
   } = useCatalogGraphData(
-    "cfg-base", 
-    DEFAULT_CONFIGS, 
+    activeUcid?.id || "cfg-base", 
+    activeConfigs, 
     catalogSkus
   );
-
   // States
-  const [expandedNode, setExpandedNode] = useState<string | null>(null);
+  const [, setExpandedNode] = useState<string | null>(null);
   const [filterOrphansOnly, setFilterOrphansOnly] = useState(false);
   
   const [activeTab, setActiveTab] = useState<"constraints" | "orphans" | "edges" | "paths" | "nodes">("constraints");
@@ -49,22 +72,16 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [activeSelectedPathId, setActiveSelectedPathId] = useState<string | null>(null);
-
   const toggleNode = (nodeId: string) => {
-    setExpandedNode(prev => prev === nodeId ? null : nodeId);
+    setExpandedNode((prev: string | null) => prev === nodeId ? null : nodeId);
   };
-
   // Filter lists of nodes
-  const rootNodes = useMemo(() => data.nodes.filter(n => n.type === "product"), [data.nodes]);
+  
   const categories = useMemo(() => data.nodes.filter(n => n.type === "category" || n.type === "category_hub"), [data.nodes]);
-  const skus = useMemo(() => data.nodes.filter(n => n.type === "sku"), [data.nodes]);
-
+  
   // Chassis & Processor options for constraint validator dropdowns
   const chassisOptions = useMemo(() => catalogSkus.filter(s => s.type === "Chassis" && s.status === "active"), [catalogSkus]);
   const cpuOptions = useMemo(() => catalogSkus.filter(s => s.type === "Processor" && s.status === "active"), [catalogSkus]);
-
-
-
   return (
     <ErrorBoundary>
       <div className="flex flex-col lg:flex-row gap-6 w-full h-full max-w-7xl mx-auto text-white">
@@ -77,11 +94,31 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
               <Network className="w-4 h-4 text-indigo-400" />
               Taxonomy Graph Canvas
             </h2>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              Drag to pan. Scroll or use buttons to zoom. Click nodes to inspect constraints.
-            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <select
+                className="bg-surface-elevated border border-white/10 text-white text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
+                value={selectedSolutionId}
+                onChange={(e) => setSelectedSolutionId(e.target.value)}
+              >
+                {solutions.length === 0 ? <option value="">No Solutions</option> : null}
+                {solutions.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              
+              <select
+                className="bg-surface-elevated border border-white/10 text-white text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
+                value={selectedUcidId}
+                onChange={(e) => setSelectedUcidId(e.target.value)}
+                disabled={!selectedSolutionId || availableUcids.length === 0}
+              >
+                {availableUcids.length === 0 ? <option value="">No Configs</option> : null}
+                {availableUcids.map(u => (
+                  <option key={u.id} value={u.id}>{u.configLabel || u.displayId}</option>
+                ))}
+              </select>
+            </div>
           </div>
-
           <div className="flex items-center gap-2 flex-wrap">
             <button type="button" 
               onClick={() => setFilterOrphansOnly(!filterOrphansOnly)}
@@ -90,7 +127,6 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
               <Filter className="w-3.5 h-3.5" />
               <span>{filterOrphansOnly ? 'Showing Orphans' : 'Filter Orphans'}</span>
             </button>
-
             <button type="button" 
               onClick={() => refresh()}
               disabled={isLoading}
@@ -101,7 +137,6 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
             </button>
           </div>
         </div>
-
         {/* Viewport Canvas Container (Phase 3 Integration) */}
         <div className="relative flex-1 w-full border border-indigo-500/10 rounded-xl overflow-hidden min-h-[560px]">
           {isLoading ? (
@@ -135,7 +170,6 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
           )}
         </div>
       </div>
-
       {/* RIGHT: Mechanical Validation & Orphan Repair Workshop */}
       <TaxonomyGraphSidebar
         catalogSkus={catalogSkus}

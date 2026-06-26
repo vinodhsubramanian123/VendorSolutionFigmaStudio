@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { useLocalStorageState } from '../../src/hooks/useLocalStorageState';
+import { useCoreStore } from '../../src/store/coreStore';
 
 function SyncTestComponent() {
-  const [ucids] = useLocalStorageState<any[]>('sys_ucids', []);
+  const ucids = useCoreStore((s) => s.ucids);
 
   return (
     <div>
@@ -17,19 +17,18 @@ function SyncTestComponent() {
 }
 
 describe('04 - Cross Component Sync Integration', () => {
-  it('should reflect local storage updates via vsip_localstorage_update event without reload', async () => {
+  it('should reflect store updates without reload', async () => {
+    // Reset store
+    useCoreStore.setState({ ucids: [] });
     render(<SyncTestComponent />);
 
     expect(screen.getByTestId('ucid-count').textContent).toBe('0');
 
-    // Simulate another component updating the localStorage and dispatching the event
-    const newUcids = [{ id: 'mock', currentStep: 'vendor-provisioning' }];
+    // Simulate another component updating the store
+    const newUcids = [{ id: 'mock', currentStep: 'vendor-provisioning' }] as any[];
     
     act(() => {
-      localStorage.setItem('sys_ucids', JSON.stringify(newUcids));
-      window.dispatchEvent(new CustomEvent('vsip_localstorage_update', {
-        detail: { key: 'sys_ucids', value: newUcids }
-      }));
+      useCoreStore.setState({ ucids: newUcids });
     });
 
     // The component should automatically re-render with the new state

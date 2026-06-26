@@ -4,7 +4,7 @@ import { useCatalogGraphData } from '../../src/hooks/useCatalogGraphData';
 import type { Config } from '../../src/types';
 import { apiClient } from '../../src/services/apiClient';
 
-vi.mock('../../services/apiClient', () => ({
+vi.mock('../../src/services/apiClient', () => ({
   apiClient: {
     getGraphSolution: vi.fn(),
     postMapOrphanNode: vi.fn(),

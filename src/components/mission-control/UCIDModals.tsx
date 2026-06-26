@@ -57,8 +57,9 @@ export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEdi
           className="space-y-4"
         >
           <div className="space-y-1">
-            <label className="text-gray-400 font-semibold uppercase">Workspace Title</label>
+            <label htmlFor="editWorkspaceTitle" className="text-gray-400 font-semibold uppercase">Workspace Title</label>
             <input
+              id="editWorkspaceTitle"
               type="text"
               value={editingUcid.name}
               onChange={(e) => setEditingUcid({ ...editingUcid, name: e.target.value })}
@@ -69,8 +70,9 @@ export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEdi
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-gray-400 font-semibold uppercase">Project Code Ref</label>
+              <label htmlFor="editProjectRef" className="text-gray-400 font-semibold uppercase">Project Code Ref</label>
               <input
+                id="editProjectRef"
                 type="text"
                 value={editingUcid.projectRef}
                 onChange={(e) => setEditingUcid({ ...editingUcid, projectRef: e.target.value })}
@@ -79,8 +81,9 @@ export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEdi
               />
             </div>
             <div className="space-y-1">
-              <label className="text-gray-400 font-semibold uppercase">Priority</label>
+              <label htmlFor="editPriority" className="text-gray-400 font-semibold uppercase">Priority</label>
               <select
+                id="editPriority"
                 value={editingUcid.priority}
                 onChange={(e) =>
                   setEditingUcid({

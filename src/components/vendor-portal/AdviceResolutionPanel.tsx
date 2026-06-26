@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   AlertTriangle,
   Search,
-  CheckCircle2,
+  
   ArrowRight,
   X,
   RefreshCw,
@@ -11,7 +11,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import type { AdviceResolution, CatalogSKU, UCID } from "../../types";
-
 interface AdviceResolutionPanelProps {
   advice: AdviceResolution[];
   catalogSkus: CatalogSKU[];
@@ -21,13 +20,11 @@ interface AdviceResolutionPanelProps {
   onLearn: (targetSku: string, resolvedSku: string, vendorId: string, issueId: string) => void;
   activeUcid?: UCID;
 }
-
 const SEVERITY_CFG = {
   critical: { label: "CRITICAL", color: "text-red-400", bg: "bg-red-500/8", border: "border-red-500/20" },
   warning: { label: "WARNING", color: "text-amber-400", bg: "bg-amber-500/8", border: "border-amber-500/20" },
   info: { label: "INFO", color: "text-blue-400", bg: "bg-blue-500/8", border: "border-blue-500/20" }
 };
-
 export function AdviceResolutionPanel({
   advice,
   catalogSkus,
@@ -39,7 +36,6 @@ export function AdviceResolutionPanel({
 }: AdviceResolutionPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(advice[0]?.id || null);
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
-
   // Active BOM SKU set
   const activeBomSkus = useMemo(() => {
     const set = new Set<string>();
@@ -52,7 +48,6 @@ export function AdviceResolutionPanel({
     });
     return set;
   }, [activeUcid]);
-
   const suggestions = useMemo(() => {
     const result: Record<string, CatalogSKU[]> = {};
     for (const item of advice) {
@@ -71,9 +66,7 @@ export function AdviceResolutionPanel({
     }
     return result;
   }, [advice, catalogSkus, vendor, searchTerms]);
-
   if (advice.length === 0) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -98,7 +91,6 @@ export function AdviceResolutionPanel({
           </p>
         </div>
       </div>
-
       {/* Error List */}
       <div className="divide-y divide-white/[0.04]">
         <AnimatePresence initial={false}>
@@ -106,7 +98,6 @@ export function AdviceResolutionPanel({
             const cfg = SEVERITY_CFG[err.severity];
             const isExpanded = expandedId === err.id;
             const candidates = suggestions[err.id] || [];
-
             return (
               <motion.div
                 key={err.id}
@@ -162,7 +153,6 @@ export function AdviceResolutionPanel({
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
                 {/* Expanded Search View */}
                 <AnimatePresence>
                   {isExpanded && (
@@ -183,7 +173,6 @@ export function AdviceResolutionPanel({
                           className="flex-1 bg-transparent text-[11px] text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 font-mono"
                         />
                       </div>
-
                       {/* Suggested alternates */}
                       {candidates.length > 0 ? (
                         <div className="space-y-1.5">
@@ -232,7 +221,6 @@ export function AdviceResolutionPanel({
           })}
         </AnimatePresence>
       </div>
-
       <div className="p-3 border-t border-white/5 bg-black/15 flex items-center justify-between">
         <p className="text-[10px] text-gray-600 font-mono">
           Resolving constraints updates the Active BOM and commits an intelligence rule.

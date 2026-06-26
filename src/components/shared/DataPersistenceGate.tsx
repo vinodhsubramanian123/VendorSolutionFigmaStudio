@@ -1,14 +1,16 @@
 import React from "react";
 import { AlertCircle, Database, RefreshCw, AlertTriangle } from "lucide-react";
 import { motion } from "motion/react";
-import type { UCID, Vendor, CatalogSKU } from "../../types";
+import type { UCID, Vendor, CatalogSKU, SolutionProject } from "../../types";
 import { UCIDSchema, VendorSchema, CatalogSKUSchema } from "../../types";
+import { SolutionProjectSchema } from "../../types/schemas/schemaUCID";
 import { z } from "zod";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 interface DataPersistenceGateProps {
   children: React.ReactNode;
   ucids: UCID[];
+  solutions: SolutionProject[];
   vendors: Vendor[];
   catalogSkus: CatalogSKU[];
   isPendingAPI?: boolean;
@@ -20,6 +22,7 @@ interface DataPersistenceGateProps {
 export function DataPersistenceGate({
   children,
   ucids,
+  solutions,
   vendors,
   catalogSkus,
   isPendingAPI,
@@ -29,6 +32,7 @@ export function DataPersistenceGate({
 }: DataPersistenceGateProps) {
   // Synchronously compute data health to avoid any intermediate layout flickers or loading screens on state changes
   const isUcidsValid = Array.isArray(ucids);
+  const isSolutionsValid = Array.isArray(solutions);
   const isVendorsValid = Array.isArray(vendors);
   const isCatalogValid = Array.isArray(catalogSkus);
   
@@ -36,6 +40,7 @@ export function DataPersistenceGate({
   const schemaDrift = React.useMemo(() => {
     try {
       const ucidCheck = z.array(UCIDSchema).safeParse(ucids);
+      const solutionCheck = z.array(SolutionProjectSchema).safeParse(solutions);
       const vendorCheck = z.array(VendorSchema).safeParse(vendors);
       const catalogCheck = z.array(CatalogSKUSchema).safeParse(catalogSkus);
 
@@ -43,6 +48,10 @@ export function DataPersistenceGate({
       if (!ucidCheck.success) {
         const msgs = ucidCheck.error.issues.map(e => e.path.join(".") + ": " + e.message);
         errors.push("UCID Schema Mismatch: " + msgs.join(", "));
+      }
+      if (!solutionCheck.success) {
+        const msgs = solutionCheck.error.issues.map(e => e.path.join(".") + ": " + e.message);
+        errors.push("Solution Schema Mismatch: " + msgs.join(", "));
       }
       if (!vendorCheck.success) {
         const msgs = vendorCheck.error.issues.map(e => e.path.join(".") + ": " + e.message);
@@ -71,12 +80,13 @@ export function DataPersistenceGate({
       console.error("Zod verification crashed:", e);
       return { aligned: false, errors: ["Zod verification crashed."] };
     }
-  }, [ucids, vendors, catalogSkus]);
+  }, [ucids, solutions, vendors, catalogSkus]);
 
-  const isHealthy = isUcidsValid && isVendorsValid && isCatalogValid && schemaDrift.aligned;
+  const isHealthy = isUcidsValid && isSolutionsValid && isVendorsValid && isCatalogValid && schemaDrift.aligned;
 
   const handleRestoreSession = () => {
     localStorage.removeItem("sys_ucids");
+    localStorage.removeItem("sys_solutions");
     localStorage.removeItem("sys_vendors");
     localStorage.removeItem("sys_catalog_skus");
     window.location.reload();

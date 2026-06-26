@@ -112,6 +112,12 @@ export const SAMPLE_INGEST_RESPONSE = {
       }
     ],
     snapshots: [],
+    solutionId: "44444444-4444-4444-8444-444444444444",
+    solutionDisplayId: "SOL-2026-001",
+    configIndex: 1,
+    configLabel: "Dell Config",
+    parallelGroup: null,
+
   },
 };
 
@@ -332,6 +338,7 @@ export const SAMPLE_GRAPH_API_RESPONSE = {
     { id: "edge-1", source: "proc-99", target: "ch-101", relationship: "depends on" },
     { id: "edge-2", source: "ch-101", target: "ch-101-sub", relationship: "hierarchy" }
   ],
+  unmappedIds: [],
 };
 
 // Self-Diagnostic Test Suite: Asserts that all example objects validate flawlessly against our Zod validators

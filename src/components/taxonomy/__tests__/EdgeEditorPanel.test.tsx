@@ -52,7 +52,7 @@ describe('EdgeEditorPanel', () => {
     });
     
     await waitFor(() => {
-      expect(apiClient.updateGraphEdge).toHaveBeenCalledWith('edge-1', 0.5);
+      expect(apiClient.updateGraphEdge).toHaveBeenCalledWith('edge-1', { weight: 0.5 });
     });
   });
 

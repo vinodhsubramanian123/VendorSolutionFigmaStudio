@@ -14,6 +14,8 @@ import { Button } from "../shared/Button";
 import type { Solution, Config } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 
+import type { IngestionPreset } from "../../store/ingestionStore";
+
 interface BoqResponsePayload {
   ucid: string;
   solutions?: Solution[];
@@ -25,10 +27,8 @@ interface BoqResponsePayload {
 }
 
 interface BoqIngestWorkbookProps {
-  selectedPreset: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
-  setSelectedPreset: (
-    val: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry",
-  ) => void;
+  selectedPreset: IngestionPreset;
+  setSelectedPreset: (val: IngestionPreset) => void;
   boqFile: string;
   isBOQIngesting: boolean;
   boqProgress: number;
@@ -36,7 +36,7 @@ interface BoqIngestWorkbookProps {
   boqError: string;
   onTriggerBOQParse: (
     fileName: string,
-    preset: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry",
+    preset: IngestionPreset,
   ) => void;
   onSplitAndProvision: () => void;
 }
@@ -124,6 +124,10 @@ export function BoqIngestWorkbook({
           {/* Ingest Dropzone */}
           <div
             id="boq-dropzone"
+            role="button"
+            tabIndex={0}
+            aria-label="Upload BOQ spreadsheet"
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") document.getElementById("hub-boq-picker")?.click(); }}
             onDragOver={handleDragOver}
             onDrop={handleBOQDrop}
             onClick={() => document.getElementById("hub-boq-picker")?.click()}

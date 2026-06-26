@@ -7,6 +7,7 @@ interface BomPhysicalConstraintsPanelProps {
   bomVerifyResult: ConstraintCheckResponse;
 }
 
+// eslint-disable-next-line complexity
 export function BomPhysicalConstraintsPanel({ bomVerifyResult }: BomPhysicalConstraintsPanelProps) {
   return (
     <div className="bg-surface-card rounded-lg border border-white/5 p-4 space-y-4">

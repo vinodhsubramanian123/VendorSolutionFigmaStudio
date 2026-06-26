@@ -54,7 +54,7 @@ describe('CatalogTypeFilters Component', () => {
     expect(procBtn).toHaveClass('bg-indigo-500');
   });
 
-  it('calls setTypeFilter and setSelectedPath when a button is clicked', () => {
+  it('calls setTypeFilter when a button is clicked', () => {
     const setTypeFilter = vi.fn();
     const setSelectedPath = vi.fn();
 
@@ -68,16 +68,10 @@ describe('CatalogTypeFilters Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Chassis'));
+    const chassisButton = screen.getByRole('button', { name: /Chassis/i });
+    fireEvent.click(chassisButton);
 
     expect(setTypeFilter).toHaveBeenCalledWith('chassis');
-    expect(setSelectedPath).toHaveBeenCalledWith({
-      vendor: 'all',
-      solution: 'all',
-      product: 'all',
-      generation: 'all',
-      chassis: 'all'
-    });
   });
 
   it('falls back to 0 matchesCount if the type is not present in typeCounts', () => {

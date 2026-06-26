@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { Network, HelpCircle } from 'lucide-react';
 import type { GraphNode, GraphEdge } from '../../types/data';
 import { useToast } from '../shared/ToastContext';
 import { apiClient } from '../../services/apiClient';
-
 interface EdgeEditorPanelProps {
   data: { nodes: GraphNode[], edges: GraphEdge[] };
   selectedEdgeId?: string | null;
@@ -11,7 +10,6 @@ interface EdgeEditorPanelProps {
   deleteGraphEdge?: (edgeId: string) => Promise<boolean>;
   addGraphEdge?: (edge: Partial<GraphEdge>) => Promise<boolean>;
 }
-
 export function EdgeEditorPanel({
   data,
   selectedEdgeId,
@@ -28,15 +26,13 @@ export function EdgeEditorPanel({
   const [newEdgeTarget, setNewEdgeTarget] = useState("");
   const [newEdgeRelationship, setNewEdgeRelationship] = useState<"requires" | "substitutes" | "compatible" | "conflicts">("requires");
   const [newEdgeWeight, setNewEdgeWeight] = useState(1.0);
-
   // When selectedEdgeId changes, maybe update edgeWeight?
   // Not explicitly requested but it's good practice. For now keeping it simple as it was.
-
   const handleUpdateEdge = async () => {
     if (!selectedEdgeId) return;
     setIsUpdatingEdge(true);
     try {
-      const res = await apiClient.updateGraphEdge(selectedEdgeId, edgeWeight);
+      const res = await apiClient.updateGraphEdge(selectedEdgeId, { weight: edgeWeight });
       if (res.success) {
         toast(`Edge ${selectedEdgeId} weight updated to ${edgeWeight}.`, "success");
         if (setSelectedEdgeId) setSelectedEdgeId(null);
@@ -50,7 +46,6 @@ export function EdgeEditorPanel({
       setIsUpdatingEdge(false);
     }
   };
-
   return (
     <div className="flex-1 flex flex-col justify-between gap-4">
       <div className="space-y-3.5">
@@ -61,14 +56,12 @@ export function EdgeEditorPanel({
         <p className="text-[10px] text-gray-400 leading-normal">
           Modify graph edge heuristics like substitution weights or compatibility scores.
         </p>
-
         {selectedEdgeId ? (
           <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs">
             <div>
               <span className="text-[9px] font-mono text-gray-400 uppercase block">Selected Edge</span>
               <strong className="text-indigo-300 font-mono text-xs">{selectedEdgeId}</strong>
             </div>
-
             <div className="space-y-1.5 pt-2 border-t border-white/5">
               <label htmlFor="edge-weight" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide block">
                 Heuristic Weight / Preference Score
@@ -85,7 +78,6 @@ export function EdgeEditorPanel({
               />
               <p className="text-[8px] text-gray-500 font-mono mt-1">1.0 = Absolute Requirement | 0.5 = Moderate Substitute</p>
             </div>
-
             <button type="button"
               onClick={handleUpdateEdge}
               disabled={isUpdatingEdge}
@@ -93,7 +85,6 @@ export function EdgeEditorPanel({
             >
               {isUpdatingEdge ? "Syncing..." : "Update Edge Weight"}
             </button>
-
             <button type="button" 
               onClick={async () => {
                 if (deleteGraphEdge && selectedEdgeId) {
@@ -110,7 +101,6 @@ export function EdgeEditorPanel({
             >
               Delete Edge
             </button>
-
             <button type="button" 
               onClick={() => setSelectedEdgeId && setSelectedEdgeId(null)}
               className="w-full text-center text-[9px] font-mono text-gray-500 hover:text-gray-300 border-0 bg-transparent cursor-pointer mt-1"
@@ -130,13 +120,13 @@ export function EdgeEditorPanel({
             </button>
           </div>
         )}
-
         {isCreatingEdge && !selectedEdgeId && (
           <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs mt-2">
             <div className="text-[10px] font-bold font-mono text-indigo-300 uppercase">Create Edge</div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Source Node</label>
+              <label htmlFor="newEdgeSource" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Source Node</label>
               <select
+                id="newEdgeSource"
                 value={newEdgeSource}
                 onChange={e => setNewEdgeSource(e.target.value)}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
@@ -146,8 +136,9 @@ export function EdgeEditorPanel({
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Target Node</label>
+              <label htmlFor="newEdgeTarget" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Target Node</label>
               <select
+                id="newEdgeTarget"
                 value={newEdgeTarget}
                 onChange={e => setNewEdgeTarget(e.target.value)}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
@@ -157,8 +148,9 @@ export function EdgeEditorPanel({
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Relationship</label>
+              <label htmlFor="newEdgeRelationship" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Relationship</label>
               <select
+                id="newEdgeRelationship"
                 value={newEdgeRelationship}
                 onChange={e => setNewEdgeRelationship(e.target.value as "requires" | "substitutes" | "compatible" | "conflicts")}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
@@ -170,8 +162,9 @@ export function EdgeEditorPanel({
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Weight</label>
+              <label htmlFor="newEdgeWeight" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Weight</label>
               <input
+                id="newEdgeWeight"
                 type="number" step="0.1"
                 value={newEdgeWeight}
                 onChange={e => setNewEdgeWeight(Number(e.target.value))}

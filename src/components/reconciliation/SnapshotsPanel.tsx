@@ -68,14 +68,13 @@ export function SnapshotsPanel({
     });
   };
 
-  if (!isOpen) return null;
-
   return (
     <>
       {/* SIDEBAR PANEL DRAWER */}
       <AnimatePresence>
-        <div className="fixed inset-0 z-50 overflow-hidden pointer-events-none text-left">
-          {/* Backdrop screen */}
+        {isOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden pointer-events-none text-left">
+            {/* Backdrop screen */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -198,7 +197,8 @@ export function SnapshotsPanel({
               )}
             </motion.div>
           </div>
-        </div>
+          </div>
+        )}
       </AnimatePresence>
 
       <SnapshotDiffModal

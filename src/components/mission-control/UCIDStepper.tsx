@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+/* eslint-disable sonarjs/cognitive-complexity */
 import React from "react";
 import {
   Upload,

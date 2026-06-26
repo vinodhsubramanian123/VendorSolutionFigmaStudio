@@ -8,6 +8,7 @@ import { useForm, Controller } from "react-hook-form";
 import { generateDisplayId } from "../../utils/generateDisplayId";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useCoreStore } from "../../store/coreStore";
 
 interface NewUCIDModalProps {
   onClose: () => void;
@@ -33,6 +34,10 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
       rawBOMText: ""
     }
   });
+
+  const activeSolutionId = useCoreStore(s => s.activeSolutionId);
+  const solutions = useCoreStore(s => s.solutions);
+  const activeSolution = solutions.find(s => s.id === activeSolutionId);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -62,6 +67,11 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
         },
       ],
       snapshots: [],
+      solutionId: activeSolutionId || "11111111-1111-1111-8111-111111111111",
+      solutionDisplayId: activeSolution?.displayId || "SOL-2026-001",
+      configIndex: (activeSolution?.configCount || 0) + 1,
+      configLabel: data.ucidName.trim(),
+      parallelGroup: null,
     };
 
     onCreate(newUCID);
@@ -100,10 +110,11 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 text-xs">
           <div className="space-y-1 text-left">
-            <label className="text-gray-400 font-semibold uppercase">
+            <label htmlFor="ucidName" className="text-gray-400 font-semibold uppercase">
               Workspace Title / Brief Target
             </label>
             <input
+              id="ucidName"
               type="text"
               {...register("ucidName")}
               placeholder="e.g. HPC Core Virtualization — 24 Node Cluster Gen11"
@@ -127,10 +138,11 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1 text-left">
-              <label className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="ucidRef" className="text-gray-400 font-semibold uppercase">
                 Project Code Ref
               </label>
               <input
+                id="ucidRef"
                 type="text"
                 {...register("ucidRef")}
                 className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
@@ -151,14 +163,14 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               </AnimatePresence>
             </div>
             <div className="space-y-1 text-left">
-              <label className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="priority" className="text-gray-400 font-semibold uppercase">
                 Workflow Priority
               </label>
               <Controller
                 name="priority"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onChange={field.onChange}>
+                  <Select id="priority" value={field.value} onChange={field.onChange}>
                     <option value="critical">Critical</option>
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
@@ -170,10 +182,11 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
           </div>
 
           <div className="space-y-1 text-left">
-            <label className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+            <label htmlFor="rawBOMText" className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
               BOQ Input Quantities / Raw Specification Text
             </label>
             <textarea
+              id="rawBOMText"
               {...register("rawBOMText")}
               placeholder="Paste Bills of Materials, part lists, line requests..."
               className="w-full h-24 p-2.5 rounded bg-black/30 border border-white/10 text-white text-xs font-mono"

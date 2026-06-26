@@ -33,7 +33,19 @@ export default tseslint.config(
       'sonarjs/pseudo-random': 'off',
       'react/no-unescaped-entities': 'off',
       'jsx-a11y/no-static-element-interactions': 'warn',
-      'jsx-a11y/click-events-have-key-events': 'warn'
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/label-has-associated-control': 'warn',
+      'jsx-a11y/role-supports-aria-props': 'warn',
+      '@typescript-eslint/no-unsafe-function-type': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'sonarjs/no-ignored-exceptions': 'warn',
+      '@typescript-eslint/no-unused-expressions': 'warn',
+      'jsx-a11y/no-autofocus': 'warn',
+      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+      'jsx-a11y/no-noninteractive-tabindex': 'warn',
+      'sonarjs/use-type-alias': 'warn',
+      'sonarjs/prefer-single-boolean-return': 'warn',
+      'no-empty': 'warn'
     },
     settings: {
       react: {

@@ -8,3 +8,16 @@ coverage/
 !.env.example
 playwright-report/
 test-results/
+
+# Lint/review artifacts (generated, never commit)
+eslint-warnings*.json
+eslint-final.log
+lint_json.json
+lint_output.txt
+
+# Debug artifacts
+debug.png
+debug*.png
+
+# One-off scripts (should live in a scripts/ dir if needed)
+remove-unused-imports.cjs

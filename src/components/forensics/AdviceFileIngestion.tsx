@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Upload, FileSpreadsheet, AlertCircle, ListFilter, FileText, Check, ArrowUpRight } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
-import type { SourcingRule } from "../../types";
-import { motion, AnimatePresence } from "motion/react";
 
+import { motion, AnimatePresence } from "motion/react";
 export interface AdviceTriageItem {
   id: string;
   ruleNumber: string | number;
@@ -13,11 +12,11 @@ export interface AdviceTriageItem {
   vendor: string;
   drafted?: boolean;
 }
-
 interface AdviceFileIngestionProps {
   onDraftAdviceRule: (item: AdviceTriageItem) => void;
   adviceItems: AdviceTriageItem[];
   setAdviceItems: React.Dispatch<React.SetStateAction<AdviceTriageItem[]>>;
+  // eslint-disable-next-line sonarjs/use-type-alias
   bomItems: Record<string, string | number | boolean | null>[];
   setBomItems: React.Dispatch<React.SetStateAction<Record<string, string | number | boolean | null>[]>>;
   configRows: Record<string, string | number | boolean | null>[];
@@ -27,7 +26,6 @@ interface AdviceFileIngestionProps {
   ignoredSheets: string[];
   setIgnoredSheets: React.Dispatch<React.SetStateAction<string[]>>;
 }
-
 export function AdviceFileIngestion({
   onDraftAdviceRule,
   adviceItems,
@@ -44,7 +42,6 @@ export function AdviceFileIngestion({
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileSubTab, setFileSubTab] = useState<"advice" | "bom" | "config">("advice");
-
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -54,7 +51,6 @@ export function AdviceFileIngestion({
       setIsDragging(false);
     }
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -65,19 +61,16 @@ export function AdviceFileIngestion({
       processUpload(file);
     }
   };
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       processUpload(file);
     }
   };
-
   const processUpload = async (file: File) => {
     setUploadedFile(file);
     const formData = new FormData();
     formData.append("file", file);
-
     try {
       const res = await apiClient.postForm<{
         adviceItems: AdviceTriageItem[];
@@ -97,7 +90,6 @@ export function AdviceFileIngestion({
       console.error("API parsing failed:", err);
     }
   };
-
   const handleResetUpload = () => {
     setUploadedFile(null);
     setAdviceItems([]);
@@ -106,10 +98,10 @@ export function AdviceFileIngestion({
     setIgnoredSheets([]);
     setUploadSuccess(false);
   };
-
   return (
     <div className="p-4 flex flex-col gap-4 max-h-[380px] overflow-y-auto custom-scrollbar flex-1">
       {!uploadSuccess ? (
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
         <div
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
@@ -156,7 +148,6 @@ export function AdviceFileIngestion({
               Clear
             </button>
           </div>
-
           {ignoredSheets.length > 0 && (
             <div className="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg text-left flex items-start gap-2 text-[10px] text-amber-200 leading-normal">
               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -168,7 +159,6 @@ export function AdviceFileIngestion({
               </div>
             </div>
           )}
-
           <div className="flex bg-black/25 border border-white/5 rounded-lg p-0.5 shrink-0 text-[10px]">
             <button type="button"
               onClick={() => setFileSubTab("advice")}
@@ -204,7 +194,6 @@ export function AdviceFileIngestion({
               Temp Config Trk ({configRows.length})
             </button>
           </div>
-
           <div className="min-h-0">
             {fileSubTab === "advice" && (
               <div className="space-y-2.5">
@@ -216,7 +205,6 @@ export function AdviceFileIngestion({
                           const bomSku = String(bom["Product #"] || bom["Product Number"] || bom["SKU"] || "").trim().split(/\s+/)[0];
                           return bomSku && String(item.productNumber).includes(bomSku);
                         });
-
                         return (
                           <motion.div 
                             layout
@@ -253,11 +241,9 @@ export function AdviceFileIngestion({
                               Rule ID: {item.ruleNumber}
                             </span>
                           </div>
-
                           <p className="text-[10.5px] text-gray-400 leading-relaxed font-medium whitespace-pre-wrap">
                             {item.adviceText}
                           </p>
-
                           <div className="flex justify-between items-center pt-2 border-t border-white/5 mt-1">
                             <span className="text-[9.5px] text-gray-500 font-mono">
                               Vendor Class: <span className="text-indigo-400 font-bold">{item.vendor}</span>
@@ -295,7 +281,6 @@ export function AdviceFileIngestion({
                 )}
               </div>
             )}
-
             {fileSubTab === "bom" && (
               <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1 text-left custom-scrollbar">
                 {bomItems.length > 0 ? (
@@ -315,7 +300,6 @@ export function AdviceFileIngestion({
                           const desc = String(item["Product Description"] || item["Description"] || "");
                           const qty = item["Qty"] || item["Quantity"] || 1;
                           const price = item["Unit Price (USD)"] || item["Price"] || "0.00";
-
                           return (
                             <motion.tr 
                               layout
@@ -343,7 +327,6 @@ export function AdviceFileIngestion({
                 )}
               </div>
             )}
-
             {fileSubTab === "config" && (
               <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-1 text-left custom-scrollbar">
                 {configRows.length > 0 ? (

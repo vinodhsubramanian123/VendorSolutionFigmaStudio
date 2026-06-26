@@ -1,6 +1,4 @@
-import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphPathSchema, GraphAPISchema, CatalogSKUSchema, VendorExtendedFieldsSchema, AdviceResolutionSchema, RuleConflictSchema } from '../zodSchemas';
-import { z } from 'zod';
-import { UCID, Snapshot, LogEvent, BOMItem, Solution, VendorSubmission, Config } from './core';
+import { UCID, Snapshot } from './core';
 
 export interface IngestBOMRequest {
   fileName: string;
@@ -237,6 +235,7 @@ export type AppView =
   | "catalog"
   | "vendor-portal"
   | "forensic"
+  | "solutions"
   | "solution-builder"
   | "reconciliation"
   | "search"

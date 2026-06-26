@@ -8,20 +8,10 @@ import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { DataPersistenceGate } from "./components/shared/DataPersistenceGate";
 import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
 import { GlobalApiErrorListener } from "./components/shared/GlobalApiErrorListener";
-import { useLocalStorageState } from "./hooks/useLocalStorageState";
+import { useCoreStore } from "./store/coreStore";
 import { ShimmerBlock } from "./components/shared/ShimmerBlock";
-import type { AppView } from "./types";
-
-// Import baseline mock data
-import {
-  UCIDS as INITIAL_UCIDS,
-  VENDORS as INITIAL_VENDORS,
-  CATALOG_SKUS as INITIAL_SKUS,
-  FORENSIC_ISSUES as INITIAL_ISSUES,
-} from "./lib/mockData";
-import type { Config, SourcingRule, LearningEvent } from "./types";
+import type { AppView, Config } from "./types";
 import { ActiveSourcingRules } from "./config/sourcingRules";
-import { INITIAL_RULES } from "./mocks/sourcingMocks";
 
 // Lazy-loaded Views
 const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -30,6 +20,7 @@ const CatalogManager = React.lazy(() => import("./components/catalog/CatalogMana
 const VendorPortal = React.lazy(() => import("./components/vendor-portal/VendorPortal").then(m => ({ default: m.VendorPortal })));
 const ForensicView = React.lazy(() => import("./components/forensics/ForensicView").then(m => ({ default: m.ForensicView })));
 const SolutionBuilder = React.lazy(() => import("./components/solution-builder/SolutionBuilder").then(m => ({ default: m.SolutionBuilder })));
+const SolutionManager = React.lazy(() => import("./components/solution-builder/SolutionManager").then(m => ({ default: m.SolutionManager })));
 const IngestionHub = React.lazy(() => import("./components/ingestion/IngestionHub").then(m => ({ default: m.IngestionHub })));
 const SearchView = React.lazy(() => import("./components/search/SearchView").then(m => ({ default: m.SearchView })));
 const ReconciliationView = React.lazy(() => import("./components/reconciliation/ReconciliationView").then(m => ({ default: m.ReconciliationView })));
@@ -41,36 +32,25 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [collapsed, setCollapsed] = useLocalStorageState(
-    "sys_sidebar_collapsed",
-    false,
-  );
-  const [activeMissionId, setActiveMissionId] = useLocalStorageState<
-    string | undefined
-  >("sys_active_mission", "u1");
+  const collapsed = useCoreStore(s => s.collapsed);
+  const setCollapsed = useCoreStore(s => s.setCollapsed);
+  const activeMissionId = useCoreStore(s => s.activeMissionId);
+  const setActiveMissionId = useCoreStore(s => s.setActiveMissionId);
 
   // Shared Global Reactive State Hub (Persisted)
-  const [ucids, setUcids] = useLocalStorageState<typeof INITIAL_UCIDS>("sys_ucids", INITIAL_UCIDS);
-  const [vendors, setVendors] = useLocalStorageState(
-    "sys_vendors",
-    INITIAL_VENDORS,
-  );
-  const [catalogSkus, setCatalogSkus] = useLocalStorageState(
-    "sys_catalog_skus",
-    INITIAL_SKUS,
-  );
-  const [forensicIssues, setForensicIssues] = useLocalStorageState<typeof INITIAL_ISSUES>(
-    "sys_forensic_issues",
-    INITIAL_ISSUES,
-  );
-  const [sourcingRules, setSourcingRules] = useLocalStorageState<SourcingRule[]>(
-    "sys_sourcing_intel_rules",
-    INITIAL_RULES
-  );
-  const [learningEvents, setLearningEvents] = useLocalStorageState<LearningEvent[]>(
-    "sys_learning_events",
-    []
-  );
+  const solutions = useCoreStore(s => s.solutions);
+  const ucids = useCoreStore(s => s.ucids);
+  const setUcids = useCoreStore(s => s.setUcids);
+  const vendors = useCoreStore(s => s.vendors);
+  const setVendors = useCoreStore(s => s.setVendors);
+  const catalogSkus = useCoreStore(s => s.catalogSkus);
+  const setCatalogSkus = useCoreStore(s => s.setCatalogSkus);
+  const forensicIssues = useCoreStore(s => s.forensicIssues);
+  const setForensicIssues = useCoreStore(s => s.setForensicIssues);
+  const sourcingRules = useCoreStore(s => s.sourcingRules);
+  const setSourcingRules = useCoreStore(s => s.setSourcingRules);
+  const learningEvents = useCoreStore(s => s.learningEvents);
+  const setLearningEvents = useCoreStore(s => s.setLearningEvents);
 
   // Graceful Migration of Snapshot objects inside ucids
   useEffect(() => {
@@ -78,6 +58,7 @@ export default function App() {
       let migrated = false;
       const nextUcids = prevUcids.map((u) => {
         let uMigrated = false;
+        // eslint-disable-next-line complexity
         const nextSnaps = (u.snapshots || []).map((s, idx) => {
           const fallbackVersion = s.version ?? (idx + 1);
           const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
@@ -137,24 +118,6 @@ export default function App() {
         )
       )
     );
-
-
-    if (globalHasEol) {
-      ucids.forEach(u => {
-        u.solutions?.forEach(sol => {
-          sol.vendorSubmissions?.forEach(vs => {
-            vs.configs?.forEach(c => {
-              c.items?.forEach(it => {
-                if (ActiveSourcingRules.legacySKUs.includes(it.partNumber)) {
-
-                }
-              });
-            });
-          });
-        });
-      });
-    }
-
     // Price Variance
     const globalHasPriceRisk = ucids.some((u) =>
       u.solutions?.some((sol) =>
@@ -314,6 +277,7 @@ export default function App() {
             <ErrorBoundary>
               <DataPersistenceGate
                 ucids={ucids}
+                solutions={solutions}
                 vendors={vendors}
                 catalogSkus={catalogSkus}
                 isPendingAPI={isPendingAPI}
@@ -339,6 +303,7 @@ export default function App() {
                         <Route path="/catalog" element={<ErrorBoundary><CatalogManager catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} /></ErrorBoundary>} />
                         <Route path="/vendor-portal" element={<ErrorBoundary><VendorPortal vendors={vendors} setVendors={setVendors} ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} /></ErrorBoundary>} />
                         <Route path="/forensic" element={<ErrorBoundary><ForensicView forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} setCatalogSkus={setCatalogSkus} ucids={ucids} setUcids={setUcids} activeMissionId={activeMissionId} setActiveMissionId={setActiveMissionId} onNavigate={legacyNavigate} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} /></ErrorBoundary>} />
+                        <Route path="/solutions" element={<ErrorBoundary><SolutionManager /></ErrorBoundary>} />
                         <Route path="/solution-builder" element={<ErrorBoundary><SolutionBuilder ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} setDeployedSolution={setDeployedSolution} onSelectMission={handleSelectMission} /></ErrorBoundary>} />
                         <Route path="/reconciliation" element={<ErrorBoundary><ReconciliationView ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} /></ErrorBoundary>} />
                         <Route path="/taxonomy-graph" element={<ErrorBoundary><TaxonomyGraphView catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} /></ErrorBoundary>} />

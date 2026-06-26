@@ -8,14 +8,17 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit --skipLibCheck",
+    "lint": "tsc --noEmit --skipLibCheck && eslint src",
     "test:unit": "vitest run tests/unit",
     "test:components": "vitest run src/components",
     "test:contracts": "vitest run tests/unit/contracts.test.ts",
     "test:vitest": "vitest run",
     "test": "npm run test:vitest && npm run test:e2e",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --headed"
+    "test:e2e:ui": "playwright test --headed",
+    "test:e2e:visual": "playwright test tests/e2e/visual.spec.ts",
+    "test:e2e:responsive": "playwright test tests/e2e/responsive.spec.ts",
+    "test:mutation": "stryker run stryker.config.json"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -27,6 +30,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "framer-motion": "^12.40.0",
+    "glob": "^13.0.6",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
@@ -40,12 +44,15 @@
     "vite": "^6.2.3",
     "winston": "^3.19.0",
     "xlsx": "^0.18.5",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.60.0",
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -64,6 +71,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-sonarjs": "^4.0.3",
+    "fast-check": "^4.8.0",
     "jsdom": "^29.1.1",
     "msw": "^2.14.6",
     "tailwindcss": "^4.1.14",

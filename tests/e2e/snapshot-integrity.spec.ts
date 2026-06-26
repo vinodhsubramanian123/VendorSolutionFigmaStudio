@@ -51,13 +51,13 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     await submitBtn.click({ force: true });
     await delay(1000);
 
-    const ucidState = await page.evaluate(() => window.localStorage.getItem('sys_ucids'));
+    const ucidState = await page.evaluate(() => localStorage.getItem('vsip-core-storage'));
     console.log("sys_ucids after snapshot:", ucidState);
 
     await expect(page.getByText('Integrity-Snap-v1').first()).toBeVisible({ timeout: 8000 });
 
     // VERIFY SNAPSHOT 1 INTEGRITY
-    let ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+    let ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
     let ucidWithSnap = ucids.find((u: any) => u.snapshots?.some((s: any) => s.label === 'Integrity-Snap-v1'));
     
     expect(ucidWithSnap).toBeDefined();
@@ -87,7 +87,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     await expect(page.getByText('Integrity-Snap-v2').first()).toBeVisible({ timeout: 8000 });
 
     // VERIFY SNAPSHOT 2 INTEGRITY
-    ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+    ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
     ucidWithSnap = ucids.find((u: any) => u.id === ucidWithSnap.id);
     
     expect(ucidWithSnap.snapshots.length).toBeGreaterThanOrEqual(2);
@@ -104,7 +104,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     await lockBtn.click();
     await delay(500);
 
-    ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+    ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
     ucidWithSnap = ucids.find((u: any) => u.id === ucidWithSnap.id);
     snap2 = ucidWithSnap.snapshots.find((s: any) => s.label === 'Integrity-Snap-v2');
     

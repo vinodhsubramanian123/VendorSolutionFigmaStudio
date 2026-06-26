@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, {  useCallback,  useEffect } from 'react';
 import { 
   ReactFlow, 
   MiniMap, 
@@ -12,19 +12,18 @@ import {
   Node,
   Handle,
   Position,
-  MarkerType,
+  ReactFlowProvider,
+  useReactFlow,
   BackgroundVariant
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { AlertTriangle, Tag, Box, Server, CheckCircle, HelpCircle } from 'lucide-react';
+import { AlertTriangle,  Box, Server} from 'lucide-react';
 import dagre from 'dagre';
 import { GraphNode, GraphEdge, GraphPath } from '../../types';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
-
 // ==========================================
 // CUSTOM NODE COMPONENTS (Cosmic Slate Theme)
 // ==========================================
-
 const CatalogPartNode = ({ data }: { data: GraphNode }) => {
   return (
     <div className={`bg-surface-card border-2 ${data.data?.isPathActive ? 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'border-indigo-500/50 shadow-lg'} rounded-xl p-3 min-w-[200px] hover:border-indigo-400 hover:shadow-indigo-500/20 transition-all cursor-pointer`}>
@@ -42,7 +41,6 @@ const CatalogPartNode = ({ data }: { data: GraphNode }) => {
     </div>
   );
 };
-
 const ScrapedOrphanNode = ({ data }: { data: GraphNode }) => {
   return (
     <div className="bg-black border-2 border-amber-500/80 rounded-xl p-3 shadow-[0_0_15px_rgba(245,158,11,0.2)] min-w-[200px] hover:border-amber-400 transition-all cursor-pointer">
@@ -64,7 +62,6 @@ const ScrapedOrphanNode = ({ data }: { data: GraphNode }) => {
     </div>
   );
 };
-
 const CategoryHubNode = ({ data }: { data: GraphNode }) => {
   return (
     <div className={`bg-surface-elevated border-2 ${data.data?.isPathActive ? 'border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'border-gray-600 shadow-xl'} rounded-lg p-3 min-w-[150px] hover:border-gray-400 transition-all cursor-pointer`}>
@@ -77,7 +74,6 @@ const CategoryHubNode = ({ data }: { data: GraphNode }) => {
     </div>
   );
 };
-
 const nodeTypes = {
   catalog_part: CatalogPartNode,
   scraped_orphan: ScrapedOrphanNode,
@@ -89,11 +85,9 @@ const nodeTypes = {
   subcategory: CategoryHubNode,
   sku: CatalogPartNode
 };
-
 // ==========================================
 // GRAPH CANVAS ENGINE
 // ==========================================
-
 // Dagre Layout Generator
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
   const dagreGraph = new dagre.graphlib.Graph();
@@ -101,19 +95,14 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   
   const nodeWidth = 220;
   const nodeHeight = 100;
-
   dagreGraph.setGraph({ rankdir: direction, nodesep: 80, ranksep: 120 });
-
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
   });
-
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
-
   dagre.layout(dagreGraph);
-
   const newNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     return {
@@ -124,10 +113,8 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
       },
     };
   });
-
   return { nodes: newNodes, edges };
 };
-
 export interface KnowledgeGraphCanvasProps {
   apiNodes: GraphNode[];
   apiEdges: GraphEdge[];
@@ -136,16 +123,15 @@ export interface KnowledgeGraphCanvasProps {
   onNodeClick?: (id: string) => void;
   onEdgeClick?: (id: string) => void;
   onGraphChange?: (nodes: GraphNode[], edges: GraphEdge[]) => void;
+  onNodeDrop?: (orphanId: string, orphanName: string, targetNodeId: string) => void;
 }
-
-export function KnowledgeGraphCanvas({ apiNodes, apiEdges, apiPaths = [], activeSelectedPathId, onNodeClick, onEdgeClick, onGraphChange }: KnowledgeGraphCanvasProps) {
+function KnowledgeGraphCanvasInner({ apiNodes, apiEdges, apiPaths = [], activeSelectedPathId, onNodeClick, onEdgeClick, onGraphChange, onNodeDrop }: KnowledgeGraphCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-
+  const reactFlowInstance = useReactFlow();
   // Hydrate from API
   useEffect(() => {
     if (!apiNodes || !apiEdges) return;
-
     // Convert API nodes to React Flow nodes
     const flowNodes: Node[] = apiNodes.map((n) => {
       let isPathActive = false;
@@ -171,7 +157,6 @@ export function KnowledgeGraphCanvas({ apiNodes, apiEdges, apiPaths = [], active
         position: { x: 0, y: 0 } // Computed by Dagre
       };
     });
-
     const flowEdges: Edge[] = apiEdges.map((e) => {
       let isPathActive = false;
       if (activeSelectedPathId && apiPaths.length > 0) {
@@ -180,7 +165,6 @@ export function KnowledgeGraphCanvas({ apiNodes, apiEdges, apiPaths = [], active
           isPathActive = true;
         }
       }
-
       return {
         id: e.id,
         source: e.source,
@@ -196,20 +180,55 @@ export function KnowledgeGraphCanvas({ apiNodes, apiEdges, apiPaths = [], active
         labelBgStyle: { fill: '#03050a', fillOpacity: 0.8 }
       };
     });
-
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(flowNodes, flowEdges);
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
   }, [apiNodes, apiEdges, apiPaths, activeSelectedPathId, setNodes, setEdges]);
-
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, animated: true, type: 'default' }, eds)),
     [setEdges],
   );
 
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      try {
+        const rawData = event.dataTransfer.getData('text/plain');
+        if (!rawData) return;
+        const data = JSON.parse(rawData);
+        
+        if (data.type === 'orphan' && data.id && onNodeDrop) {
+          const position = reactFlowInstance.screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+          });
+          
+          const intersectingNode = reactFlowInstance.getIntersectingNodes({
+            x: position.x,
+            y: position.y,
+            width: 1,
+            height: 1
+          })[0];
+
+          if (intersectingNode) {
+            onNodeDrop(data.id, data.name, intersectingNode.id);
+          }
+        }
+      } catch (e) {
+        // ignore parse errors for non-JSON drops
+      }
+    },
+    [reactFlowInstance, onNodeDrop]
+  );
+
   return (
     <ErrorBoundary>
-      <div className="w-full h-full min-h-[600px] bg-[#03050a] border border-white/5 rounded-xl overflow-hidden relative">
+      <div className="w-full h-full min-h-[600px] bg-[#03050a] border border-white/5 rounded-xl overflow-hidden relative" onDragOver={onDragOver} onDrop={onDrop}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -234,7 +253,6 @@ export function KnowledgeGraphCanvas({ apiNodes, apiEdges, apiPaths = [], active
             className="bg-black border border-white/10 rounded-lg overflow-hidden shadow-2xl" 
           />
         </ReactFlow>
-
         {/* Legend Overlay */}
         <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur border border-white/10 rounded-lg p-3 pointer-events-none">
           <span className="text-[10px] font-mono text-gray-400 font-bold uppercase block mb-2">Graph Legend</span>
@@ -247,5 +265,13 @@ export function KnowledgeGraphCanvas({ apiNodes, apiEdges, apiPaths = [], active
         </div>
       </div>
     </ErrorBoundary>
+  );
+}
+
+export function KnowledgeGraphCanvas(props: KnowledgeGraphCanvasProps) {
+  return (
+    <ReactFlowProvider>
+      <KnowledgeGraphCanvasInner {...props} />
+    </ReactFlowProvider>
   );
 }

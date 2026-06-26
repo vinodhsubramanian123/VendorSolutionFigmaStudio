@@ -1,4 +1,4 @@
-import { useLocalStorageState } from "./useLocalStorageState";
+import { useAuditStore } from "../store/auditStore";
 
 export interface AuditLogEntry {
   timestamp: string;
@@ -8,7 +8,8 @@ export interface AuditLogEntry {
 }
 
 export function useAuditLog() {
-  const [logs, setLogs] = useLocalStorageState<AuditLogEntry[]>("procurement_lifecycle_audit_logs", []);
+  const logs = useAuditStore(s => s.logs);
+  const setLogs = useAuditStore(s => s.setLogs);
 
   function recordAuditLog(fromStep: string | undefined, toStep: string, action: string) {
     const newLog: AuditLogEntry = {

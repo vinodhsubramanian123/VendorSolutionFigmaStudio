@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable complexity */
+import React from "react";
 import {
-  CheckCircle,
+  
   Layers,
-  Radio,
-  FileSpreadsheet,
-  Loader2,
-  Printer,
+  
+  
+  
+  
 } from "lucide-react";
 import type { UCID, Snapshot, VendorSubmission } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { SourcingStrategyPanel, CampaignReconciliationMatrix, CampaignCertificationPanel } from "./CampaignPanels";
-
 interface CampaignConsolidationHubProps {
   campaignName: string;
   campaignUcids: UCID[];
@@ -24,7 +24,6 @@ interface CampaignConsolidationHubProps {
     React.SetStateAction<Record<string, boolean>>
   >;
 }
-
 export function CampaignConsolidationHub({
   campaignName,
   campaignUcids,
@@ -36,27 +35,18 @@ export function CampaignConsolidationHub({
   setCampaignLocked,
 }: CampaignConsolidationHubProps) {
   const isLocked = !!campaignLocked[campaignName];
-
   // Calculations
   const totalOriginalBudget = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.originalPrice ?? 0);
   }, 0), [campaignUcids]);
-
   const totalSourcedBudget = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     return sum + (u.solutions[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
   }, 0), [campaignUcids]);
-
   const totalSavings = totalOriginalBudget - totalSourcedBudget;
-
-  const totalCommittedValue = React.useMemo(() => campaignUcids
-    .flatMap((u) => u.snapshots || [])
-    .reduce((sum, sn) => sum + sn.totalValue, 0), [campaignUcids]);
-
   // Status metrics
   const completedPipes = React.useMemo(() => campaignUcids.filter(
     (u) => u.currentStep === "snapshot",
   ).length, [campaignUcids]);
-
   // Sourcing strategies
   function handleApplyBestOfBreed() {
     if (isLocked) return;
@@ -66,7 +56,6 @@ export function CampaignConsolidationHub({
           u.solutionName ||
           (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
         if (matchName !== campaignName) return u;
-
         const sorted = [...u.solutions].sort(
           (a, b) =>
             (a.vendorSubmissions[0]?.totalPrice ?? 0) -
@@ -87,7 +76,6 @@ export function CampaignConsolidationHub({
       }),
     );
   }
-
   function handleApplySingleVendor(vendor: string) {
     if (isLocked) return;
     setUcids((prev) =>
@@ -96,7 +84,6 @@ export function CampaignConsolidationHub({
           u.solutionName ||
           (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
         if (matchName !== campaignName) return u;
-
         const targetIdx = u.solutions.findIndex((s) =>
           s?.vendorSubmissions?.some(
             (v) => v.vendor.toLowerCase() === vendor.toLowerCase(),
@@ -105,7 +92,6 @@ export function CampaignConsolidationHub({
         if (targetIdx !== -1) {
           const next = [...u.solutions];
           const primary = next[targetIdx];
-
           // Re-order vendorSubmissions within the solution so the target vendor is first
           const vIdx = primary.vendorSubmissions.findIndex(
             (v) => v.vendor.toLowerCase() === vendor.toLowerCase(),
@@ -117,7 +103,6 @@ export function CampaignConsolidationHub({
             vNext.unshift(vPrimary);
             primary.vendorSubmissions = vNext;
           }
-
           next.splice(targetIdx, 1);
           next.unshift(primary);
           return {
@@ -137,13 +122,10 @@ export function CampaignConsolidationHub({
       }),
     );
   }
-
   // Freeze whole campaign snapshot
   function handleCertifyCampaign() {
     if (!campaignSigner.trim()) return;
-
     setCampaignLocked((prev) => ({ ...prev, [campaignName]: true }));
-
     // Set all child UCIDs to snapshot step and commit snapshots
     setUcids((prev) =>
       prev.map((u) => {
@@ -151,14 +133,12 @@ export function CampaignConsolidationHub({
           u.solutionName ||
           (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
         if (matchName !== campaignName) return u;
-
         const winningSol = u.solutions[0]?.vendorSubmissions?.[0] ?? {
           vendor: "Multi-vendor",
           label: "Consolidated solution",
           totalPrice: 240000,
         };
         const hasSnapshot = u.snapshots.length > 0;
-
         const newSnapshot: Snapshot = {
           id: `snap-${crypto.randomUUID()}`,
           label: `Campaign Master Covenant Lock - Sourced via ${winningSol.vendor}`,
@@ -174,7 +154,6 @@ export function CampaignConsolidationHub({
           locked: true,
           bomSnapshot: (winningSol as VendorSubmission).configs || []
         };
-
         return {
           ...u,
           currentStep: "snapshot" as const,
@@ -194,7 +173,6 @@ export function CampaignConsolidationHub({
       }),
     );
   }
-
   function handleExportCSV() {
     let csv = "Sheet / Workspace Ref,Winner Vendor,Selected Cost,HPE Option Quote,Dell Option Quote,Step State\n";
     campaignUcids.forEach(u => {
@@ -202,10 +180,8 @@ export function CampaignConsolidationHub({
       const currentSelected = masterSolution?.vendorSubmissions?.[0];
       const hpeS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "HPE") ?? masterSolution?.vendorSubmissions?.[0];
       const dellS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "Dell") ?? masterSolution?.vendorSubmissions?.[0];
-
       csv += `"${u.displayId} - ${u.name}","${currentSelected?.vendor || 'Unassigned'}","${currentSelected?.totalPrice || 0}","${hpeS?.totalPrice || 0}","${dellS?.totalPrice || 0}","${u.currentStep}"\n`;
     });
-
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -215,7 +191,6 @@ export function CampaignConsolidationHub({
     link.click();
     document.body.removeChild(link);
   }
-
   // Calculate homogenous totals of campaign portfolio
   const hpeTotal = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     const s =
@@ -227,7 +202,6 @@ export function CampaignConsolidationHub({
       s?.vendorSubmissions?.[0];
     return sum + (sub?.totalPrice ?? 0);
   }, 0), [campaignUcids]);
-
   const dellTotal = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     const s =
       u.solutions.find((x) =>
@@ -238,7 +212,6 @@ export function CampaignConsolidationHub({
       s?.vendorSubmissions?.[0];
     return sum + (sub?.totalPrice ?? 0);
   }, 0), [campaignUcids]);
-
   const bestBreedTotal = React.useMemo(() => campaignUcids.reduce((sum, u) => {
     const cheaps = [...u.solutions].sort((a, b) => {
       const ap = a?.vendorSubmissions?.[0]?.totalPrice ?? 0;
@@ -247,7 +220,6 @@ export function CampaignConsolidationHub({
     });
     return sum + (cheaps[0]?.vendorSubmissions?.[0]?.totalPrice ?? 0);
   }, 0), [campaignUcids]);
-
   if (campaignUcids.length === 0) {
     return (
       <ErrorBoundary>
@@ -261,7 +233,6 @@ export function CampaignConsolidationHub({
       </ErrorBoundary>
     );
   }
-
   return (
     <ErrorBoundary>
       <div className="space-y-6">
@@ -293,7 +264,6 @@ export function CampaignConsolidationHub({
               portfolio homogenization.
             </p>
           </div>
-
           {/* Status badge */}
           {isLocked ? (
             <StatusBadge status="COVENANT LOCKED" variant="success" />
@@ -301,7 +271,6 @@ export function CampaignConsolidationHub({
             <StatusBadge status="MODELLING ACTIVE" variant="warning" />
           )}
         </div>
-
         {/* Global Financial metrics card row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 relative z-10">
           <div className="p-3 rounded-lg bg-white/5 border border-white/5">
@@ -330,7 +299,6 @@ export function CampaignConsolidationHub({
           </div>
         </div>
       </div>
-
       <SourcingStrategyPanel
         isLocked={isLocked}
         hpeTotal={hpeTotal}
@@ -339,12 +307,10 @@ export function CampaignConsolidationHub({
         onApplyBestOfBreed={handleApplyBestOfBreed}
         onApplySingleVendor={handleApplySingleVendor}
       />
-
       <CampaignReconciliationMatrix
         campaignUcids={campaignUcids}
         completedPipes={completedPipes}
       />
-
       <CampaignCertificationPanel
         isLocked={isLocked}
         campaignName={campaignName}

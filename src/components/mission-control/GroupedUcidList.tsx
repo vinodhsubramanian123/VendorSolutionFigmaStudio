@@ -189,8 +189,10 @@ export function GroupedUcidList({
 
                         {activeMenuUcidId === u.id && (
                           <div 
+                            role="presentation"
                             className="nested-action absolute right-0 top-6 w-28 bg-surface-header border border-indigo-500/20 rounded-lg shadow-2xl py-1 z-30 font-sans"
                             onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
                           >
                             <button
                               type="button"
@@ -308,9 +310,7 @@ export function GroupedUcidList({
                           </div>
 
                           <div className="flex gap-1 flex-wrap pt-0.5">
-                            <span className="font-mono text-[8px] px-1 py-0.5 rounded bg-black/45 border border-white/5 text-gray-400 uppercase tracking-tight">
-                              PSU: {180 + u.solutions.length * 62}W
-                            </span>
+
                             {u.solutions.length > 0 && (
                               <StatusBadge 
                                 status={`$${(u.solutions.reduce((sum, s) => sum + (s.vendorSubmissions?.[0]?.totalPrice ?? 0), 0) / 1000).toFixed(0)}k Val`}

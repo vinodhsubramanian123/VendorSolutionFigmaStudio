@@ -1,4 +1,4 @@
-import { CatalogSKU, UCID, Vendor, Job, UCIDStep, ForensicIssue } from '../../types';
+import { CatalogSKU} from '../../types';
 export const catalogSkusPart2: CatalogSKU[] = [
   {
     id: "sku-18",
@@ -13,7 +13,6 @@ export const catalogSkusPart2: CatalogSKU[] = [
     productFamily: "DL380",
     generation: "Gen10",
   },
-
   // HPE Items - Storage Solutions (MSA Array System)
   {
     id: "sku-hpe-msa-2060",
@@ -41,7 +40,6 @@ export const catalogSkusPart2: CatalogSKU[] = [
     productFamily: "MSA",
     chassisRef: "sku-hpe-msa-2060",
   },
-
   // HPE Items - Networking Solutions (Aruba CX Switches)
   {
     id: "sku-hpe-aruba-10000",
@@ -69,7 +67,6 @@ export const catalogSkusPart2: CatalogSKU[] = [
     productFamily: "Aruba",
     chassisRef: "sku-hpe-aruba-10000",
   },
-
   // Dell Items
   {
     id: "sku-6",
@@ -162,7 +159,6 @@ export const catalogSkusPart2: CatalogSKU[] = [
     productFamily: "R760",
     chassisRef: "sku-9",
   },
-
   // Cisco Items
   {
     id: "sku-11",
@@ -216,7 +212,6 @@ export const catalogSkusPart2: CatalogSKU[] = [
     productFamily: "UCS",
     chassisRef: "sku-14",
   },
-
   // Juniper Items
   {
     id: "sku-15",
@@ -257,6 +252,4 @@ export const catalogSkusPart2: CatalogSKU[] = [
     productFamily: "SRX",
     chassisRef: "sku-17",
   },
-
-
 ];

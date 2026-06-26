@@ -31,9 +31,16 @@ export function ConfigLibraryItem({
       transition={{ duration: 0.2 }}
       role="button"
       tabIndex={0}
+      draggable={isMultiUcid}
+      onDragStart={(e) => {
+        if (!isMultiUcid) return;
+        const dragEvent = e as unknown as React.DragEvent<HTMLDivElement>;
+        dragEvent.dataTransfer.setData('text/plain', cfg.id);
+        dragEvent.dataTransfer.effectAllowed = 'move';
+      }}
       onKeyDown={(e) => { if (e.key === "Enter") onSelect(); }}
       onClick={onSelect}
-      className={`p-3 rounded-lg border transition-colors duration-150 cursor-pointer text-left block ${
+      className={`p-3 rounded-lg border transition-colors duration-150 cursor-grab active:cursor-grabbing text-left block ${
         isSelected
           ? "bg-indigo-500/5 border-indigo-500"
           : "bg-black/10 border-white/5 hover:bg-black/20"

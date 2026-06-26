@@ -87,9 +87,14 @@ describe('Data Contract & Integrity Validation Tests', () => {
       const payload = { fileName: 'test.xlsx', presetType: 'hpe-legacy' };
       const response = await apiClient.post<any>('/api/boq/ingest', payload);
       expect(response.success).toBe(true);
+      // The handler returns displayId (string) as ucid, not the full UCID object
       expect(response.data.ucid).toBeDefined();
-      const parsed = UCIDSchema.safeParse(response.data.ucid);
-      expect(parsed.success).toBe(false); // mock ucid is just a string in the handler!
+      expect(typeof response.data.ucid).toBe('string');
+      // Validate the surrounding ingestion response fields
+      expect(response.data.configsCreated).toBeDefined();
+      expect(response.data.sourceFile).toBeDefined();
+      expect(response.data.parsedSummary).toBeDefined();
+      expect(typeof response.data.parsedSummary.initialConfidenceScore).toBe('number');
     });
 
     it('POST /api/cleansing/fuzzy-match returns compliant data', async () => {

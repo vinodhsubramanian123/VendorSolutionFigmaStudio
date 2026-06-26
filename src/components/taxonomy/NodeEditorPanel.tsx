@@ -50,10 +50,11 @@ export function NodeEditorPanel({
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-white/5">
-                <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide block">
+                <label htmlFor="nodeType" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide block">
                   Node Category / Type
                 </label>
                 <select
+                  id="nodeType"
                   value={selectedNode.type}
                   onChange={async e => {
                     if (updateGraphNode) {
@@ -110,16 +111,18 @@ export function NodeEditorPanel({
           <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs mt-2">
             <div className="text-[10px] font-bold font-mono text-indigo-300 uppercase">New Node Definition</div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Label</label>
+              <label htmlFor="newNodeLabel" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Label</label>
               <input
+                id="newNodeLabel"
                 type="text" value={newNodeLabel} onChange={e => setNewNodeLabel(e.target.value)}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
                 placeholder="e.g. HPE Synergy Frame"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Type</label>
+              <label htmlFor="newNodeType" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Type</label>
               <select
+                id="newNodeType"
                 value={newNodeType} onChange={e => setNewNodeType(e.target.value as "catalog_part" | "product")}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
               >
@@ -128,16 +131,18 @@ export function NodeEditorPanel({
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Part Number</label>
+              <label htmlFor="newNodePart" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Part Number</label>
               <input
+                id="newNodePart"
                 type="text" value={newNodePart} onChange={e => setNewNodePart(e.target.value)}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
                 placeholder="e.g. P12345-B21"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Price USD</label>
+              <label htmlFor="newNodePrice" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Price USD</label>
               <input
+                id="newNodePrice"
                 type="number" value={newNodePrice} onChange={e => setNewNodePrice(Number(e.target.value))}
                 className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
               />

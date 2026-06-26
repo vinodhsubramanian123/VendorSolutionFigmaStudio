@@ -7,7 +7,25 @@ Welcome, AI Coding Agent. This document outlines the critical architectural patt
 
 ---
 
-## 1. Core Data Schemas & Relational Boundaries
+## 1. Documentation Hierarchy & Anti-Monolith Guidelines
+
+To prevent this file (`AGENTS.md`) from becoming an unreadable monolith, it strictly houses **architectural learnings, operational constraints, and engineering post-mortems**. 
+
+For explicit product specifications, user stories, backend API payloads, and integration definitions, you MUST read the dedicated specification files directly instead of duplicating them here:
+- **[Product Requirement Document (PRD)](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/specification/PRD.md)**: Defines all 12 platform modules, the UX philosophy (Cosmic Slate), and core business flows.
+- **[Review Context & Developer Manual](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/specification/REVIEW_CONTEXT.md)**: Defines exact UI boundaries, API payloads, telemetry definitions, and data contracts.
+- **[VSIP UI Testing Specification](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/specification/VSIP_UI_Testing_Specification.md)**: Defines all 19 test categories, coverage targets, and test pyramid rationale.
+
+When updating `AGENTS.md`, do not copy-paste interfaces or definitions from the specifications folder. Simply link to them using standard markdown file links (e.g. `[PRD](file:///...)`) to keep guidelines focused and efficient.
+
+## 2. Continuous Auditing & Zero-Tolerance for Silent Misses
+**Why this exists**: In Phase 6, AI agents missed critical decoupling architecture and state mutability bugs because they assumed Vitest passing "Happy Paths" meant the code was perfect.
+- **Rule**: Do NOT wait for manual code reviews to discover gaps. You must *proactively* run `npx eslint src` (which is powered by SonarJS) to identify cognitive complexity, code smells, and unhandled promises.
+- **Rule**: A passing test suite is meaningless if it doesn't test failure states. All UI data flows MUST mock API rejections and assert that the UI gracefully catches them and rolls back state.
+
+---
+
+## 3. Core Data Schemas & Relational Boundaries
 
 The master types are declared inside `/src/types/data.ts`. Do NOT introduce external or improvised schemas. Below are the critical database contracts:
 
@@ -117,8 +135,12 @@ To prevent repeating historical regressions, strictly observe the following guid
 *   **Issue**: UI components frequently used `setTimeout`, `Math.random()`, and massive inline Mock Arrays to simulate API delays, randomize telemetry progress, or fuzzy-match catalog parts. This made the frontend rigid, bloated, and untestable.
 *   **Solution**: **NEVER** use `Math.random()` or `setTimeout()` loops for progress tracking, ID generation, or API faking in the UI layer. 
     - Standard UUIDs must use `crypto.randomUUID()`.
-    - Mock delays and progress simulations must be entirely delegated to the `apiClient` / MSW layer (`handlers.ts`).
+    - Mock delays and progress simulations must be entirely delegated to the `apiClient` / MSW layer (`handlers.ts`). Note: MSW handlers themselves must execute state mutations synchronously to avoid unresolved promise locks during Vitest execution; any delay simulation must only occur at the network mock layer conditionally based on `process.env.NODE_ENV !== 'test'`.
     - Complex parsing (like NLP semantic parsing or deep object overrides) belongs strictly in the backend boundary. The UI must remain a dumb visualization layer reacting to external streams.
+
+### 3.12 Mock Handler Separation & Shared State
+*   **Issue**: MSW mock handlers were originally housed in arbitrarily named files like `handlersPart1.ts` and `handlersPart2.ts`, creating confusion and making it hard to locate domain-specific API endpoints. Furthermore, mutating array imports directly caused `TS2632: Cannot assign to imported variable`.
+*   **Solution**: Enforce descriptive, domain-bound nomenclature for MSW handlers (e.g. `coreHandlers.ts`, `graphHandlers.ts`). State shared across multiple MSW handlers MUST be stored in `sharedState.ts` and mutated via pure methods (like `.splice`) rather than destructive reassignment to ensure module synchrony.
 
 ### 3.11 Unhandled Promise Rejections in Synchronous UI Handlers
 *   **Issue**: UI components (like `CatalogManager`) utilized asynchronous API client methods (e.g., `apiClient.delete`) inside synchronous click handlers with synchronous `try/catch` blocks. This resulted in uncaught promise rejections that crashed tests and failed to handle backend errors correctly.
@@ -201,9 +223,14 @@ You must execute these exact commands in this order before finishing:
 *   **Rule**: Code logic changes require a functional test run.
 *   **Action**: Any crash indicating "Element type is invalid", or failing component tests, MUST be analyzed and resolved. Do not skip `test:e2e` even for minor layout changes.
 
-### 9.4 Vitest Fetch & MSW Mock Topography
-*   **Issue**: Global fetch mocks in Vitest (e.g., `vi.stubGlobal('fetch')`) fail when matching relative URL paths across the API client interceptors.
-*   **Solution**: All `apiClient.ts` test expectations must assert full absolute domain mappings (e.g. `expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/endpoint', ...)`). Additionally, chained mocked methods (like `apiClient.delete`) must explicitly return promises using `.mockResolvedValue` or `.mockRejectedValue` rather than returning `undefined` or throwing synchronously.
+### 9.5 Test Assertion Strictness (The "Happy Path" Fallacy)
+*   **Issue**: Previous test suites attained 100% E2E and Unit coverage by only asserting the "Happy Path" (e.g. mocking `apiClient` to always return success, or testing lists with identically typed mock arrays). This masked critical bugs like optimistic UI rollbacks failing and inverted filters.
+*   **Rule**: Every test suite verifying UI mutability MUST test pessimistic pathways. 
+    - You must mock `apiClient` to reject with an error and explicitly assert that the UI rolled back correctly and surfaced a Toast. 
+    - You must construct diverse `mockData` sets (e.g. not just `type: 'Chassis'` arrays) to ensure taxonomy gates don't inadvertently cull sibling components.
+
+### 9.6 Functional vs Architectural Validation
+*   **Rule**: A passing Vitest suite does not equal "done". Vitest validates the DOM structure but ignores memory leaks, arbitrary row math, or re-renders. Agents must manually verify the codebase adheres to the strict architectural guidelines (like utilizing `VirtuosoGrid` exclusively for lists, moving constants outside render lifecycles, and replacing `framer-motion` infinite loops with native CSS).
 
 ---
 
@@ -308,6 +335,10 @@ The following "God Components" were decomposed in Phase 7. This is the authorita
 ### 12.9 Playwright E2E and Suspense Shimmer Blocks
 *   **Issue**: Playwright mega-flow tests timed out expecting explicit text like `ACTIVE SOLUTION MISSION`, but the DOM rendered `<div class="animate-pulse bg-white/5...">` because `MissionControl` was stuck in a `Suspense` boundary due to missing or invalid UUID mappings passed from `IngestionHub`.
 *   **Solution**: When creating new UCIDs or configurations, ensure that `displayId` and `id` remain consistent across state lifts. If `displayId` is strictly expected by the UI, but Playwright navigates via the raw UUID, the data persistence gates will trigger `Suspense` fallbacks instead of crashing, causing E2E tests to timeout rather than fail explicitly.
+
+### 12.9 Zustand Global Persist and E2E State Injection
+*   **Issue**: E2E tests manually dispatched `vsip_localstorage_update` events to clear global state (`sys_ucids`) or wrote directly to isolated keys. However, after migrating to Zustand `persist` middleware mapped to the `vsip-core-storage` key, these Playwright test state manipulations failed, causing components like `SolutionBuilder` to automatically bypass onboarding steps because they read the default `INITIAL_UCIDS` fallback state.
+*   **Solution**: E2E Playwright tests must directly interact with the unified Zustand state key. To clear or mock global state, you must overwrite `vsip-core-storage` with the properly stringified JSON format (e.g., `localStorage.setItem('vsip-core-storage', JSON.stringify({ state: { ucids: [], ... }, version: 0 }))`) and invoke `page.reload()` to allow the core store to rehydrate.
 
 ---
 
@@ -440,55 +471,285 @@ All loading states must prevent layout shift. The container height must match th
 
 ---
 
+## 17. Phase 10 Refactoring & Testing Constraints (June 2026)
+
+These patterns were identified during the type strictness and codebase decomposition pass:
+
+### 17.1 Zero `any` in Canvas API Mocking
+*   **Issue**: In `setup.ts`, mocking `HTMLCanvasElement.prototype.getContext` by casting to `CanvasRenderingContext2D` triggered TypeScript `Type '() => CanvasRenderingContext2D' is not assignable to type...` due to complex overloads (e.g. `WebGLRenderingContext`).
+*   **Solution**: Mock implementations with multiple overloads must be strictly cast using `typeof`. Example:
+    ```typescript
+    HTMLCanvasElement.prototype.getContext = (() => {
+      return { fillRect: () => {} } as unknown as CanvasRenderingContext2D;
+    }) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    ```
+
+### 17.2 Component Export Logic Offloading
+*   **Issue**: Components like `ReconciliationDrillDown` generated massive, inline string-based CSV templates which severely bloated file size limits (>400 lines) and tangled UI logic with data formatting.
+*   **Solution**: UI must never format multi-line CSVs or PDFs client-side. Offload Blob streaming to the Backend API (e.g., `/api/export/reconciliation/:id`) and trigger downloads using transient hidden HTML `<a>` tags.
+
+### 17.3 Centralized Testing Mock Entities
+*   **Issue**: Test files heavily duplicated 40-line `const mockUcid: UCID = { ... }` object literals, creating thousands of lines of redundant codebase bloat.
+*   **Solution**: Never duplicate core domain entities across test files. Always import standardized shared definitions (`mockUcid`, `mockCatalogSku`) from `src/tests/shared.ts`.
+
+---
+
+## 18. The Proactive Senior Architect Mandate (June 2026 Core Directive)
+
+As the officially designated **Senior Architect & Seniormost Designer** for the VSIP Platform, the AI coding agent must operate with full architectural authority and proactive foresight.
+
+### 18.1 Do Not Wait for Audits
+*   **Rule**: Never limit your powers or wait for external review (e.g., Claude, Codex, or human PR reviews) to identify systemic gaps.
+*   **Action**: Treat every localized prompt as an opportunity for systemic validation. If a localized fix requires refactoring a monolith, repairing ARIA attributes, or replacing legacy hooks (like `useLocalStorageState`), you are pre-authorized to aggressively refactor the surrounding environment. 
+
+### 18.2 Enforce "Test-in-a-Loop" Perfection
+*   **Rule**: Writing code without ensuring cross-component blast radius validation is unacceptable.
+*   **Action**: Continue testing in a continuous loop using `npm run test:vitest` and `npm run lint`. Do not stop when a superficial test passes. Intentionally write varied and robust edge-case tests to guarantee the system works seamlessly across all workflows. You own the CI pipeline outcome.
+
+### 18.3 Eliminate "Duct-Tape" and "Happy Path" Bias
+*   **Rule**: Never patch a symptom without curing the disease.
+*   **Action**: If you identify `setTimeout`, `Math.random()`, `any` typing, missing Zero-State UIs, or stale closures, rip them out entirely. Implement modern, state-of-the-art patterns (MSW backend streaming, strict Zustand caching, Framer Motion) proactively. Plan meticulously before execution so nothing is missed.
+
+---
+
 ## Appendix A: Agent Knowledge References (Knowledge Graph Directory)
 
 To prevent architectural bleeding, agents must clearly distinguish between **UI/UX Skill Knowledge** (which dictates how the system looks, feels, and interacts) and **Backend Skill Knowledge** (the deep algorithmic rules and schema transformations that happen asynchronously or server-side).
 
-> [!CAUTION]
-> The backend skills listed below represent capabilities that the UI layer must interact with but must **NEVER implement directly**. The UI remains a presentation layer for these services. Do not duplicate backend parsing logic inside React components.
-
 ### UI/UX Skill Knowledge
 These files define the presentation layer, component styling, animations, global states, and visual regressions. Always consult these when building or modifying React components:
-- [UI/UX Best Practices](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/ui-architecture/ui-ux-best-practices.md)
 - [UI States & Transitions](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-states.md)
 - [State Architecture Contracts](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/state-contracts.md)
+- [API Contract & Integration Specifications](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/api-contracts.md)
 - [UI Snapshots Directory](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-snapshots/README.md)
-- [Loading, Zero-State & Error Specs](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/loading-error-specs.md)
+- [Loading, Zero-State & Error Specs](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/AGENTS.md#16-loading-zero-state--error-specifications) *(see §16 of this file)*
 
 ### Backend Skill Knowledge
-These files define the core business logic, schema engines, and deep algorithmic processing. Use these to understand how data is structured and processed by the backend before the UI consumes it:
+> [!NOTE]
+> Backend algorithmic skills and extraction logic have been officially decoupled into a separate backend platform repository as of Phase 7. The UI is strictly a dumb client presentation layer. AI Agents modifying this repository should not implement backend logic in React.
 
-#### 1. Sizing Engine & Modellers
-- [Budget Constraint Modeller](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-fit-engine/budget-constraint-modeller.md)
-- [Provisioning Boundary Check](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-fit-engine/provisioning-boundary-check.md)
-- [Headroom Calculator](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-growth-modeller/headroom-calculator.md)
-- [Priority Ranker](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-requirements/priority-ranker.md)
-- [Workload Profile Extractor](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sizing-requirements/workload-profile-extractor.md)
+---
 
-#### 2. Forensic Self-Heal & Tracing
-- [Root Cause Identifier](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/forensic-self-heal/root-cause-identifier.md)
-- [Schema Repair](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/forensic-self-heal/schema-repair.md)
-- [Mission Orchestrator](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/monitoring-tracing/mission-orchestrator.md)
-- [Shadow Audit Sandbox](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/monitoring-tracing/shadow-audit-sandbox.md)
+## 19. Tech Stack & Dependency Versions (Phase 10 Lock)
 
-#### 3. Core BOM Engine & Sku Dependencies
-- [Mandatory Part Sync](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-bom-engine/mandatory-part-sync.md)
-- [High Fidelity Diff](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-bom-engine/high-fidelity-diff.md)
-- [Compatibility Checker](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sku-rules-dependencies/compatibility-checker.md)
-- [Dependency Resolver](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sku-rules-dependencies/dependency-resolver.md)
-- [SKU Chain Parent-Child Resolver](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/sku-chain-parent-child/sku-chain-resolver.md)
+> [!IMPORTANT]
+> **Do NOT upgrade any of these packages without explicit instruction.** Version mismatches cause silent API breakage (e.g. `fast-check` v3→v4 removed `fc.stringOf()`; `framer-motion`→`motion` changed import paths).
 
-#### 4. Core Ingestion & Classification
-- [Excel / PDF / OCR Extractors](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-ingestion/excel-doc-parsing.md)
-- [Lexical & Semantic Extractors](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-classification/semantic-extractor.md)
-- [Fuzzy Typo Healer](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/core-classification/fuzzy-typo-healer.md)
+### Core Runtime
+| Package | Version | Notes |
+|---------|---------|-------|
+| `react` / `react-dom` | `^19.0.1` | React 19 — use `motion/react` not `framer-motion` |
+| `vite` | `^6.2.3` | ESBuild bundler |
+| `react-router-dom` | `^7.17.0` | File-based routing |
+| `zod` | `^4.4.3` | Schema validation — source of truth for all types |
+| `motion` | `^12.23.24` | Import as `motion/react` — NOT `framer-motion` |
+| `react-virtuoso` | `^4.18.7` | Virtualization — use `Virtuoso` (list) + `VirtuosoGrid` (cards) |
+| `react-hook-form` | `^7.78.0` | Form management |
+| `@xyflow/react` | `^12.11.0` | Taxonomy graph rendering |
 
-#### 5. Rules Governance & Graph Architecture
-- [Vendor Cross-Pollution Guard](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/rules-governance/vendor-cross-pollution-guard.md)
-- [Regulatory & Financial Auditors](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/rules-governance/financial-auditor.md)
-- [Variant Mapper (Taxonomy)](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/taxonomy-hierarchy/variant-mapper.md)
+### Testing Stack
+| Package | Version | Notes |
+|---------|---------|-------|
+| `vitest` | `^4.1.8` | Unit + component test runner |
+| `@testing-library/react` | `^16.3.2` | RTL — DOM queries |
+| `msw` | `^2.14.6` | MSW v2 — use `http` + `HttpResponse` (NOT `rest`) |
+| `fast-check` | `^4.8.0` | Property-based testing — see §19.4 for correct APIs |
+| `vitest-axe` | `^0.1.0` | Accessibility assertions |
+| `@playwright/test` | `^1.60.0` | E2E browser tests |
+| `@stryker-mutator/core` | `^9.6.1` | Mutation testing |
 
-#### 6. Generative AI Engine
-- [Alternative Solution Solver](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/generative-engine/alternative-solution-solver.md)
-- [Persona Scoring Model](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/skills/generative-engine/persona-scoring-model.md)
+### Key Architectural Imports
+```typescript
+// ✅ CORRECT
+import { motion, AnimatePresence } from 'motion/react';   // NOT framer-motion
+import { Virtuoso, VirtuosoGrid } from 'react-virtuoso';  // NOT react-window
+import { http, HttpResponse } from 'msw';                  // NOT rest (MSW v1)
+import { useCoreStore } from './store/coreStore';          // Zustand global state
+```
 
+---
+
+## 20. Pre-Existing Non-Blocking Lint Warnings (Do NOT Fix Without Instruction)
+
+> [!WARNING]
+> The following **15 warnings** exist in the production codebase and are **intentionally deferred**. They are non-blocking (0 errors). Do NOT waste tokens attempting to fix them unless explicitly asked.
+
+| File | Warning | Rule |
+|------|---------|------|
+| `App.tsx` | Arrow function complexity 16 (max 15) | `complexity` |
+| `CatalogAddForm.tsx` | 6× `<label>` not associated with control | `jsx-a11y/label-has-associated-control` |
+| `CatalogAddForm.tsx` | Non-interactive `<div>` has keyboard listener | `jsx-a11y/no-noninteractive-element-interactions` |
+| `CatalogAddForm.tsx` | `tabIndex` on non-interactive element | `jsx-a11y/no-noninteractive-tabindex` |
+| `CatalogCardsList.tsx` | `autoFocus` prop used on inline edit input | `jsx-a11y/no-autofocus` |
+| `CatalogFilterBar.tsx` | Function complexity 21 | `complexity` |
+| `CatalogManager.tsx` | Unused `success`, `warn` from `useToast()` | `sonarjs/no-unused-vars` / `no-dead-store` |
+| `CatalogManager.tsx` | 2× ignored exception in catch blocks | `sonarjs/no-ignored-exceptions` |
+| `BomReconciliationPanel.tsx` | Non-native interactive element (missing role) | `jsx-a11y/no-static-element-interactions` |
+| Various | Dead store / unused eslint-disable directives | `sonarjs/no-dead-store` |
+
+**Current lint summary: `0 errors, 15 warnings` — ALL CLEAN for CI purposes.**
+
+---
+
+## 21. Global State Architecture (Zustand `coreStore`)
+
+All shared application state flows through a **single Zustand store** persisted to `localStorage`:
+
+```typescript
+// src/store/coreStore.ts — Key: 'vsip-core-storage'
+{
+  ucids: UCID[];           // All active/completed procurement missions
+  vendors: Vendor[];       // Connected vendor API profiles
+  catalogSkus: CatalogSKU[]; // Part inventory
+  forensicIssues: ForensicIssue[];
+  sourcingRules: SourcingRule[];
+  learningEvents: LearningEvent[];
+  activeMissionId: string;
+  collapsed: boolean;      // Sidebar state
+}
+```
+
+**Route → Component → Props mapping** (from `App.tsx`):
+| Route | Component | Gets from Store |
+|-------|-----------|----------------|
+| `/` | `Dashboard` | `ucids`, `vendors`, `forensicIssues` |
+| `/catalog` | `CatalogManager` | `catalogSkus`, `vendors` only — NO ucids |
+| `/forensic` | `ForensicView` | `forensicIssues`, `ucids`, `sourcingRules`, `learningEvents` |
+| `/solution-builder` | `SolutionBuilder` | `ucids` only |
+| `/vendor-portal` | `VendorPortal` | `vendors`, `ucids`, `catalogSkus`, `sourcingRules` |
+| `/reconciliation` | `ReconciliationView` | `ucids`, `catalogSkus`, `forensicIssues` |
+| `/telemetry` | `SystemTelemetry` | No props (reads own API) |
+
+> [!IMPORTANT]
+> **E2E state injection**: To reset Zustand state in Playwright, write directly to `localStorage.setItem('vsip-core-storage', JSON.stringify({ state: { ucids: [], ... }, version: 0 }))` and call `page.reload()`. Never use `vsip_localstorage_update` custom events for Playwright — that's for in-tab SPA sync only.
+
+---
+
+## Test Suite Registry — Phase 10 Complete Coverage (June 2026)
+
+> [!IMPORTANT]
+> **311 tests across 63 test files — ALL PASSING as of June 2026.**
+> The `vite.config.ts` test `include` pattern covers BOTH `src/**/*.test.{ts,tsx}` AND `tests/**/*.test.{ts,tsx}`. Never revert to `src/**` only or the 19 external test categories will silently disappear from the suite.
+
+### Full Category Registry
+
+| Cat | Spec Title | Test File(s) | Count | Runner | Status |
+|-----|-----------|--------------|-------|--------|--------|
+| 1 | Pure unit logic | `catalogUtils.test.ts`, `reconciliationMath.test.ts` | 9 | Vitest | ✅ |
+| 2 | Component render + interaction | `src/components/**/__tests__/` (44 files) | 204 | Vitest + RTL | ✅ |
+| 3 | MSW integration flows | `forensics-auto-heal-chain`, `ingestion-workflow`, `cross-component-sync`, `data-persistence-gate`, `taxonomy-graph-sync`, `cleansing-mapping` | 20+ | Vitest + MSW | ✅ |
+| 4 | Visual regression | `tests/e2e/visual.spec.ts` | 8 | Playwright | 🟡 E2E |
+| 5 | Responsive breakpoints | `tests/e2e/responsive.spec.ts` | 9 | Playwright | 🟡 E2E |
+| 6 | State lifecycle | `resilienceAndLifecycle.test.tsx` | 4 | Vitest + MSW | ✅ |
+| 7 | Workflow steps | `useWorkflowManager.test.tsx` | 8 | Vitest | ✅ |
+| 8 | Zod schema contracts | `contracts`, `zodSchemaIntegration`, `GraphContracts` | 22 | Vitest + MSW | ✅ |
+| 9 | API payload integrity | `apiClient.test.ts` | 18 | Vitest + MSW | ✅ |
+| 10 | Resilience / 503 errors | `resilienceAndLifecycle.test.tsx` | 4 | Vitest + MSW | ✅ |
+| 11 | Accessibility (ARIA/axe) | `a11yAndPerformance.test.tsx` | 7 | Vitest + axe | ✅ |
+| 12 | Render count / memoization | `a11yAndPerformance.test.tsx` | 5 | Vitest + RTL | ✅ |
+| 13 | Optimistic UI rollback | `resilienceAndLifecycle.test.tsx` | 3 | Vitest + MSW | ✅ |
+| 14 | Unsaved changes guard | `unsavedChangesGuard.test.tsx` | 9 | Vitest + RTL | ✅ |
+| 15 | Deep-link / URL routing | `tests/e2e/deeplink.spec.ts` | 9 | Playwright | 🟡 E2E |
+| 16 | Multi-vendor BOQ math | `multiVendorBOQ.test.ts` | 13 | Vitest | ✅ |
+| 17 | AGENTS.md compliance | `agentsCompliance.test.tsx` | 8 | Vitest + RTL | ✅ |
+| 18 | Mutation testing (Stryker) | `stryker.config.json` | N/A | Stryker | `npm run test:mutation` |
+| 19 | Property-based (fast-check) | `propertyBased.test.ts` | 10 | Vitest + fc | ✅ |
+
+### Critical Component Prop Contracts
+
+**These components do NOT accept `ucids` or `catalogSkus` — they are self-contained domain modules:**
+
+| Component | Valid Props | ❌ Never Pass |
+|-----------|-------------|--------------|
+| `SourcingRulesVault` | `sourcingRules`, `setSourcingRules`, `triggerToast`, `prefillRule`, `onPrefillConsumed` | `ucids`, `catalogSkus` |
+| `CatalogManager` | `catalogSkus`, `setCatalogSkus`, `vendors` | `ucids` |
+| `CatalogTaxonomyTree` | `selectedPath`, `selectPathFn` | `taxonomyNodes` (owns internal data) |
+| `AddRuleForm` | `onSubmit`, `onCancel`, `prefillRule`, `triggerToast` | `onSave` |
+
+### MSW Endpoint Truth Table
+
+| Action | Correct Endpoint | ❌ Wrong (historical) |
+|--------|-----------------|----------------------|
+| Auto-Heal | `POST /api/forensics/align` | `POST /api/issues/auto-heal` |
+| Rule Save | `POST /api/taxonomy/rules` | `POST /api/sourcing-rules` |
+| Rule Simulate | `POST /api/taxonomy/simulate` | `POST /api/sourcing-rules/:id/simulate` |
+| BOQ Ingest | `POST /api/boq/ingest` → `{ ucid: string, configsCreated, sourceFile, parsedSummary }` | Returns UCID object |
+
+### fast-check v4 API Reference
+```typescript
+fc.uuid()                            // UUID v4 ✅
+fc.string({ minLength: 3 })          // String with length ✅
+fc.nat({ max: 1000 })                // Non-negative int ✅
+// ❌ REMOVED in fast-check v4:
+fc.uuidV(4)    // → fc.uuid()
+fc.char()      // → fc.string({ minLength: 1, maxLength: 1 })
+fc.stringOf()  // → fc.string({ minLength, maxLength })
+```
+
+### Test Scripts
+```bash
+npm run test:vitest        # 63 files, 311 tests
+npm run test:e2e           # Playwright E2E
+npm run test:mutation      # Stryker (slow)
+npm run lint               # 0 errors, 15 known warnings
+npm run build              # Vite production build
+```
+
+
+
+## 22. Phase 11: SolutionProject Grouping & UCID Parallelism
+
+### 22.1 SolutionProject Wrapper Dominance
+*   **Issue**: Floating UCIDs caused visual inconsistencies across tabs because components filtered by raw arrays rather than scoped solution projects.
+*   **Solution**: `activeSolutionId` is now the definitive master state pivot. Every UCID *must* possess a `solutionId` foreign key linking it to a `SolutionProject`. Components must filter their data using `useCoreStore(s => s.activeSolutionId)`.
+
+---
+
+## 23. Phase 12 Drag & Drop Architecture & Native Interactivity
+
+### 23.1 Native HTML5 Drag and Drop Mandate
+*   **Rule**: We strictly avoid massive third-party DND libraries (`dnd-kit`, `react-beautiful-dnd`) to minimize JS bundle weight and maintain React 19 compatibility without fighting deprecated lifecycles.
+*   **Implementation**: All drag operations MUST use native HTML5 attributes: `draggable={true}`, `onDragStart`, `onDragOver`, and `onDrop`.
+*   **Payload Transport**: Use `e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'entity', id: '123' }))` to transport typed interaction payloads cleanly between isolated DOM subtrees (e.g., passing Orphan ID from `TaxonomyOrphanBox` into `KnowledgeGraphCanvas`).
+
+### 23.2 Drag-to-Heal State Mutations (Taxonomy Graph)
+*   **Rule**: Visual "Heal" interactions (like dropping an unmapped SKU onto a valid Catalog Node) MUST trigger an optimistic state mutation locally *while* dispatching the API call to `/api/taxonomy/map`. This ensures UI snappiness while preserving backend source-of-truth.
+
+### 23.3 Testing Interactivity
+*   **Rule**: When validating DND in E2E tests, standard Playwright interactions or Vitest DOM mocks (like `fireEvent.dragStart` and `fireEvent.drop`) must be explicitly targeted to the `dataTransfer` lifecycle.
+
+### 22.1 Ingestion & Splitting Boundaries
+- **The BOQ**: When a user uploads a BOQ (Bill of Quantities), they are uploading a `SolutionProject` campaign (e.g. "HQ Expansion"). 
+- **The Split**: The Ingestion Hub parses the BOQ and splits it into multiple distinct, parallel configurations (e.g., Compute, Storage, Networking). 
+- **The Contract**: Each of these split configurations becomes a `UCID`. Therefore, the `UCID` schema now mandates the inclusion of the parent's contextual pointers:
+  - `solutionId`: The UUID of the parent `SolutionProject`
+  - `solutionDisplayId`: The human-readable parent display ID (e.g. `SOL-2026-001`)
+  - `configIndex`: Numeric order of this specific parallel track (e.g. 1)
+  - `configLabel`: Sourced config name (e.g. "Primary Spec")
+
+### 22.2 Sourcing UI View Scoping
+- Components like `TaxonomyGraph`, `SolutionBuilder`, and `MissionControl` must NOT randomly display all global UCIDs in a flat list. 
+- The Global Store (`coreStore`) tracks the `activeSolutionId`.
+- **View Render Rules**: Always filter your visible `availableUcids` to only those matching `u.solutionId === activeSolutionId`.
+- **Creation Rules**: When rendering modal triggers (like `NewUCIDModal`), default the new record to link to the global `activeSolutionId`. Never inject orphaned UCIDs into the store unless explicitly simulating an error state.
+
+### 22.3 Campaign Consolidation Hub (The Rollup)
+- **Purpose**: Because UCIDs are now split by hardware category, the user requires a macro-view to negotiate the entire campaign.
+- **The Hub**: `CampaignConsolidationHub` automatically groups child UCIDs by their `SolutionProject` and calculates the total original budget versus the total sourced budget across all tracks. 
+- **Decision Engine**: It exposes portfolio-wide operations like `Best-of-Breed` (picking the cheapest across all vendors) or `Single-Source` (forcing all configs to HPE or Dell to trigger volume rebates), before securely locking the entire campaign in a unified snapshot covenant.
+
+---
+
+## 24. Backend Mission Control Workflow Delegation (Phase 13 Prep)
+
+### 24.1 Workflow State Simulation vs Real Execution
+*   **Current State**: The `useMissionControlWorkflow` hook in the frontend simulates the progression of AI subflows (e.g., "Parsing BOQ", "Semantic Search", "Taxonomy Matching", "BOM Generation") using network-delayed handlers in `coreHandlers.ts`. 
+*   **Rule for Backend**: When building the real backend pipelines, the API must NOT run these heavy workflows synchronously in a single HTTP request, or it will trigger 504 Gateway Timeouts.
+*   **Implementation Mandate**:
+    - The UI layer will trigger an asynchronous `/api/workflows/run` POST request.
+    - The backend MUST return a `jobId` immediately (202 Accepted).
+    - The frontend will utilize the existing `JobStreamer` component to poll or listen via SSE (Server-Sent Events) for granular step-by-step progress updates.
+
+### 24.2 State Machine Transitions
+*   **Current State**: `activeStepIndex` manually iterates via `completeStep` in the UI.
+*   **Backend Handoff**: The backend workflow orchestrator (e.g., Temporal or Kafka) must broadcast the precise `currentStep` and `completedSteps` array back to the frontend. The `activeStepIndex` in `MissionControl.tsx` must become a purely reactive prop derived from the active UCID's `syncStatus` payload, entirely eliminating frontend-driven timeouts.

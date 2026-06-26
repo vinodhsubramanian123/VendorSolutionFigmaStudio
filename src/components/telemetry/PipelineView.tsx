@@ -5,30 +5,33 @@ import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
 import {
   DocStatus,
-  DocCategory,
+  
   DocIngestionJob,
   getCategory,
   formatBytes,
   DOC_ICON,
   STATUS_STYLES,
 } from "./telemetryUtils";
-
+interface PipelineStepResponse {
+  progress: number;
+  status: DocStatus;
+  log: string;
+  extractedCount?: number;
+}
 export function PipelineView() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [jobs, setJobs] = useState<DocIngestionJob[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
-
   // Inject a mock job with animated progress
   const startJobProcessing = useCallback(async (job: DocIngestionJob) => {
     const steps = ["init", "parse", "ocr", "extract", "rules", "complete"];
     for (const step of steps) {
       try {
-        const json = await apiClient.post<Record<string, unknown>>("/api/pipeline/step", { jobId: job.id, step }) as any;
+        const json = await apiClient.post<PipelineStepResponse>("/api/pipeline/step", { jobId: job.id, step });
         const data = json.data;
-
+        if (!data) continue;
         setJobs((prev) =>
           prev.map((j) =>
             j.id === job.id
@@ -43,7 +46,6 @@ export function PipelineView() {
               : j
           )
         );
-
         if (data.status === "completed") {
           toast(`Document "${job.filename}" processed — intelligence extracted!`, "success");
         }
@@ -52,22 +54,18 @@ export function PipelineView() {
       }
     }
   }, [toast]);
-
   const processFiles = useCallback((files: File[]) => {
     const validFiles = files.filter((f) => {
       const ext = f.name.split(".").pop()?.toLowerCase() || "";
       return ["pdf", "xlsx", "xls", "txt", "csv", "docx"].includes(ext);
     });
-
     if (validFiles.length === 0) {
       toast("Unsupported file type. Accepted: PDF, Excel, TXT, CSV.", "warn");
       return;
     }
-
     if (validFiles.length !== files.length) {
       toast(`${files.length - validFiles.length} file(s) skipped — unsupported format.`, "warn");
     }
-
     const newJobs: DocIngestionJob[] = validFiles.map((f) => ({
       id: `job-${crypto.randomUUID()}`,
       filename: f.name,
@@ -78,15 +76,12 @@ export function PipelineView() {
       progress: 0,
       logLines: [`[${new Date().toLocaleTimeString()}] [QUEUE] Job created for "${f.name}"`],
     }));
-
     setJobs((prev) => [...newJobs, ...prev]);
     toast(`${newJobs.length} document${newJobs.length > 1 ? "s" : ""} queued for processing.`, "success");
-
     newJobs.forEach((job) => {
       startJobProcessing(job);
     });
   }, [startJobProcessing, toast]);
-
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -95,7 +90,6 @@ export function PipelineView() {
     },
     [processFiles]
   );
-
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files) {
@@ -105,11 +99,9 @@ export function PipelineView() {
     },
     [processFiles]
   );
-
   const handleClearJob = useCallback((jobId: string) => {
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
   }, []);
-
   const pipelineStats = useMemo(() => ({
     total: jobs.length,
     queued: jobs.filter((j) => j.status === "queued").length,
@@ -118,7 +110,6 @@ export function PipelineView() {
     failed: jobs.filter((j) => j.status === "failed").length,
     extracted: jobs.reduce((acc, j) => acc + (j.extractedCount || 0), 0),
   }), [jobs]);
-
   return (
     <motion.div
       key="pipeline"
@@ -145,7 +136,6 @@ export function PipelineView() {
           </div>
         ))}
       </div>
-
       {/* Drop zone */}
       <div
         role="button"
@@ -193,7 +183,6 @@ export function PipelineView() {
           />
         )}
       </div>
-
       {/* Job list */}
       {jobs.length > 0 && (
         <div className="space-y-2">
@@ -213,7 +202,6 @@ export function PipelineView() {
               const cfg = STATUS_STYLES[job.status];
               const Icon = DOC_ICON[job.category];
               const isExpanded = expandedJobId === job.id;
-
               return (
                 <motion.div
                   key={job.id}
@@ -234,7 +222,6 @@ export function PipelineView() {
                     <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center shrink-0">
                       <Icon className="w-4 h-4 text-gray-400" />
                     </div>
-
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -250,7 +237,6 @@ export function PipelineView() {
                         {formatBytes(job.fileSize)} · {new Date(job.uploadedAt).toLocaleTimeString()}
                       </p>
                     </div>
-
                     {/* Progress */}
                     <div className="flex items-center gap-2 shrink-0">
                       {(job.status === "processing" || job.status === "extracting") && (
@@ -265,7 +251,6 @@ export function PipelineView() {
                       </button>
                     </div>
                   </div>
-
                   {/* Progress bar */}
                   {job.status !== "queued" && (
                     <div className="h-0.5 bg-white/5">
@@ -285,7 +270,6 @@ export function PipelineView() {
                       />
                     </div>
                   )}
-
                   {/* Expanded log */}
                   <AnimatePresence>
                     {isExpanded && (
@@ -322,7 +306,6 @@ export function PipelineView() {
           </AnimatePresence>
         </div>
       )}
-
       {jobs.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
           <p className="text-[11px] text-gray-600">No documents queued yet. Upload files above to begin extraction.</p>

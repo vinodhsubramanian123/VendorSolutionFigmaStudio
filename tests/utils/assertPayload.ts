@@ -6,7 +6,7 @@ import {
 } from '../../src/types/zodSchemas';
 
 export async function assertUCIDPayloadIntegrity(page: any, ucidId?: string) {
-  const ucids = await page.evaluate(() => JSON.parse(window.localStorage.getItem('sys_ucids') || '[]'));
+  const ucids = await page.evaluate(() => JSON.parse(window.localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
   
   if (ucidId) {
     const targetUCID = ucids.find((u: any) => u.id === ucidId);
@@ -23,7 +23,7 @@ export async function assertUCIDPayloadIntegrity(page: any, ucidId?: string) {
 }
 
 export async function assertSourcingRulesIntegrity(page: any) {
-  const rules = await page.evaluate(() => JSON.parse(window.localStorage.getItem('sys_sourcing_rules') || '[]'));
+  const rules = await page.evaluate(() => JSON.parse(window.localStorage.getItem('vsip-core-storage') || '{"state":{"sourcingRules":[]}}').state.sourcingRules);
   for (const rule of rules) {
     const validation = SourcingRuleSchema.safeParse(rule);
     expect(validation.success, `Payload integrity failed for SourcingRule ${rule.id}: ${!validation.success ? validation.error.message : ''}`).toBe(true);
@@ -31,7 +31,7 @@ export async function assertSourcingRulesIntegrity(page: any) {
 }
 
 export async function assertForensicIssuesIntegrity(page: any) {
-  const issues = await page.evaluate(() => JSON.parse(window.localStorage.getItem('sys_forensic_issues') || '[]'));
+  const issues = await page.evaluate(() => JSON.parse(window.localStorage.getItem('vsip-core-storage') || '{"state":{"forensicIssues":[]}}').state.forensicIssues);
   for (const issue of issues) {
     const validation = ForensicIssueSchema.safeParse(issue);
     expect(validation.success, `Payload integrity failed for ForensicIssue ${issue.id}: ${!validation.success ? validation.error.message : ''}`).toBe(true);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocalStorageState } from "../../hooks/useLocalStorageState";
+import { useIngestionStore } from "../../store/ingestionStore";
 import { apiClient } from "../../services/apiClient";
 import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
 
@@ -14,21 +14,21 @@ export function useBomConversion(
   selectedUcidId: string,
   selectedBomsForBatch: string[]
 ) {
-  const [activeBOMFile, setActiveBOMFile] = useLocalStorageState<string>("ingestion_bom_file", "");
   const [isBOMIngesting, setIsBOMIngesting] = useState(false);
+  const activeBOMFile = useIngestionStore(s => s.activeBOMFile);
+  const setActiveBOMFile = useIngestionStore(s => s.setActiveBOMFile);
+
+  const bomVerifyResult = useIngestionStore(s => s.bomVerifyResult);
+  const setBomVerifyResult = useIngestionStore(s => s.setBomVerifyResult);
+
+  const bomReconResult = useIngestionStore(s => s.bomReconResult);
+  const setBomReconResult = useIngestionStore(s => s.setBomReconResult);
   const [bomProgress, setBomProgress] = useState(0);
-  const [bomVerifyResult, setBomVerifyResult] = useLocalStorageState<ConstraintCheckResponse | null>(
-    "ingestion_bom_verify",
-    null,
-  );
-  const [bomReconResult, setBomReconResult] = useLocalStorageState<ReconciliationResponse | null>(
-    "ingestion_bom_recon",
-    null,
-  );
   const [bomError, setBomError] = useState<string>("");
 
   const targetUcid = ucids.find((u) => u.id === selectedUcidId) || ucids[0];
 
+  // eslint-disable-next-line complexity
   const triggerBOMParse = async (fileName: string) => {
     if (!targetUcid) {
       setBomError("Please select or create an active UCID tracking container first!");

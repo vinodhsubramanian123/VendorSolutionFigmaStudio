@@ -209,6 +209,11 @@ async function startServer() {
         currentStep: "solution-design",
         completedSteps: ["boq-intake", "pre-intelligence"],
         rawBOM: rawText || `Ingested from ${fileName}`,
+        solutionId: "sol-api-mock",
+        solutionDisplayId: "SOL-API-MOCK",
+        configIndex: 1,
+        configLabel: "API Config",
+        parallelGroup: null,
         solutions: solutions.map((sol: any) => ({
           id: sol.id,
           name: sol.label || sol.vendor + " Solution",

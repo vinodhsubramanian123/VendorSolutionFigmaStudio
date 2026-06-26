@@ -1,8 +1,8 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import React from "react";
 import { Activity } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import type { UCID } from "../../types";
-
 interface ConsolidatedStatusBoardProps {
   manualBOMStatus: "pending" | "partial" | "complete";
   hpeSyncedConfigs: number;
@@ -11,7 +11,7 @@ interface ConsolidatedStatusBoardProps {
   isPortfolioActive: boolean;
   ucids?: UCID[];
 }
-
+// eslint-disable-next-line complexity
 export function ConsolidatedStatusBoard({
   manualBOMStatus,
   hpeSyncedConfigs,
@@ -23,7 +23,6 @@ export function ConsolidatedStatusBoard({
   const ciscoUcid = ucids.find(u => u.name.includes("Cisco")) || { id: "UCID-2026-1703" };
   const hpeUcid = ucids.find(u => u.name.includes("HPE")) || { id: "UCID-2026-1702" };
   const dellUcid = ucids.find(u => u.name.includes("Dell")) || { id: "UCID-2026-1701" };
-
   return (
     <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-4 text-left">
       <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400"> 
@@ -34,7 +33,6 @@ export function ConsolidatedStatusBoard({
         tracks. High availability parallel crawlers sync digital profiles
         while manually uploaded vendor bids match simultaneously.
       </p>
-
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-[10px]">
           <thead>
@@ -66,7 +64,6 @@ export function ConsolidatedStatusBoard({
                 {manualBOMStatus === "pending" ? "$0" : manualBOMStatus === "partial" ? "$196,200" : "$392,400"}
               </td>
             </tr>
-
             <tr className="hover:bg-white/[0.01] transition-all text-left">
               <td className="py-3 font-bold font-mono text-gray-300 text-left">{hpeUcid.id} (HPE)</td>
               <td className="py-3 text-gray-400 font-mono">Parallel Crawler</td>
@@ -84,7 +81,6 @@ export function ConsolidatedStatusBoard({
                 ${(hpeSyncedConfigs * 105450).toLocaleString()}
               </td>
             </tr>
-
             <tr className="hover:bg-white/[0.01] transition-all text-left">
               <td className="py-3 font-bold font-mono text-gray-300 text-left">{ciscoUcid.id} (Cisco)</td>
               <td className="py-3 text-gray-400 font-mono">Parallel Crawler</td>
@@ -105,7 +101,6 @@ export function ConsolidatedStatusBoard({
           </tbody>
         </table>
       </div>
-
       <div className="bg-surface-card border border-white/5 p-4 rounded-lg space-y-2 mt-2 text-left">
         <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold text-left">
           <Activity className="w-4 h-4 text-indigo-400 animate-pulse shrink-0" />

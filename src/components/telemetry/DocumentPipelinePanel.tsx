@@ -2,61 +2,42 @@ import React, { useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Upload,
-  FileText,
-  FileSpreadsheet,
+  
+  
   File,
   X,
   Loader2,
 } from "lucide-react";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
-import type { DocIngestionJob, DocCategory, DocStatus } from "./types";
-
-const DOC_ICON: Record<DocCategory, React.ElementType> = {
-  pdf: FileText,
-  excel: FileSpreadsheet,
-  txt: FileText,
-  csv: FileSpreadsheet,
-  other: File,
-};
-
-const STATUS_STYLES: Record<DocStatus, { color: string; bg: string; border: string; label: string }> = {
-  queued:     { color: "text-gray-400",    bg: "bg-white/5",         border: "border-white/8",          label: "Queued" },
-  processing: { color: "text-indigo-400",  bg: "bg-indigo-500/8",    border: "border-indigo-500/20",    label: "Processing" },
-  extracting: { color: "text-amber-400",   bg: "bg-amber-500/8",     border: "border-amber-500/20",     label: "Extracting" },
-  completed:  { color: "text-emerald-400", bg: "bg-emerald-500/8",   border: "border-emerald-500/20",   label: "Completed" },
-  failed:     { color: "text-red-400",     bg: "bg-red-500/8",       border: "border-red-500/20",       label: "Failed" },
-};
-
-function getCategory(filename: string): DocCategory {
-  const ext = filename.split(".").pop()?.toLowerCase() || "";
-  if (ext === "pdf") return "pdf";
-  if (["xlsx", "xls"].includes(ext)) return "excel";
-  if (ext === "txt") return "txt";
-  if (ext === "csv") return "csv";
-  return "other";
+import {
+  DocStatus,
+  
+  DocIngestionJob,
+  getCategory,
+  formatBytes,
+  DOC_ICON,
+  STATUS_STYLES,
+} from "./telemetryUtils";
+interface PipelineStepResponse {
+  progress: number;
+  status: DocStatus;
+  log: string;
+  extractedCount?: number;
 }
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
-
 export function DocumentPipelinePanel() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [jobs, setJobs] = useState<DocIngestionJob[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
-
   const startJobProcessing = useCallback(async (job: DocIngestionJob) => {
     const steps = ["init", "parse", "ocr", "extract", "rules", "complete"];
     for (const step of steps) {
       try {
-        const json = await apiClient.post<Record<string, unknown>>("/api/pipeline/step", { jobId: job.id, step }) as any;
+        const json = await apiClient.post<PipelineStepResponse>("/api/pipeline/step", { jobId: job.id, step });
         const data = json.data;
-
+        if (!data) continue;
         setJobs((prev) =>
           prev.map((j) =>
             j.id === job.id
@@ -71,7 +52,6 @@ export function DocumentPipelinePanel() {
               : j
           )
         );
-
         if (data.status === "completed") {
           toast(`Document "${job.filename}" processed — intelligence extracted!`, "success");
         }
@@ -80,22 +60,18 @@ export function DocumentPipelinePanel() {
       }
     }
   }, [toast]);
-
   const processFiles = useCallback((files: File[]) => {
     const validFiles = files.filter((f) => {
       const ext = f.name.split(".").pop()?.toLowerCase() || "";
       return ["pdf", "xlsx", "xls", "txt", "csv", "docx"].includes(ext);
     });
-
     if (validFiles.length === 0) {
       toast("Unsupported file type. Accepted: PDF, Excel, TXT, CSV.", "warn");
       return;
     }
-
     if (validFiles.length !== files.length) {
       toast(`${files.length - validFiles.length} file(s) skipped — unsupported format.`, "warn");
     }
-
     const newJobs: DocIngestionJob[] = validFiles.map((f) => ({
       id: `job-${crypto.randomUUID()}`,
       filename: f.name,
@@ -106,29 +82,24 @@ export function DocumentPipelinePanel() {
       progress: 0,
       logLines: [`[${new Date().toLocaleTimeString()}] [QUEUE] Job created for "${f.name}"`],
     }));
-
     setJobs((prev) => [...newJobs, ...prev]);
     toast(`${newJobs.length} document${newJobs.length > 1 ? "s" : ""} queued for processing.`, "success");
     newJobs.forEach((job) => { startJobProcessing(job); });
   }, [startJobProcessing, toast]);
-
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     processFiles(Array.from(e.dataTransfer.files));
   }, [processFiles]);
-
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       processFiles(Array.from(e.target.files));
       e.target.value = "";
     }
   }, [processFiles]);
-
   const handleClearJob = useCallback((jobId: string) => {
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
   }, []);
-
   const pipelineStats = useMemo(() => ({
     total: jobs.length,
     queued: jobs.filter((j) => j.status === "queued").length,
@@ -137,7 +108,6 @@ export function DocumentPipelinePanel() {
     failed: jobs.filter((j) => j.status === "failed").length,
     extracted: jobs.reduce((acc, j) => acc + (j.extractedCount || 0), 0),
   }), [jobs]);
-
   return (
     <motion.div
       key="pipeline"
@@ -161,7 +131,6 @@ export function DocumentPipelinePanel() {
           </div>
         ))}
       </div>
-
       {/* Drop zone */}
       <div
         role="button"
@@ -210,7 +179,6 @@ export function DocumentPipelinePanel() {
           />
         )}
       </div>
-
       {/* Job list */}
       {jobs.length > 0 && (
         <div className="space-y-2">
@@ -230,7 +198,6 @@ export function DocumentPipelinePanel() {
               const cfg = STATUS_STYLES[job.status];
               const Icon = DOC_ICON[job.category];
               const isExpanded = expandedJobId === job.id;
-
               return (
                 <motion.div
                   key={job.id}
@@ -279,7 +246,6 @@ export function DocumentPipelinePanel() {
                       </button>
                     </div>
                   </div>
-
                   {/* Progress bar */}
                   {job.status !== "queued" && (
                     <div className="h-0.5 bg-white/5">
@@ -299,7 +265,6 @@ export function DocumentPipelinePanel() {
                       />
                     </div>
                   )}
-
                   {/* Expanded log */}
                   <AnimatePresence>
                     {isExpanded && (
@@ -336,7 +301,6 @@ export function DocumentPipelinePanel() {
           </AnimatePresence>
         </div>
       )}
-
       {jobs.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
           <p className="text-[11px] text-gray-600">No documents queued yet. Upload files above to begin extraction.</p>

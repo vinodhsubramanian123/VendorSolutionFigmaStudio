@@ -2,6 +2,7 @@ import React from "react";
 import { ChevronRight, Home } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { UCID } from "../../types";
+import { useCoreStore } from "../../store/coreStore";
 
 interface BreadcrumbNavProps {
   view: string;
@@ -25,6 +26,7 @@ export function BreadcrumbNav({
     catalog: "Catalog SKU Manager",
     "vendor-portal": "Vendor Portal & APIs",
     forensic: "Forensic Scan & Heal",
+    solutions: "Solution Portfolio",
     "solution-builder": "Solution Configurator",
     reconciliation: "BOM Reconciliation Diff",
     search: "Semantic NLP Search",
@@ -37,6 +39,11 @@ export function BreadcrumbNav({
     path.startsWith("/mission-control") && activeMissionId
       ? ucids.find((u) => u.id === activeMissionId)
       : null;
+
+  const solutions = useCoreStore(s => s.solutions);
+  const activeSolution = useCoreStore(s => s.activeSolutionId) 
+    ? solutions.find(s => s.id === useCoreStore.getState().activeSolutionId) 
+    : (activeMission ? solutions.find(s => s.id === activeMission.solutionId) : null);
 
   return (
     <div className="flex items-center text-[10px] font-mono tracking-wider mb-4 px-1 rounded bg-surface-elevated/50 py-2 border border-white/5 shrink-0">
@@ -61,11 +68,27 @@ export function BreadcrumbNav({
         </>
       )}
 
-      {activeMission && (
+      {activeSolution && (
         <>
           <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
           <span className="uppercase text-status-warning font-bold">
-            [{activeMission.displayId}]{" "}
+            [{activeSolution.displayId}] {activeSolution.name}
+          </span>
+          {activeMission && (
+            <>
+              <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
+              <span className="uppercase text-indigo-400 font-bold">
+                {activeMission.configLabel || activeMission.displayId}
+              </span>
+            </>
+          )}
+        </>
+      )}
+      {!activeSolution && activeMission && (
+        <>
+          <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
+          <span className="uppercase text-status-warning font-bold">
+            [{activeMission.solutionDisplayId || activeMission.displayId}]{" "}
             {activeMission.name.split("—")[0]?.trim() || activeMission.name}
           </span>
         </>

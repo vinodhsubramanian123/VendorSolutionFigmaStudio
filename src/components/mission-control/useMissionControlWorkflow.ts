@@ -59,7 +59,7 @@ export function useMissionControlWorkflow({
 
           // Mock adding a solution if there wasn't one
           const updatedSolutions =
-            u.solutions.length > 0 ? u.solutions : generateDefaultSolutions();
+            u.solutions.length > 0 ? u.solutions : generateDefaultSolutions(ucidId);
 
           return {
             ...u,
@@ -221,6 +221,7 @@ export function useMissionControlWorkflow({
       });
       toast("Snapshot securely locked and persisted to ledger.", "success");
     } catch (e) {
+      console.error("[useMissionControlWorkflow] snapshot failure", e);
       toast("Failed to commit snapshot to the server.", "error");
     } finally {
       setCommittingSnapshot(false);

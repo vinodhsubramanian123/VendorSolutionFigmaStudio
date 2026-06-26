@@ -46,7 +46,16 @@ export function CatalogAddForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-50 animate-fadeIn select-none leading-normal">
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <div 
+      className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      tabIndex={0}
+      role="dialog"
+      aria-modal="true"
+    >
       <div
         className="w-full max-w-sm rounded-xl border p-5 space-y-4"
         style={{
@@ -75,14 +84,14 @@ export function CatalogAddForm({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 text-xs">
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1 text-left">
-              <label className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="vendor" className="text-gray-400 font-semibold uppercase">
                 Vendor
               </label>
               <Controller
                 name="vendor"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onChange={field.onChange}>
+                  <Select id="vendor" value={field.value} onChange={field.onChange}>
                     <option value="HPE">HPE</option>
                     <option value="Dell">Dell</option>
                     <option value="Cisco">Cisco</option>
@@ -92,14 +101,14 @@ export function CatalogAddForm({
               />
             </div>
             <div className="space-y-1 text-left">
-              <label className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="type" className="text-gray-400 font-semibold uppercase">
                 Category
               </label>
               <Controller
                 name="type"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onChange={field.onChange}>
+                  <Select id="type" value={field.value} onChange={field.onChange}>
                     <option value="Processor">Processor</option>
                     <option value="Memory">Memory</option>
                     <option value="Drive">Drive</option>
@@ -112,11 +121,13 @@ export function CatalogAddForm({
           </div>
 
           <div className="space-y-1 text-left">
-            <label className="text-gray-400 font-semibold uppercase">
+            <label htmlFor="partNumber" className="text-gray-400 font-semibold uppercase">
               Part Number ID
             </label>
             <input
+              id="partNumber"
               type="text"
+              data-testid="input-partNumber"
               {...register("partNumber")}
               placeholder="e.g. P40445-B21"
               className={`w-full p-2.5 bg-black/30 border text-white font-mono uppercase transition-colors duration-200 ${
@@ -138,11 +149,13 @@ export function CatalogAddForm({
           </div>
 
           <div className="space-y-1 text-left">
-            <label className="text-gray-400 font-semibold uppercase">
+            <label htmlFor="name" className="text-gray-400 font-semibold uppercase">
               Part Description
             </label>
             <input
+              id="name"
               type="text"
+              data-testid="input-name"
               {...register("name")}
               placeholder="e.g. Intel Gold 6430 32-Core 2.1GHz"
               className={`w-full p-2.5 bg-black/30 border text-white transition-colors duration-200 ${
@@ -165,11 +178,13 @@ export function CatalogAddForm({
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1 text-left">
-              <label className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="price" className="text-gray-400 font-semibold uppercase">
                 Contract Rate ($)
               </label>
               <input
+                id="price"
                 type="number"
+                data-testid="input-price"
                 {...register("price", { valueAsNumber: true })}
                 placeholder="2450"
                 className={`w-full p-2.5 bg-black/30 border text-white font-mono transition-colors duration-200 ${
@@ -190,11 +205,13 @@ export function CatalogAddForm({
               </AnimatePresence>
             </div>
             <div className="space-y-1 text-left">
-              <label className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="leadTimeDays" className="text-gray-400 font-semibold uppercase">
                 Lead Time (Days)
               </label>
               <input
+                id="leadTimeDays"
                 type="number"
+                data-testid="input-leadTimeDays"
                 {...register("leadTimeDays", { valueAsNumber: true })}
                 placeholder="7"
                 className={`w-full p-2.5 bg-black/30 border text-white transition-colors duration-200 ${

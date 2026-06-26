@@ -5,14 +5,18 @@ import { UCID_STEPS } from "../../lib/mockData";
 import type { UCID, AppView } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 
+import { useCoreStore } from "../../store/coreStore";
+
 interface UcidPipelineCardProps {
   ucids: UCID[];
   onNavigate: (view: AppView) => void;
 }
 
 export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
-  const renderedUcids = useMemo(() => {
-    if (ucids.length === 0) {
+  const solutions = useCoreStore(s => s.solutions);
+  
+  const renderedSolutions = useMemo(() => {
+    if (solutions.length === 0) {
       return (
         <div className="p-10 flex flex-col items-center justify-center text-center text-gray-500 animate-fadeIn h-[200px]">
           <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4">
@@ -30,19 +34,27 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
     }
       return (
         <AnimatePresence mode="popLayout" key="pipeline-list">
-          {ucids.map((u) => {
-            const stepIdx = UCID_STEPS.findIndex(
-              (s) => s.id === u.currentStep,
-            );
-            const pct = Math.round(
-              (stepIdx / (UCID_STEPS.length - 1)) * 100,
-            );
-            const PRIORITY_COLOR: Record<string, string> = {
-              critical: tokens.colors.status.error,
-              high: tokens.colors.status.warning,
-              medium: tokens.colors.accent.indigo,
-              low: tokens.colors.text.muted,
+          {solutions.map((sol) => {
+            const myUcids = ucids.filter(u => sol.ucidIds.includes(u.id));
+            
+            // Calculate overall progress based on child UCIDs
+            const totalSteps = myUcids.length * (UCID_STEPS.length - 1);
+            const currentSteps = myUcids.reduce((acc, u) => {
+              const stepIdx = UCID_STEPS.findIndex((s) => s.id === u.currentStep);
+              return acc + (stepIdx > -1 ? stepIdx : 0);
+            }, 0);
+            const pct = totalSteps > 0 ? Math.round((currentSteps / totalSteps) * 100) : 0;
+            
+            const STATUS_COLOR: Record<string, string> = {
+              'completed': tokens.colors.status.success,
+              'parallel-active': tokens.colors.status.warning,
+              'in-progress': tokens.colors.accent.indigo,
+              'ucid-pending': tokens.colors.text.muted,
+              'cleansing': tokens.colors.text.muted,
+              'draft': tokens.colors.text.muted,
+              'on-hold': tokens.colors.status.error,
             };
+
             return (
               <motion.button 
                 layout
@@ -51,21 +63,21 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
                 type="button"
-                key={u.id}
-                onClick={() => onNavigate("mission-control")}
+                key={sol.id}
+                onClick={() => onNavigate("solutions")}
                 className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     <span
                       className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ background: PRIORITY_COLOR[u.priority] }}
+                      style={{ background: STATUS_COLOR[sol.status] || STATUS_COLOR['draft'] }}
                     />
                     <span
                       className="text-xs font-semibold"
                       style={{ color: tokens.colors.text.primary }}
                     >
-                      {u.displayId}
+                      {sol.displayId}
                     </span>
                     <span
                       className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
@@ -74,27 +86,26 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
                         color: tokens.colors.text.secondary,
                       }}
                     >
-                      {u.priority}
+                      {sol.vendor} Strategy
                     </span>
                   </div>
                   <span
                     className="text-[11px]"
                     style={{
                       color:
-                        u.currentStep === "snapshot"
+                        sol.status === "completed"
                           ? tokens.colors.status.success
                           : tokens.colors.status.warning,
                     }}
                   >
-                    {UCID_STEPS.find((s) => s.id === u.currentStep)
-                      ?.label || u.currentStep}
+                    {sol.status}
                   </span>
                 </div>
                 <p
-                  className="text-[11px] mb-2 text-left"
-                  style={{ color: tokens.colors.text.muted }}
+                  className="text-[11px] mb-2 text-left font-medium"
+                  style={{ color: tokens.colors.text.primary }}
                 >
-                  {u.name}
+                  {sol.name} <span style={{ color: tokens.colors.text.muted }}>— {sol.customerName}</span>
                 </p>
                 <div className="flex items-center gap-3">
                   <div
@@ -106,7 +117,7 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
                       style={{
                         width: `${pct}%`,
                         background:
-                          u.currentStep === "snapshot"
+                          sol.status === "completed"
                             ? tokens.colors.status.success
                             : `linear-gradient(90deg, ${tokens.colors.accent.indigo}, ${tokens.colors.status.success})`,
                       }}
@@ -116,7 +127,7 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
                     className="text-[10px] shrink-0"
                     style={{ color: tokens.colors.text.tertiary }}
                   >
-                    {pct}%
+                    {pct}% ({myUcids.length} Configs)
                   </span>
                 </div>
               </motion.button>
@@ -124,7 +135,7 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
           })}
         </AnimatePresence>
       );
-  }, [ucids, onNavigate]);
+  }, [ucids, solutions, onNavigate]);
 
   return (
     <div
@@ -142,17 +153,17 @@ export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
           UCID Mission Pipeline
         </p>
         <button type="button"
-          onClick={() => onNavigate("mission-control")}
+          onClick={() => onNavigate("solutions")}
           className="flex items-center gap-1 text-xs text-brand-indigo hover:underline cursor-pointer"
         >
-          Open Live Mission <ChevronRight className="w-3 h-3" />
+          View All Solutions <ChevronRight className="w-3 h-3" />
         </button>
       </div>
       <div
         className="divide-y max-h-[300px] overflow-y-auto"
         style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
       >
-        {renderedUcids}
+        {renderedSolutions}
       </div>
     </div>
   );

@@ -2,22 +2,20 @@ import React from "react";
 import {
   RefreshCw,
   Upload,
-  Settings,
+  
   CheckCircle,
   AlertTriangle,
-  Layers,
-  Info,
-  Zap,
-  DollarSign,
-  Clock,
+  
+  
+  
+  
+  
   ChevronRight,
-  FileSpreadsheet,
-  ShieldCheck as FileCheck,
+  FileSpreadsheet
 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
 import { BomPhysicalConstraintsPanel, BomReconstructionMatrix } from "./BomPanels";
-
 interface BomReconciliationPanelProps {
   targetUcid: UCID | undefined;
   bomVerifyResult: ConstraintCheckResponse | null;
@@ -30,7 +28,6 @@ interface BomReconciliationPanelProps {
   onTriggerBOMParse: (fileName: string) => void;
   onSelectMission: (id: string) => void;
 }
-
 export function BomReconciliationPanel({
   targetUcid,
   bomVerifyResult,
@@ -46,20 +43,17 @@ export function BomReconciliationPanel({
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
-
   const handleBOMDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       onTriggerBOMParse(e.dataTransfer.files[0].name);
     }
   };
-
   const handleBOMPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       onTriggerBOMParse(e.target.files[0].name);
     }
   };
-
   return (
     <div className="lg:col-span-3 space-y-4 text-left">
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-6">
@@ -74,8 +68,9 @@ export function BomReconciliationPanel({
             limits.
           </p>
         </div>
-
         {/* BOM Upload Dropzone */}
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events */}
         <div
           id="bom-dropzone"
           onDragOver={handleDragOver}
@@ -92,7 +87,6 @@ export function BomReconciliationPanel({
             accept=".xlsx,.xls,.csv"
             className="hidden"
           />
-
           {isBOMIngesting ? (
             <div className="space-y-3 flex flex-col items-center">
               <RefreshCw className="w-8 h-8 text-sky-400 animate-spin" />
@@ -138,7 +132,6 @@ export function BomReconciliationPanel({
             </div>
           )}
         </div>
-
         {/* API Trigger Buttons */}
         {!bomReconResult && !isBOMIngesting && (
           <div className="flex justify-center select-none">
@@ -160,17 +153,14 @@ export function BomReconciliationPanel({
             </button>
           </div>
         )}
-
         {/* Dynamic Verification Output panels */}
         {bomReconResult && (
           <div className="space-y-6 pt-4 border-t border-white/5 animate-fadeIn text-left">
             {bomVerifyResult && (
               <BomPhysicalConstraintsPanel bomVerifyResult={bomVerifyResult} />
             )}
-
             {/* Synthesis Overview info */}
             <BomReconstructionMatrix bomReconResult={bomReconResult} />
-
             <div className="flex justify-between items-center pt-2">
               <span className="text-[10px] text-emerald-400 font-mono block">
                 ✔ Sourcing database instance is completely synced & active.
@@ -187,7 +177,6 @@ export function BomReconciliationPanel({
             </div>
           </div>
         )}
-
         {bomError && (
           <div className="p-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />

@@ -1,4 +1,5 @@
 import type { UCID } from '../types';
+import { logger } from '../utils/logger';
 
 export interface SchedulerTask {
   id: string;
@@ -12,7 +13,7 @@ export class UCIDScheduler {
 
   // Stub for initiating the background processing of a newly uploaded UCID
   scheduleProcessing(ucid: UCID) {
-    console.log(`[UCIDScheduler] Scheduling workflow for UCID ${ucid.id}`);
+    logger.info(`[UCIDScheduler] Scheduling workflow for UCID ${ucid.id}`);
     const task: SchedulerTask = {
       id: `task-${crypto.randomUUID()}`,
       ucidRef: ucid.id,
@@ -31,7 +32,7 @@ export class UCIDScheduler {
   // Stub to be called on an interval or via webhook
   processQueue() {
     // Execution logic goes here
-    console.log(`[UCIDScheduler] Processing queue of length: ${this.tasks.length}`);
+    logger.info(`[UCIDScheduler] Processing queue of length: ${this.tasks.length}`);
   }
 }
 

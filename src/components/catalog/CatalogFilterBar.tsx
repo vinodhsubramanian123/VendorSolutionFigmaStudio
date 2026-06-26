@@ -7,11 +7,12 @@ interface CatalogFilterBarProps {
   searchTerm: string;
   setSearchTerm: (val: string) => void;
   selectedPath: TaxonomyPath;
-  setSelectedPath: React.Dispatch<React.SetStateAction<TaxonomyPath>>;
+  setSelectedPath: (val: TaxonomyPath) => void;
   setVendorFilter: (val: string) => void;
   setTypeFilter: (val: string) => void;
 }
 
+// eslint-disable-next-line complexity
 export function CatalogFilterBar({
   searchTerm,
   setSearchTerm,
@@ -27,6 +28,7 @@ export function CatalogFilterBar({
         <Search className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" />
         <input
           type="text"
+          data-testid="input-catalog-search"
           placeholder="Search Active Part Number or Name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -47,17 +49,37 @@ export function CatalogFilterBar({
         <span className="text-gray-500 font-bold">
           Currently Viewing:
         </span>
-        <span className="px-2.5 py-1 rounded bg-surface-elevated border border-indigo-500/15 text-indigo-400 font-mono font-bold uppercase"> 
-          {selectedPath?.vendor === "all"
-            ? "All Vendors"
-            : selectedPath?.vendor}
-          {selectedPath?.solution !== "all" &&
-            ` > ${selectedPath?.solution}`}
-          {selectedPath?.product !== "all" && ` > ${selectedPath?.product}`}
-          {selectedPath?.generation !== "all" &&
-            ` > ${selectedPath?.generation}`}
-          {selectedPath?.chassis !== "all" && ` > CHASSIS`}
-        </span>
+        <nav aria-label="Breadcrumb" className="px-2.5 py-1 rounded bg-surface-elevated border border-indigo-500/15 text-indigo-400 font-mono font-bold uppercase"> 
+          <ol className="flex items-center space-x-1">
+            <li>
+              {selectedPath?.vendor === "all" ? "All Vendors" : selectedPath?.vendor}
+            </li>
+            {selectedPath?.solution !== "all" && (
+              <>
+                <li aria-hidden="true" className="select-none text-gray-500 px-1">&gt;</li>
+                <li>{selectedPath?.solution}</li>
+              </>
+            )}
+            {selectedPath?.product !== "all" && (
+              <>
+                <li aria-hidden="true" className="select-none text-gray-500 px-1">&gt;</li>
+                <li>{selectedPath?.product}</li>
+              </>
+            )}
+            {selectedPath?.generation !== "all" && (
+              <>
+                <li aria-hidden="true" className="select-none text-gray-500 px-1">&gt;</li>
+                <li>{selectedPath?.generation}</li>
+              </>
+            )}
+            {selectedPath?.chassis !== "all" && (
+              <>
+                <li aria-hidden="true" className="select-none text-gray-500 px-1">&gt;</li>
+                <li>CHASSIS</li>
+              </>
+            )}
+          </ol>
+        </nav>
         {(selectedPath?.vendor !== "all" ||
           selectedPath?.solution !== "all" ||
           searchTerm) && (

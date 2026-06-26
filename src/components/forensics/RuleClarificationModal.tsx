@@ -44,26 +44,29 @@ export function RuleClarificationModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-500 uppercase">Apply this intelligence to:</label>
+            <div className="text-[10px] font-bold text-gray-500 uppercase">Apply this intelligence to:</div>
             <div className="space-y-2">
-              <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Global" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
-                <input type="radio" checked={scope === "Global"} onChange={() => setScope("Global")} className="mt-1" />
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label htmlFor="scope-global" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Global" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
+                <input id="scope-global" type="radio" checked={scope === "Global"} onChange={() => setScope("Global")} className="mt-1" />
                 <div>
                   <div className="text-xs font-bold text-white">Global Portfolio</div>
                   <div className="text-[10px] text-gray-400">Apply across all vendors and models globally. (High Blast Radius)</div>
                 </div>
               </label>
               
-              <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Brand" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
-                <input type="radio" checked={scope === "Brand"} onChange={() => setScope("Brand")} className="mt-1" />
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label htmlFor="scope-brand" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Brand" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
+                <input id="scope-brand" type="radio" checked={scope === "Brand"} onChange={() => setScope("Brand")} className="mt-1" />
                 <div>
                   <div className="text-xs font-bold text-white">Specific Brand ({proposedVendor})</div>
                   <div className="text-[10px] text-gray-400">Restrict logic to only {proposedVendor} BOM submissions.</div>
                 </div>
               </label>
 
-              <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Exact" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
-                <input type="radio" checked={scope === "Exact"} onChange={() => setScope("Exact")} className="mt-1" />
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label htmlFor="scope-exact" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Exact" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
+                <input id="scope-exact" type="radio" checked={scope === "Exact"} onChange={() => setScope("Exact")} className="mt-1" />
                 <div>
                   <div className="text-xs font-bold text-white">Exact SKU Match Only</div>
                   <div className="text-[10px] text-gray-400">Safest. Limit substitution to exactly this part number.</div>

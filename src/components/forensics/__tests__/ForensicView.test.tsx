@@ -24,7 +24,7 @@ vi.mock("../ForensicSidebar", () => ({
   ForensicSidebar: () => <div data-testid="forensic-sidebar">Sidebar</div>
 }));
 
-const mockUcids: import("../../../types").UCID[] = [{ id: "1", displayId: "1", name: "1", priority: "low", projectRef: "1", createdAt: "1", currentStep: "boq-intake", completedSteps: [], rawBOM: "1", solutions: [], events: [], snapshots: [] }];
+const mockUcids: import("../../../types").UCID[] = [{ id: "1", displayId: "1", name: "1", priority: "low", projectRef: "1", createdAt: "1", currentStep: "boq-intake", completedSteps: [], rawBOM: "1", solutions: [], events: [], snapshots: [], solutionId: "11111111-1111-1111-8111-111111111111", solutionDisplayId: "SOL-2026-001", configIndex: 1, configLabel: "Config 1", parallelGroup: null }];
 
 describe("ForensicView", () => {
   it("renders correctly with empty issues", () => {

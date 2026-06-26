@@ -69,15 +69,16 @@ export function ReconciliationOverview({
   const triggerReconJob = async () => {
     try {
       const ucid = activeUCID?.id || "mock-ucid";
-      const data = await apiClient.post<Record<string, unknown>>("/api/jobs", {
+      const response = await apiClient.post<{ job_id: string }>("/api/jobs", {
         type: "reconciliation",
         context: { ucid, config_id: "all", solution_id: "recon" },
         parent_job_id: ""
-      }) as any;
-      if (data.job_id) {
-        setReconJobId(data.job_id);
+      });
+      if (response.data?.job_id) {
+        setReconJobId(response.data.job_id);
       }
     } catch(err) {
+      console.error("[ReconciliationOverview] failed to start recon", err);
       toast.error("Failed to start recon job");
     }
   };

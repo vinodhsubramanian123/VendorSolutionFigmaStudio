@@ -19,8 +19,7 @@ export default defineConfig(() => {
             'lucide-vendor': ['lucide-react'],
             'motion-vendor': ['motion'],
             'recharts-vendor': ['recharts'],
-            'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-            'data-vendor': ['xlsx']
+            'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod']
           }
         }
       }
@@ -38,7 +37,7 @@ export default defineConfig(() => {
       pool: 'forks',
       testTimeout: 60000,
       setupFiles: ['./src/tests/setup.ts'],
-      include: ['src/**/*.test.{ts,tsx}'],
+      include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],

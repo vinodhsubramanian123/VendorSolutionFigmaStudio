@@ -8,7 +8,7 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 
 const server = setupServer(
-  http.post('http://localhost:3000/api/issues/auto-heal', () => {
+  http.post('http://localhost:3000/api/forensics/align', () => {
     return HttpResponse.json({
       data: {
         updatedUcid: { id: 'mock-ucid-1', displayId: 'UCID-2026-MOCK', name: 'Mock Mission', solutions: [] },
@@ -18,7 +18,7 @@ const server = setupServer(
       }
     });
   }),
-  http.post('/api/issues/auto-heal', () => {
+  http.post('/api/forensics/align', () => {
     return HttpResponse.json({
       data: {
         updatedUcid: { id: 'mock-ucid-1', displayId: 'UCID-2026-MOCK', name: 'Mock Mission', solutions: [] },

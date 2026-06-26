@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, animate } from 'motion/react';
 import type { ForensicIssue } from '../../types';
 
 interface ForensicSidebarProps {
@@ -17,19 +17,12 @@ export function ForensicSidebar({
 
   // Animated count-up for the health score
   useEffect(() => {
-    let frame: ReturnType<typeof setTimeout>;
-    const step = () => {
-      setDisplayScore((prev) => {
-        if (prev < targetScore) {
-          frame = setTimeout(step, 18);
-          return Math.min(prev + 3, targetScore);
-        }
-        return targetScore;
-      });
-    };
-    setDisplayScore(0);
-    frame = setTimeout(step, 80);
-    return () => clearTimeout(frame);
+    const controls = animate(0, targetScore, {
+      duration: 0.8,
+      ease: "easeOut",
+      onUpdate: (value) => setDisplayScore(Math.round(value))
+    });
+    return controls.stop;
   }, [targetScore]);
 
   const uniqueResolved = React.useMemo(() => {

@@ -78,8 +78,10 @@ export function SweepCoordinatorBoard({
           {ucids.map((u) => {
             const isChecked = selectedBomsForBatch.includes(u.id);
             return (
+              // eslint-disable-next-line jsx-a11y/label-has-associated-control
               <label
                 key={u.id}
+                htmlFor={`sweep-${u.id}`}
                 className={`flex items-start gap-3 p-2.5 rounded-lg border transition cursor-pointer select-none ${
                   isChecked
                     ? "bg-sky-500/10 border-sky-500/30"
@@ -87,6 +89,7 @@ export function SweepCoordinatorBoard({
                 }`}
               >
                 <input
+                  id={`sweep-${u.id}`}
                   type="checkbox"
                   checked={isChecked}
                   onChange={(e) => {

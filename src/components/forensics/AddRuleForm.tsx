@@ -26,6 +26,7 @@ export function AddRuleForm({
 
   useEffect(() => {
     if (prefillRule) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (prefillRule.ruleType) setNewRuleType(prefillRule.ruleType);
       if (prefillRule.partNumber) setNewPartNumber(prefillRule.partNumber);
       if (prefillRule.mappedOutput) setNewMappedOutput(prefillRule.mappedOutput);
@@ -74,8 +75,9 @@ export function AddRuleForm({
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
         <div>
-          <label className="block text-gray-400 font-medium mb-1">Rule Class Category</label>
+          <label htmlFor="ruleType" className="block text-gray-400 font-medium mb-1">Rule Class Category</label>
           <select
+            id="ruleType"
             value={newRuleType}
             onChange={(e) => setNewRuleType(e.target.value as SourcingRule["ruleType"])}
             className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
@@ -88,8 +90,9 @@ export function AddRuleForm({
         </div>
 
         <div>
-          <label className="block text-gray-400 font-medium mb-1">Target SKU / Parameter Code</label>
+          <label htmlFor="partNumber" className="block text-gray-400 font-medium mb-1">Target SKU / Parameter Code</label>
           <input
+            id="partNumber"
             type="text"
             placeholder="e.g. 400-BPSB or Processor"
             value={newPartNumber}
@@ -99,8 +102,9 @@ export function AddRuleForm({
         </div>
 
         <div>
-          <label className="block text-gray-400 font-medium mb-1">Alignment Override Value</label>
+          <label htmlFor="mappedOutput" className="block text-gray-400 font-medium mb-1">Alignment Override Value</label>
           <input
+            id="mappedOutput"
             type="text"
             placeholder="e.g. P40424-B21 or 1190"
             value={newMappedOutput}
@@ -110,8 +114,9 @@ export function AddRuleForm({
         </div>
 
         <div>
-          <label className="block text-gray-400 font-medium mb-1">Brand Sourcing Entity</label>
+          <label htmlFor="vendorSelect" className="block text-gray-400 font-medium mb-1">Brand Sourcing Entity</label>
           <select
+            id="vendorSelect"
             value={newVendor}
             onChange={(e) => setNewVendor(e.target.value)}
             className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
@@ -125,8 +130,9 @@ export function AddRuleForm({
       </div>
 
       <div>
-        <label className="block text-xs text-gray-400 font-medium mb-1">Directive Override Narrative / Explanation</label>
+        <label htmlFor="ruleLabel" className="block text-xs text-gray-400 font-medium mb-1">Directive Override Narrative / Explanation</label>
         <input
+          id="ruleLabel"
           type="text"
           placeholder="Brief justification logs e.g. Contract rate locked during 2026 Procurement summit"
           value={newLabel}

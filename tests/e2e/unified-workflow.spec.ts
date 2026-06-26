@@ -32,7 +32,7 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await expect(page.getByText('Global Multi-UCID Batch Reconciliation Control Board').first()).toBeVisible();
 
       // [STATE ASSERTION] Verify UCIDs were created and set to initial step
-      const ucidsPhase1 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase1 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const activeUcid = ucidsPhase1.find((u: any) => u.displayId.startsWith('UCID-'));
       expect(activeUcid).toBeDefined();
       expect(activeUcid?.currentStep).toBe('boq-intake');
@@ -67,7 +67,7 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await delay(1500);
 
       // [STATE ASSERTION] Verify UCID state after Solution Builder deployment
-      const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const deployed = ucidsPhase2.find((u: any) => u.displayId.startsWith('UCID-'));
       expect(deployed).toBeDefined();
       expect(deployed?.currentStep).toBe('solution-design');
@@ -124,7 +124,7 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
 
       // [STATE ASSERTION] Verify UCID state after snapshot creation
-      const ucidsPhase4 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase4 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const ucidWithSnap = ucidsPhase4.find((u: any) => u.snapshots && u.snapshots.length > 0);
       expect(ucidWithSnap).toBeDefined();
       expect(ucidWithSnap?.currentStep).toBe('snapshot');

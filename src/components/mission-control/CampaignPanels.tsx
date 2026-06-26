@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import React from "react";
 import * as import_lucide from "lucide-react";
 import { FileSpreadsheet, Sparkles } from "lucide-react";

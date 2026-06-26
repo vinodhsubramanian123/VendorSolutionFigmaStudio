@@ -1,19 +1,16 @@
-import { tokens } from "../../styles/tokens";
-import React, { useState, useMemo } from "react";
+/* eslint-disable complexity */
+import React, { useState} from "react";
 import { motion } from "motion/react";
 import {
   Activity,
   GitCompare,
   Clock,
-  AlertCircle,
+  
   Rocket,
-  Loader2,
+  
 } from "lucide-react";
-import { apiClient } from "../../services/apiClient";
-import type { UCID, UCIDStep, Solution, Snapshot, VendorSubmission } from "../../types";
+import type { UCID, UCIDStep} from "../../types";
 import { useToast } from "../shared/ToastContext";
-import { STEP_ORDER } from "../../lib/mockData";
-
 // Split sub-components
 import { SolutionBanner } from "./SolutionBanner";
 import { CampaignConsolidationHub } from "./CampaignConsolidationHub";
@@ -24,12 +21,9 @@ import { MissionControlSidebar } from "./MissionControlSidebar";
 import { UCIDStepper } from "./UCIDStepper";
 import { UCIDEventLedger } from "./UCIDEventLedger";
 import { useMissionControlWorkflow } from "./useMissionControlWorkflow";
-
 import { PRIORITY_COLOR } from "../../lib/constants";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
-
 import { JobStreamer } from "../shared/JobStreamer";
-
 interface MissionControlProps {
   selectedId?: string;
   onSelectId: (id: string | undefined) => void;
@@ -49,7 +43,6 @@ interface MissionControlProps {
     } | null>
   >;
 }
-
 export const MissionControl = React.memo(function MissionControl({
   selectedId,
   onSelectId,
@@ -70,7 +63,6 @@ export const MissionControl = React.memo(function MissionControl({
   const [campaignLocked, setCampaignLocked] = useState<Record<string, boolean>>(
     {},
   );
-
   // Helper function to extract or resolve Parent Solution/Campaign group
   function getSolutionName(u: UCID): string {
     if (u.solutionName) {
@@ -92,7 +84,6 @@ export const MissionControl = React.memo(function MissionControl({
     }
     return "General Sourcing Projects";
   }
-
   // Group UCIDs by their overarching Solution name
   const groupedUcids = React.useMemo(() => {
     const groups: Record<string, UCID[]> = {};
@@ -105,22 +96,18 @@ export const MissionControl = React.memo(function MissionControl({
     });
     return groups;
   }, [ucids]);
-
   // Default to first UCID if none selected or if selected is not found
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
-
   const completeCount = ucids.filter(
     (u) => u.currentStep === "snapshot",
   ).length;
-
   const solutionState: "planning" | "active" | "complete" =
     completeCount === ucids.length
       ? "complete"
       : ucids.some((u) => u.currentStep !== "boq-intake")
         ? "active"
         : "planning";
-
   function getStepState(
     u: UCID,
     stepId: UCIDStep,
@@ -129,7 +116,6 @@ export const MissionControl = React.memo(function MissionControl({
     if (stepId === u.currentStep) return "active";
     return "upcoming";
   }
-
   const {
     runningIntel,
     intelProgress,
@@ -144,7 +130,6 @@ export const MissionControl = React.memo(function MissionControl({
     appendLogEvent,
     clearLogEvents,
   } = useMissionControlWorkflow({ ucids, setUcids, setViewStep, toast });
-
   if (!selected || ucids.length === 0) {
     return (
       <ErrorBoundary>
@@ -157,6 +142,7 @@ export const MissionControl = React.memo(function MissionControl({
             Initialize a new UCID campaign to begin intelligence tracking.
           </p>
           <button type="button"
+            aria-label="Create New Mission"
             onClick={() => setShowNewUCID(true)}
             className="px-6 py-2.5 rounded-lg bg-brand-indigo text-white font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
           >
@@ -166,7 +152,6 @@ export const MissionControl = React.memo(function MissionControl({
       </ErrorBoundary>
     );
   }
-
   return (
     <ErrorBoundary>
       <motion.div 
@@ -191,7 +176,6 @@ export const MissionControl = React.memo(function MissionControl({
         deployedSolution={deployedSolution}
         onClearDeployed={() => setDeployedSolution && setDeployedSolution(null)}
       />
-
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
         {/* Left column: parallel active tickets */}
         <MissionControlSidebar 
@@ -207,13 +191,14 @@ export const MissionControl = React.memo(function MissionControl({
           setViewStep={setViewStep}
           getSolutionName={getSolutionName}
         />
-
         {/* Right column: detailed workflow tracker */}
         <div className="xl:col-span-3 flex flex-col gap-4 min-w-0">
           {/* Sourcing Workspace Mode Selector Toolbar */}
           <div className="flex bg-surface-elevated p-1 rounded-xl border border-white/5">
             <button
               type="button"
+              aria-label="Switch to UCID Worksheet Pipeline Tracker"
+              aria-pressed={workspaceMode === "individual"}
               onClick={() => setWorkspaceMode("individual")}
               className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
                 workspaceMode === "individual"
@@ -226,6 +211,8 @@ export const MissionControl = React.memo(function MissionControl({
             </button>
             <button
               type="button"
+              aria-label="Switch to Campaign Consolidation Hub"
+              aria-pressed={workspaceMode === "consolidation"}
               onClick={() => setWorkspaceMode("consolidation")}
               className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
                 workspaceMode === "consolidation"
@@ -245,7 +232,6 @@ export const MissionControl = React.memo(function MissionControl({
               </span>
             </button>
           </div>
-
           <div className="pr-1">
             {workspaceMode === "consolidation" ? (
               <CampaignConsolidationHub
@@ -307,7 +293,6 @@ export const MissionControl = React.memo(function MissionControl({
                       </span>
                     </div>
                   </div>
-
                   {/* Stepper progress nodes and description */}
                   {ucids.length > 0 && (
                     <UCIDStepper
@@ -317,7 +302,6 @@ export const MissionControl = React.memo(function MissionControl({
                       getStepState={getStepState}
                     />
                   )}
-
                   {/* Render step details depending on step index */}
                   <div className="pt-2">
                     <StepContentPanel
@@ -358,14 +342,12 @@ export const MissionControl = React.memo(function MissionControl({
                     />
                   </div>
                 </div>
-
                 <UCIDEventLedger ucid={selected} onClear={() => clearLogEvents(selected.id)} />
               </div>
             )}
           </div>
         </div>
       </div>
-
       {showNewUCID && (
         <NewUCIDModal
           onClose={() => setShowNewUCID(false)}

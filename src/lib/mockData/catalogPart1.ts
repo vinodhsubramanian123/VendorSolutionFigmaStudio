@@ -1,4 +1,4 @@
-import { CatalogSKU, UCID, Vendor, Job, UCIDStep, ForensicIssue } from '../../types';
+import { CatalogSKU} from '../../types';
 export const catalogSkusPart1: CatalogSKU[] = [
   // HPE Items - Server Solutions DL380 Gen11
   {
@@ -113,7 +113,6 @@ export const catalogSkusPart1: CatalogSKU[] = [
     generation: "Gen11",
     chassisRef: "sku-4",
   },
-
   // HPE Items - Server Solutions DL380 Gen12
   {
     id: "sku-hpe-g12-cpu",
@@ -171,7 +170,6 @@ export const catalogSkusPart1: CatalogSKU[] = [
     generation: "Gen12",
     chassisRef: "sku-hpe-dl380-gen12-8sff",
   },
-
   // HPE Items - Server Solutions DL380a Gen11 (Accelerator Optimized)
   {
     id: "sku-hpe-dl380a-g11-4dw",
@@ -215,7 +213,6 @@ export const catalogSkusPart1: CatalogSKU[] = [
     generation: "Gen11",
     chassisRef: "sku-hpe-dl380a-g11-4dw",
   },
-
   // HPE Items - Server Solutions DL380 Gen13 Preview Range (Future Roadmap)
   {
     id: "sku-hpe-dl380-gen13-pref",
@@ -245,7 +242,6 @@ export const catalogSkusPart1: CatalogSKU[] = [
     generation: "Gen13",
     chassisRef: "sku-hpe-dl380-gen13-pref",
   },
-
   // HPE Items - Server Solutions DL80 Family (Gen11 & Gen12)
   {
     id: "sku-hpe-dl80-g11",
@@ -275,7 +271,5 @@ export const catalogSkusPart1: CatalogSKU[] = [
     generation: "Gen12",
     chassisRef: "sku-hpe-dl80-g12",
   },
-
   // Legacy
-
 ];

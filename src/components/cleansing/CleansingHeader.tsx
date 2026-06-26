@@ -37,8 +37,8 @@ export function CleansingHeader({
             <h1 className="text-sm font-bold text-white">
               Interactive Splicing &amp; Mapping Workshop
             </h1>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              PRD §3.6 — Quarantine, fuzzy-match, and canonicalize raw BOQ line items against the Master Catalog
+            <p className="text-[13px] font-medium text-white/40 mt-1">
+              Quarantine, fuzzy-match, and canonicalize raw BOQ line items against the Master Catalog
             </p>
           </div>
         </div>

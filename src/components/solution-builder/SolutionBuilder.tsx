@@ -7,8 +7,8 @@ import type { ConfigItem, UcidContainer } from '../../types/data';
 import { StepIntake } from './StepIntake';
 import { StepWorkspace } from './StepWorkspace';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
-import { apiClient } from '../../services/apiClient';
 import { generateDisplayId } from '../../utils/generateDisplayId';
+import { useCoreStore } from '../../store/coreStore';
 
 interface SolutionBuilderProps {
   ucids: UCID[];
@@ -17,7 +17,6 @@ interface SolutionBuilderProps {
   setDeployedSolution: React.Dispatch<React.SetStateAction<{ name: string; ucidCount: number; timestamp: number } | null>>;
   onSelectMission: (id: string) => void;
 }
-
 export const SolutionBuilder = React.memo(function SolutionBuilder({
   ucids,
   setUcids,
@@ -29,16 +28,16 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   const [step, setStep] = useState<SolutionBuilderStep>(SolutionBuilderStep.INTAKE);
   const [solutionName, setSolutionName] = useState('Project Horizon — UCID Solution v1');
   const [isMultiUcid, setIsMultiUcid] = useState(false);
-
   // Sourcing containers state
   const [ucidsList, setUcidsList] = useState<UcidContainer[]>([]);
-
   // Sourcing configurations from Sheet Parser
   const [configs, setConfigs] = useState<ConfigItem[]>([]);
-
   const [selectedConfigId, setSelectedConfigId] = useState<string>('cfg-1');
   const [isIngested, setIsIngested] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const activeSolutionId = useCoreStore(s => s.activeSolutionId);
+  const solutions = useCoreStore(s => s.solutions);
+  const activeSolution = solutions.find(s => s.id === activeSolutionId);
 
   useEffect(() => {
     // Derive local state from the global `ucids` context rather than isolated mocks.
@@ -46,10 +45,14 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     // this view smartly resumes from the configured state.
     const derivedUcidsList: UcidContainer[] = [];
     const derivedConfigs: ConfigItem[] = [];
-
+    
     // Filter UCIDs that have vendor configurations ready for mapping
-    // Only require basic ingestion to enter the workspace, rather than fully formed configs.
-    const activeUcids = ucids.filter(u => u.currentStep !== 'snapshot');
+    // Phase 11: Only show UCIDs belonging to the currently active SolutionProject
+    const activeUcids = ucids.filter(u => u.currentStep !== 'snapshot' && (!activeSolutionId || u.solutionId === activeSolutionId));
+    
+    if (activeSolution) {
+       setSolutionName(activeSolution.name);
+    }
 
     if (activeUcids.length > 0) {
       activeUcids.forEach((u) => {
@@ -61,7 +64,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           locked: (u.snapshots?.length ?? 0) > 0,
           syncStatus: (u.syncStatus === 'Error' ? 'Out-of-Sync' : u.syncStatus) || 'Pending'
         });
-
         u.solutions?.forEach(sol => {
           sol.vendorSubmissions?.forEach(vs => {
             vs.configs?.forEach((cfg) => {
@@ -78,7 +80,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           });
         });
       });
-
       setUcidsList(derivedUcidsList);
       setConfigs(derivedConfigs);
       setStep(SolutionBuilderStep.WORKSPACE); // Auto-bypass BOQ intake (Step 1)
@@ -95,15 +96,14 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     }
     
     setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ucids.length]); // Allow re-hydration if global state radically changes externally
-
   // Switch configs across UCID boxes
   const assignConfigToUcid = (configId: string, ucidId: string) => {
     setConfigs(prev =>
       prev.map(c => (c.id === configId ? { ...c, targetUcidId: ucidId } : c))
     );
   };
-
   // Add a new UCID container
   const handleAddUcid = () => {
     const newId = crypto.randomUUID();
@@ -115,14 +115,11 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       locked: false,
       syncStatus: 'Pending'
     };
-
     setUcidsList([...ucidsList, newContainer]);
-
     if (ucidsList.length === 1) {
       assignConfigToUcid('cfg-2', newId);
     }
   };
-
   // Toggle Single vs Multi UCID containers
   const toggleMultiUcidMode = (enabled: boolean) => {
     setIsMultiUcid(enabled);
@@ -136,26 +133,20 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       }
     }
   };
-
   const updateContainerName = (id: string, name: string) => {
     setUcidsList(prev => prev.map(u => (u.id === id ? { ...u, name } : u)));
   };
-
   const updateContainerReasoning = (id: string, reasoning: string) => {
     setUcidsList(prev => prev.map(u => (u.id === id ? { ...u, reasoning } : u)));
   };
-
   const toggleContainerLock = (id: string) => {
     setUcidsList(prev => prev.map(u => (u.id === id ? { ...u, locked: !u.locked } : u)));
   };
-
   // Deploy to Live Parallel Mission Control
   const handleDeployToMissionControl = () => {
     const activeUcids = isMultiUcid ? ucidsList : [ucidsList[0]];
-
     const generatedUcids: UCID[] = activeUcids.map((container, containerIdx) => {
       const assignedConfigs = configs.filter(c => c.targetUcidId === container.id || !isMultiUcid);
-
       const vendorGroups: Record<string, typeof assignedConfigs> = {};
       assignedConfigs.forEach(cfg => {
         if (!vendorGroups[cfg.vendor]) {
@@ -163,7 +154,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         }
         vendorGroups[cfg.vendor].push(cfg);
       });
-
       const vendorSubmissions: VendorSubmission[] = Object.keys(vendorGroups).map(vendorKey => {
         const vendorCfgs = vendorGroups[vendorKey];
         const vTotalPrice = vendorCfgs.reduce((sum, c) => sum + c.totalPrice, 0);
@@ -186,14 +176,12 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           }))
         };
       });
-
       const masterSolution: Solution = {
         id: `sol-master-${container.id}`,
         name: 'Master Architectural Solution',
         targetUcidId: container.id,
         vendorSubmissions: vendorSubmissions
       };
-
       return {
         id: crypto.randomUUID(),
         trackingRef: `dynamic-${container.id}`,
@@ -213,9 +201,40 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           { timestamp: new Date().toISOString(), level: 'ok', msg: `Catalog validation finished with optimal load metrics` }
         ],
         snapshots: [],
-        syncStatus: 'Pending'
+
+        syncStatus: "Pending",
+
+        solutionId: activeSolutionId || 'sol-fallback',
+        solutionDisplayId: activeSolution?.displayId || 'SOL-UNKNOWN',
+        configIndex: containerIdx + 1,
+        configLabel: container.name,
+        parallelGroup: null,
       };
     });
+    
+    // Auto-create a solution if none exists and we're deploying
+    if (!activeSolutionId) {
+       const newSolId = crypto.randomUUID();
+       useCoreStore.getState().addSolution({
+         id: newSolId,
+         displayId: `SOL-M-${Math.floor(Math.random() * 1000)}`,
+         name: solutionName,
+         customerName: "Acme Corp",
+         boqSourceFile: "Manual Workspace",
+         vendor: "Mixed",
+         projectRef: "PRJ-MANUAL",
+         status: "in-progress",
+         configCount: generatedUcids.length,
+         ucidIds: generatedUcids.map(u => u.id),
+         activeUcidId: generatedUcids[0]?.id || null,
+         crossVendorEnabled: false,
+         createdAt: new Date().toISOString(),
+         events: []
+       });
+       generatedUcids.forEach(u => {
+         u.solutionId = newSolId;
+       });
+    }
 
     setUcids(prev => {
       const originalIngestedIds = ucids.filter(u => u.currentStep === 'boq-intake').map(u => u.id);
@@ -225,16 +244,13 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       const filteredPrev = prev.filter(p => !idsToExclude.includes(p.id));
       return [...generatedUcids, ...filteredPrev];
     });
-
     setDeployedSolution({
       name: solutionName,
       ucidCount: generatedUcids.length,
       timestamp: new Date().getTime()
     });
-
     onSelectMission(generatedUcids[0].id);
   };
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -243,7 +259,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       </div>
     );
   }
-
   return (
     <ErrorBoundary>
       <motion.div 
@@ -264,7 +279,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
               </p>
             </div>
           </div>
-
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
@@ -285,7 +299,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
             </div>
           </div>
         </div>
-
         {step === SolutionBuilderStep.INTAKE ? (
           <StepIntake
             activeUcidsCount={ucids.length}

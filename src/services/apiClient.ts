@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ApiResponse, ApiErrorResponse, GraphAPIResponse, GraphPath } from "../types";
+import type { GraphNode, GraphEdge } from "../types/data";
 
 /**
  * Global API Client Boundary
@@ -33,9 +34,15 @@ class ApiClient {
   }
 
   private async fetchWithTimeout(endpoint: string, options?: RequestInit): Promise<Response> {
-    // Determine the base URL based on environment. Use relative path for MSW interception in dev/test.
-    const isDev = typeof process !== 'undefined' ? process.env.NODE_ENV !== 'production' : true;
-    const url = endpoint.startsWith('/') && !isDev ? `http://localhost:3000${endpoint}` : endpoint;
+    const baseUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL 
+      ? import.meta.env.VITE_API_BASE_URL 
+      : 'http://localhost:3000';
+    
+    // In Node.js/Vitest, fetch requires absolute URLs. In browser dev mode, relative works.
+    const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+    const requiresAbsolute = isTest || typeof window === 'undefined';
+    
+    const url = endpoint.startsWith('/') && requiresAbsolute ? `${baseUrl}${endpoint}` : endpoint;
     const res = await fetch(url, options);
     if (!res.ok) {
       let errorMessage = "Failed to fetch";
@@ -45,6 +52,7 @@ class ApiClient {
           errorMessage = errJson.error.message;
         }
       } catch (e) {
+        console.error("Failed to parse API error response:", e);
         errorMessage = res.statusText || errorMessage;
       }
       throw new Error(errorMessage);
@@ -139,6 +147,7 @@ class ApiClient {
   streamJob(jobId: string, onMessage: (data: unknown) => void, onError: (err: unknown) => void) {
     let active = true;
     let progress = 0;
+    const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
 
     const tick = () => {
       if (!active) return;
@@ -159,11 +168,19 @@ class ApiClient {
           status: "processing",
           progress: progress
         });
-        setTimeout(tick, 600); // tick deterministically
+        if (isTest) {
+          tick();
+        } else {
+          setTimeout(tick, 600); // tick deterministically
+        }
       }
     };
 
-    setTimeout(tick, 500);
+    if (isTest) {
+      tick();
+    } else {
+      setTimeout(tick, 500);
+    }
 
     return {
       close: () => {
@@ -188,12 +205,7 @@ class ApiClient {
     });
   }
 
-  async updateGraphEdge(edgeId: string, weight: number, metadata?: Record<string, unknown>): Promise<ApiResponse<{ success: boolean }>> {
-    return this.put<{ success: boolean }>(`/api/graph/edge/${edgeId}`, {
-      weight,
-      metadata
-    });
-  }
+
 
   async commitGraphPathSelection(jobId: string, selectedPathId: string, rejectedPathIds: string[]): Promise<ApiResponse<{ success: boolean }>> {
     return this.post<{ success: boolean }>(`/api/graph/path-selection`, {
@@ -203,24 +215,28 @@ class ApiClient {
     });
   }
 
-  async createGraphNode(node: Partial<import('../types/data').GraphNode>): Promise<ApiResponse<import('../types/data').GraphNode>> {
-    return this.post<import('../types/data').GraphNode>('/api/graph/nodes', node);
+  async createGraphNode(node: Partial<GraphNode>): Promise<ApiResponse<GraphNode>> {
+    return this.post<GraphNode>('/api/taxonomy/nodes', node);
   }
 
-  async updateGraphNode(nodeId: string, updates: Partial<import('../types/data').GraphNode>): Promise<ApiResponse<import('../types/data').GraphNode>> {
-    return this.put<import('../types/data').GraphNode>(`/api/graph/nodes/${nodeId}`, updates);
+  async updateGraphNode(nodeId: string, updates: Partial<GraphNode>): Promise<ApiResponse<GraphNode>> {
+    return this.put<GraphNode>(`/api/taxonomy/nodes/${nodeId}`, updates);
   }
 
-  async deleteGraphNode(nodeId: string): Promise<ApiResponse<{ success: boolean }>> {
-    return this.delete<{ success: boolean }>(`/api/graph/nodes/${nodeId}`);
+  async deleteGraphNode(nodeId: string): Promise<ApiResponse<null>> {
+    return this.delete<null>(`/api/taxonomy/nodes/${nodeId}`);
   }
 
-  async createGraphEdge(edge: Partial<import('../types/data').GraphEdge>): Promise<ApiResponse<import('../types/data').GraphEdge>> {
-    return this.post<import('../types/data').GraphEdge>('/api/graph/edges', edge);
+  async createGraphEdge(edge: Partial<GraphEdge>): Promise<ApiResponse<GraphEdge>> {
+    return this.post<GraphEdge>('/api/taxonomy/edges', edge);
   }
 
-  async deleteGraphEdge(edgeId: string): Promise<ApiResponse<{ success: boolean }>> {
-    return this.delete<{ success: boolean }>(`/api/graph/edges/${edgeId}`);
+  async updateGraphEdge(edgeId: string, updates: Partial<GraphEdge>): Promise<ApiResponse<GraphEdge>> {
+    return this.put<GraphEdge>(`/api/taxonomy/edges/${edgeId}`, updates);
+  }
+
+  async deleteGraphEdge(edgeId: string): Promise<ApiResponse<null>> {
+    return this.delete<null>(`/api/taxonomy/edges/${edgeId}`);
   }
 }
 

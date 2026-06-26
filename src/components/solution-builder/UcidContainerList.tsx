@@ -14,6 +14,7 @@ interface UcidContainerListProps {
   updateContainerReasoning: (id: string, reasoning: string) => void;
   toggleContainerLock: (id: string) => void;
   handleDeployToMissionControl: () => void;
+  assignConfigToUcid: (configId: string, ucidId: string) => void;
 }
 
 export function UcidContainerList({
@@ -25,6 +26,7 @@ export function UcidContainerList({
   updateContainerReasoning,
   toggleContainerLock,
   handleDeployToMissionControl,
+  assignConfigToUcid,
 }: UcidContainerListProps) {
   return (
     <div className="lg:col-span-7 flex flex-col gap-4">
@@ -66,6 +68,14 @@ export function UcidContainerList({
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
                 className="bg-surface-elevated border rounded-xl p-4 space-y-4 relative overflow-hidden transition-colors"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const configId = e.dataTransfer.getData('text/plain');
+                  if (configId && isMultiUcid) {
+                    assignConfigToUcid(configId, container.id);
+                  }
+                }}
                 style={{
                   borderColor: container.locked
                     ? "rgba(0,212,160,0.15)"

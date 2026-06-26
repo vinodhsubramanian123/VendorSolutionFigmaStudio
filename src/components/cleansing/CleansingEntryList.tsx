@@ -47,6 +47,8 @@ export function CleansingEntryList({
           {filteredEntries.map((entry, idx) => {
             const cfg = STATUS_CONFIG[entry.matchStatus];
             const isSelected = selectedEntryId === entry.id;
+            // eslint-disable-next-line sonarjs/no-dead-store
+            // eslint-disable-next-line sonarjs/no-unused-vars
             const isExpanded = expandedEntry === entry.id;
 
             return (

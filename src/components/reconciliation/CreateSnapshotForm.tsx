@@ -55,8 +55,9 @@ export function CreateSnapshotForm({
         <div className="space-y-3 font-mono text-[10px]">
           {/* 1. Label */}
           <div className="space-y-1">
-            <label className="text-gray-400 font-bold block">Snapshot Version Title/Label:</label>
+            <label htmlFor="snapshotLabel" className="text-gray-400 font-bold block">Snapshot Version Title/Label:</label>
             <input
+              id="snapshotLabel"
               type="text"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
@@ -67,8 +68,9 @@ export function CreateSnapshotForm({
 
           {/* 2. Winning Solution Reference */}
           <div className="space-y-1">
-            <label className="text-gray-400 font-bold block">Assigned Supplier Proposal (Cloned BOM Source):</label>
+            <label htmlFor="snapshotWinner" className="text-gray-400 font-bold block">Assigned Supplier Proposal (Cloned BOM Source):</label>
             <select
+              id="snapshotWinner"
               value={newWinner}
               onChange={(e) => setNewWinner(e.target.value)}
               className="w-full bg-[#03050a] border border-white/10 rounded px-2.5 py-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500 transition text-[10px]"
@@ -84,8 +86,9 @@ export function CreateSnapshotForm({
 
           {/* 3. Notes */}
           <div className="space-y-1">
-            <label className="text-gray-400 font-bold block">Compliance/Audit Ledger Comments:</label>
+            <label htmlFor="snapshotNotes" className="text-gray-400 font-bold block">Compliance/Audit Ledger Comments:</label>
             <textarea
+              id="snapshotNotes"
               value={newNotes}
               onChange={(e) => setNewNotes(e.target.value)}
               rows={2}

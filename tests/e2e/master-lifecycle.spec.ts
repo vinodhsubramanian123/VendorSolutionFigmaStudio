@@ -90,7 +90,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(page.getByText('Exact Match').first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 2
-      const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const activeUcid = ucidsPhase2.find((u: any) => u.displayId.startsWith('UCID-'));
       expect(activeUcid).toBeDefined();
       expect(activeUcid?.currentStep).toBe('boq-intake');
@@ -114,7 +114,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await delay(2000); // Wait for transit navigation
 
       // [STATE ASSERTION] Phase 3
-      const ucidsPhase3 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase3 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const deployedUcid = ucidsPhase3.find((u: any) => u.displayId.startsWith('UCID-'));
       expect(deployedUcid?.currentStep).toBe('solution-design');
       expect(deployedUcid?.completedSteps).toContain('pre-intelligence');
@@ -142,7 +142,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(page.getByText('Vendor system status altered successfully.').first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 4 Sync Status
-      const ucidsPhase4 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase4 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const syncedUcid = ucidsPhase4.find((u: any) => u.displayId.startsWith('UCID-'));
       expect(syncedUcid?.syncStatus).toBe('Synced');
       
@@ -182,8 +182,8 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(page.getByText('Obsolete HPE Intel Xeon', { exact: false }).first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 5 Auto-Heal & Learn Chain
-      const issues = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_forensic_issues') || '[]'));
-      const sourcingRules = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_sourcing_rules') || '[]'));
+      const issues = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"forensicIssues":[]}}').state.forensicIssues);
+      const sourcingRules = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"sourcingRules":[]}}').state.sourcingRules);
       const learnedRule = sourcingRules.find((r: any) => r.isAutoLearned);
       
       if (learnedRule) {
@@ -240,7 +240,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(page.getByText('locked & archived in CRM register', { exact: false }).first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 6 Lock status
-      const ucidsPhase6 = await page.evaluate(() => JSON.parse(localStorage.getItem('sys_ucids') || '[]'));
+      const ucidsPhase6 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const ucidWithSnap = ucidsPhase6.find((u: any) => u.snapshots && u.snapshots.length > 0);
       const snap = ucidWithSnap?.snapshots?.at(-1);
       expect(snap).toBeDefined();

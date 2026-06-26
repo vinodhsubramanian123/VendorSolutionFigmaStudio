@@ -1,5 +1,4 @@
 import React from "react";
-import { tokens } from "../../styles/tokens";
 
 interface CatalogTypeFiltersProps {
   projectTypes: string[];
@@ -33,13 +32,6 @@ export function CatalogTypeFilters({
             key={type}
             onClick={() => {
               setTypeFilter(type.toLowerCase());
-              setSelectedPath({
-                vendor: "all",
-                solution: "all",
-                product: "all",
-                generation: "all",
-                chassis: "all",
-              });
             }}
             className={`px-3 py-1.5 rounded-lg border text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               isActive

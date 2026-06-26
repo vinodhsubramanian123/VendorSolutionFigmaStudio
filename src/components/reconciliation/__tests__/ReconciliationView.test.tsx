@@ -9,7 +9,7 @@ vi.mock("../ReconciliationOverview", () => ({
 }));
 
 vi.mock("../ReconciliationDrillDown", () => ({
-  ReconciliationDrillDown: ({ ucid, onClose }: { ucid?: { displayId?: string }, onClose?: Function }) => (
+  ReconciliationDrillDown: ({ ucid, onClose }: { ucid?: { displayId?: string }, onClose?: () => void }) => (
     <div data-testid="reconciliation-drilldown">
       DrillDown for {ucid?.displayId}
       <button type="button" onClick={onClose as import("react").MouseEventHandler} data-testid="drilldown-close">Close</button>
@@ -35,6 +35,14 @@ const mockUcids: UCID[] = [
     solutions: [],
     events: [],
     snapshots: [],
+  solutionId: "11111111-1111-1111-8111-111111111111",
+  solutionDisplayId: "SOL-2026-001",
+  configIndex: 1,
+  configLabel: "Config 1",
+  parallelGroup: null,
+
+
+
     syncStatus: "Out-of-Sync"
   },
   {
@@ -50,6 +58,14 @@ const mockUcids: UCID[] = [
     solutions: [],
     events: [],
     snapshots: [],
+  solutionId: "11111111-1111-1111-8111-111111111111",
+  solutionDisplayId: "SOL-2026-001",
+  configIndex: 1,
+  configLabel: "Config 1",
+  parallelGroup: null,
+
+
+
     syncStatus: "Synced"
   }
 ];

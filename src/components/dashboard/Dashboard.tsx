@@ -7,30 +7,27 @@ import {
   Activity,
   Target,
   AlertTriangle,
-  ChevronRight,
+  
   Zap,
   RefreshCw,
-  Loader2,
+  
 } from "lucide-react";
 import { UCID_STEPS } from "../../lib/mockData";
 import { useChartDimensions } from "../../hooks/useChartDimensions";
 import type { AppView, UCID, Vendor, ForensicIssue } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
-
 import { KpiCard } from "./KpiCard";
 import { VendorHealthList } from "./VendorHealthList";
 import { ActiveIssuesList } from "./ActiveIssuesList";
 import { CatalogTrendAnalyzer } from "./CatalogTrendAnalyzer";
 import { VendorStatusBoard } from "./VendorStatusBoard";
 import { UcidPipelineCard } from "./UcidPipelineCard";
-
 interface DashboardProps {
   onNavigate: (v: AppView) => void;
   ucids: UCID[];
   vendors: Vendor[];
   forensicIssues: ForensicIssue[];
 }
-
 export function Dashboard({
   onNavigate,
   ucids,
@@ -40,7 +37,6 @@ export function Dashboard({
   const [hovered, setHovered] = useState<string | null>(null);
   const areaChart = useChartDimensions();
   const pieChart = useChartDimensions();
-
   const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
   const criticalIssues = useMemo(() => forensicIssues.filter(
     (f) => f.severity === "critical" && f.status !== "resolved",
@@ -49,13 +45,11 @@ export function Dashboard({
     (v) => v.status === "connected" || v.status === "syncing",
   ).length, [vendors]);
   const totalCatalog = useMemo(() => vendors.reduce((s, v) => s + v.catalogItems, 0), [vendors]);
-
   const VENDOR_PIE = useMemo(() => vendors.map((v) => ({
     name: v.shortName,
     value: v.catalogItems,
     color: v.color,
   })), [vendors]);
-
     const averagePipeline = useMemo(() => {
       return activeUCIDs.length > 0 
         ? Math.round(activeUCIDs.reduce((acc, u) => {
@@ -68,7 +62,6 @@ export function Dashboard({
     const recentMission = useMemo(() => {
       return activeUCIDs.length > 0 ? activeUCIDs[0].displayId : "No active missions";
     }, [activeUCIDs]);
-
   const syncStatusInfo = useMemo(() => {
     const hasError = vendors.some((v) => v.status === "error");
     const hasSyncing = vendors.some((v) => v.status === "syncing");
@@ -94,7 +87,6 @@ export function Dashboard({
       color,
     };
   }, [vendors]);
-
   const KPI_CARDS = useMemo(() => [
     {
       id: "kpi-vendor-portal-count",
@@ -163,8 +155,6 @@ export function Dashboard({
       up: syncStatusInfo.value !== "Error",
     },
   ], [connectedVendors, vendors.length, totalCatalog, activeUCIDs.length, ucids.length, forensicIssues, criticalIssues, averagePipeline, recentMission, syncStatusInfo]);
-
-
   return (
     <ErrorBoundary>
       <motion.div 
@@ -235,7 +225,6 @@ export function Dashboard({
           </motion.button>
         </div>
       </motion.div>
-
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {KPI_CARDS.map((kpi, i) => (
@@ -256,7 +245,6 @@ export function Dashboard({
           />
         ))}
       </div>
-
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Catalog Growth */}
@@ -264,7 +252,6 @@ export function Dashboard({
           dimensions={areaChart.dimensions}
           chartRef={areaChart.ref}
         />
-
         {/* Vendor SKU Distribution */}
         <VendorStatusBoard
           totalCatalog={totalCatalog}
@@ -273,12 +260,10 @@ export function Dashboard({
           chartRef={pieChart.ref}
         />
       </div>
-
       {/* UCID Pipeline + Vendor Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Active UCID Pipeline */}
         <UcidPipelineCard ucids={ucids} onNavigate={onNavigate} />
-
         {/* Vendor API Status + Issues */}
         <div className="space-y-4">
           <VendorHealthList vendors={vendors} onNavigate={onNavigate} />

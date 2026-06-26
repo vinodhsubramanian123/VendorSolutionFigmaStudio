@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { GraphEdge, GraphAPIResponse, GraphPath } from "../types/data";
+import { GraphNode, GraphEdge, GraphAPIResponse, GraphPath } from "../types/data";
 import { Config, CatalogSKU } from "../types";
 import { apiClient } from "../services/apiClient";
 
@@ -79,6 +79,11 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
     });
   };
 
+  const healOrphanMapping = async (orphanId: string, orphanName: string, targetNodeId: string) => {
+    // Re-uses mapNode which optimally updates state by moving orphan to mapped node and drawing edge
+    await mapNode(orphanId, targetNodeId, { name: orphanName });
+  };
+
   const unmapNode = async (nodeId: string) => {
      await apiClient.get(`/api/taxonomy/map/${nodeId}`, { method: 'DELETE' });
      setData(prev => ({
@@ -129,7 +134,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
     }
   };
 
-  const addGraphNode = async (node: Partial<import('../types/data').GraphNode>) => {
+  const addGraphNode = async (node: Partial<GraphNode>) => {
     try {
       const res = await apiClient.createGraphNode(node);
       if (res.success && res.data) {
@@ -142,7 +147,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
     }
   };
 
-  const updateGraphNode = async (nodeId: string, updates: Partial<import('../types/data').GraphNode>) => {
+  const updateGraphNode = async (nodeId: string, updates: Partial<GraphNode>) => {
     try {
       const res = await apiClient.updateGraphNode(nodeId, updates);
       if (res.success && res.data) {
@@ -175,7 +180,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
     }
   };
 
-  const addGraphEdge = async (edge: Partial<import('../types/data').GraphEdge>) => {
+  const addGraphEdge = async (edge: Partial<GraphEdge>) => {
     try {
       const res = await apiClient.createGraphEdge(edge);
       if (res.success && res.data) {
@@ -210,6 +215,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
     error, 
     mapNode, 
     unmapNode, 
+    healOrphanMapping,
     addRule, 
     refresh: fetchGraph,
     alternativePaths,

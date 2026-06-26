@@ -38,7 +38,12 @@ export function TaxonomyOrphanBox({
           return (
             <div 
               key={sku.id}
-              className="p-2 bg-black/40 border border-rose-500/30 rounded-lg text-left flex flex-col gap-1 w-full hover:border-rose-400 transition"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'orphan', id: sku.id, name: sku.name }));
+                e.dataTransfer.effectAllowed = 'copy';
+              }}
+              className="p-2 bg-black/40 border border-rose-500/30 rounded-lg text-left flex flex-col gap-1 w-full hover:border-rose-400 transition cursor-grab active:cursor-grabbing"
             >
               <span className="font-bold text-white leading-tight truncate">{sku.name}</span>
               <span className="font-mono text-amber-500/70">{sku.partNumber}</span>

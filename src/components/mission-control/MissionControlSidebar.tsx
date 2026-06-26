@@ -82,6 +82,7 @@ export function MissionControlSidebar({
       currentStep: "boq-intake",
       completedSteps: [],
       snapshots: [],
+
       events: [
         {
           timestamp: new Date().toISOString(),

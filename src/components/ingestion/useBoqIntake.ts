@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useLocalStorageState } from "../../hooks/useLocalStorageState";
+import { useIngestionStore } from "../../store/ingestionStore";
 import { apiClient } from "../../services/apiClient";
 import { generateDisplayId } from "../../utils/generateDisplayId";
-import type { UCID, Solution } from "../../types";
+import type { UCID, Solution, SolutionProject } from "../../types";
+import { useCoreStore } from "../../store/coreStore";
+import { generateSolutionDisplayId, generateSolutionName } from "../../utils/solutionUtils";
 
 export interface BoqResponsePayload {
   ucid: string;
@@ -21,16 +23,14 @@ export function useBoqIntake(
   toast: (msg: string, variant: "success" | "error" | "warn", actionText?: string, actionFn?: () => void) => void,
   setSelectedUcidId: (id: string) => void
 ) {
-  const [selectedPreset, setSelectedPreset] = useLocalStorageState<
-    "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry"
-  >("ingestion_boq_preset", "hpe-legacy");
-  const [boqFile, setBoqFile] = useLocalStorageState<string>("ingestion_boq_file", "");
+  const selectedPreset = useIngestionStore(s => s.selectedPreset);
+  const setSelectedPreset = useIngestionStore(s => s.setSelectedPreset);
+  const boqFile = useIngestionStore(s => s.boqFile);
+  const setBoqFile = useIngestionStore(s => s.setBoqFile);
   const [isBOQIngesting, setIsBOQIngesting] = useState(false);
   const [boqProgress, setBoqProgress] = useState(0);
-  const [boqResponse, setBoqResponse] = useLocalStorageState<BoqResponsePayload | null>(
-    "ingestion_boq_response",
-    null,
-  );
+  const boqResponse = useIngestionStore(s => s.boqResponse);
+  const setBoqResponse = useIngestionStore(s => s.setBoqResponse);
   const [boqError, setBoqError] = useState<string>("");
   const [boqJobId, setBoqJobId] = useState<string | null>(null);
 
@@ -79,7 +79,12 @@ export function useBoqIntake(
   const handleSplitAndProvision = () => {
     if (!boqResponse) return;
 
+    const solutionId = crypto.randomUUID();
+    const existingSolutions = useCoreStore.getState().solutions;
+    const solutionDisplayId = generateSolutionDisplayId(existingSolutions);
+
     const generatedUcids: UCID[] = (boqResponse.solutions ?? []).map(
+      // eslint-disable-next-line complexity
       (sol: Solution, idx: number) => {
         const displayId = generateDisplayId();
         const detailsText =
@@ -89,8 +94,10 @@ export function useBoqIntake(
             )
             .join("\n") || "";
 
+        const ucidUuid = crypto.randomUUID();
+
         return {
-          id: crypto.randomUUID(),
+          id: ucidUuid,
           displayId: displayId,
           name: `Sourced ${sol.vendorSubmissions?.[0]?.vendor || sol.name} Alignment Config`,
           solutionName: boqResponse.sourceFile,
@@ -104,7 +111,7 @@ export function useBoqIntake(
             {
               id: `sol-${displayId}-primary`,
               name: sol.name,
-              targetUcidId: displayId,
+              targetUcidId: ucidUuid,
               vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({ ...vs })) || [],
             },
           ],
@@ -121,9 +128,40 @@ export function useBoqIntake(
             },
           ],
           snapshots: [],
+
+          solutionId,
+          solutionDisplayId,
+          configIndex: idx + 1,
+          configLabel: `Config ${idx + 1}`,
+          parallelGroup: null,
         };
       },
     );
+
+    const newSolutionProject: SolutionProject = {
+      id: solutionId,
+      displayId: solutionDisplayId,
+      name: generateSolutionName(boqResponse.sourceFile || boqFile || "Uploaded BOQ", "BOQ Upload", existingSolutions.map(s => s.name)),
+      customerName: "Acme Corp", // Standard mock for now
+      boqSourceFile: boqResponse.sourceFile || boqFile || "unknown.xlsx",
+      vendor: boqResponse.solutions?.[0]?.vendorSubmissions?.[0]?.vendor || "Mixed Sourcing",
+      projectRef: "PRJ-RECON-HUB",
+      status: "in-progress",
+      configCount: generatedUcids.length,
+      ucidIds: generatedUcids.map((u) => u.id),
+      activeUcidId: generatedUcids[0]?.id || null,
+      crossVendorEnabled: false,
+      createdAt: new Date().toISOString(),
+      events: [
+        {
+          timestamp: new Date().toISOString(),
+          level: "info",
+          msg: `Solution project created from BOQ intake with ${generatedUcids.length} configurations.`,
+        }
+      ],
+    };
+
+    useCoreStore.getState().addSolution(newSolutionProject);
 
     setUcids((prev) => {
       const existingIds = prev.map((p) => p.displayId);
