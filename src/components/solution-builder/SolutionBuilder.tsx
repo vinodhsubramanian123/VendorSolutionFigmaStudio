@@ -9,6 +9,7 @@ import { StepWorkspace } from './StepWorkspace';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { generateDisplayId } from '../../utils/generateDisplayId';
 import { useCoreStore } from '../../store/coreStore';
+import { isSolutionComplete } from '../../utils/solutionUtils';
 
 interface SolutionBuilderProps {
   ucids: UCID[];
@@ -62,7 +63,8 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           name: u.name,
           reasoning: u.rawBOM ? u.rawBOM.split('\n')[0].substring(0, 80) : 'Sourced from external ingest.',
           locked: (u.snapshots?.length ?? 0) > 0,
-          syncStatus: (u.syncStatus === 'Error' ? 'Out-of-Sync' : u.syncStatus) || 'Pending'
+          syncStatus: (u.syncStatus === 'Error' ? 'Out-of-Sync' : u.syncStatus) || 'Pending',
+          uploadedBOMFiles: []
         });
         u.solutions?.forEach(sol => {
           sol.vendorSubmissions?.forEach(vs => {
@@ -99,11 +101,12 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ucids.length]); // Allow re-hydration if global state radically changes externally
   // Switch configs across UCID boxes
-  const assignConfigToUcid = (configId: string, ucidId: string) => {
-    setConfigs(prev =>
-      prev.map(c => (c.id === configId ? { ...c, targetUcidId: ucidId } : c))
+  const assignConfigToUcid = React.useCallback((configId: string, targetUcidId: string) => {
+    setConfigs((prev) =>
+      prev.map((c) => (c.id === configId ? { ...c, targetUcidId } : c)),
     );
-  };
+  }, []);
+
   // Add a new UCID container
   const handleAddUcid = () => {
     const newId = crypto.randomUUID();
@@ -113,7 +116,8 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       name: `Sub-deployment ${ucidsList.length + 1}`,
       reasoning: 'Assigned configurations to secondary isolated cloud environments.',
       locked: false,
-      syncStatus: 'Pending'
+      syncStatus: 'Pending',
+      uploadedBOMFiles: []
     };
     setUcidsList([...ucidsList, newContainer]);
     if (ucidsList.length === 1) {
@@ -133,15 +137,27 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       }
     }
   };
-  const updateContainerName = (id: string, name: string) => {
-    setUcidsList(prev => prev.map(u => (u.id === id ? { ...u, name } : u)));
-  };
-  const updateContainerReasoning = (id: string, reasoning: string) => {
-    setUcidsList(prev => prev.map(u => (u.id === id ? { ...u, reasoning } : u)));
-  };
-  const toggleContainerLock = (id: string) => {
-    setUcidsList(prev => prev.map(u => (u.id === id ? { ...u, locked: !u.locked } : u)));
-  };
+
+  const updateContainerName = React.useCallback((id: string, name: string) => {
+    setUcidsList(prev => prev.map(c => c.id === id ? { ...c, name } : c));
+  }, []);
+
+  const updateContainerReasoning = React.useCallback((id: string, reasoning: string) => {
+    setUcidsList(prev => prev.map(c => c.id === id ? { ...c, reasoning } : c));
+  }, []);
+
+  const toggleContainerLock = React.useCallback((id: string) => {
+    setUcidsList(prev => prev.map(c => c.id === id ? { ...c, locked: !c.locked } : c));
+  }, []);
+
+  const updateContainerExecutionMode = React.useCallback((id: string, mode: 'automated' | 'manual' | 'hybrid') => {
+    setUcidsList(prev => prev.map(c => c.id === id ? { ...c, executionMode: mode } : c));
+  }, []);
+
+  const handleContainerUpload = React.useCallback((id: string, fileName: string) => {
+    setUcidsList(prev => prev.map(c => c.id === id ? { ...c, uploadedBOMFiles: [...(c.uploadedBOMFiles || []), fileName] } : c));
+  }, []);
+
   // Deploy to Live Parallel Mission Control
   const handleDeployToMissionControl = () => {
     const activeUcids = isMultiUcid ? ucidsList : [ucidsList[0]];
@@ -209,6 +225,16 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         configIndex: containerIdx + 1,
         configLabel: container.name,
         parallelGroup: null,
+        executionMode: container.executionMode || 'automated',
+        manualUploadState: (container.uploadedBOMFiles && container.uploadedBOMFiles.length > 0) ? {
+          fileNames: container.uploadedBOMFiles,
+          uploadedAt: new Date().toISOString(),
+          status: 'complete',
+          uploadedBy: 'user-001',
+          rejectionReason: null,
+          outputFileRefs: [],
+          processedAt: new Date().toISOString()
+        } : null
       };
     });
     
@@ -217,11 +243,12 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
        const newSolId = crypto.randomUUID();
        useCoreStore.getState().addSolution({
          id: newSolId,
-         displayId: `SOL-M-${Math.floor(Math.random() * 1000)}`,
+         displayId: `SOL-M-${crypto.randomUUID().slice(0, 4).toUpperCase()}`,
          name: solutionName,
          customerName: "Acme Corp",
          boqSourceFile: "Manual Workspace",
          vendor: "Mixed",
+         vendorAssignments: [],
          projectRef: "PRJ-MANUAL",
          status: "in-progress",
          configCount: generatedUcids.length,
@@ -259,6 +286,9 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
       </div>
     );
   }
+
+  const solutionIsComplete = activeSolution ? isSolutionComplete(activeSolution) : false;
+
   return (
     <ErrorBoundary>
       <motion.div 
@@ -267,13 +297,24 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
       >
+        {solutionIsComplete && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Check className="w-5 h-5 text-emerald-400" />
+              <div>
+                <h3 className="text-sm font-bold text-emerald-400">Solution Provisioning Complete</h3>
+                <p className="text-[10px] text-emerald-500/70">All vendor assignments have been executed successfully.</p>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-indigo-500/10 p-5 rounded-xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
               <Hammer className="w-5 h-5 text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-white">Multi-Client Quote Compilation Desk</h1>
+              <h1 className="text-sm font-semibold text-white">Mission Builder</h1>
               <p className="text-[10px] text-gray-500 mt-0.5">
                 Intake raw excel Sheets of multi-tab Bills of Quantities and compile them into distinct parallel UCIDs.
               </p>
@@ -314,7 +355,8 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
                   name: `Dynamic Ingestion`,
                   reasoning: 'Assigned parsed configurations.',
                   locked: false,
-                  syncStatus: 'Pending'
+                  syncStatus: 'Pending',
+                  uploadedBOMFiles: []
                 };
                 setUcidsList([newContainer]);
                 setConfigs(prev => prev.map(c => ({ ...c, targetUcidId: newId })));
@@ -338,6 +380,8 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
             updateContainerName={updateContainerName}
             updateContainerReasoning={updateContainerReasoning}
             toggleContainerLock={toggleContainerLock}
+            updateContainerExecutionMode={updateContainerExecutionMode}
+            handleContainerUpload={handleContainerUpload}
             ucids={ucids}
             handleDeployToMissionControl={handleDeployToMissionControl}
           />

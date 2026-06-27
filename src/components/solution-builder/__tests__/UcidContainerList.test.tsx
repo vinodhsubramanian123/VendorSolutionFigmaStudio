@@ -11,7 +11,9 @@ describe('UcidContainerList Component', () => {
       name: 'Primary Container',
       reasoning: 'Test reason',
       locked: false,
-      syncStatus: 'Pending' as const
+      syncStatus: 'Pending' as const,
+      uploadedBOMFiles: [],
+      solutionId: '1', solutionDisplayId: 'SOL-1', configIndex: 1, configLabel: 'cfg', parallelGroup: null
     }
   ];
 
@@ -39,6 +41,8 @@ describe('UcidContainerList Component', () => {
         toggleContainerLock={vi.fn()}
         handleDeployToMissionControl={vi.fn()}
         assignConfigToUcid={vi.fn()}
+        updateContainerExecutionMode={vi.fn()}
+        handleContainerUpload={vi.fn()}
       />
     );
 
@@ -60,6 +64,8 @@ describe('UcidContainerList Component', () => {
         toggleContainerLock={vi.fn()}
         handleDeployToMissionControl={vi.fn()}
         assignConfigToUcid={vi.fn()}
+        updateContainerExecutionMode={vi.fn()}
+        handleContainerUpload={vi.fn()}
       />
     );
 
@@ -81,6 +87,8 @@ describe('UcidContainerList Component', () => {
         toggleContainerLock={toggleLockFn}
         handleDeployToMissionControl={vi.fn()}
         assignConfigToUcid={vi.fn()}
+        updateContainerExecutionMode={vi.fn()}
+        handleContainerUpload={vi.fn()}
       />
     );
 
@@ -101,6 +109,8 @@ describe('UcidContainerList Component', () => {
         toggleContainerLock={vi.fn()}
         handleDeployToMissionControl={vi.fn()}
         assignConfigToUcid={vi.fn()}
+        updateContainerExecutionMode={vi.fn()}
+        handleContainerUpload={vi.fn()}
       />
     );
 

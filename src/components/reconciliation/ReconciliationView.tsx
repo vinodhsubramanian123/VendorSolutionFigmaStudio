@@ -25,11 +25,11 @@ export function ReconciliationView({
   setVendors,
 }: ReconciliationViewProps) {
   const [hasDrift, setHasDrift] = useState(() => {
-    return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot");
+    return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot" || u.currentStep === "solution-design" || (u.solutions && u.solutions.length > 0));
   });
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHasDrift(ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot"));
+    setHasDrift(ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot" || u.currentStep === "solution-design" || (u.solutions && u.solutions.length > 0)));
   }, [ucids]);
   const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
   // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines

@@ -3,7 +3,8 @@ import {
   Network, 
   RefreshCw, 
   Filter,
-  ChevronDown
+  ChevronDown,
+  GitFork
 } from 'lucide-react';
 import { useCoreStore } from "../../store/coreStore";
 import { useCatalogGraphData } from "../../hooks/useCatalogGraphData";
@@ -27,13 +28,16 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
   
   const availableUcids = useMemo(() => ucids.filter(u => selectedSolution?.ucidIds.includes(u.id)), [ucids, selectedSolution]);
   
-  const [selectedUcidId, setSelectedUcidId] = useState<string>(availableUcids[0]?.id || "");
+  const [selectedUcidIdState, setSelectedUcidIdState] = useState<string>("");
 
-  React.useEffect(() => {
-    if (selectedSolution && availableUcids.length > 0 && !availableUcids.some(u => u.id === selectedUcidId)) {
-      setSelectedUcidId(availableUcids[0].id);
+  const selectedUcidId = useMemo(() => {
+    if (availableUcids.some(u => u.id === selectedUcidIdState)) {
+      return selectedUcidIdState;
     }
-  }, [selectedSolution, availableUcids, selectedUcidId]);
+    return availableUcids[0]?.id || "";
+  }, [availableUcids, selectedUcidIdState]);
+
+  const setSelectedUcidId = (id: string) => setSelectedUcidIdState(id);
 
   const activeUcid = useMemo(() => ucids.find(u => u.id === selectedUcidId), [ucids, selectedUcidId]);
   
@@ -139,7 +143,15 @@ export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: Taxo
         </div>
         {/* Viewport Canvas Container (Phase 3 Integration) */}
         <div className="relative flex-1 w-full border border-indigo-500/10 rounded-xl overflow-hidden min-h-[560px]">
-          {isLoading ? (
+          {!activeUcid ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-card">
+              <GitFork className="w-12 h-12 text-gray-600" />
+              <div className="text-center">
+                <span className="block text-sm font-bold text-gray-300">No Config Selected</span>
+                <span className="text-[10px] text-gray-500 max-w-xs mt-1 inline-block">Please select a Solution and a corresponding configuration context to map taxonomy rules.</span>
+              </div>
+            </div>
+          ) : isLoading ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-card">
               <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
               <span className="text-xs font-mono text-indigo-300">Synchronizing Graph Topology...</span>

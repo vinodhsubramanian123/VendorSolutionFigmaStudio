@@ -100,7 +100,8 @@ export function useSnapshotManagerLogic(
       .then(() => {
         toast.success("Snapshot successfully deleted.");
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Failed to delete snapshot", error);
         toast.error("Failed to delete snapshot on server.");
       });
   };

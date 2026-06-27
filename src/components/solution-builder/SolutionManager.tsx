@@ -9,7 +9,6 @@ export function SolutionManager() {
   const navigate = useNavigate();
   const solutions = useCoreStore(s => s.solutions);
   const setActiveSolution = useCoreStore(s => s.setActiveSolution);
-  const addSolution = useCoreStore(s => s.addSolution);
 
   const handleSelectSolution = (id: string) => {
     setActiveSolution(id);
@@ -50,11 +49,19 @@ export function SolutionManager() {
           {solutions.map((sol) => (
             <div
               key={sol.id}
+              role="button"
+              tabIndex={0}
               className="p-5 flex flex-col gap-4 cursor-pointer hover:ring-2 transition-all rounded-xl border bg-surface-card"
               style={{
                 borderColor: tokens.colors.border.subtle,
               }}
               onClick={() => handleSelectSolution(sol.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelectSolution(sol.id);
+                }
+              }}
             >
               <div className="flex justify-between items-start">
                 <div>

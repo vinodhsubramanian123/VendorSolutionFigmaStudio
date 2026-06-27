@@ -161,7 +161,7 @@ Before a feature Phase is considered "done", a visual freeze gate must be passed
 *   **Requirement**: Screenshots of every view in its approved state must be verified against any changes.
 *   **Checklist**:
     *   [ ] Do not modify any view that has an approved snapshot without explicit instruction.
-    *   [ ] Any approved changes structure should have corresponding snapshots updated in `/docs/ui-snapshots/`.
+    *   [ ] Any approved changes structure should have corresponding skills/specs updated in the [UI Component Registry](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-component-registry.md).
 
 ---
 
@@ -521,7 +521,7 @@ These files define the presentation layer, component styling, animations, global
 - [UI States & Transitions](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-states.md)
 - [State Architecture Contracts](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/state-contracts.md)
 - [API Contract & Integration Specifications](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/api-contracts.md)
-- [UI Snapshots Directory](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-snapshots/README.md)
+- [UI Component Registry & Skills](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-component-registry.md)
 - [Loading, Zero-State & Error Specs](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/AGENTS.md#16-loading-zero-state--error-specifications) *(see §16 of this file)*
 
 ### Backend Skill Knowledge

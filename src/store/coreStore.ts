@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UCID, Vendor, CatalogSKU, ForensicIssue, SourcingRule, LearningEvent, SolutionProject, SolutionStatus } from '../types';
+import type { UCID, Vendor, CatalogSKU, ForensicIssue, SourcingRule, LearningEvent, SolutionProject, SolutionStatus, VendorAssignment, UCIDExecutionMode, UCIDAutomationState, UCIDManualUploadState } from '../types';
 import {
   UCIDS as INITIAL_UCIDS,
   VENDORS as INITIAL_VENDORS,
@@ -20,6 +20,11 @@ interface CoreState {
   addUcidToSolution: (solutionId: string, ucidId: string) => void;
   setActiveSolution: (id: string | null) => void;
   setActiveUcidInSolution: (solutionId: string, ucidId: string | null) => void;
+  addVendorAssignment: (solutionId: string, assignment: VendorAssignment) => void;
+  
+  setUcidExecutionMode: (ucidId: string, mode: UCIDExecutionMode) => void;
+  updateAutomationState: (ucidId: string, state: Partial<UCIDAutomationState>) => void;
+  updateManualUploadState: (ucidId: string, state: Partial<UCIDManualUploadState>) => void;
 
   collapsed: boolean;
   setCollapsed: (val: boolean | ((prev: boolean) => boolean)) => void;
@@ -78,6 +83,47 @@ export const useCoreStore = create<CoreState>()(
           solutions: state.solutions.map((s) =>
             s.id === solutionId ? { ...s, activeUcidId: ucidId } : s
           ),
+        })),
+
+      addVendorAssignment: (solutionId, assignment) =>
+        set((state) => ({
+          solutions: state.solutions.map((s) =>
+            s.id === solutionId 
+              ? { ...s, vendorAssignments: [...s.vendorAssignments, assignment] }
+              : s
+          ),
+        })),
+
+      setUcidExecutionMode: (ucidId, mode) =>
+        set((state) => ({
+          ucids: state.ucids.map((u) =>
+            u.id === ucidId ? { ...u, executionMode: mode } : u
+          )
+        })),
+
+      updateAutomationState: (ucidId, partialState) =>
+        set((state) => ({
+          ucids: state.ucids.map((u) => {
+            if (u.id !== ucidId) return u;
+            const current = u.automationState || {
+              jobId: '', vendorPortalName: '', portalUrl: '', status: 'idle',
+              queuedAt: null, startedAt: null, completedAt: null, errorMessage: null,
+              screenshotRef: null, outputFileRef: null, retryCount: 0
+            };
+            return { ...u, automationState: { ...current, ...partialState } };
+          })
+        })),
+
+      updateManualUploadState: (ucidId, partialState) =>
+        set((state) => ({
+          ucids: state.ucids.map((u) => {
+            if (u.id !== ucidId) return u;
+            const current = u.manualUploadState || {
+              status: 'awaiting-upload', uploadedAt: null, fileNames: [],
+              uploadedBy: null, rejectionReason: null, outputFileRefs: [], processedAt: null
+            };
+            return { ...u, manualUploadState: { ...current, ...partialState } as UCIDManualUploadState };
+          })
         })),
 
       collapsed: false,

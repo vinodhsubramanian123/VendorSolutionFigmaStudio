@@ -57,3 +57,52 @@ export function generateSolutionDisplayId(existingSolutions: SolutionProject[]):
   const nextNum = yearSolutions.length + 1;
   return `SOL-${year}-${String(nextNum).padStart(3, '0')}`;
 }
+
+/**
+ * Returns true if the SolutionProject has reached its end state (all UCIDs complete).
+ */
+export function isSolutionComplete(solution: SolutionProject): boolean {
+  return solution.status === 'completed';
+}
+
+/**
+ * Validates that all UCIDs in a project have exactly one Primary Vendor Assignment.
+ */
+export function assertVendorAssignmentInvariant(
+  project: SolutionProject,
+  ucids: UCID[]
+): boolean {
+  // If the project doesn't have crossVendorEnabled, there are no strict multi-vendor assignments required
+  if (!project.crossVendorEnabled) return true;
+  
+  const myUcids = ucids.filter(u => project.ucidIds.includes(u.id));
+  
+  // Every UCID must be covered by exactly one assignment where isPrimary === true
+  return myUcids.every(u => {
+    const primaryAssignments = project.vendorAssignments.filter(
+      va => va.isPrimary && va.configIndices.includes(u.configIndex)
+    );
+    return primaryAssignments.length === 1;
+  });
+}
+
+/**
+ * Derives whether the vendor-provisioning step is complete based on the execution mode.
+ */
+export function deriveVendorProvisioningCompletion(ucid: UCID): boolean {
+  if (ucid.executionMode === 'automated' && ucid.automationState) {
+    return ucid.automationState.status === 'completed';
+  }
+  if (ucid.executionMode === 'manual' && ucid.manualUploadState) {
+    return ucid.manualUploadState.status === 'complete';
+  }
+  // Hybrid logic implies both or manual override
+  if (ucid.executionMode === 'hybrid') {
+     const autoDone = ucid.automationState?.status === 'completed';
+     const manualDone = ucid.manualUploadState?.status === 'complete';
+     return autoDone || manualDone;
+  }
+  
+  // Backwards compatibility for older mock data
+  return ucid.completedSteps.includes('vendor-provisioning');
+}

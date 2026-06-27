@@ -11,9 +11,9 @@ const server = setupServer(
   http.post('http://localhost:3000/api/forensics/align', () => {
     return HttpResponse.json({
       data: {
-        updatedUcid: { id: 'mock-ucid-1', displayId: 'UCID-2026-MOCK', name: 'Mock Mission', solutions: [] },
+        updatedUcid: { id: 'mock-ucid-1', displayId: 'UCID-2026-MOCK', name: 'Mock Mission', solutions: [], solutionId: '1', solutionDisplayId: 'SOL-1', configIndex: 1, configLabel: 'cfg', parallelGroup: null },
         newRule: { ruleType: 'substitution', partNumber: '815100-B21', mappedOutput: 'P40424-B21', vendor: 'HPE', status: 'active', isAutoLearned: true, sourceIssueId: 'iss-1' },
-        newLearningEvent: { id: 'learn-1', type: 'rule_inferred', action: 'Substituted EOL part', preventedMismatchCount: 1, sourceIssueId: 'iss-1' },
+        newLearningEvent: { id: 'learn-1', ruleType: 'substitution', action: 'Substituted EOL part', preventedMismatchCount: 1, sourceIssueId: 'iss-1' },
         toastMsg: 'Issue resolved.'
       }
     });
@@ -21,9 +21,9 @@ const server = setupServer(
   http.post('/api/forensics/align', () => {
     return HttpResponse.json({
       data: {
-        updatedUcid: { id: 'mock-ucid-1', displayId: 'UCID-2026-MOCK', name: 'Mock Mission', solutions: [] },
+        updatedUcid: { id: 'mock-ucid-1', displayId: 'UCID-2026-MOCK', name: 'Mock Mission', solutions: [], solutionId: '1', solutionDisplayId: 'SOL-1', configIndex: 1, configLabel: 'cfg', parallelGroup: null },
         newRule: { ruleType: 'substitution', partNumber: '815100-B21', mappedOutput: 'P40424-B21', vendor: 'HPE', status: 'active', isAutoLearned: true, sourceIssueId: 'iss-1' },
-        newLearningEvent: { id: 'learn-1', type: 'rule_inferred', action: 'Substituted EOL part', preventedMismatchCount: 1, sourceIssueId: 'iss-1' },
+        newLearningEvent: { id: 'learn-1', ruleType: 'substitution', action: 'Substituted EOL part', preventedMismatchCount: 1, sourceIssueId: 'iss-1' },
         toastMsg: 'Issue resolved.'
       }
     });
@@ -55,6 +55,7 @@ function TestWrapper() {
       id: 'mock-ucid-1', 
       displayId: 'UCID-2026-MOCK', 
       name: 'Mock Mission',
+      solutionId: '1', solutionDisplayId: 'SOL-1', configIndex: 1, configLabel: 'cfg', parallelGroup: null,
       solutions: [
         {
           id: 'sol-1',
@@ -129,7 +130,7 @@ describe('03 - Forensics Auto-Heal Chain Integration', () => {
 
       // 3. Learning Event should be logged
       expect(state.learningEvents.length).toBe(1);
-      expect(state.learningEvents[0].type).toBe('rule_inferred');
+      expect(state.learningEvents[0].ruleType).toBe('substitution');
       expect(state.learningEvents[0].preventedMismatchCount).toBeGreaterThanOrEqual(0);
     });
   });

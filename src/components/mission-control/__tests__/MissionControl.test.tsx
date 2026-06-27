@@ -1,8 +1,10 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MissionControl } from '../MissionControl';
 import { ToastProvider } from '../../shared/ToastContext';
 import type { UCID } from '../../../types';
+import { axe } from 'vitest-axe';
 
 vi.mock('../MissionControlSidebar', () => ({
   MissionControlSidebar: () => <div data-testid="mission-control-sidebar">Sidebar</div>
@@ -38,14 +40,11 @@ const mockUcids: UCID[] = [
     solutions: [],
     events: [],
     snapshots: [],
-  solutionId: "11111111-1111-1111-8111-111111111111",
-  solutionDisplayId: "SOL-2026-001",
-  configIndex: 1,
-  configLabel: "Config 1",
-  parallelGroup: null,
-
-
-
+    solutionId: "11111111-1111-1111-8111-111111111111",
+    solutionDisplayId: "SOL-2026-001",
+    configIndex: 1,
+    configLabel: "Config 1",
+    parallelGroup: null,
     syncStatus: "Pending"
   }
 ];
@@ -70,5 +69,15 @@ describe('MissionControl', () => {
     );
     expect(screen.getByText(/No Active Missions/i)).toBeInTheDocument();
     expect(screen.getByText(/Initialize a new UCID campaign to begin intelligence tracking/i)).toBeInTheDocument();
+  });
+
+  it('passes a11y testing for the main dashboard view', async () => {
+    const { container } = render(
+      <ToastProvider>
+        <MissionControl ucids={mockUcids} setUcids={defaultProps.setUcids} onSelectId={defaultProps.onSelectId} onNavigate={defaultProps.onNavigate} />
+      </ToastProvider>
+    );
+    const results = await axe(container);
+    (expect(results) as any).toHaveNoViolations();
   });
 });

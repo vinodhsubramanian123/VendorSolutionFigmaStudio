@@ -15,6 +15,8 @@ interface UcidContainerListProps {
   toggleContainerLock: (id: string) => void;
   handleDeployToMissionControl: () => void;
   assignConfigToUcid: (configId: string, ucidId: string) => void;
+  updateContainerExecutionMode: (id: string, mode: 'automated' | 'manual' | 'hybrid') => void;
+  handleContainerUpload: (id: string, fileName: string) => void;
 }
 
 export function UcidContainerList({
@@ -27,6 +29,8 @@ export function UcidContainerList({
   toggleContainerLock,
   handleDeployToMissionControl,
   assignConfigToUcid,
+  updateContainerExecutionMode,
+  handleContainerUpload,
 }: UcidContainerListProps) {
   return (
     <div className="lg:col-span-7 flex flex-col gap-4">
@@ -186,6 +190,64 @@ export function UcidContainerList({
                   rows={2}
                   className="w-full bg-black/35 border border-white/5 focus:border-indigo-500/50 rounded-lg p-2 text-white font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 />
+              </div>
+
+              {/* Execution Mode Strategy */}
+              <div className="space-y-2 border-t border-white/5 pt-3 mt-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-gray-500 font-bold uppercase block text-[9.5px]">
+                    Mapping Execution Strategy
+                  </label>
+                  <select
+                    value={container.executionMode || 'automated'}
+                    onChange={(e) => updateContainerExecutionMode(container.id, e.target.value as 'automated' | 'manual' | 'hybrid')}
+                    className="bg-surface-elevated border border-white/10 text-white text-[10px] rounded px-2 py-1 focus:outline-none focus-visible:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="automated">Automated (Scraping)</option>
+                    <option value="manual">Manual (Portal Upload)</option>
+                    <option value="hybrid">Hybrid (Mixed Configs)</option>
+                  </select>
+                </div>
+                
+                {(container.executionMode === 'manual' || container.executionMode === 'hybrid') && (
+                  <div className="space-y-2 mt-2">
+                    {container.uploadedBOMFiles && container.uploadedBOMFiles.length > 0 && (
+                      <div className="flex flex-col gap-1 mb-2">
+                        <span className="text-[9px] text-gray-500 uppercase font-bold">Mapped BOM Files:</span>
+                        {container.uploadedBOMFiles.map((file, idx) => (
+                          <div key={idx} className="text-[10px] text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 truncate">
+                            📄 {file}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="border border-dashed border-white/20 hover:border-indigo-500/50 rounded-lg p-4 bg-black/20 flex flex-col items-center justify-center cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="file"
+                        id={`upload-${container.id}`}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleContainerUpload(container.id, file.name);
+                        }}
+                      />
+                      <label htmlFor={`upload-${container.id}`} className="cursor-pointer text-center w-full">
+                        <span className="block text-[11px] font-bold text-indigo-400 mb-1">
+                          {container.uploadedBOMFiles && container.uploadedBOMFiles.length > 0 
+                            ? 'Add Another Partial BOM Spreadsheet' 
+                            : 'Drop Vendor BOM Spreadsheet Here'}
+                        </span>
+                        <span className="block text-[9.5px] text-gray-500">
+                          Click to browse files to append to this UCID...
+                        </span>
+                      </label>
+                    </motion.div>
+                  </div>
+                )}
               </div>
 
               {/* Integrated calculation ledger & status */}

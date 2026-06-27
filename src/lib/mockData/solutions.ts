@@ -8,6 +8,16 @@ export const SOLUTIONS: SolutionProject[] = [
     customerName: 'Yemen LNG',
     boqSourceFile: 'YLNG_Server_BOQ_v3.xlsx',
     vendor: 'HPE',
+    vendorAssignments: [
+      {
+        id: 'va-ylng-01',
+        vendor: 'HPE',
+        configIndices: [1, 2],
+        ucidIds: ['u1', 'u2'],
+        isPrimary: true,
+        addedAt: '2026-06-17T10:00:00.000Z'
+      }
+    ],
     projectRef: 'SAP-OPP-2026-8847',
     status: 'in-progress',
     configCount: 2,
@@ -24,6 +34,16 @@ export const SOLUTIONS: SolutionProject[] = [
     customerName: 'Global Finance',
     boqSourceFile: 'DB_Cluster_Req.xlsx',
     vendor: 'Dell',
+    vendorAssignments: [
+      {
+        id: 'va-db-01',
+        vendor: 'Dell',
+        configIndices: [1],
+        ucidIds: ['u3'],
+        isPrimary: true,
+        addedAt: '2026-06-18T14:30:00.000Z'
+      }
+    ],
     projectRef: 'SAP-OPP-2026-9901',
     status: 'draft',
     configCount: 1,
@@ -40,6 +60,16 @@ export const SOLUTIONS: SolutionProject[] = [
     customerName: 'Branch Networks',
     boqSourceFile: 'WAN_Firewall_BOQ.xlsx',
     vendor: 'Juniper',
+    vendorAssignments: [
+      {
+        id: 'va-wan-01',
+        vendor: 'Juniper',
+        configIndices: [1],
+        ucidIds: ['u4'],
+        isPrimary: true,
+        addedAt: '2026-05-25T11:30:00.000Z'
+      }
+    ],
     projectRef: 'PRJ-WAN-EDGE-SEC',
     status: 'completed',
     configCount: 1,

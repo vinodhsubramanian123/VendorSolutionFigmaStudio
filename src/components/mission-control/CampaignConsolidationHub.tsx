@@ -23,6 +23,7 @@ interface CampaignConsolidationHubProps {
   setCampaignLocked: React.Dispatch<
     React.SetStateAction<Record<string, boolean>>
   >;
+  getSolutionName: (u: UCID) => string;
 }
 export function CampaignConsolidationHub({
   campaignName,
@@ -33,6 +34,7 @@ export function CampaignConsolidationHub({
   setCampaignSigner,
   campaignLocked,
   setCampaignLocked,
+  getSolutionName,
 }: CampaignConsolidationHubProps) {
   const isLocked = !!campaignLocked[campaignName];
   // Calculations
@@ -52,9 +54,7 @@ export function CampaignConsolidationHub({
     if (isLocked) return;
     setUcids((prev) =>
       prev.map((u) => {
-        const matchName =
-          u.solutionName ||
-          (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
+        const matchName = getSolutionName(u);
         if (matchName !== campaignName) return u;
         const sorted = [...u.solutions].sort(
           (a, b) =>
@@ -80,9 +80,7 @@ export function CampaignConsolidationHub({
     if (isLocked) return;
     setUcids((prev) =>
       prev.map((u) => {
-        const matchName =
-          u.solutionName ||
-          (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
+        const matchName = getSolutionName(u);
         if (matchName !== campaignName) return u;
         const targetIdx = u.solutions.findIndex((s) =>
           s?.vendorSubmissions?.some(
@@ -129,9 +127,7 @@ export function CampaignConsolidationHub({
     // Set all child UCIDs to snapshot step and commit snapshots
     setUcids((prev) =>
       prev.map((u) => {
-        const matchName =
-          u.solutionName ||
-          (u.name.includes(" — ") ? u.name.split(" — ")[0] : null);
+        const matchName = getSolutionName(u);
         if (matchName !== campaignName) return u;
         const winningSol = u.solutions[0]?.vendorSubmissions?.[0] ?? {
           vendor: "Multi-vendor",

@@ -14,6 +14,7 @@ export interface ConfigItem {
   vendor: "HPE" | "Dell" | "Cisco";
   totalPrice: number;
   originalPrice: number;
+  executionMode?: 'automated' | 'manual' | 'hybrid';
   items: BOMItem[];
 }
 export interface TaxonomyPath {
@@ -30,6 +31,8 @@ export interface UcidContainer {
   reasoning: string;
   locked: boolean;
   syncStatus?: "Pending" | "Synced" | "Out-of-Sync";
+  executionMode?: 'automated' | 'manual' | 'hybrid';
+  uploadedBOMFiles: string[]; // Tracks all manually dropped BOM files
 }
 export type GraphMetadata = z.infer<typeof GraphMetadataSchema>;
 export type GraphNode = z.infer<typeof GraphNodeSchema>;

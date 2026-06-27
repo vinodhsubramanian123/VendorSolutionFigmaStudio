@@ -29,9 +29,15 @@ export function useMissionControlWorkflow({
     setIntelProgress(0);
 
     try {
+      const ucid = ucids.find(u => u.id === ucidId);
       const response = await apiClient.post<{ job_id: string }>("/api/jobs", {
         type: "config_process",
-        context: { ucid: ucidId, config_id: "intel-scan", solution_id: "baseline" },
+        context: { 
+          ucid: ucidId, 
+          config_id: "intel-scan", 
+          solution_id: "baseline",
+          executionMode: ucid?.executionMode 
+        },
         parent_job_id: "",
       });
       setActiveJobId(response.data.job_id);

@@ -72,7 +72,7 @@ const mockUcids: UCID[] = [
 
 describe("ReconciliationView", () => {
   it("renders empty state when no ucids have drift", () => {
-    const syncedUcids: UCID[] = [{ ...mockUcids[1], currentStep: "solution-design" }];
+    const syncedUcids: UCID[] = [{ ...mockUcids[1], currentStep: "boq-intake" }];
     render(
       <ToastProvider>
         <ReconciliationView ucids={syncedUcids} setUcids={vi.fn()} catalogSkus={[]} />

@@ -86,8 +86,23 @@ export const coreHandlers = [
     return HttpResponse.json(wrapSuccess({ status: "accepted", job_id: "job-portfolio-sync" }));
   }),
   // POST /api/jobs
-  http.post('/api/jobs', async () => {
+  http.post('/api/jobs', async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as any;
     if (process.env.NODE_ENV !== 'test') await delay(800);
+    
+    // Skip automated provisioning/intelligence steps if execution mode is manual
+    if (body?.context?.executionMode === 'manual') {
+      return HttpResponse.json(wrapSuccess({
+        status: "completed",
+        job_id: "job-skipped-manual-" + crypto.randomUUID(),
+        logTrail: [
+          "Manual mode detected.",
+          "Skipping automated API quoting...",
+          "Awaiting manual document upload."
+        ]
+      }));
+    }
+
     return HttpResponse.json(wrapSuccess({
       status: "completed",
       job_id: "job-mock-ingest-" + crypto.randomUUID(),
@@ -285,5 +300,55 @@ export const coreHandlers = [
     const b = (await request.json()) as { sourceId?: string; ruleType?: "requires" | "exclusive"; explanation?: string };
     await MockTaxonomyApi.addRule(b.sourceId as string, b.ruleType as "requires" | "exclusive", b.explanation as string);
     return HttpResponse.json(wrapSuccess({}));
+  }),
+  // Phase 11 Missing Endpoints
+
+  // Solutions
+  http.get('/api/solutions', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    return HttpResponse.json(wrapSuccess([]));
+  }),
+  http.post('/api/solutions', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(500);
+    return HttpResponse.json(wrapSuccess({ id: crypto.randomUUID() }));
+  }),
+  http.patch('/api/solutions/:id/status', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    return HttpResponse.json(wrapSuccess({ updated: true }));
+  }),
+  http.post('/api/solutions/:id/vendor-assignments', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(400);
+    return HttpResponse.json(wrapSuccess({ id: `va-${crypto.randomUUID()}` }));
+  }),
+
+  // Automation & Manual Execution
+  http.post('/api/automation/jobs', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(800);
+    return HttpResponse.json(wrapSuccess({ job_id: `auto-${crypto.randomUUID()}` }));
+  }),
+  http.get('/api/automation/jobs/:jobId', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(300);
+    return HttpResponse.json(wrapSuccess({ status: 'completed', progress: 100 }));
+  }),
+  http.post('/api/ucids/:ucidId/manual-upload', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(1000);
+    return HttpResponse.json(wrapSuccess({ success: true, ref: 'doc-12345' }));
+  }),
+  // Cryptographic Dispatch Webhook
+  http.post('/api/integrations/dispatch', async () => {
+    if (process.env.NODE_ENV !== 'test') await delay(800);
+    return HttpResponse.json(wrapSuccess({
+      dispatchId: `disp-${crypto.randomUUID()}`,
+      status: 'delivered',
+      cryptographicSignature: 'sha256:mock_hash_signature',
+      auditLog: [
+        {
+          attemptNumber: 1,
+          timestamp: new Date().toISOString(),
+          httpStatusCode: 200,
+          responseBody: '{"success": true}'
+        }
+      ]
+    }));
   }),
 ];

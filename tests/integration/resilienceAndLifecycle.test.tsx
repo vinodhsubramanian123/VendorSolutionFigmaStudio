@@ -45,18 +45,43 @@ vi.mock('../../src/components/catalog/CatalogTaxonomyTree', () => ({
 }));
 
 vi.mock('../../src/components/catalog/CatalogCardsList', () => ({
-  CatalogCardsList: vi.fn(({ filteredSkus }: { filteredSkus: CatalogSKU[] }) => (
+  CatalogCardsList: vi.fn(({ filteredSkus, deleteSku, startEditing, savePrice, editingSkuId, editedPrice, setEditedPrice }: any) => (
     <div data-testid="catalog-list">
-      {filteredSkus.map(s => (
+      {filteredSkus.map((s: any) => (
         <div key={s.id} data-testid={`sku-row-${s.id}`}>
           {s.name}
+          <span data-testid={`price-${s.id}`}>{s.price}</span>
           <button
             type="button"
             data-testid={`delete-${s.id}`}
-            onClick={() => (window as { __deleteCallback?: (id: string) => void }).__deleteCallback?.(s.id)}
+            onClick={() => deleteSku?.(s.id)}
           >
             Delete
           </button>
+          {editingSkuId === s.id ? (
+            <div>
+              <input 
+                data-testid={`price-input-${s.id}`} 
+                value={editedPrice} 
+                onChange={(e) => setEditedPrice(e.target.value)} 
+              />
+              <button 
+                type="button" 
+                data-testid={`save-price-${s.id}`} 
+                onClick={() => savePrice(s.id)}
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              data-testid={`edit-price-${s.id}`}
+              onClick={() => startEditing?.(s)}
+            >
+              Edit Price
+            </button>
+          )}
         </div>
       ))}
     </div>
@@ -276,33 +301,84 @@ describe('Category 13 — Optimistic UI Rollback', () => {
     expect(screen.getByText(rulePartNumber)).toBeInTheDocument();
   });
 
-  it('CatalogManager: catalog state remains intact after failed delete', async () => {
+  it('CatalogManager: SKU deleted optimistically is restored to UI when delete API fails', async () => {
     server.use(
       http.delete('/api/catalog/:id', () => new HttpResponse(null, { status: 500 }))
     );
 
-    const initialSkus = [...mockSkus];
-    let capturedSkus = initialSkus;
-    const mockSetSkus = vi.fn((updater) => {
-      if (typeof updater === 'function') {
-        capturedSkus = updater(capturedSkus);
-      } else {
-        capturedSkus = updater;
-      }
-    });
+    const TestComponent = () => {
+      const [skus, setSkus] = useState(mockSkus);
+      return (
+        <CatalogManager
+          catalogSkus={skus}
+          setCatalogSkus={setSkus}
+          vendors={mockVendors}
+        />
+      );
+    };
 
     render(
       <Wrapper>
-        <CatalogManager
-          catalogSkus={initialSkus}
-          setCatalogSkus={mockSetSkus}
-          vendors={mockVendors}
-        />
+        <TestComponent />
       </Wrapper>
     );
 
-    // Component should still display the original SKU data
-    expect(document.body).toBeDefined();
+    const skuToDelete = mockSkus[0];
+    expect(screen.getByText(skuToDelete.name)).toBeInTheDocument();
+
+    // Trigger delete
+    fireEvent.click(screen.getByTestId(`delete-${skuToDelete.id}`));
+
+    // Wait for the rollback (since API returns 500)
+    await waitFor(() => {
+      // The toast should appear indicating failure
+      expect(screen.getByText(/Failed to delete SKU\. Rolled back\./i)).toBeInTheDocument();
+    });
+
+    // The SKU should still be in the document
+    expect(screen.getByText(skuToDelete.name)).toBeInTheDocument();
+  });
+
+  it('CatalogManager: SKU price edited optimistically is restored when API fails', async () => {
+    server.use(
+      http.put('/api/catalog/:id', () => new HttpResponse(null, { status: 500 }))
+    );
+
+    const TestComponent = () => {
+      const [skus, setSkus] = useState(mockSkus);
+      return (
+        <CatalogManager
+          catalogSkus={skus}
+          setCatalogSkus={setSkus}
+          vendors={mockVendors}
+        />
+      );
+    };
+
+    render(
+      <Wrapper>
+        <TestComponent />
+      </Wrapper>
+    );
+
+    const skuToEdit = mockSkus[0];
+    expect(screen.getByTestId(`price-${skuToEdit.id}`)).toHaveTextContent(skuToEdit.price.toString());
+
+    // Trigger edit price
+    fireEvent.click(screen.getByTestId(`edit-price-${skuToEdit.id}`));
+
+    // Change the price and save
+    const priceInput = screen.getByTestId(`price-input-${skuToEdit.id}`);
+    fireEvent.change(priceInput, { target: { value: '9999' } });
+    fireEvent.click(screen.getByTestId(`save-price-${skuToEdit.id}`));
+
+    // Wait for rollback
+    await waitFor(() => {
+      expect(screen.getByText(/Price sync failed\. Rolled back\./i)).toBeInTheDocument();
+    });
+
+    // Verify price reverted to original
+    expect(screen.getByTestId(`price-${skuToEdit.id}`)).toHaveTextContent(skuToEdit.price.toString());
   });
 
   it('SourcingRulesVault: simulate-and-promote rule remains in draft after API failure', async () => {

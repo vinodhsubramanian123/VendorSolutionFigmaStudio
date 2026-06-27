@@ -64,9 +64,9 @@ export function CatalogManager({
   setCatalogSkus,
   vendors,
 }: CatalogManagerProps) {
-  // eslint-disable-next-line sonarjs/no-dead-store
-  // eslint-disable-next-line sonarjs/no-unused-vars
-  // eslint-disable-next-line sonarjs/no-dead-store
+   
+   
+   
   // eslint-disable-next-line sonarjs/no-unused-vars
   const { success, warn, error } = useToast();
   

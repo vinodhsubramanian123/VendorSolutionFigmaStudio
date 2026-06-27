@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { UCID, UCIDStep} from "../../types";
 import { useToast } from "../shared/ToastContext";
+import { useCoreStore } from "../../store/coreStore";
 // Split sub-components
 import { SolutionBanner } from "./SolutionBanner";
 import { CampaignConsolidationHub } from "./CampaignConsolidationHub";
@@ -65,8 +66,9 @@ export const MissionControl = React.memo(function MissionControl({
   );
   // Helper function to extract or resolve Parent Solution/Campaign group
   function getSolutionName(u: UCID): string {
-    if (u.solutionName) {
-      return u.solutionName;
+    const solution = useCoreStore.getState().solutions.find(s => s.id === u.solutionId);
+    if (solution) {
+      return solution.name;
     }
     if (u.name.includes(" — ")) {
       return u.name.split(" — ")[0];
@@ -245,6 +247,7 @@ export const MissionControl = React.memo(function MissionControl({
                 setCampaignSigner={setCampaignSigner}
                 campaignLocked={campaignLocked}
                 setCampaignLocked={setCampaignLocked}
+                getSolutionName={getSolutionName}
               />
             ) : (
               <div className="space-y-4">

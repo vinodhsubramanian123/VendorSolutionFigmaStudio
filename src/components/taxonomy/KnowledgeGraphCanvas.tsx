@@ -228,6 +228,7 @@ function KnowledgeGraphCanvasInner({ apiNodes, apiEdges, apiPaths = [], activeSe
 
   return (
     <ErrorBoundary>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div className="w-full h-full min-h-[600px] bg-[#03050a] border border-white/5 rounded-xl overflow-hidden relative" onDragOver={onDragOver} onDrop={onDrop}>
         <ReactFlow
           nodes={nodes}

@@ -145,6 +145,7 @@ export function useBoqIntake(
       customerName: "Acme Corp", // Standard mock for now
       boqSourceFile: boqResponse.sourceFile || boqFile || "unknown.xlsx",
       vendor: boqResponse.solutions?.[0]?.vendorSubmissions?.[0]?.vendor || "Mixed Sourcing",
+      vendorAssignments: [],
       projectRef: "PRJ-RECON-HUB",
       status: "in-progress",
       configCount: generatedUcids.length,

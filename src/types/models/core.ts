@@ -47,6 +47,7 @@ export interface Config {
   originalPrice: number;
   savings?: number;
   vendor?: string;
+  executionMode?: 'automated' | 'manual' | 'hybrid'; // Allows a specific config to override parent UCID
   items: BOMItem[];
 }
 
@@ -99,6 +100,52 @@ export interface Snapshot {
   timestamp: string; // Real-time timestamp of creation
   locked: boolean; // Indicates if snapshot is locked
   bomSnapshot?: Config[]; // Full config BOM snapshot representing the reconciled state
+}
+
+/**
+ * VendorAssignment — maps a vendor to a subset of configIndices.
+ */
+export interface VendorAssignment {
+  id: string;
+  vendor: string;
+  configIndices: number[];
+  ucidIds: string[];
+  isPrimary: boolean;
+  addedAt: string;
+}
+
+export type UCIDExecutionMode = 'automated' | 'manual' | 'hybrid';
+
+export type AutomationRunStatus =
+  | 'idle'
+  | 'queued'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'requires-review';
+
+export interface UCIDAutomationState {
+  jobId: string;
+  vendorPortalName: string;
+  portalUrl: string;
+  status: AutomationRunStatus;
+  queuedAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  errorMessage: string | null;
+  screenshotRef: string | null;
+  outputFileRef: string | null;
+  retryCount: number;
+}
+
+export interface UCIDManualUploadState {
+  status: 'awaiting-upload' | 'uploaded' | 'processing' | 'complete' | 'rejected';
+  uploadedAt: string | null;
+  fileNames: string[];
+  uploadedBy: string | null;
+  rejectionReason: string | null;
+  outputFileRefs: string[];
+  processedAt: string | null;
 }
 
 /**
@@ -158,6 +205,9 @@ export interface SolutionProject {
 
   /** Primary vendor: "HPE" | "Dell" | "Cisco" | "Juniper" | "Lenovo" */
   vendor: string;
+  
+  /** Assigned vendors mapping */
+  vendorAssignments: VendorAssignment[];
 
   /** SAP/Salesforce opportunity ID */
   projectRef: string;
@@ -261,6 +311,23 @@ export interface UCID {
    * Null by default. Set only when crossVendorEnabled and equivalence matching is active.
    */
   parallelGroup: string | null;
+
+  /**
+   * How the vendor-provisioning workflow step is completed.
+   */
+  executionMode?: UCIDExecutionMode;
+
+  /**
+   * Present when executionMode === 'automated'. null otherwise.
+   * Tracks the Playwright automation job state.
+   */
+  automationState?: UCIDAutomationState | null;
+
+  /**
+   * Present when executionMode === 'manual'. null otherwise.
+   * Tracks the manual upload state.
+   */
+  manualUploadState?: UCIDManualUploadState | null;
 }
 
 /**
@@ -312,55 +379,3 @@ export interface ForensicIssue {
   };
 }
 
-/**
- * ============================================================================
- * BROWSER AUTOMATION WORKERS - PLAYWRIGHT AGENT CONTRACTS
- * ============================================================================
- * Operational parameters for headless browser crawlers executing on target
- * distributor portals to scrap real-time supply indexes.
- */
-
-export interface PlaywrightAgentConfig {
-  targetUrl: string; // Login or inventory portal address
-  headless: boolean; // Display browser engine or run headless
-  viewportWidth: number;
-  viewportHeight: number;
-  timeoutMs: number; // Execution halt deadline
-  maxRetries: number; // Fail-over reloads
-  proxyRotation: boolean; // Toggle dynamic routing to prevent CAPTCHAs
-}
-
-export type PlaywrightAgentStatus =
-  | "idle"
-  | "running"
-  | "success"
-  | "failed"
-  | "rate-limited";
-
-export interface PlaywrightExecutionLog {
-  timestamp: string;
-  level: "info" | "debug" | "screenshot" | "error";
-  message: string;
-  screenshotUrl?: string; // Cloud storage file handle for optical debugging
-}
-
-export interface PlaywrightAgentTask {
-  taskId: string;
-  agentName: "AribaScraper" | "HPEMarketplace" | "DellPremierPortal";
-  ucidRef: string;
-  startedAt: string;
-  completedAt?: string;
-  status: PlaywrightAgentStatus;
-  config: PlaywrightAgentConfig;
-  logs: PlaywrightExecutionLog[];
-  metrics: {
-    pagesNavigated: number;
-    selectorsResolved: number;
-    bandwidthBytes: number;
-    durationMs: number;
-  };
-  extractedItemsCount: number;
-}
-
-/**
-*/

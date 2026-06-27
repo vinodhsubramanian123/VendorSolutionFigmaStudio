@@ -21,6 +21,8 @@ interface StepWorkspaceProps {
   updateContainerName: (id: string, name: string) => void;
   updateContainerReasoning: (id: string, reasoning: string) => void;
   toggleContainerLock: (id: string) => void;
+  updateContainerExecutionMode: (id: string, mode: 'automated' | 'manual' | 'hybrid') => void;
+  handleContainerUpload: (id: string, fileName: string) => void;
   ucids: UCID[];
   handleDeployToMissionControl: () => void;
 }
@@ -39,6 +41,8 @@ export function StepWorkspace({
   updateContainerName,
   updateContainerReasoning,
   toggleContainerLock,
+  updateContainerExecutionMode,
+  handleContainerUpload,
   ucids,
   handleDeployToMissionControl,
 }: StepWorkspaceProps) {
@@ -83,6 +87,8 @@ export function StepWorkspace({
         updateContainerName={updateContainerName}
         updateContainerReasoning={updateContainerReasoning}
         toggleContainerLock={toggleContainerLock}
+        updateContainerExecutionMode={updateContainerExecutionMode}
+        handleContainerUpload={handleContainerUpload}
         handleDeployToMissionControl={handleDeployToMissionControl}
         assignConfigToUcid={assignConfigToUcid}
       />

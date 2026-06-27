@@ -21,6 +21,7 @@ const VendorPortal = React.lazy(() => import("./components/vendor-portal/VendorP
 const ForensicView = React.lazy(() => import("./components/forensics/ForensicView").then(m => ({ default: m.ForensicView })));
 const SolutionBuilder = React.lazy(() => import("./components/solution-builder/SolutionBuilder").then(m => ({ default: m.SolutionBuilder })));
 const SolutionManager = React.lazy(() => import("./components/solution-builder/SolutionManager").then(m => ({ default: m.SolutionManager })));
+const SolutionDetail = React.lazy(() => import("./components/solution-builder/SolutionDetail").then(m => ({ default: m.SolutionDetail })));
 const IngestionHub = React.lazy(() => import("./components/ingestion/IngestionHub").then(m => ({ default: m.IngestionHub })));
 const SearchView = React.lazy(() => import("./components/search/SearchView").then(m => ({ default: m.SearchView })));
 const ReconciliationView = React.lazy(() => import("./components/reconciliation/ReconciliationView").then(m => ({ default: m.ReconciliationView })));
@@ -304,6 +305,7 @@ export default function App() {
                         <Route path="/vendor-portal" element={<ErrorBoundary><VendorPortal vendors={vendors} setVendors={setVendors} ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} /></ErrorBoundary>} />
                         <Route path="/forensic" element={<ErrorBoundary><ForensicView forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} setCatalogSkus={setCatalogSkus} ucids={ucids} setUcids={setUcids} activeMissionId={activeMissionId} setActiveMissionId={setActiveMissionId} onNavigate={legacyNavigate} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} /></ErrorBoundary>} />
                         <Route path="/solutions" element={<ErrorBoundary><SolutionManager /></ErrorBoundary>} />
+                        <Route path="/solutions/:id" element={<ErrorBoundary><SolutionDetail /></ErrorBoundary>} />
                         <Route path="/solution-builder" element={<ErrorBoundary><SolutionBuilder ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} setDeployedSolution={setDeployedSolution} onSelectMission={handleSelectMission} /></ErrorBoundary>} />
                         <Route path="/reconciliation" element={<ErrorBoundary><ReconciliationView ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} /></ErrorBoundary>} />
                         <Route path="/taxonomy-graph" element={<ErrorBoundary><TaxonomyGraphView catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} /></ErrorBoundary>} />

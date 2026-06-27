@@ -99,7 +99,7 @@ describe('CatalogCardsList', () => {
   });
 
   it('handles edit mode interactions', () => {
-    // eslint-disable-next-line sonarjs/no-dead-store
+     
     // eslint-disable-next-line sonarjs/no-unused-vars
     const { rerender } = render(<CatalogCardsList {...defaultProps} editingSkuId="1" editedPrice="1500" />);
     

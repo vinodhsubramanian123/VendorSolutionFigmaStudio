@@ -28,7 +28,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     await page.locator('#nav-reconciliation').click();
     await delay(1000);
     // Open Version Snapshots side panel
-    const snapshotsBtn = page.locator('button', { hasText: 'Version Snapshots' }).first();
+    const snapshotsBtn = page.getByTestId('btn-version-snapshots').first();
     await expect(snapshotsBtn).toBeVisible({ timeout: 5000 });
     await snapshotsBtn.click();
     await delay(500);

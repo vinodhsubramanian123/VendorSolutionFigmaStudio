@@ -177,9 +177,7 @@ export function RefineRuleOverlay({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="absolute inset-0 bg-[#03050a]/95 backdrop-blur-md z-40 p-4 flex flex-col text-left overflow-y-auto custom-scrollbar border border-indigo-500/20 rounded-xl font-sans"
-        >
+          className="absolute inset-0 bg-[#03050a]/95 backdrop-blur-md z-40 p-4 flex flex-col text-left overflow-y-auto custom-scrollbar border border-indigo-500/20 rounded-xl font-sans">
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3 shrink-0">
             <div className="flex items-center gap-2">
@@ -291,11 +289,7 @@ export function RefineRuleOverlay({
                      
                     return (
                       // eslint-disable-next-line jsx-a11y/label-has-associated-control
-                      <label 
-                        key={opt.sku} 
-                        htmlFor={`remedy-${opt.sku}`}
-                        className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none"
-                      >
+                      <label key={opt.sku} htmlFor={`remedy-${opt.sku}`} className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none">
                       <input
                         id={`remedy-${opt.sku}`}
                         type="checkbox"

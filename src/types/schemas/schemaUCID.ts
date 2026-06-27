@@ -9,6 +9,7 @@ export const ConfigSchema = z.object({
   originalPrice: z.number().nonnegative("Original price must be non-negative"),
   savings: z.number().optional(),
   vendor: z.string().optional(),
+  executionMode: z.enum(['automated', 'manual', 'hybrid']).optional(),
   items: z.array(BOMItemSchema),
 });
 
@@ -28,6 +29,7 @@ export const SolutionSchema = z.object({
   name: z.string(),
   targetUcidId: z.string(),
   vendorSubmissions: z.array(VendorSubmissionSchema),
+  selectedVendorSubmissionId: z.string().optional(),
 });
 
 export const SnapshotSchema = z.object({
@@ -54,18 +56,58 @@ const SolutionStatusSchema = z.enum([
   'on-hold'
 ]);
 
+export const VendorAssignmentSchema = z.object({
+  id:            z.string(),
+  vendor:        z.string().min(1),
+  configIndices: z.array(z.number().int().positive()),
+  ucidIds:       z.array(z.string()),
+  isPrimary:     z.boolean(),
+  addedAt:       z.string().datetime()
+});
+
+export const UCIDExecutionModeSchema = z.enum(['automated', 'manual', 'hybrid']);
+
+export const AutomationRunStatusSchema = z.enum([
+  'idle', 'queued', 'running', 'completed', 'failed', 'requires-review'
+]);
+
+export const UCIDAutomationStateSchema = z.object({
+  jobId:           z.string(),
+  vendorPortalName: z.string().min(1),
+  portalUrl:       z.string().url(),
+  status:          AutomationRunStatusSchema,
+  queuedAt:        z.string().datetime().nullable(),
+  startedAt:       z.string().datetime().nullable(),
+  completedAt:     z.string().datetime().nullable(),
+  errorMessage:    z.string().nullable(),
+  screenshotRef:   z.string().nullable(),
+  outputFileRef:   z.string().nullable(),
+  retryCount:      z.number().int().nonnegative()
+});
+
+export const UCIDManualUploadStateSchema = z.object({
+  status:           z.enum(['awaiting-upload', 'uploaded', 'processing', 'complete', 'rejected']),
+  uploadedAt:       z.string().datetime().nullable(),
+  fileNames:        z.array(z.string()),
+  uploadedBy:       z.string().nullable(),
+  rejectionReason:  z.string().nullable(),
+  outputFileRefs:   z.array(z.string()),
+  processedAt:      z.string().datetime().nullable()
+});
+
 export const SolutionProjectSchema = z.object({
-  id:                 z.string().uuid(),
+  id:                 z.string().min(1),
   displayId:          z.string().regex(/^SOL-\d{4}-\d+$/),
   name:               z.string().min(3).max(80),
   customerName:       z.string().min(1),
   boqSourceFile:      z.string().min(1),
   vendor:             z.string(),
+  vendorAssignments:  z.array(VendorAssignmentSchema),
   projectRef:         z.string(),
   status:             SolutionStatusSchema,
   configCount:        z.number().int().nonnegative(),
-  ucidIds:            z.array(z.string().uuid()),
-  activeUcidId:       z.string().uuid().nullable(),
+  ucidIds:            z.array(z.string().min(1)),
+  activeUcidId:       z.string().min(1).nullable(),
   crossVendorEnabled: z.boolean(),
   createdAt:          z.string().datetime(),
   events:             z.array(LogEventSchema)
@@ -106,9 +148,13 @@ const BaseUCIDSchema = z.object({
 });
 
 export const UCIDSchema = BaseUCIDSchema.extend({
-  solutionId:        z.string().uuid(),
+  solutionId:        z.string(),
   solutionDisplayId: z.string(),
   configIndex:       z.number().int().positive(),
   configLabel:       z.string().min(1),
-  parallelGroup:     z.string().nullable()
+  parallelGroup:     z.string().nullable(),
+  executionMode:     UCIDExecutionModeSchema.optional(),
+  automationState:   UCIDAutomationStateSchema.nullable().optional(),
+  manualUploadState: UCIDManualUploadStateSchema.nullable().optional()
 });
+export const UCIDSchemaV11 = UCIDSchema;

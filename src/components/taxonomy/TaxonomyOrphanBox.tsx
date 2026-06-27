@@ -35,9 +35,13 @@ export function TaxonomyOrphanBox({
         {(data.unmappedIds || []).map((oId: string) => {
           const sku = skus.find(s => s.id === oId);
           if (!sku) return null;
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           return (
             <div 
               key={sku.id}
+              role="listitem"
+              tabIndex={0}
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'orphan', id: sku.id, name: sku.name }));

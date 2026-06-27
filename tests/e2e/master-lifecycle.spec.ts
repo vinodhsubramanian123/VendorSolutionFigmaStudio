@@ -105,7 +105,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await page.locator('#nav-solution-builder').click();
       await delay(1000);
       
-      await expect(page.getByText('Multi-Client Quote Compilation Desk').first()).toBeVisible();
+      await expect(page.getByText('Mission Builder').first()).toBeVisible();
 
       // Deploy the mapped configs to Mission Control
       const deployBtn = page.getByTestId('btn-deploy-solutions');
