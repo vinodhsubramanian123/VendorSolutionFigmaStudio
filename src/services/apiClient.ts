@@ -147,7 +147,6 @@ class ApiClient {
   streamJob(jobId: string, onMessage: (data: unknown) => void, onError: (err: unknown) => void) {
     let active = true;
     let progress = 0;
-    const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
 
     const tick = () => {
       if (!active) return;
@@ -168,19 +167,11 @@ class ApiClient {
           status: "processing",
           progress: progress
         });
-        if (isTest) {
-          tick();
-        } else {
-          setTimeout(tick, 600); // tick deterministically
-        }
+        setTimeout(tick, 600); // tick deterministically
       }
     };
 
-    if (isTest) {
-      tick();
-    } else {
-      setTimeout(tick, 500);
-    }
+    setTimeout(tick, 500);
 
     return {
       close: () => {
