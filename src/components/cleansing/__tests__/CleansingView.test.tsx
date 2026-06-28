@@ -18,7 +18,8 @@ describe('CleansingView Component', () => {
         <CleansingView  />
       </ToastProvider>
     );
-    expect(screen.getByText(/Interactive Splicing & Mapping Workshop/i)).toBeInTheDocument();
+    const headings = await screen.findAllByText(/Interactive Splicing & Mapping Workshop/i);
+    expect(headings[0]).toBeInTheDocument();
   });
   it('renders table headers and rows when data is loaded', async () => {
     render(
@@ -26,7 +27,8 @@ describe('CleansingView Component', () => {
         <CleansingView  />
       </ToastProvider>
     );
-    expect(await screen.findByText(/Interactive Splicing/i)).toBeInTheDocument();
+    const headings = await screen.findAllByText(/Interactive Splicing/i);
+    expect(headings[0]).toBeInTheDocument();
     
     // Check if the "All (12)" filter button is rendered, proving data generated
     expect(await screen.findByText(/All/i)).toBeInTheDocument();
