@@ -86,8 +86,7 @@ export const VENDORS: Vendor[] = [
     lastSync: "10 mins ago",
     credentials: {
       username: "enterprise_sourcing_hpe_prod",
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
-      password: "mock-password-hpe-001",
+      apiToken: "mock-apiToken-hpe-001",
       mfaToken: "RO7K-9154-A24B"
     }
   },
@@ -104,8 +103,7 @@ export const VENDORS: Vendor[] = [
     lastSync: "2 hours ago",
     credentials: {
       username: "dell_premier_procurement_lead",
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
-      password: "mock-password-dell-002",
+      apiToken: "mock-apiToken-dell-002",
       mfaToken: "DL-9824-MFA-X2"
     }
   },
@@ -122,8 +120,7 @@ export const VENDORS: Vendor[] = [
     lastSync: "1 min ago",
     credentials: {
       username: "cisco_commerce_workspace_api",
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
-      password: "mock-password-cisco-003",
+      apiToken: "mock-apiToken-cisco-003",
       mfaToken: "CSCO-AUTH-9999"
     }
   },

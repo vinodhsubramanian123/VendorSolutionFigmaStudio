@@ -50,7 +50,10 @@ export const MockCatalogApi = {
     throw new Error("SKU not found");
   },
   deleteCatalogSku: async (id: string): Promise<void> => {
-    serverState.catalog = serverState.catalog.filter(c => c.id !== id);
+    const idx = serverState.catalog.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      serverState.catalog.splice(idx, 1);
+    }
   }
 };
 
@@ -63,7 +66,10 @@ export const MockSnapshotApi = {
     return snapshot;
   },
   deleteSnapshot: async (id: string): Promise<void> => {
-    serverState.snapshots = serverState.snapshots.filter(s => s.id !== id);
+    const idx = serverState.snapshots.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      serverState.snapshots.splice(idx, 1);
+    }
   }
 };
 

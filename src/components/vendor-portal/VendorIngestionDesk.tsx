@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { UCID, PlaywrightRunResponse, CatalogSKU,  SourcingRule, LearningEvent, AdviceResolution } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../services/apiClient";
 import { VENDORS } from "../../lib/mockData/misc";
 import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
@@ -41,7 +42,7 @@ export function VendorIngestionDesk({
   
   // User overrideable credential fields — initialized from portalConfig defaults
   const [username, setUsername] = useState(portalConfig.username);
-  const [password, setPassword] = useState(portalConfig.password);
+  const [apiToken, setPassword] = useState(portalConfig.apiToken);
   const [mfaToken, setMfaToken] = useState(portalConfig.mfaToken);
   const [authStatus, setAuthStatus] = useState<"authorized" | "expired" | "verifying">(portalConfig.authStatus);
   const [prevPortal, setPrevPortal] = useState(selectedPortal);
@@ -51,7 +52,7 @@ export function VendorIngestionDesk({
     setPrevPortal(selectedPortal);
     setConsoleLogs(portalConfig.defaultLogs);
     setUsername(portalConfig.username);
-    setPassword(portalConfig.password);
+    setPassword(portalConfig.apiToken);
     setMfaToken(portalConfig.mfaToken);
     setAuthStatus(portalConfig.authStatus);
   }
@@ -202,14 +203,19 @@ export function VendorIngestionDesk({
     setLearningEvents((prev) => [newEvent, ...prev].slice(0, 50));
   }
   return (
-    <div className="p-4 rounded-xl border bg-surface-elevated/80 border-indigo-500/15 flex flex-col gap-4 shadow-xl">
+    <motion.div 
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="p-4 rounded-xl border bg-surface-elevated/80 border-indigo-500/15 flex flex-col gap-4 shadow-xl"
+    >
       <VendorCredentialsCard
         selectedPortal={selectedPortal}
         setSelectedPortal={setSelectedPortal}
         authStatus={authStatus}
         username={username}
         setUsername={setUsername}
-        password={password}
+        apiToken={apiToken}
         setPassword={setPassword}
         mfaToken={mfaToken}
         setMfaToken={setMfaToken}
@@ -237,18 +243,15 @@ export function VendorIngestionDesk({
           activeUcid={ucids[0]}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
-
-// eslint-disable-next-line complexity
 function resolvePortalConfig(selectedPortal: string) {
   const vendorData = VENDORS.find(v => v.shortName === selectedPortal) || VENDORS[0];
   if (selectedPortal === "HPE") {
     return {
       username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
-      password: vendorData.credentials?.password || "HPE-S0urcing-2026!",
+      apiToken: vendorData.credentials?.apiToken || "HPE-S0urcing-2026!",
       mfaToken: vendorData.credentials?.mfaToken || "RO7K-9154-A24B",
       authStatus: "authorized" as const,
       defaultLogs: [
@@ -261,8 +264,7 @@ function resolvePortalConfig(selectedPortal: string) {
   if (selectedPortal === "Dell") {
     return {
       username: vendorData.credentials?.username || "dell_premier_procurement_lead",
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
-      password: vendorData.credentials?.password || "DellAdminSecure3902!!",
+      apiToken: vendorData.credentials?.apiToken || "DellAdminSecure3902!!",
       mfaToken: vendorData.credentials?.mfaToken || "DL-9824-MFA-X2",
       authStatus: "authorized" as const,
       defaultLogs: [
@@ -273,8 +275,7 @@ function resolvePortalConfig(selectedPortal: string) {
   }
   return {
     username: vendorData.credentials?.username || "cisco_commerce_workspace_api",
-    // eslint-disable-next-line sonarjs/no-hardcoded-passwords
-    password: vendorData.credentials?.password || "Cisco#CCW#Tunnel99",
+    apiToken: vendorData.credentials?.apiToken || "Cisco#CCW#Tunnel99",
     mfaToken: vendorData.credentials?.mfaToken || "CSCO-AUTH-9999",
     authStatus: "expired" as const,
     defaultLogs: [

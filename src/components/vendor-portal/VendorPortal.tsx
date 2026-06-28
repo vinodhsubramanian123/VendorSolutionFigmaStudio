@@ -10,30 +10,21 @@ import { VendorIngestionDesk } from "./VendorIngestionDesk";
 import { VendorGateways } from "./VendorGateways";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { apiClient } from "../../services/apiClient";
+import { useCoreStore } from "../../store/coreStore";
 
-interface VendorPortalProps {
-  vendors: Vendor[];
-  setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  catalogSkus?: CatalogSKU[];
-  sourcingRules: import('../../types').SourcingRule[];
-  setSourcingRules: React.Dispatch<React.SetStateAction<import('../../types').SourcingRule[]>>;
-  learningEvents: import('../../types').LearningEvent[];
-  setLearningEvents: React.Dispatch<React.SetStateAction<import('../../types').LearningEvent[]>>;
-}
 
-export const VendorPortal = React.memo(function VendorPortal({
-  vendors,
-  setVendors,
-  ucids,
-  setUcids,
-  catalogSkus = [],
-  sourcingRules,
-  setSourcingRules,
-  learningEvents,
-  setLearningEvents,
-}: VendorPortalProps) {
+
+export const VendorPortal = React.memo(function VendorPortal() {
+  const vendors = useCoreStore((s) => s.vendors);
+  const setVendors = useCoreStore((s) => s.setVendors);
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
+  const catalogSkus = useCoreStore((s) => s.catalogSkus);
+  const sourcingRules = useCoreStore((s) => s.sourcingRules);
+  const setSourcingRules = useCoreStore((s) => s.setSourcingRules);
+  const learningEvents = useCoreStore((s) => s.learningEvents);
+  const setLearningEvents = useCoreStore((s) => s.setLearningEvents);
+
   const [syncingAll, setSyncingAll] = useState(false);
   const { toast } = useToast();
 

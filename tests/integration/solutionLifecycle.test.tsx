@@ -6,7 +6,7 @@ import App from '../../src/App';
 import { useCoreStore } from '../../src/store/coreStore';
 import { generateDisplayId } from '../../src/utils/generateDisplayId';
 import { isSolutionComplete } from '../../src/utils/solutionUtils';
-import type { UCID, SolutionProject, VendorAssignment } from '../../src/types/models/core';
+import type { UCID, SolutionProject, VendorAssignment } from '../../src/types/models/sourcing';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {

@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VendorPortal } from '../VendorPortal';
 import { ToastProvider } from '../../shared/ToastContext';
 import { apiClient } from '../../../services/apiClient';
+import { useCoreStore } from '../../../store/coreStore';
 
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
@@ -36,19 +37,11 @@ describe('VendorPortal Component', () => {
 
   it('renders vendor cards and fallback state', async () => {
     (apiClient.get as any).mockResolvedValueOnce(mockVendors);
+    useCoreStore.setState({ vendors: mockVendors });
 
     render(
       <ToastProvider>
-        <VendorPortal 
-          vendors={mockVendors}
-          setVendors={vi.fn()}
-          ucids={[]}
-          setUcids={vi.fn()}
-          sourcingRules={[]}
-          setSourcingRules={vi.fn()}
-          learningEvents={[]}
-          setLearningEvents={vi.fn()}
-        />
+        <VendorPortal />
       </ToastProvider>
     );
     
@@ -60,22 +53,14 @@ describe('VendorPortal Component', () => {
 
   it('handles API failure gracefully during sync trigger', async () => {
     (apiClient.get as any).mockResolvedValueOnce(mockVendors);
+    useCoreStore.setState({ vendors: mockVendors });
     
     // Simulate API rejection for the sync action
     (apiClient.post as any).mockRejectedValueOnce(new Error("Network Error"));
 
     render(
       <ToastProvider>
-        <VendorPortal 
-          vendors={mockVendors}
-          setVendors={vi.fn()}
-          ucids={[]}
-          setUcids={vi.fn()}
-          sourcingRules={[]}
-          setSourcingRules={vi.fn()}
-          learningEvents={[]}
-          setLearningEvents={vi.fn()}
-        />
+        <VendorPortal />
       </ToastProvider>
     );
 

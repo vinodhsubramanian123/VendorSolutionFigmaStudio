@@ -10,9 +10,8 @@ import { LaunchStep } from "./LaunchStep";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useIngestionLogic } from "./useIngestionLogic";
 import { JobStreamer } from "../shared/JobStreamer";
+import { useCoreStore } from "../../store/coreStore";
 interface IngestionHubProps {
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   onNavigate: (view: AppView) => void;
   onSelectMission: (id: string) => void;
   isPendingAPI?: boolean;
@@ -22,8 +21,6 @@ interface IngestionHubProps {
   setApiProgress?: (progress: number) => void;
 }
 export function IngestionHub({
-  ucids,
-  setUcids,
   onNavigate,
   onSelectMission,
   isPendingAPI = false,
@@ -31,6 +28,9 @@ export function IngestionHub({
   setPendingAPIMessage = () => {},
   setApiProgress = () => {},
 }: IngestionHubProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
+
   const logic = useIngestionLogic({
     ucids,
     setUcids,

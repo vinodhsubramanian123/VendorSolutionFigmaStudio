@@ -93,16 +93,12 @@ describe('CatalogCardsList', () => {
   it('renders empty state when no skus', () => {
     render(<CatalogCardsList {...defaultProps} filteredSkus={[]} />);
     expect(screen.getByText('No project SKUs discovered matching current taxonomy filter parameters.')).toBeInTheDocument();
-    
     fireEvent.click(screen.getByText('Clear Sourcing Filters'));
     expect(defaultProps.onClearFilters).toHaveBeenCalled();
   });
 
   it('handles edit mode interactions', () => {
-     
-    // eslint-disable-next-line sonarjs/no-unused-vars
-    const { rerender } = render(<CatalogCardsList {...defaultProps} editingSkuId="1" editedPrice="1500" />);
-    
+    render(<CatalogCardsList {...defaultProps} editingSkuId="1" editedPrice="1500" />);
     const input = screen.getByDisplayValue('1500');
     expect(input).toBeInTheDocument();
 

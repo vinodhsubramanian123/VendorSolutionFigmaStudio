@@ -1,3 +1,4 @@
-import { coreHandlers } from './routes/coreHandlers';
+import { workflowHandlers } from './routes/workflowHandlers';
 import { graphHandlers } from './routes/graphHandlers';
-export const handlers = [...coreHandlers, ...graphHandlers];
+import { snapshotHandlers } from './routes/snapshotHandlers';
+export const handlers = [...workflowHandlers, ...graphHandlers, ...snapshotHandlers];

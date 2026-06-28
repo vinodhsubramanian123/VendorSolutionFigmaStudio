@@ -12,19 +12,18 @@ import { useCoreStore } from '../../store/coreStore';
 import { isSolutionComplete } from '../../utils/solutionUtils';
 
 interface SolutionBuilderProps {
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   onNavigate: (view: AppView) => void;
   setDeployedSolution: React.Dispatch<React.SetStateAction<{ name: string; ucidCount: number; timestamp: number } | null>>;
   onSelectMission: (id: string) => void;
 }
 export const SolutionBuilder = React.memo(function SolutionBuilder({
-  ucids,
-  setUcids,
   onNavigate,
   setDeployedSolution,
   onSelectMission
 }: SolutionBuilderProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
+
   // Step 1: Intake | Step 2: Builder
   const [step, setStep] = useState<SolutionBuilderStep>(SolutionBuilderStep.INTAKE);
   const [solutionName, setSolutionName] = useState('Project Horizon — UCID Solution v1');
@@ -38,6 +37,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   const [isLoading, setIsLoading] = useState(true);
   const activeSolutionId = useCoreStore(s => s.activeSolutionId);
   const solutions = useCoreStore(s => s.solutions);
+  const addSolution = useCoreStore(s => s.addSolution);
   const activeSolution = solutions.find(s => s.id === activeSolutionId);
 
   useEffect(() => {
@@ -98,8 +98,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     }
     
     setIsLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ucids.length]); // Allow re-hydration if global state radically changes externally
+  }, [ucids, activeSolution, activeSolutionId]); // Allow re-hydration if global state radically changes externally
   // Switch configs across UCID boxes
   const assignConfigToUcid = React.useCallback((configId: string, targetUcidId: string) => {
     setConfigs((prev) =>
@@ -221,7 +220,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         syncStatus: "Pending",
 
         solutionId: activeSolutionId || 'sol-fallback',
-        solutionDisplayId: activeSolution?.displayId || 'SOL-UNKNOWN',
+        solutionDisplayId: activeSolution?.displayId || `SOL-2026-${Math.floor(Math.random() * 9000) + 1000}`,
         configIndex: containerIdx + 1,
         configLabel: container.name,
         parallelGroup: null,
@@ -241,9 +240,9 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     // Auto-create a solution if none exists and we're deploying
     if (!activeSolutionId) {
        const newSolId = crypto.randomUUID();
-       useCoreStore.getState().addSolution({
+       addSolution({
          id: newSolId,
-         displayId: `SOL-M-${crypto.randomUUID().slice(0, 4).toUpperCase()}`,
+         displayId: `SOL-2026-${Math.floor(Math.random() * 9000) + 1000}`,
          name: solutionName,
          customerName: "Acme Corp",
          boqSourceFile: "Manual Workspace",

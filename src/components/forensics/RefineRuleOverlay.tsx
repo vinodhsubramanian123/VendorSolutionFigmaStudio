@@ -36,7 +36,6 @@ export function RefineRuleOverlay({
 
   useEffect(() => {
     if (refiningItem) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRefineTargetSku(refiningItem.productNumber);
       setRefineSeverity(refiningItem.severity);
       
@@ -285,10 +284,7 @@ export function RefineRuleOverlay({
                 </div>
                 
                 <div className="divide-y divide-white/5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
-                  {remedyOptions.map((opt) => {
-                     
-                    return (
-                      // eslint-disable-next-line jsx-a11y/label-has-associated-control
+                  {remedyOptions.map((opt) => (
                       <label key={opt.sku} htmlFor={`remedy-${opt.sku}`} className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none">
                       <input
                         id={`remedy-${opt.sku}`}
@@ -302,8 +298,7 @@ export function RefineRuleOverlay({
                         <span className="text-gray-400 font-medium">{opt.desc}</span>
                       </div>
                     </label>
-                    );
-                  })}
+                  ))}
                 </div>
               </div>
             ) : suggestedSkus.length > 0 ? (

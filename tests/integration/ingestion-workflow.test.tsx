@@ -21,6 +21,16 @@ const server = setupServer(
       data: { job_id: 'mock-job-id' }
     });
   }),
+  http.get('http://localhost:3000/api/jobs/:id', () => {
+    return HttpResponse.json({
+      data: { status: 'completed', progress: 100 }
+    });
+  }),
+  http.get('/api/jobs/:id', () => {
+    return HttpResponse.json({
+      data: { status: 'completed', progress: 100 }
+    });
+  }),
   http.post('http://localhost:3000/api/boq/ingest', () => {
     console.log('MSW: /api/boq/ingest called');
     return HttpResponse.json({
@@ -54,17 +64,16 @@ beforeAll(() => server.listen({
 afterEach(() => { server.resetHandlers(); localStorage.clear(); });
 afterAll(() => server.close());
 
-function TestWrapper() {
-  const [ucids, setUcids] = useState<UCID[]>([]);
-  
-  // Expose ucids to window for easy inspection in tests
-  (window as any).TEST_UCIDS = ucids;
+import { useCoreStore } from '../../src/store/coreStore';
 
+function TestWrapper() {
+  // Expose ucids to window for easy inspection in tests
+  Object.defineProperty(window, 'TEST_UCIDS', {
+    get: () => useCoreStore.getState().ucids
+  });
   return (
     <ToastProvider>
       <IngestionHub 
-        ucids={ucids} 
-        setUcids={setUcids} 
         onNavigate={() => {}} 
         onSelectMission={() => {}} 
       />

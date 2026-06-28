@@ -35,17 +35,27 @@ export function TaxonomyOrphanBox({
         {(data.unmappedIds || []).map((oId: string) => {
           const sku = skus.find(s => s.id === oId);
           if (!sku) return null;
-          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+           
+           
           return (
-            <div 
+            <div
               key={sku.id}
-              role="listitem"
+              role="button"
               tabIndex={0}
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'orphan', id: sku.id, name: sku.name }));
                 e.dataTransfer.effectAllowed = 'copy';
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  setSelectedOrphanToMap(sku.id);
+                  setActiveTab("orphans");
+                }
+              }}
+              onClick={() => {
+                setSelectedOrphanToMap(sku.id);
+                setActiveTab("orphans");
               }}
               className="p-2 bg-black/40 border border-rose-500/30 rounded-lg text-left flex flex-col gap-1 w-full hover:border-rose-400 transition cursor-grab active:cursor-grabbing"
             >

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OrphanWorkshopPanel, PathOrchestratorPanel } from '../TaxonomyGraphPanels';
-import type { CatalogSKU, GraphNode, GraphPath } from '../../../types';
+import type { CatalogSKU, GraphNode } from '../../../types';
 
 describe('TaxonomyGraphPanels', () => {
   describe('OrphanWorkshopPanel', () => {

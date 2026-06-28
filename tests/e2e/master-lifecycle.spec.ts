@@ -81,7 +81,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(page.getByText('Fuzzy Match').first()).toBeVisible();
 
       // Trigger Auto-Map
-      const autoMapBtn = page.getByRole('button', { name: 'Auto-Map' });
+      const autoMapBtn = page.getByRole('button', { name: 'Auto-Map', exact: true });
       await expect(autoMapBtn).toBeVisible();
       await autoMapBtn.click();
       await delay(1000);

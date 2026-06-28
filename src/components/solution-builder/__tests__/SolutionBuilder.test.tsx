@@ -3,6 +3,12 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { SolutionBuilder } from '../SolutionBuilder';
 import { ToastProvider } from '../../shared/ToastContext';
+import { useCoreStore } from '../../../store/coreStore';
+import { createMockCoreState } from '../../../tests/shared/mockFactories';
+
+vi.mock('../../../store/coreStore', () => ({
+  useCoreStore: vi.fn(),
+}));
 
 describe('SolutionBuilder Component', () => {
   it('bypasses Step 1 (Intake) if global ucids exist and are not in snapshot state', () => {
@@ -31,11 +37,13 @@ describe('SolutionBuilder Component', () => {
       }
     ];
 
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: mockUcids, solutions: [], activeSolutionId: null, setUcids: vi.fn() })));
+
     render(
       <ToastProvider>
         <SolutionBuilder 
-          ucids={mockUcids}
-          setUcids={vi.fn()}
+          
+          
           onNavigate={vi.fn()}
           setDeployedSolution={vi.fn()}
           onSelectMission={vi.fn()}
@@ -43,16 +51,18 @@ describe('SolutionBuilder Component', () => {
       </ToastProvider>
     );
 
-    // Because we injected data, it should jump directly to the Assignment Map workspace (Step 2)
-    expect(screen.getByText(/Active Campaign Context name/i)).toBeInTheDocument();
+    // Because we injected data, it should jump directly to the Assignment Map View
+    expect(screen.getByDisplayValue(/Project Horizon — UCID Solution v1/i)).toBeInTheDocument();
   });
 
   it('forces Step 1 (Intake) if global ucids list is empty', () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: [], solutions: [], activeSolutionId: null, setUcids: vi.fn() })));
+
     render(
       <ToastProvider>
         <SolutionBuilder 
-          ucids={[]} // Empty
-          setUcids={vi.fn()}
+           // Empty
+          
           onNavigate={vi.fn()}
           setDeployedSolution={vi.fn()}
           onSelectMission={vi.fn()}

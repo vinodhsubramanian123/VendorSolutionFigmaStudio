@@ -2,9 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DataPersistenceGate } from '../DataPersistenceGate';
+import type { UCID, Vendor, CatalogSKU } from '../../../types';
+import type { SolutionProject } from '../../../types/models/sourcing';
 
 describe('DataPersistenceGate', () => {
-  const validUcids: any[] = [{
+  const validUcids: UCID[] = [{
     id: 'u1',
     displayId: 'UCID-2023-01',
     name: 'test',
@@ -24,7 +26,7 @@ describe('DataPersistenceGate', () => {
     parallelGroup: null,
   }];
 
-  const validSolutions: any[] = [{
+  const validSolutions: SolutionProject[] = [{
     id: 's1',
     displayId: 'SOL-2023-01',
     name: 'sol-1',
@@ -42,7 +44,7 @@ describe('DataPersistenceGate', () => {
     events: []
   }];
 
-  const validVendors: any[] = [{
+  const validVendors: Vendor[] = [{
     id: 'v1',
     name: 'v1',
     shortName: 'v1',
@@ -55,7 +57,7 @@ describe('DataPersistenceGate', () => {
     apiHealth: 100,
   }];
 
-  const validCatalog: any[] = [{
+  const validCatalog: CatalogSKU[] = [{
     id: 'c1',
     vendor: 'v1',
     partNumber: 'p1',
@@ -89,7 +91,7 @@ describe('DataPersistenceGate', () => {
 
   it('renders corruption UI when Zod validation fails', () => {
     // Break the schema validation (e.g. invalid UCID priority)
-    const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' }];
+    const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
 
     render(
       <DataPersistenceGate {...defaultProps} ucids={invalidUcids}>
@@ -110,7 +112,7 @@ describe('DataPersistenceGate', () => {
     });
     const removeItemMock = vi.spyOn(Storage.prototype, 'removeItem');
 
-    const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' }];
+    const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
     render(
       <DataPersistenceGate {...defaultProps} ucids={invalidUcids}>
         <div data-testid="child-content">Child Content</div>

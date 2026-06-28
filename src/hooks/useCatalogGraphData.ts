@@ -3,6 +3,13 @@ import { GraphNode, GraphEdge, GraphAPIResponse, GraphPath } from "../types/data
 import { Config, CatalogSKU } from "../types";
 import { apiClient } from "../services/apiClient";
 
+export class TaxonomyGraphError extends Error {
+  constructor(message: string, public readonly code: string = 'GRAPH_FETCH_ERROR') {
+    super(message);
+    this.name = 'TaxonomyGraphError';
+  }
+}
+
 export interface MapNodeRequest {
   partNumber?: string;
   name: string;
@@ -34,7 +41,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
         setData(res.data);
         setAlternativePaths([]);
       } else {
-        throw new Error("Failed to fetch topology");
+        throw new TaxonomyGraphError("Failed to fetch topology");
       }
     } catch (err) {
       console.error(err);
@@ -51,8 +58,9 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
 
   useEffect(() => {
     let cancel = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchGraph(() => cancel);
+    Promise.resolve().then(() => {
+      fetchGraph(() => cancel);
+    });
     return () => {
       cancel = true;
     };
@@ -85,7 +93,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
   };
 
   const unmapNode = async (nodeId: string) => {
-     await apiClient.get(`/api/taxonomy/map/${nodeId}`, { method: 'DELETE' });
+     await apiClient.delete(`/api/taxonomy/map/${nodeId}`);
      setData(prev => ({
        ...prev,
        edges: prev.edges.filter(e => e.target !== nodeId),

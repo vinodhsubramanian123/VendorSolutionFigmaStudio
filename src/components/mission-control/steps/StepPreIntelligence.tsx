@@ -2,6 +2,7 @@ import React from "react";
 import { RefreshCw, CheckCircle, Zap, BrainCircuit, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import type { UCID } from "../../../types";
+import type { VendorSubmission } from "../../../types/data";
 
 interface StepPreIntelligenceProps {
   ucid: UCID;
@@ -122,7 +123,7 @@ function CompletedState({
   submissions,
   onAdvance,
 }: {
-  submissions: any[];
+  submissions: VendorSubmission[];
   onAdvance: () => void;
 }) {
   return (

@@ -3,11 +3,13 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IngestionHubTestWrapper, Wrapper } from './IngestionHub.setup';
 import { apiClient } from '../../../services/apiClient';
+import type { UCID } from '../../../types';
+import type { Mock } from 'vitest';
 
 describe('IngestionHub Component Stateful Wrapper Tests', () => {
-  let onNavigate: any;
-  let onSelectMission: any;
-  let setUcidsSpy: any;
+  let onNavigate: Mock;
+  let onSelectMission: Mock;
+  let setUcidsSpy: Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();

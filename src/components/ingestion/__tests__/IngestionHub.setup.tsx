@@ -192,6 +192,8 @@ const mockUcid: UCID = {
   configLabel: "Config 1",
   parallelGroup: null
 };
+import { useCoreStore } from '../../../store/coreStore';
+
 // Stateful Wrapper to let real state setter functions execute
 const IngestionHubTestWrapper = ({
   initialUcids = [mockUcid],
@@ -204,23 +206,23 @@ const IngestionHubTestWrapper = ({
   onSelectMission?: any;
   setUcidsSpy?: any;
 }) => {
-  const [ucids, setUcids] = React.useState<UCID[]>(initialUcids);
-  const handleSetUcids = React.useCallback((val: any) => {
-    if (typeof val === 'function') {
-      setUcids((prev) => {
-        const result = val(prev);
-        setUcidsSpy(result);
-        return result;
-      });
-    } else {
-      setUcids(val);
-      setUcidsSpy(val);
-    }
-  }, [setUcidsSpy]);
+  React.useEffect(() => {
+    const originalSetUcids = useCoreStore.getState().setUcids;
+    useCoreStore.setState({ 
+      ucids: initialUcids,
+      setUcids: (val: any) => {
+        originalSetUcids(val);
+        setUcidsSpy(); // just let the spy know it was called
+      }
+    });
+    return () => {
+      useCoreStore.setState({ setUcids: originalSetUcids });
+    };
+  }, [initialUcids, setUcidsSpy]);
   return (
     <IngestionHub
-      ucids={ucids}
-      setUcids={handleSetUcids}
+      
+      
       onNavigate={onNavigate}
       onSelectMission={onSelectMission}
     />

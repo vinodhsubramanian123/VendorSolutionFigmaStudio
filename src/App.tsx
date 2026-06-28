@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { tokens } from "./styles/tokens";
@@ -11,7 +11,7 @@ import { GlobalApiErrorListener } from "./components/shared/GlobalApiErrorListen
 import { useCoreStore } from "./store/coreStore";
 import { ShimmerBlock } from "./components/shared/ShimmerBlock";
 import type { AppView, Config } from "./types";
-import { ActiveSourcingRules } from "./config/sourcingRules";
+import { useForensicSync } from "./hooks/useForensicSync";
 
 // Lazy-loaded Views
 const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -54,12 +54,13 @@ export default function App() {
   const setLearningEvents = useCoreStore(s => s.setLearningEvents);
 
   // Graceful Migration of Snapshot objects inside ucids
+  const hasMigratedSnapshots = useRef(false);
   useEffect(() => {
+    if (hasMigratedSnapshots.current) return;
     setUcids((prevUcids) => {
       let migrated = false;
       const nextUcids = prevUcids.map((u) => {
         let uMigrated = false;
-        // eslint-disable-next-line complexity
         const nextSnaps = (u.snapshots || []).map((s, idx) => {
           const fallbackVersion = s.version ?? (idx + 1);
           const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
@@ -102,71 +103,13 @@ export default function App() {
         return u;
       });
 
+      hasMigratedSnapshots.current = true;
       return migrated ? nextUcids : prevUcids;
     });
   }, [setUcids]);
 
-
   // Phase 3: The Forensic Auto-Heal Hook
-  useEffect(() => {
-    // EOL Risk
-    const globalHasEol = ucids.some((u) =>
-      u.solutions?.some((sol) =>
-        sol.vendorSubmissions?.some((vs) =>
-          vs.configs?.some((c) =>
-            c.items?.some((it) => ActiveSourcingRules.legacySKUs.includes(it.partNumber))
-          )
-        )
-      )
-    );
-    // Price Variance
-    const globalHasPriceRisk = ucids.some((u) =>
-      u.solutions?.some((sol) =>
-        sol.vendorSubmissions?.some((vs) =>
-          vs.configs?.some((c) =>
-            c.items?.some((it) => it.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && it.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit)
-          )
-        )
-      )
-    );
-
-    // Cisco Memory Symmetry
-    const globalHasCiscoRisk = ucids.some((u) =>
-      u.solutions?.some((sol) =>
-        sol.vendorSubmissions?.some((vs) =>
-          vs.vendor === "Cisco" &&
-          vs.configs?.some((c) =>
-            c.items?.some((it) => it.type === "Memory" && it.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0)
-          )
-        )
-      )
-    );
-    
-    // Juniper API state
-    const globalHasJuniperIssue = vendors.some((v) => v.shortName === "Juniper" && v.status === "error");
-
-    setForensicIssues((prev) => {
-      let changed = false;
-      const next = prev.map(issue => {
-        let isResolved = false;
-        if (issue.id === 'iss-1') isResolved = !globalHasEol;
-        if (issue.id === 'iss-2') isResolved = !globalHasPriceRisk;
-        if (issue.id === 'iss-3') isResolved = !globalHasCiscoRisk;
-        if (issue.id === 'iss-4') isResolved = !globalHasJuniperIssue;
-
-        if (isResolved && issue.status !== 'resolved') {
-          changed = true;
-          return { ...issue, status: 'resolved' as const };
-        } else if (!isResolved && issue.status === 'resolved') {
-          changed = true;
-          return { ...issue, status: 'open' as const };
-        }
-        return issue;
-      });
-      return changed ? next : prev;
-    });
-
-  }, [ucids, vendors, setForensicIssues]);
+  useForensicSync();
 
   // Central Application-Wide State for Pending API Calls
   const [isPendingAPI, setIsPendingAPI] = useState(false);
@@ -248,11 +191,8 @@ export default function App() {
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)}
-        activeMissionId={activeMissionId}
+        
         onSelectMission={handleSelectMission}
-        ucids={ucids}
-        vendors={vendors}
-        forensicIssues={forensicIssues}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <TopBar
@@ -262,9 +202,6 @@ export default function App() {
           onNavigate={(v: string) => legacyNavigate(v as AppView)}
           apiProgress={apiProgress}
           isPendingAPI={isPendingAPI}
-          ucids={ucids}
-          vendors={vendors}
-          catalogSkus={catalogSkus}
           onSelectMission={handleSelectMission}
         />
 
@@ -272,7 +209,7 @@ export default function App() {
           <div className="w-full flex flex-col min-h-full">
             <BreadcrumbNav
               view={currentViewString}
-              activeMissionId={activeMissionId}
+              
               ucids={ucids}
             />
             <ErrorBoundary>
@@ -297,21 +234,21 @@ export default function App() {
                   >
                     <Suspense fallback={<ShimmerBlock />}>
                       <Routes location={location}>
-                        <Route path="/" element={<ErrorBoundary><Dashboard onNavigate={legacyNavigate} ucids={ucids} vendors={vendors} forensicIssues={forensicIssues} /></ErrorBoundary>} />
-                        <Route path="/ingestion-hub" element={<ErrorBoundary><IngestionHub ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} onSelectMission={handleSelectMission} isPendingAPI={isPendingAPI} setIsPendingAPI={setIsPendingAPI} pendingAPIMessage={pendingAPIMessage} setPendingAPIMessage={setPendingAPIMessage} setApiProgress={setApiProgress} /></ErrorBoundary>} />
-                        <Route path="/mission-control/:id?" element={<ErrorBoundary><MissionControl selectedId={activeMissionId} onSelectId={setActiveMissionId} ucids={ucids} setUcids={setUcids} deployedSolution={deployedSolution} setDeployedSolution={setDeployedSolution} onNavigate={legacyNavigate} /></ErrorBoundary>} />
+                        <Route path="/" element={<ErrorBoundary><Dashboard onNavigate={legacyNavigate} /></ErrorBoundary>} />
+                        <Route path="/ingestion-hub" element={<ErrorBoundary><IngestionHub onNavigate={legacyNavigate} onSelectMission={handleSelectMission} isPendingAPI={isPendingAPI} setIsPendingAPI={setIsPendingAPI} pendingAPIMessage={pendingAPIMessage} setPendingAPIMessage={setPendingAPIMessage} setApiProgress={setApiProgress} /></ErrorBoundary>} />
+                        <Route path="/mission-control/:id?" element={<ErrorBoundary><MissionControl selectedId={activeMissionId} onSelectId={setActiveMissionId} deployedSolution={deployedSolution} setDeployedSolution={setDeployedSolution} onNavigate={legacyNavigate} /></ErrorBoundary>} />
                         <Route path="/mission-control" element={<Navigate to={`/mission-control/${activeMissionId}`} replace />} />
-                        <Route path="/catalog" element={<ErrorBoundary><CatalogManager catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} /></ErrorBoundary>} />
-                        <Route path="/vendor-portal" element={<ErrorBoundary><VendorPortal vendors={vendors} setVendors={setVendors} ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} /></ErrorBoundary>} />
-                        <Route path="/forensic" element={<ErrorBoundary><ForensicView forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} setCatalogSkus={setCatalogSkus} ucids={ucids} setUcids={setUcids} activeMissionId={activeMissionId} setActiveMissionId={setActiveMissionId} onNavigate={legacyNavigate} sourcingRules={sourcingRules} setSourcingRules={setSourcingRules} learningEvents={learningEvents} setLearningEvents={setLearningEvents} /></ErrorBoundary>} />
+                        <Route path="/catalog" element={<ErrorBoundary><CatalogManager /></ErrorBoundary>} />
+                        <Route path="/vendor-portal" element={<ErrorBoundary><VendorPortal /></ErrorBoundary>} />
+                        <Route path="/forensic" element={<ErrorBoundary><ForensicView  onNavigate={legacyNavigate} /></ErrorBoundary>} />
                         <Route path="/solutions" element={<ErrorBoundary><SolutionManager /></ErrorBoundary>} />
                         <Route path="/solutions/:id" element={<ErrorBoundary><SolutionDetail /></ErrorBoundary>} />
-                        <Route path="/solution-builder" element={<ErrorBoundary><SolutionBuilder ucids={ucids} setUcids={setUcids} onNavigate={legacyNavigate} setDeployedSolution={setDeployedSolution} onSelectMission={handleSelectMission} /></ErrorBoundary>} />
-                        <Route path="/reconciliation" element={<ErrorBoundary><ReconciliationView ucids={ucids} setUcids={setUcids} catalogSkus={catalogSkus} forensicIssues={forensicIssues} setForensicIssues={setForensicIssues} setVendors={setVendors} /></ErrorBoundary>} />
-                        <Route path="/taxonomy-graph" element={<ErrorBoundary><TaxonomyGraphView catalogSkus={catalogSkus} setCatalogSkus={setCatalogSkus} vendors={vendors} /></ErrorBoundary>} />
-                        <Route path="/cleansing" element={<ErrorBoundary><CleansingView catalogSkus={catalogSkus} /></ErrorBoundary>} />
+                        <Route path="/solution-builder" element={<ErrorBoundary><SolutionBuilder onNavigate={legacyNavigate} setDeployedSolution={setDeployedSolution} onSelectMission={handleSelectMission} /></ErrorBoundary>} />
+                        <Route path="/reconciliation" element={<ErrorBoundary><ReconciliationView /></ErrorBoundary>} />
+                        <Route path="/taxonomy-graph" element={<ErrorBoundary><TaxonomyGraphView /></ErrorBoundary>} />
+                        <Route path="/cleansing" element={<ErrorBoundary><CleansingView /></ErrorBoundary>} />
                         <Route path="/telemetry" element={<ErrorBoundary><SystemTelemetry /></ErrorBoundary>} />
-                        <Route path="/search" element={<ErrorBoundary><SearchView query={searchQuery} ucids={ucids} vendors={vendors} catalogSkus={catalogSkus} onNavigate={legacyNavigate} onSelectMission={handleSelectMission} onSearchChange={setSearchQuery} /></ErrorBoundary>} />
+                        <Route path="/search" element={<ErrorBoundary><SearchView query={searchQuery} onNavigate={legacyNavigate} onSelectMission={handleSelectMission} onSearchChange={setSearchQuery} /></ErrorBoundary>} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </Suspense>

@@ -1,6 +1,7 @@
 import React from "react";
 import { RefreshCw } from "lucide-react";
 import type { UCID } from "../../types";
+import { motion, AnimatePresence } from "motion/react";
 
 interface SweepCoordinatorBoardProps {
   ucids: UCID[];
@@ -16,7 +17,12 @@ export function SweepCoordinatorBoard({
   onTriggerBatchReconciliation,
 }: SweepCoordinatorBoardProps) {
   return (
-    <div className="p-6 bg-gradient-to-r from-indigo-950/40 via-surface-elevated to-indigo-950/20 border border-sky-400/10 rounded-xl flex flex-col gap-6 shadow-2xl text-left"> 
+    <motion.div 
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="p-6 bg-gradient-to-r from-indigo-950/40 via-surface-elevated to-indigo-950/20 border border-sky-400/10 rounded-xl flex flex-col gap-6 shadow-2xl text-left"
+    > 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2 max-w-2xl text-left">
           <span className="text-[9.5px] bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded font-black uppercase tracking-wider">
@@ -74,12 +80,17 @@ export function SweepCoordinatorBoard({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <AnimatePresence>
           {ucids.map((u) => {
             const isChecked = selectedBomsForBatch.includes(u.id);
             return (
-              // eslint-disable-next-line jsx-a11y/label-has-associated-control
-              <label
+              <motion.label
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
                 key={u.id}
                 htmlFor={`sweep-${u.id}`}
                 className={`flex items-start gap-3 p-2.5 rounded-lg border transition cursor-pointer select-none ${
@@ -129,11 +140,12 @@ export function SweepCoordinatorBoard({
                     Config
                   </p>
                 </div>
-              </label>
+              </motion.label>
             );
           })}
-        </div>
+          </AnimatePresence>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -9,6 +9,9 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit --skipLibCheck && eslint src",
+    "lint:deps": "npx dependency-cruiser src",
+    "lint:clones": "npx jscpd src",
+    "audit:all": "npm run check-size && npm run lint && npm run lint:deps && npm run lint:clones && npm run test && npm run test:mutation",
     "test:unit": "vitest run tests/unit",
     "test:components": "vitest run src/components",
     "test:contracts": "vitest run tests/unit/contracts.test.ts",
@@ -18,7 +21,8 @@
     "test:e2e:ui": "playwright test --headed",
     "test:e2e:visual": "playwright test tests/e2e/visual.spec.ts",
     "test:e2e:responsive": "playwright test tests/e2e/responsive.spec.ts",
-    "test:mutation": "stryker run stryker.config.json"
+    "test:mutation": "stryker run stryker.conf.json",
+    "check-size": "node scripts/check-size.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -48,7 +52,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.3",
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.60.0",
     "@stryker-mutator/core": "^9.6.1",
@@ -64,15 +68,18 @@
     "@vitest/coverage-v8": "^4.1.8",
     "autoprefixer": "^10.4.21",
     "axe-core": "^4.12.1",
+    "dependency-cruiser": "^18.0.0",
     "electron": "^42.4.0",
     "esbuild": "^0.25.0",
     "eslint": "^9.39.4",
+    "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-sonarjs": "^4.0.3",
     "fast-check": "^4.8.0",
     "jsdom": "^29.1.1",
+    "memlab": "^2.0.3",
     "msw": "^2.14.6",
     "tailwindcss": "^4.1.14",
     "ts-morph": "^28.0.0",

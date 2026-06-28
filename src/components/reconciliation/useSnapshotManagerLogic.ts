@@ -112,7 +112,6 @@ export function useSnapshotManagerLogic(
   };
 }
 
-// eslint-disable-next-line complexity
 export function buildSnapshot(activeUCID: UCID, newLabel: string, newWinner: string, newNotes: string): Snapshot {
   const currentTotalValue = activeUCID.solutions?.[0]?.vendorSubmissions?.[0]?.totalPrice || 0;
   const chosenSubmission = activeUCID.solutions?.[0]?.vendorSubmissions?.find(

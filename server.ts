@@ -192,8 +192,9 @@ async function startServer() {
     }
 
     // Build a full UCID object as required by the IngestResponse contract
-    const ucidId = "ucid_api_session_uuid_" + Date.now().toString(16);
-    const displayId = "UCID-2026-" + (1700 + Math.floor(Math.random() * 100));
+    const timestampMs = Date.now();
+    const ucidId = "ucid_api_session_uuid_" + timestampMs.toString(16);
+    const displayId = "UCID-2026-" + (timestampMs % 10000).toString().padStart(4, "0");
 
     const response: IngestResponse = {
       success: true,
@@ -209,8 +210,8 @@ async function startServer() {
         currentStep: "solution-design",
         completedSteps: ["boq-intake", "pre-intelligence"],
         rawBOM: rawText || `Ingested from ${fileName}`,
-        solutionId: "sol-api-mock",
-        solutionDisplayId: "SOL-API-MOCK",
+        solutionId: crypto.randomUUID(),
+        solutionDisplayId: `SOL-2026-${(timestampMs % 1000).toString().padStart(3, "0")}`,
         configIndex: 1,
         configLabel: "API Config",
         parallelGroup: null,
@@ -256,16 +257,75 @@ async function startServer() {
 
   // REST API: Endpoint 2: Reconciliation & Comparisons Analytics Engine
   app.post("/api/reconciliation/compare", validateBody(ReconciliationRequestSchema), (req, res) => {
-    const { solutions }: ReconciliationRequest = req.body;
+    const body: ReconciliationRequest = req.body;
 
-    // Dynamic calculus simulation mimicking smart catalog pricing
-    let cheapestId = solutions[0]?.id || "unknown";
-    let highestScoreId = solutions[0]?.id || "unknown";
+    // Normalize either solutions or submissions to a flat format for processing
+    const normalizedSolutions: Array<{
+      id: string;
+      vendor: string;
+      items: Array<{
+        partNumber: string;
+        quantity: number;
+        unitPrice: number;
+        type: string;
+      }>;
+    }> = [];
+
+    if (body.solutions) {
+      body.solutions.forEach((sol) => {
+        if ("items" in sol && Array.isArray(sol.items)) {
+          // FlatComparisonSolution
+          normalizedSolutions.push({
+            id: sol.id,
+            vendor: sol.vendor,
+            items: sol.items
+          });
+        } else if ("vendorSubmissions" in sol && Array.isArray(sol.vendorSubmissions)) {
+          // Solution (nested SolutionSchema)
+          sol.vendorSubmissions.forEach((sub) => {
+            const items: any[] = [];
+            if (Array.isArray(sub.configs)) {
+              sub.configs.forEach((cfg) => {
+                if (Array.isArray(cfg.items)) {
+                  items.push(...cfg.items);
+                }
+              });
+            }
+            normalizedSolutions.push({
+              id: sub.id,
+              vendor: sub.vendor,
+              items: items
+            });
+          });
+        }
+      });
+    } else if (body.submissions) {
+      body.submissions.forEach((sub) => {
+        const items: any[] = [];
+        sub.configs.forEach((cfg) => {
+          items.push(...cfg.items);
+        });
+        normalizedSolutions.push({
+          id: sub.id,
+          vendor: sub.vendor,
+          items: items
+        });
+      });
+    }
+
+    if (normalizedSolutions.length === 0) {
+      return res.status(400).json({ success: false, error: "No valid configurations or solutions to reconcile." });
+    }
+
+    // Now process normalizedSolutions (which has a guaranteed flat structure and is fully typed!)
+    let cheapestId = normalizedSolutions[0].id;
+    let highestScoreId = normalizedSolutions[0].id;
     let totalSavings = 0;
     let minCost = Infinity;
+    let discrepancyCount = 0;
 
-    const computedMatrix = solutions.map((sol) => {
-      const computedContractCost = sol.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    const computedMatrix = normalizedSolutions.map((sol) => {
+      const computedContractCost = sol.items.reduce((sum: number, item: any) => sum + (item.unitPrice * item.quantity), 0);
       const originalBaseCost = computedContractCost * 1.08; // list price markups
       const savingsVal = originalBaseCost - computedContractCost;
       totalSavings += savingsVal;
@@ -279,25 +339,28 @@ async function startServer() {
       let compliance = 100;
       let worstLeadTime = 7;
 
-      sol.items.forEach((item) => {
+      sol.items.forEach((item: any) => {
         // EOL triggers severe compliance crash
         if (item.partNumber === "815100-B21") {
           compliance -= 22;
           worstLeadTime = Math.max(worstLeadTime, 45);
+          discrepancyCount++;
         }
         // Markup triggers slight audit flag
         if (item.partNumber === "400-BPSB") {
           worstLeadTime = Math.max(worstLeadTime, 12);
+          discrepancyCount++;
         }
         // Uneven memory triggers layout flag
         if (item.type === "Memory" && item.quantity % 8 !== 0) {
           compliance -= 18;
           worstLeadTime = Math.max(worstLeadTime, 8);
+          discrepancyCount++;
         }
       });
 
       if (compliance < 100) {
-        highestScoreId = solutions.find((s) => s.id !== sol.id)?.id || sol.id;
+        highestScoreId = normalizedSolutions.find((s) => s.id !== sol.id)?.id || sol.id;
       }
 
       return {
@@ -312,7 +375,7 @@ async function startServer() {
     });
 
     const response: ReconciliationResponse = {
-      comparisonHash: crypto.createHash("sha1").update(JSON.stringify(solutions)).digest("hex").substring(0, 16),
+      comparisonHash: crypto.createHash("sha1").update(JSON.stringify(normalizedSolutions)).digest("hex").substring(0, 16),
       calculatedAt: new Date().toISOString(),
       metrics: {
         cheapestSolutionId: cheapestId,
@@ -321,10 +384,11 @@ async function startServer() {
         optimumHybridAlternative: {
           totalCost: Math.round(minCost * 0.95), // Hybrid blend yields 5% further cost reduction
           chassisVendor: "Combination Blend",
-          componentsCount: solutions[0]?.items?.length || 4
+          componentsCount: normalizedSolutions[0]?.items?.length || 4
         }
       },
-      matrix: computedMatrix
+      matrix: computedMatrix,
+      discrepancyCount: discrepancyCount
     };
 
     res.status(200).json(response);

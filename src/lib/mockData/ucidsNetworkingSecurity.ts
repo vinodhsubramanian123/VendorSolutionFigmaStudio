@@ -7,12 +7,12 @@ export const mockUcidsNetworkingSecurity: UCID[] = [
     solutionName: "HQ Spine Network Overhaul",
     priority: "medium",
     projectRef: "PRJ-NET-DC-SPINE",
-    createdAt: "2026-06-04 09:12 AM",
+    createdAt: "2026-06-04T09:12:00.000Z",
     currentStep: "boq-intake",
     completedSteps: [],
     syncStatus: "Pending",
 
-    solutionId: "22222222-2222-2222-8222-222222222222",
+    solutionId: "sol-db-2026-002",
     solutionDisplayId: "SOL-2026-002",
     configIndex: 1,
     configLabel: "Spine Network Config",
@@ -37,7 +37,7 @@ export const mockUcidsNetworkingSecurity: UCID[] = [
     solutionName: "WAN Edge Security Gateway Refresh",
     priority: "low",
     projectRef: "PRJ-WAN-EDGE-SEC",
-    createdAt: "2026-05-25 11:30 AM",
+    createdAt: "2026-05-25T11:30:00.000Z",
     currentStep: "snapshot",
     completedSteps: [
       "boq-intake",
@@ -49,7 +49,7 @@ export const mockUcidsNetworkingSecurity: UCID[] = [
     ],
     syncStatus: "Synced",
 
-    solutionId: "33333333-3333-3333-8333-333333333333",
+    solutionId: "sol-wan-2026-003",
     solutionDisplayId: "SOL-2026-003",
     configIndex: 1,
     configLabel: "Security Gateway Config",

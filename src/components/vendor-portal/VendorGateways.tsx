@@ -62,11 +62,9 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
                     style={{ backgroundColor: vendor.color }}
                   />
                   {isConnected && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full"
+                    <div
+                      className="absolute inset-0 rounded-full animate-ping"
                       style={{ backgroundColor: vendor.color }}
-                      animate={{ scale: [1, 2, 1], opacity: [0.6, 0, 0.6] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     />
                   )}
                 </div>

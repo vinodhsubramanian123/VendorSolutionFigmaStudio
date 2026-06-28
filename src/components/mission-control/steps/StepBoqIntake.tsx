@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 import React from "react";
 import { UploadCloud, Sparkles, ArrowRight } from "lucide-react";
 import type { UCID, Solution } from "../../../types";

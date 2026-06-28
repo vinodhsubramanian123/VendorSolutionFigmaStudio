@@ -36,7 +36,7 @@ describe('06 - Cleansing Workspace Mapping Integration', () => {
   it('should run auto-map and resolve fuzzy entries', async () => {
     render(
       <ToastProvider>
-        <CleansingView catalogSkus={mockCatalogSkus} />
+        <CleansingView  />
       </ToastProvider>
     );
 

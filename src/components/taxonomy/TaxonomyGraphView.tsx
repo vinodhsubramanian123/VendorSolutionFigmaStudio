@@ -3,22 +3,19 @@ import {
   Network, 
   RefreshCw, 
   Filter,
-  ChevronDown,
   GitFork
 } from 'lucide-react';
 import { useCoreStore } from "../../store/coreStore";
 import { useCatalogGraphData } from "../../hooks/useCatalogGraphData";
-import type { Config, CatalogSKU, Vendor } from "../../types";
+import type { Config } from "../../types";
 import { TaxonomyGraphSidebar } from "./TaxonomyGraphSidebar";
 import { KnowledgeGraphCanvas } from "./KnowledgeGraphCanvas";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 const DEFAULT_CONFIGS: Config[] = [{ id: "cfg-base", vendor: "HPE", name: "Base Configuration", totalPrice: 0, originalPrice: 0, items: [] }];
-interface TaxonomyGraphViewProps {
-  catalogSkus: CatalogSKU[];
-  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
-  vendors: Vendor[];
-}
-export function TaxonomyGraphView({ catalogSkus, setCatalogSkus, vendors }: TaxonomyGraphViewProps) {
+
+export function TaxonomyGraphView() {
+  const catalogSkus = useCoreStore(s => s.catalogSkus);
+  const setCatalogSkus = useCoreStore(s => s.setCatalogSkus);
   const solutions = useCoreStore(s => s.solutions);
   const ucids = useCoreStore(s => s.ucids);
   const activeSolutionIdFromStore = useCoreStore(s => s.activeSolutionId);

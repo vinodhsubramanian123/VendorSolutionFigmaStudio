@@ -86,9 +86,9 @@ describe('Category 17 — AGENTS.md Architectural Compliance', () => {
       render(
         <Wrapper>
           <CatalogManager
-            catalogSkus={mockSkus}
-            setCatalogSkus={mockSetSkus}
-            vendors={mockVendors}
+            
+            
+            
           />
         </Wrapper>
       );
@@ -142,9 +142,9 @@ describe('Category 17 — AGENTS.md Architectural Compliance', () => {
       render(
         <Wrapper>
           <CatalogManager
-            catalogSkus={largeSkuSet}
-            setCatalogSkus={mockSetSkus}
-            vendors={mockVendors}
+            
+            
+            
           />
         </Wrapper>
       );
@@ -186,9 +186,9 @@ describe('Category 17 — AGENTS.md Architectural Compliance', () => {
       render(
         <Wrapper>
           <CatalogManager
-            catalogSkus={mockSkus}
-            setCatalogSkus={mockSetSkus}
-            vendors={mockVendors}
+            
+            
+            
           />
         </Wrapper>
       );

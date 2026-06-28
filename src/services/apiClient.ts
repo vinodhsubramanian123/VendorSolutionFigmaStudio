@@ -33,6 +33,13 @@ class ApiClient {
     };
   }
 
+
+  private handleError(e: unknown): import("../types").ApiErrorResponse {
+    const message = e instanceof Error ? e.message : String(e);
+    const code = e && typeof e === 'object' && 'code' in e ? String((e as Record<string, unknown>).code) : undefined;
+    return this.wrapError(message, code);
+  }
+
   private async fetchWithTimeout(endpoint: string, options?: RequestInit): Promise<Response> {
     const baseUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL 
       ? import.meta.env.VITE_API_BASE_URL 
@@ -46,16 +53,20 @@ class ApiClient {
     const res = await fetch(url, options);
     if (!res.ok) {
       let errorMessage = "Failed to fetch";
+      let errorCode = "SERVER_ERROR";
       try {
         const errJson = await res.json();
         if (errJson.error && errJson.error.message) {
           errorMessage = errJson.error.message;
         }
+        if (errJson.error && errJson.error.code) {
+          errorCode = errJson.error.code;
+        }
       } catch (e) {
         console.error("Failed to parse API error response:", e);
         errorMessage = res.statusText || errorMessage;
       }
-      throw new Error(errorMessage);
+      throw Object.assign(new Error(errorMessage), { code: errorCode });
     }
     return res;
   }
@@ -66,7 +77,7 @@ class ApiClient {
       const data = await res.json();
       return data as ApiResponse<T>;
     } catch (e: unknown) {
-      throw this.wrapError((e as Error).message);
+      throw this.handleError(e);
     }
   }
 
@@ -84,7 +95,7 @@ class ApiClient {
       const data = await res.json();
       return data as ApiResponse<T>;
     } catch (e: unknown) {
-      throw this.wrapError((e as Error).message);
+      throw this.handleError(e);
     }
   }
 
@@ -98,7 +109,7 @@ class ApiClient {
       const data = await res.json();
       return data as ApiResponse<T>;
     } catch (e: unknown) {
-      throw this.wrapError((e as Error).message);
+      throw this.handleError(e);
     }
   }
 
@@ -120,7 +131,7 @@ class ApiClient {
       const data = await res.json();
       return data as ApiResponse<T>;
     } catch (e: unknown) {
-      throw this.wrapError((e as Error).message);
+      throw this.handleError(e);
     }
   }
 
@@ -136,7 +147,7 @@ class ApiClient {
       const data = await res.json();
       return data as ApiResponse<T>;
     } catch (e: unknown) {
-      throw this.wrapError((e as Error).message);
+      throw this.handleError(e);
     }
   }
 
@@ -146,32 +157,27 @@ class ApiClient {
    */
   streamJob(jobId: string, onMessage: (data: unknown) => void, onError: (err: unknown) => void) {
     let active = true;
-    let progress = 0;
 
-    const tick = () => {
-      if (!active) return;
-      progress += 15; // increment deterministically
-      if (progress >= 100) {
-        progress = 100;
+    // Send initial processing state
+    Promise.resolve().then(() => {
+      if (active) onMessage({ status: "processing", progress: 15 });
+    });
+
+    // Delegate the delay entirely to the network mock layer (MSW)
+    this.get(`/api/jobs/${jobId}`)
+      .then((res) => {
+        if (!active) return;
+        const data = res.data as { status: string, progress: number, result: any };
         onMessage({
-          status: "completed",
-          progress: 100,
-          result: {
-            success: true,
-            reconciliationStatus: "complete"
-          }
+          status: data.status || "completed",
+          progress: data.progress || 100,
+          result: data.result || { success: true, reconciliationStatus: "complete" }
         });
         active = false;
-      } else {
-        onMessage({
-          status: "processing",
-          progress: progress
-        });
-        setTimeout(tick, 600); // tick deterministically
-      }
-    };
-
-    setTimeout(tick, 500);
+      })
+      .catch((err) => {
+        if (active) onError(err);
+      });
 
     return {
       close: () => {

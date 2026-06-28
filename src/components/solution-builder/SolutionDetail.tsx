@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCoreStore } from '../../store/coreStore';
-import { ArrowLeft, Box, CheckCircle, Network, Server, FileText, Check, Settings2 } from 'lucide-react';
+import { ArrowLeft, Box, Network, Settings2 } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
-import { VendorAssignment } from '../../types/models/core';
+import type { Solution, VendorSubmission } from '../../types/models/sourcing';
+import { VendorAssignment } from '../../types/models/sourcing';
 
 export function SolutionDetail() {
   const { id } = useParams<{ id: string }>();

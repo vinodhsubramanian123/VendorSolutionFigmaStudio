@@ -1,38 +1,67 @@
 import { useState, useMemo } from "react";
-import type { ForensicIssue, Vendor, CatalogSKU, UCID, SourcingRule, LearningEvent } from "../../types";
+import type { ForensicIssue, UCID, SourcingRule, LearningEvent, CatalogSKU } from "../../types";
 import { apiClient } from "../../services/apiClient";
 import { ActiveSourcingRules } from "../../config/sourcingRules";
 import { useToast } from "../shared/ToastContext";
 
 // Removed INITIAL_RULES, importing from mocks instead, but handled at App level
 
-interface UseForensicsLogicProps {
-  forensicIssues: ForensicIssue[];
-  setForensicIssues: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
-  setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
-  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  activeMissionId?: string;
-  sourcingRules: SourcingRule[];
-  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
-  learningEvents: LearningEvent[];
-  setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
+import { useCoreStore } from "../../store/coreStore";
+function mapDellPriceVarianceIssue(issue: ForensicIssue, currUcid: UCID | undefined): ForensicIssue {
+  const sku = ActiveSourcingRules.thresholds.dellOverchargeSKU;
+  const limit = ActiveSourcingRules.thresholds.dellOverchargeBaseLimit;
+  const matchingSol = currUcid?.solutions?.find((sol) =>
+    sol.vendorSubmissions?.some((vs) =>
+      vs.configs?.some((c) => c.items?.some((it) => it.partNumber === sku && it.unitPrice > limit)),
+    ),
+  );
+  const matchingVs = matchingSol?.vendorSubmissions?.find((vs) =>
+    vs.configs?.some((c) => c.items?.some((it) => it.partNumber === sku)),
+  );
+  const matchingItem = matchingVs?.configs
+    ?.flatMap((c) => c.items || [])
+    .find((it) => it.partNumber === sku);
+  const unitPrice = matchingItem?.unitPrice || 1590;
+  const overage = unitPrice - limit;
+  const totalWaste = overage * (matchingItem?.quantity || 24);
+  return {
+    ...issue,
+    description: `Active quote for Dell 3.84TB drive (${sku}) is logged inside sheet as $${unitPrice.toLocaleString()}/ea. Direct API partner contract rate is $${limit.toLocaleString()}. Overage mark-up: $${overage}/ea.`,
+    affectedItems: matchingItem?.quantity || 24,
+    suggestedAction: `Auto-Align local quote unit price to $${limit.toLocaleString()} negotiated rate. Saves $${totalWaste.toLocaleString()} instantly across lines.`,
+  };
 }
 
-export function useForensicsLogic({
-  forensicIssues,
-  setForensicIssues,
-  setVendors,
-  setCatalogSkus,
-  ucids,
-  setUcids,
-  activeMissionId,
-  sourcingRules,
-  setSourcingRules,
-  learningEvents,
-  setLearningEvents,
-}: UseForensicsLogicProps) {
+function mapCiscoSymmetryIssue(issue: ForensicIssue, currUcid: UCID | undefined): ForensicIssue {
+  const matchingSol = currUcid?.solutions?.find((sol) =>
+    sol.vendorSubmissions?.some((vs) => vs.vendor === "Cisco"),
+  );
+  const matchingVs = matchingSol?.vendorSubmissions?.find((vs) => vs.vendor === "Cisco");
+  const matchingItem = matchingVs?.configs
+    ?.flatMap((c) => c.items || [])
+    .find((it) => it.type === "Memory");
+  const qty = matchingItem?.quantity || 5;
+  return {
+    ...issue,
+    description: `Cisco UCS standard C240 configuration requests ${qty} memory modules. Intel Xeon 4th-Gen memory controllers operate optimally on 8-channel layouts. Odd allocation modules cause layout bus bottlenecks.`,
+    affectedItems: qty,
+    suggestedAction: "Upgrade configuration load to 8 units of 64GB DDR5 memory modules to satisfy full 8-channel Motherboard performance symmetry.",
+  };
+}
+
+export function useForensicsLogic() {
+  const activeMissionId = useCoreStore((s) => s.activeMissionId);
+  const forensicIssues = useCoreStore((s) => s.forensicIssues);
+  const setForensicIssues = useCoreStore((s) => s.setForensicIssues);
+  const setVendors = useCoreStore((s) => s.setVendors);
+  const setCatalogSkus = useCoreStore((s) => s.setCatalogSkus);
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
+  const sourcingRules = useCoreStore((s) => s.sourcingRules);
+  const setSourcingRules = useCoreStore((s) => s.setSourcingRules);
+  const learningEvents = useCoreStore((s) => s.learningEvents);
+  const setLearningEvents = useCoreStore((s) => s.setLearningEvents);
+
   const [scanning, setScanning] = useState(false);
   const [scanStdout, setScanStdout] = useState<string[]>([]);
   const [lastScanCount, setLastScanCount] = useState<number | null>(null);
@@ -45,29 +74,6 @@ export function useForensicsLogic({
     setPendingHealIssueId(issueId);
   }
 
-  // eslint-disable-next-line sonarjs/no-unused-vars
-  function emitLearningEvent(
-    issueId: string,
-    ruleType: LearningEvent["ruleType"],
-    partNumber: string,
-    action: string,
-    vendor: string,
-    confidenceScore: number
-  ) {
-    const eventId = `learn-${crypto.randomUUID()}`;
-    const newEvent: LearningEvent = {
-      id: eventId,
-      timestamp: new Date().toISOString(),
-      sourceIssueId: issueId,
-      ruleType,
-      partNumber,
-      action,
-      confidenceScore,
-      vendor,
-      preventedMismatchCount: 1,
-    };
-    setLearningEvents((prev) => [newEvent, ...prev].slice(0, 50));
-  }
 
   const currUcid = ucids.find((u) => u.id === activeMissionId) || ucids[0];
 
@@ -103,53 +109,14 @@ export function useForensicsLogic({
         if (issue.id === "iss-1") return hasEolSourcingRisk;
         if (issue.id === "iss-2") return hasPriceVarianceRisk;
         if (issue.id === "iss-3") return hasCiscoMemorySymmetryRisk;
-        // eslint-disable-next-line sonarjs/prefer-single-boolean-return
-        if (issue.id === "iss-4") return true;
         return true;
       })
-      // eslint-disable-next-line complexity
       .map((issue) => {
         if (issue.id === "iss-2" && hasPriceVarianceRisk) {
-          const matchingSol = currUcid?.solutions?.find((sol) =>
-            sol.vendorSubmissions?.some((vs) =>
-              vs.configs?.some((c) => c.items?.some((it) => it.partNumber === "400-BPSB" && it.unitPrice > 1190,),),
-            ),
-          );
-          const matchingVs = matchingSol?.vendorSubmissions?.find((vs) =>
-            vs.configs?.some((c) => c.items?.some((it) => it.partNumber === "400-BPSB"),),
-          );
-          const matchingItem = matchingVs?.configs
-            ?.flatMap((c) => c.items)
-            .find((it) => it.partNumber === "400-BPSB");
-          const unitPrice = matchingItem?.unitPrice || 1590;
-          const overage = unitPrice - 1190;
-          const totalWaste = overage * (matchingItem?.quantity || 24);
-          return {
-            ...issue,
-            description: `Active quote for Dell 3.84TB drive (400-BPSB) is logged inside sheet as $${unitPrice.toLocaleString()}/ea. Direct API partner contract rate is $1,190. Overage mark-up: $${overage}/ea.`,
-            affectedItems: matchingItem?.quantity || 24,
-            suggestedAction: `Auto-Align local quote unit price to $1,190 negotiated rate. Saves $${totalWaste.toLocaleString()} instantly across lines.`,
-          };
+          return mapDellPriceVarianceIssue(issue, currUcid);
         }
         if (issue.id === "iss-3" && hasCiscoMemorySymmetryRisk) {
-          const matchingSol = currUcid?.solutions?.find((sol) =>
-            sol.vendorSubmissions?.some((vs) => vs.vendor === "Cisco"),
-          );
-          const matchingVs = matchingSol?.vendorSubmissions?.find(
-            (vs) => vs.vendor === "Cisco",
-          );
-
-          const matchingItem = matchingVs?.configs
-            ?.flatMap((c) => c.items)
-            .find((it) => it.type === "Memory");
-          const qty = matchingItem?.quantity || 5;
-          return {
-            ...issue,
-            description: `Cisco UCS standard C240 configuration requests ${qty} memory modules. Intel Xeon 4th-Gen memory controllers operate optimally on 8-channel layouts. Odd allocation modules cause layout bus bottlenecks.`,
-            affectedItems: qty,
-            suggestedAction:
-              "Upgrade configuration load to 8 units of 64GB DDR5 memory modules to satisfy full 8-channel Motherboard performance symmetry.",
-          };
+          return mapCiscoSymmetryIssue(issue, currUcid);
         }
         return issue;
       });
@@ -183,14 +150,14 @@ export function useForensicsLogic({
         "Diagnostic scan complete! Sourcing sheet analyzed successfully.",
         "success",
       );
-    // eslint-disable-next-line sonarjs/no-ignored-exceptions
     } catch (err) {
+      console.error("Diagnostic scan failed:", err);
       setScanning(false);
       triggerToast("Diagnostic scan failed.", "error");
     }
   }
 
-  async function confirmAutoHeal(scope: "Global" | "Brand" | "Exact") {
+  async function executeAutoHeal(scope: "Global" | "Brand" | "Exact") {
     if (!currUcid || !pendingHealIssueId) return;
     const issueId = pendingHealIssueId;
     setPendingHealIssueId(null);
@@ -301,7 +268,7 @@ export function useForensicsLogic({
     triggerToast,
     runAuditScanner,
     requestAutoHeal,
-    confirmAutoHeal,
+    confirmAutoHeal: executeAutoHeal,
     handleManualPromote,
     pendingHealIssueId,
     setPendingHealIssueId,

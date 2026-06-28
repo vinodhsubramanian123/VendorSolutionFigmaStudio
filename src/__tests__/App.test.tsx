@@ -4,7 +4,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 import { useCoreStore } from '../store/coreStore';
+import type { CoreState } from '../store/coreStore';
 import { ToastProvider } from '../components/shared/ToastContext';
+import { createMockCoreState } from '../tests/shared/mockFactories';
 
 // Mock the components to speed up the test
 vi.mock('../components/layout/Sidebar', () => ({
@@ -38,7 +40,7 @@ describe('App Integration', () => {
   });
 
   const setupStore = (isHealthy = true) => {
-    vi.mocked(useCoreStore).mockImplementation((selector: any) => {
+    vi.mocked(useCoreStore).mockImplementation((selector: (state: CoreState) => unknown) => {
       const state = {
         collapsed: false,
         setCollapsed: vi.fn(),
@@ -106,7 +108,7 @@ describe('App Integration', () => {
         learningEvents: [],
         setLearningEvents: vi.fn(),
       };
-      return selector(state);
+      return selector(state as unknown as CoreState);
     });
   };
 

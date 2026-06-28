@@ -53,6 +53,9 @@ export const SourcingRuleSchema = z.object({
   sourceIssueId: z.string().optional(),
   isAutoLearned: z.boolean().optional(),
   preventedMismatchCount: z.number().int().nonnegative().optional(),
+  associatedSkus: z.string().optional(),
+  cliScript: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export const LearningEventSchema = z.object({

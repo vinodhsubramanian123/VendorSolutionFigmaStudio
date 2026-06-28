@@ -9,6 +9,12 @@ import type { ApiLogEntry, WebhookEvent } from "./types";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+const TELEMETRY_TABS = [
+  { id: "pipeline" as const,  label: "Document Pipeline", icon: Upload },
+  { id: "api-logs" as const,  label: "API Logs",          icon: Terminal },
+  { id: "webhooks" as const,  label: "Webhook Monitor",   icon: Webhook },
+];
+
 export function SystemTelemetry() {
   const [activeTab, setActiveTab] = useState<"pipeline" | "api-logs" | "webhooks">("pipeline");
   const [apiLogs, setApiLogs] = useState<ApiLogEntry[]>([]);
@@ -22,12 +28,6 @@ export function SystemTelemetry() {
       .then(res => setWebhooks(res.data || []))
       .catch(() => {});
   }, []);
-
-  const tabs = [
-    { id: "pipeline" as const,  label: "Document Pipeline", icon: Upload },
-    { id: "api-logs" as const,  label: "API Logs",          icon: Terminal },
-    { id: "webhooks" as const,  label: "Webhook Monitor",   icon: Webhook },
-  ];
 
   return (
     <motion.div
@@ -56,20 +56,18 @@ export function SystemTelemetry() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <motion.span
-              className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-emerald-400 border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-1.5 rounded-full"
-              animate={{ opacity: [1, 0.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
+            <span
+              className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-emerald-400 border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-1.5 rounded-full animate-pulse"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               TELEMETRY LIVE
-            </motion.span>
+            </span>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-1 mt-4 p-1 rounded-lg bg-black/25 border border-white/5 w-fit">
-          {tabs.map((tab) => (
+          {TELEMETRY_TABS.map((tab) => (
             <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}

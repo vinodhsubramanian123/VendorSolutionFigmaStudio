@@ -11,7 +11,7 @@ import {
 import { INITIAL_RULES } from "../mocks/sourcingMocks";
 import { deriveSolutionStatus } from "../utils/solutionUtils";
 
-interface CoreState {
+export interface CoreState {
   solutions: SolutionProject[];
   activeSolutionId: string | null;
 

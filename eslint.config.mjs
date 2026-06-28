@@ -4,6 +4,7 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import sonarjsPlugin from 'eslint-plugin-sonarjs';
+import eslintCommentsPlugin from 'eslint-plugin-eslint-comments';
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -14,15 +15,18 @@ export default tseslint.config(
       'react-hooks': reactHooksPlugin,
       'jsx-a11y': jsxA11yPlugin,
       'sonarjs': sonarjsPlugin,
+      'eslint-comments': eslintCommentsPlugin,
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       ...jsxA11yPlugin.configs.recommended.rules,
       ...sonarjsPlugin.configs.recommended.rules,
+      'eslint-comments/no-use': 'error',
       'complexity': ['warn', 15],
       'sonarjs/cognitive-complexity': ['error', 15],
       'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       'sonarjs/no-nested-conditional': 'off',

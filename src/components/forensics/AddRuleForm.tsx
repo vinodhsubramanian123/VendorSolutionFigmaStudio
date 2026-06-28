@@ -26,7 +26,6 @@ export function AddRuleForm({
 
   useEffect(() => {
     if (prefillRule) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (prefillRule.ruleType) setNewRuleType(prefillRule.ruleType);
       if (prefillRule.partNumber) setNewPartNumber(prefillRule.partNumber);
       if (prefillRule.mappedOutput) setNewMappedOutput(prefillRule.mappedOutput);

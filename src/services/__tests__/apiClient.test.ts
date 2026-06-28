@@ -105,7 +105,7 @@ describe('ApiClient & ApiMock Services', () => {
       await expect(apiClient.get('/api/test')).rejects.toEqual({
         success: false,
         error: {
-          code: 'SERVER_ERROR',
+          code: 'BAD_REQUEST',
           message: 'Custom server error',
         },
       });
@@ -160,22 +160,24 @@ describe('ApiClient & ApiMock Services', () => {
       await expect(apiClient.delete('/api/test')).rejects.toEqual(expect.any(Object));
     });
 
-    it('streams job progress until completed', () => {
+    it('streams job progress until completed', async () => {
+      const mockResponseData = { success: true, data: { status: 'completed', progress: 100 } };
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponseData,
+      } as Response);
+      
       const onMessage = vi.fn();
       const onError = vi.fn();
 
       const stream = apiClient.streamJob('job-123', onMessage, onError);
       
-      // Advance by initial 500ms startup delay
-      vi.advanceTimersByTime(500);
+      // Allow promise to resolve
+      await vi.runAllTimersAsync();
+      
       expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
         status: 'processing'
       }));
-
-      // Tick multiple times to reach 100% progress
-      for (let i = 0; i < 15; i++) {
-        vi.advanceTimersByTime(800);
-      }
 
       expect(onMessage).toHaveBeenLastCalledWith(expect.objectContaining({
         status: 'completed',
@@ -185,20 +187,28 @@ describe('ApiClient & ApiMock Services', () => {
       stream.close();
     });
 
-    it('allows closing a running job stream', () => {
+    it('allows closing a running job stream', async () => {
       const onMessage = vi.fn();
       const onError = vi.fn();
 
+      // Create a pending fetch promise that we control
+      let resolveFetch: any;
+      const fetchPromise = new Promise((resolve) => { resolveFetch = resolve; });
+      vi.mocked(fetch).mockReturnValueOnce(fetchPromise as Promise<Response>);
+
       const stream = apiClient.streamJob('job-123', onMessage, onError);
       
-      vi.advanceTimersByTime(500);
+      await vi.runAllTimersAsync();
       expect(onMessage).toHaveBeenCalledTimes(1);
 
-      // Close the stream
+      // Close the stream before fetch resolves
       stream.close();
-
-      vi.advanceTimersByTime(800);
-      // Should not tick anymore since it is inactive
+      
+      // Resolve the fetch now
+      resolveFetch({ ok: true, json: async () => ({ data: { status: 'completed' } }) });
+      await vi.runAllTimersAsync();
+      
+      // Should not be called with 'completed' since it is inactive
       expect(onMessage).toHaveBeenCalledTimes(1);
     });
   });

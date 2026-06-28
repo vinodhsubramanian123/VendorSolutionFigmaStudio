@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -19,6 +20,10 @@ test.describe('06 - Catalog Manager E2E', () => {
     }
     // Cards grid should still be visible
     await expect(page.locator('.group\\/card').first()).toBeVisible({ timeout: 5000 });
+    
+    // Assert Accessibility
+    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
   });
 
   test('should type a SKU part number into search filter and match', async ({ page }) => {
@@ -47,7 +52,7 @@ test.describe('06 - Catalog Manager E2E', () => {
 
     // Submit
     const saveBtn = page.getByRole('button', { name: 'Add Part' });
-    await saveBtn.click();
+    await saveBtn.click({ force: true });
     await delay(800);
 
     // Verify by searching for it

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useIngestionStore } from "../../store/ingestionStore";
+import { useCoreStore } from "../../store/coreStore";
+import { repairBomItem } from "../../utils/bomRepairUtils";
 import { apiClient } from "../../services/apiClient";
 import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
 
@@ -27,8 +29,6 @@ export function useBomConversion(
   const [bomError, setBomError] = useState<string>("");
 
   const targetUcid = ucids.find((u) => u.id === selectedUcidId) || ucids[0];
-
-  // eslint-disable-next-line complexity
   const triggerBOMParse = async (fileName: string) => {
     if (!targetUcid) {
       setBomError("Please select or create an active UCID tracking container first!");
@@ -53,23 +53,23 @@ export function useBomConversion(
       const cpuSKU = configItems.find((i) => i.type === "Processor")?.partNumber || "815100-B21";
       const ramQuantity = configItems.find((i) => i.type === "Memory")?.quantity || 5;
 
-      const constraintsRes = await apiClient.post("/api/taxonomy/check-constraints", {
+      const constraintsRes = await apiClient.post<ConstraintCheckResponse>("/api/taxonomy/check-constraints", {
         chassisSKU,
         cpuSKU,
         ramQuantity,
         psuWattsCount: 750,
       });
 
-      if (!constraintsRes.success) throw constraintsRes;
-      const constraintsData = constraintsRes.data as ConstraintCheckResponse;
+      if (!constraintsRes.success || !constraintsRes.data) throw constraintsRes;
+      const constraintsData = constraintsRes.data;
       setBomVerifyResult(constraintsData);
 
-      const reconRes = await apiClient.post("/api/reconciliation/compare", {
+      const reconRes = await apiClient.post<ReconciliationResponse>("/api/reconciliation/compare", {
         solutions: targetUcid.solutions,
       });
 
-      if (!reconRes.success) throw reconRes;
-      const reconData = reconRes.data as ReconciliationResponse;
+      if (!reconRes.success || !reconRes.data) throw reconRes;
+      const reconData = reconRes.data;
 
       setBomProgress(100);
       setBomReconResult(reconData);
@@ -78,8 +78,8 @@ export function useBomConversion(
         prev.map((u) => {
           if (u.id === selectedUcidId) {
             const updatedSolutions = u.solutions.map((sol) => {
-              const matchedMatrix = reconData.matrix?.find?.(
-                (m: Record<string, unknown>) => m.solutionId === sol.id,
+              const matchedMatrix = reconData.matrix?.find(
+                (m) => m.solutionId === sol.id,
               );
               return {
                 ...sol,
@@ -123,8 +123,17 @@ export function useBomConversion(
       setIsBOMIngesting(false);
       setIsPendingAPI(false);
     } catch (err: unknown) {
-      const errorObj = err as { message?: string; error?: { message?: string } };
-      toast(errorObj.error?.message || errorObj.message || "Backend Verification Failed.", "error");
+      let errorMessage = "Backend Verification Failed.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err && typeof err === "object") {
+        if ("error" in err && err.error && typeof err.error === "object" && "message" in err.error) {
+          errorMessage = String(err.error.message);
+        } else if ("message" in err) {
+          errorMessage = String(err.message);
+        }
+      }
+      toast(errorMessage, "error");
       setIsBOMIngesting(false);
       setIsPendingAPI(false);
     }
@@ -156,31 +165,7 @@ export function useBomConversion(
                 const repairedConfigs =
                   vs.configs?.map((c) => {
                     const repairedItems =
-                      c.items?.map((it) => {
-                        if (it.partNumber === "815100-B21") {
-                          return {
-                            ...it,
-                            partNumber: "P40424-B21",
-                            name: "Intel Xeon Gold 6430 32-Core 2.1GHz Processor (Gen11) [RECONCILED]",
-                            unitPrice: 2150,
-                          };
-                        }
-                        if (it.partNumber === "400-BPSB" && it.unitPrice > 1190) {
-                          return {
-                            ...it,
-                            unitPrice: 1190,
-                            name: "Dell 3.84TB SAS Read Intensive SSD [RECONCILED]",
-                          };
-                        }
-                        if (vs.vendor === "Cisco" && it.type === "Memory" && it.quantity % 8 !== 0) {
-                          return {
-                            ...it,
-                            quantity: 8,
-                            name: "UCS 64GB DDR5 memory module RDIMM [RECONCILED]",
-                          };
-                        }
-                        return it;
-                      }) || [];
+                      c.items?.map((it) => repairBomItem(it, vs.vendor)) || [];
                     const newConfigSum = repairedItems.reduce(
                       (acc, curr) => acc + curr.unitPrice * curr.quantity,
                       0,

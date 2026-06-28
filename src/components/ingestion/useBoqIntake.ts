@@ -17,6 +17,55 @@ export interface BoqResponsePayload {
   };
 }
 
+
+function getBoqDetailsText(sol: Solution): string {
+  return sol.vendorSubmissions?.[0]?.configs?.[0]?.items
+    ?.map((i) => ` - ${i.name} (QTY ${i.quantity} @ $${i.unitPrice})`)
+    .join("\n") || "";
+}
+
+function getBoqVendorName(sol: Solution): string {
+  return sol.vendorSubmissions?.[0]?.vendor || sol.name;
+}
+
+function buildGeneratedUcid(sol: Solution, idx: number, sourceFile: string, solutionId: string, solutionDisplayId: string): UCID {
+  const displayId = generateDisplayId();
+  const detailsText = getBoqDetailsText(sol);
+  const vendorName = getBoqVendorName(sol);
+  const ucidUuid = crypto.randomUUID();
+
+  return {
+    id: ucidUuid,
+    displayId: displayId,
+    name: `Sourced ${vendorName} Alignment Config`,
+    solutionName: sourceFile,
+    priority: idx === 0 ? "high" : "medium",
+    projectRef: "PRJ-RECON-HUB",
+    createdAt: new Date().toISOString(),
+    currentStep: "boq-intake",
+    completedSteps: [],
+    rawBOM: `Workbook parsed via central Ingestion Hub.\n\nSource sheet: ${sourceFile}\nVendor Profile: ${vendorName}\n\nComponents Detail:\n${detailsText}`,
+    solutions: [
+      {
+        id: `sol-${displayId}-primary`,
+        name: sol.name,
+        targetUcidId: ucidUuid,
+        vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({ ...vs })) || [],
+      },
+    ],
+    events: [
+      { timestamp: new Date().toISOString(), level: "info", msg: `Central BOQ split allocated to target container ${displayId}` },
+      { timestamp: new Date().toISOString(), level: "ok", msg: `Primary spec loaded with initial compliance score and structural items.` },
+    ],
+    snapshots: [],
+    solutionId,
+    solutionDisplayId,
+    configIndex: idx + 1,
+    configLabel: `Config ${idx + 1}`,
+    parallelGroup: null,
+  };
+}
+
 export function useBoqIntake(
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>,
   setMode: (step: string) => void,
@@ -84,58 +133,7 @@ export function useBoqIntake(
     const solutionDisplayId = generateSolutionDisplayId(existingSolutions);
 
     const generatedUcids: UCID[] = (boqResponse.solutions ?? []).map(
-      // eslint-disable-next-line complexity
-      (sol: Solution, idx: number) => {
-        const displayId = generateDisplayId();
-        const detailsText =
-          sol.vendorSubmissions?.[0]?.configs?.[0]?.items
-            ?.map(
-              (i) => ` - ${i.name} (QTY ${i.quantity} @ $${i.unitPrice})`,
-            )
-            .join("\n") || "";
-
-        const ucidUuid = crypto.randomUUID();
-
-        return {
-          id: ucidUuid,
-          displayId: displayId,
-          name: `Sourced ${sol.vendorSubmissions?.[0]?.vendor || sol.name} Alignment Config`,
-          solutionName: boqResponse.sourceFile,
-          priority: idx === 0 ? "high" : "medium",
-          projectRef: "PRJ-RECON-HUB",
-          createdAt: new Date().toISOString(),
-          currentStep: "boq-intake",
-          completedSteps: [],
-          rawBOM: `Workbook parsed via central Ingestion Hub.\n\nSource sheet: ${boqResponse.sourceFile}\nVendor Profile: ${sol.vendorSubmissions?.[0]?.vendor || sol.name}\n\nComponents Detail:\n${detailsText}`,
-          solutions: [
-            {
-              id: `sol-${displayId}-primary`,
-              name: sol.name,
-              targetUcidId: ucidUuid,
-              vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({ ...vs })) || [],
-            },
-          ],
-          events: [
-            {
-              timestamp: new Date().toISOString(),
-              level: "info",
-              msg: `Central BOQ split allocated to target container ${displayId}`,
-            },
-            {
-              timestamp: new Date().toISOString(),
-              level: "ok",
-              msg: `Primary spec loaded with initial compliance score and structural items.`,
-            },
-          ],
-          snapshots: [],
-
-          solutionId,
-          solutionDisplayId,
-          configIndex: idx + 1,
-          configLabel: `Config ${idx + 1}`,
-          parallelGroup: null,
-        };
-      },
+      (sol: Solution, idx: number) => buildGeneratedUcid(sol, idx, boqResponse.sourceFile || 'Unknown Source', solutionId, solutionDisplayId)
     );
 
     const newSolutionProject: SolutionProject = {

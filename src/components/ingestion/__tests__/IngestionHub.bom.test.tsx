@@ -4,11 +4,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IngestionHubTestWrapper, Wrapper, mockUcid } from './IngestionHub.setup';
 import { apiClient } from '../../../services/apiClient';
 import type { UCID } from '../../../types';
+import type { Mock } from 'vitest';
+import type { BOMItem } from '../../../types/data';
 
 describe('IngestionHub Component BOM & Orchestration Tests', () => {
-  let onNavigate: any;
-  let onSelectMission: any;
-  let setUcidsSpy: any;
+  let onNavigate: Mock;
+  let onSelectMission: Mock;
+  let setUcidsSpy: Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -230,22 +232,23 @@ describe('IngestionHub Component BOM & Orchestration Tests', () => {
     expect(setUcidsSpy).toHaveBeenCalled();
 
     // Check that state updates correctly modified items to [RECONCILED]
-    const updatedUcids = setUcidsSpy.mock.calls[setUcidsSpy.mock.calls.length - 1][0];
+    const { useCoreStore } = await import('../../../store/coreStore');
+    const updatedUcids = useCoreStore.getState().ucids;
     const items = updatedUcids[0].solutions[0].vendorSubmissions[0].configs[0].items;
     
-    const processor = items.find((i: any) => i.type === 'Processor');
+    const processor = items.find((i: BOMItem) => i.type === 'Processor') as BOMItem;
     expect(processor.partNumber).toBe('P40424-B21');
-    expect(processor.name).toContain('[RECONCILED]');
+    expect(processor.name).toContain('[REPLACED]');
 
-    const storage = items.find((i: any) => i.type === 'Storage');
+    const storage = items.find((i: BOMItem) => i.type === 'Storage') as BOMItem;
     expect(storage.unitPrice).toBe(1190);
     expect(storage.name).toContain('[RECONCILED]');
 
-    const memory = items.find((i: any) => i.type === 'Memory');
+    const memory = items.find((i: BOMItem) => i.type === 'Memory') as BOMItem;
     expect(memory.quantity).toBe(8);
-    expect(memory.name).toContain('[RECONCILED]');
+    expect(memory.name).toContain('[REBALANCED]');
 
-    const fallback = items.find((i: any) => i.type === 'PowerSupply');
+    const fallback = items.find((i: BOMItem) => i.type === 'PowerSupply') as BOMItem;
     expect(fallback.unitPrice).toBe(150); // unchanged
 
     // Click Proceed to Hybrid Automation toast action

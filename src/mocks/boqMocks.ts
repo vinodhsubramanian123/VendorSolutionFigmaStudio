@@ -322,4 +322,52 @@ export const BOQ_PRESETS: Record<string, { rawText: string; sols: Solution[] }> 
       },
     ],
   },
+  "divergence-split": {
+    rawText: `[AUTOMATED WORKBOOK INGESTION]\nFile: YLNG_22_Server_Config.xlsx\nTarget Chassis: DL380 Gen12 (P6730-B21) x22 Units\n\nNotes: 22 Servers base config. We need to split this into 5 servers (with transceivers) and 17 servers (without) during cleansing.`,
+    sols: [
+      {
+        id: `sol-divergence-base`,
+        name: "Base 22 Server Config (Unsplit)",
+        targetUcidId: "unknown",
+        vendorSubmissions: [
+          {
+            id: `vs-divergence-base`,
+            vendor: "HPE",
+            label: "HPE Config",
+            totalPrice: 220000,
+            originalPrice: 240000,
+            savings: 20000,
+            complianceScore: 100,
+            configs: [
+              {
+                id: "cfg-base-22",
+                name: "Base Server Config (Qty 22)",
+                totalPrice: 220000,
+                originalPrice: 240000,
+                savings: 20000,
+                items: [
+                  {
+                    id: "item-base-1",
+                    partNumber: "P6730-B21",
+                    name: "HPE ProLiant DL380 Gen12 Chassis",
+                    type: "Chassis",
+                    quantity: 22,
+                    unitPrice: 5000,
+                  },
+                  {
+                    id: "item-base-2",
+                    partNumber: "P49610-B21",
+                    name: "HPE 64GB DDR5 Memory",
+                    type: "Memory",
+                    quantity: 176, // 8 per server
+                    unitPrice: 500,
+                  }
+                ],
+              }
+            ],
+          }
+        ]
+      }
+    ]
+  }
 };

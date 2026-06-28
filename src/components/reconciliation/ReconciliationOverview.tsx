@@ -11,7 +11,6 @@ import { SparesPoolCard } from './SparesPoolCard';
 
 interface ReconciliationOverviewProps {
   setSelectedConfigSheet: (sheet: string | null) => void;
-  setHasDrift: (hasDrift: boolean) => void;
   ucids?: UCID[];
   setUcids?: React.Dispatch<React.SetStateAction<UCID[]>>;
   catalogSkus?: CatalogSKU[];
@@ -21,7 +20,6 @@ interface ReconciliationOverviewProps {
 
 export function ReconciliationOverview({
   setSelectedConfigSheet,
-  setHasDrift,
   ucids,
   setUcids,
   catalogSkus,
@@ -112,7 +110,6 @@ export function ReconciliationOverview({
       }));
     }
     
-    setHasDrift(false);
     setReconJobId(null);
   };
 

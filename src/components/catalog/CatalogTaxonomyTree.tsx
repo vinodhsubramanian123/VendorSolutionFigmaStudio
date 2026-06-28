@@ -112,7 +112,7 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ sel
               type="button"
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${node.label}`}
               tabIndex={0}
-              className="mr-1 p-1 rounded hover:bg-white/10 text-gray-500 cursor-pointer border-0 bg-transparent flex items-center justify-center"
+              className="mr-1 p-1 rounded hover:bg-white/10 text-gray-400 cursor-pointer border-0 bg-transparent flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleNode(node.id);

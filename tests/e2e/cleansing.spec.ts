@@ -61,7 +61,7 @@ test.describe('18 - Cleansing Workshop E2E', () => {
   });
 
   test('should auto-map fuzzy entries successfully', async ({ page }) => {
-    const autoMapBtn = page.getByRole('button', { name: /Auto-Map/ });
+    const autoMapBtn = page.getByRole('button', { name: 'Auto-Map', exact: true });
     await autoMapBtn.click();
     await delay(500);
 

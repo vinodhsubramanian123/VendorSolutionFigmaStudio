@@ -53,7 +53,7 @@ describe('RulesTable', () => {
     const updater = vi.mocked(defaultProps.setSourcingRules).mock.calls[0][0];
     
     // Call the updater function with prev state
-    const newState = (updater as Function)([mockRule]);
+    const newState = (updater as (prev: SourcingRule[]) => SourcingRule[])([mockRule]);
     
     // Assert that the empty string for notes mapped back to undefined
     expect(newState[0].notes).toBeUndefined();

@@ -33,7 +33,6 @@ export function SourcingRulesVault({
   } | null>(null);
   useEffect(() => {
     if (prefillRule) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAddingRule(true);
       onPrefillConsumed();
       triggerToast("Override parameters prefilled! Review and save the rule at the bottom.", "success");
@@ -54,7 +53,6 @@ export function SourcingRulesVault({
       setSourcingRules((prev) => [rule, ...prev.filter(r => r.partNumber !== rule.partNumber)]);
       setIsAddingRule(false);
       triggerToast("Intelligence Policy Created & Continuous Feed Repopulated!", "success");
-    // eslint-disable-next-line sonarjs/no-ignored-exceptions
     } catch (error) {
       triggerToast("Failed to save Sourcing Rule to the server.", "warn");
     }

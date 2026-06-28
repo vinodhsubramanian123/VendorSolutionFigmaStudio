@@ -172,11 +172,7 @@ export function DocumentPipelinePanel() {
           </p>
         </div>
         {isDragging && (
-          <motion.div
-            className="absolute inset-0 rounded-xl border-2 border-indigo-500 pointer-events-none"
-            animate={{ opacity: [1, 0.4, 1] }}
-            transition={{ duration: 0.8, repeat: Infinity }}
-          />
+          <div className="absolute inset-0 rounded-xl border-2 border-indigo-500 pointer-events-none animate-pulse" />
         )}
       </div>
       {/* Job list */}

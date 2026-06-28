@@ -16,7 +16,6 @@ interface AdviceFileIngestionProps {
   onDraftAdviceRule: (item: AdviceTriageItem) => void;
   adviceItems: AdviceTriageItem[];
   setAdviceItems: React.Dispatch<React.SetStateAction<AdviceTriageItem[]>>;
-  // eslint-disable-next-line sonarjs/use-type-alias
   bomItems: Record<string, string | number | boolean | null>[];
   setBomItems: React.Dispatch<React.SetStateAction<Record<string, string | number | boolean | null>[]>>;
   configRows: Record<string, string | number | boolean | null>[];
@@ -101,7 +100,6 @@ export function AdviceFileIngestion({
   return (
     <div className="p-4 flex flex-col gap-4 max-h-[380px] overflow-y-auto custom-scrollbar flex-1">
       {!uploadSuccess ? (
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
         <div
           onDragEnter={handleDrag}
           onDragOver={handleDrag}

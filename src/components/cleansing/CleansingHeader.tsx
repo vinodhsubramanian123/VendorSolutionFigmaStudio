@@ -24,10 +24,21 @@ export function CleansingHeader({
   handleAutoMap,
 }: CleansingHeaderProps) {
   return (
-    <div
-      className="p-5 rounded-xl border"
-      style={{ background: "rgba(7,10,19,0.8)", borderColor: "rgba(74,133,253,0.12)" }}
+    <motion.div
+      layout
+      className={`p-5 rounded-xl border relative overflow-hidden transition-all duration-300 ${
+        isRunningAutoMap ? "shadow-[0_0_20px_rgba(16,185,129,0.2)] border-emerald-500/30" : "border-indigo-500/15"
+      }`}
+      style={{ background: "rgba(7,10,19,0.8)" }}
     >
+      {isRunningAutoMap && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.5, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="absolute inset-0 bg-emerald-500/5 pointer-events-none"
+        />
+      )}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
@@ -54,8 +65,12 @@ export function CleansingHeader({
             disabled={isRunningAutoMap}
             className="flex items-center gap-1.5 text-[11px] font-bold px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition cursor-pointer disabled:opacity-50"
           >
-            {isRunningAutoMap ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-yellow-300" />}
-            Auto-Map
+            {isRunningAutoMap ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Zap className="w-3.5 h-3.5 text-yellow-300" />
+            )}
+            {isRunningAutoMap ? "Mapping..." : "Auto-Map"}
           </button>
         </div>
       </div>
@@ -92,6 +107,6 @@ export function CleansingHeader({
           <span className="text-white font-bold font-mono">{coveragePercent}%</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

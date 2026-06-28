@@ -1,0 +1,19 @@
+{
+  "threshold": 0,
+  "reporters": ["html", "console"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/lib/mockData/**",
+    "src/types/schemas/**"
+  ],
+  "absolute": true,
+  "minLines": 10,
+  "minTokens": 50,
+  "format": ["typescript", "tsx", "javascript", "jsx"]
+}

@@ -220,7 +220,8 @@ function KnowledgeGraphCanvasInner({ apiNodes, apiEdges, apiPaths = [], activeSe
           }
         }
       } catch (e) {
-        // ignore parse errors for non-JSON drops
+        // Non-JSON drag data (e.g. OS file drops) — not an error condition
+        console.debug('[KnowledgeGraphCanvas] Ignored non-JSON drag payload:', e);
       }
     },
     [reactFlowInstance, onNodeDrop]
@@ -228,7 +229,6 @@ function KnowledgeGraphCanvasInner({ apiNodes, apiEdges, apiPaths = [], activeSe
 
   return (
     <ErrorBoundary>
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div className="w-full h-full min-h-[600px] bg-[#03050a] border border-white/5 rounded-xl overflow-hidden relative" onDragOver={onDragOver} onDrop={onDrop}>
         <ReactFlow
           nodes={nodes}

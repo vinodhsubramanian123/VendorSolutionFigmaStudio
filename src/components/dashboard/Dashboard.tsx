@@ -16,6 +16,7 @@ import { UCID_STEPS } from "../../lib/mockData";
 import { useChartDimensions } from "../../hooks/useChartDimensions";
 import type { AppView, UCID, Vendor, ForensicIssue } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { useCoreStore } from "../../store/coreStore";
 import { KpiCard } from "./KpiCard";
 import { VendorHealthList } from "./VendorHealthList";
 import { ActiveIssuesList } from "./ActiveIssuesList";
@@ -24,16 +25,14 @@ import { VendorStatusBoard } from "./VendorStatusBoard";
 import { UcidPipelineCard } from "./UcidPipelineCard";
 interface DashboardProps {
   onNavigate: (v: AppView) => void;
-  ucids: UCID[];
-  vendors: Vendor[];
-  forensicIssues: ForensicIssue[];
 }
 export function Dashboard({
   onNavigate,
-  ucids,
-  vendors,
-  forensicIssues,
 }: DashboardProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const vendors = useCoreStore((s) => s.vendors);
+  const forensicIssues = useCoreStore((s) => s.forensicIssues);
+  
   const [hovered, setHovered] = useState<string | null>(null);
   const areaChart = useChartDimensions();
   const pieChart = useChartDimensions();
@@ -169,14 +168,12 @@ export function Dashboard({
         animate={{ 
           opacity: 1, 
           scale: 1, 
-          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] 
         }}
         transition={{ 
           opacity: { duration: 0.4, ease: "easeOut" },
           scale: { duration: 0.4, ease: "easeOut" },
-          backgroundPosition: { duration: 15, repeat: Infinity, ease: "linear" }
         }}
-        className="rounded-xl p-4 flex items-center justify-between relative overflow-hidden"
+        className="rounded-xl p-4 flex items-center justify-between relative overflow-hidden animate-gradient"
         style={{
           background: "linear-gradient(270deg, rgba(74, 133, 253, 0.12) 0%, rgba(0,212,160,0.06) 50%, rgba(74, 133, 253,0.12) 100%)",
           backgroundSize: "200% 200%",

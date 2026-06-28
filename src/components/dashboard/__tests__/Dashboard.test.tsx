@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Dashboard } from '../Dashboard';
 import { useCoreStore } from '../../../store/coreStore';
+import type { CoreState } from '../../../store/coreStore';
+import { createMockCoreState } from '../../../tests/shared/mockFactories';
 
 vi.mock('../../../store/coreStore', () => ({
   useCoreStore: vi.fn()
@@ -10,14 +12,14 @@ vi.mock('../../../store/coreStore', () => ({
 
 describe('Dashboard Component', () => {
   beforeEach(() => {
-    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({ solutions: [], ucids: [] }));
+    vi.mocked(useCoreStore).mockImplementation((selector: (state: CoreState) => unknown) => selector(createMockCoreState({ solutions: [], ucids: [], forensicIssues: [], vendors: [] })));
   });
   it('renders an empty state UI when no ucids exist', () => {
     render(
       <Dashboard 
-        ucids={[]} 
-        vendors={[]}
-        forensicIssues={[]}
+         
+        
+        
         onNavigate={vi.fn()} 
       />
     );
@@ -29,38 +31,21 @@ describe('Dashboard Component', () => {
   });
 
   it('renders dashboard pipeline stats properly when data exists', () => {
-    const mockSolutions = [{ id: '11111111-1111-1111-8111-111111111111', ucidIds: ['global-1'] }];
-    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({ solutions: mockSolutions, ucids: [] }));
-
+    const mockSolutions = [{ id: '11111111-1111-1111-8111-111111111111', ucidIds: ['global-1'] }] as any;
     const mockUcids = [
       {
         id: 'global-1',
-        displayId: 'UCID-2026-9999',
-        name: 'Test',
-        currentStep: 'solution-design' as const,
-        completedSteps: [],
-        rawBOM: 'raw data',
-        solutions: [],
-        events: [],
-        snapshots: [],
-
-        priority: 'high' as const,
-        projectRef: 'proj',
-        syncStatus: 'Pending' as const,
-        createdAt: new Date().toISOString(),
-        solutionId: "11111111-1111-1111-8111-111111111111",
-        solutionDisplayId: "SOL-2026-001",
-        configIndex: 1,
-        configLabel: "Config 1",
-        parallelGroup: null
+        currentStep: 'solution-design'
       }
-    ];
+    ] as any;
+
+    vi.mocked(useCoreStore).mockImplementation((selector: (state: CoreState) => unknown) => selector(createMockCoreState({ solutions: mockSolutions, ucids: mockUcids, forensicIssues: [], vendors: [] })));
 
     render(
       <Dashboard 
-        ucids={mockUcids} 
-        vendors={[]}
-        forensicIssues={[]}
+         
+        
+        
         onNavigate={vi.fn()} 
       />
     );

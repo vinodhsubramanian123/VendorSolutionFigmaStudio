@@ -1,36 +1,29 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ReconciliationEmpty } from "./ReconciliationEmpty";
 import { ReconciliationOverview } from "./ReconciliationOverview";
 import { ReconciliationDrillDown } from "./ReconciliationDrillDown";
-import type { UCID, CatalogSKU, Vendor, ForensicIssue } from "../../types";
-import {  Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { SnapshotsPanel } from "./SnapshotsPanel";
-interface ReconciliationViewProps {
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  catalogSkus: CatalogSKU[];
-  forensicIssues?: ForensicIssue[];
-  setForensicIssues?: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
-  setVendors?: React.Dispatch<React.SetStateAction<Vendor[]>>;
-}
-export function ReconciliationView({
-  ucids,
-  setUcids,
-  catalogSkus,
-  forensicIssues,
-  setForensicIssues,
-  setVendors,
-}: ReconciliationViewProps) {
-  const [hasDrift, setHasDrift] = useState(() => {
-    return ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot" || u.currentStep === "solution-design" || (u.solutions && u.solutions.length > 0));
-  });
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHasDrift(ucids.some(u => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot" || u.currentStep === "solution-design" || (u.solutions && u.solutions.length > 0)));
-  }, [ucids]);
+import { useCoreStore } from "../../store/coreStore";
+
+export function ReconciliationView() {
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
+  const catalogSkus = useCoreStore((s) => s.catalogSkus);
+  const forensicIssues = useCoreStore((s) => s.forensicIssues);
+  const setForensicIssues = useCoreStore((s) => s.setForensicIssues);
+  const setVendors = useCoreStore((s) => s.setVendors);
+  const hasDrift = useMemo(() =>
+    ucids.some(u =>
+      u.currentStep === "post-intelligence" ||
+      u.currentStep === "comparison" ||
+      u.currentStep === "snapshot" ||
+      u.currentStep === "solution-design" ||
+      (u.solutions && u.solutions.length > 0)
+    ), [ucids]);
   const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
   // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
 
@@ -91,7 +84,6 @@ export function ReconciliationView({
         </div>
       </div>
       <ReconciliationOverview 
-        setHasDrift={setHasDrift} 
         setSelectedConfigSheet={setSelectedConfigSheet} 
         ucids={ucids}
         setUcids={setUcids}

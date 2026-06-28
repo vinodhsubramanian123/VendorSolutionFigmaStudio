@@ -11,6 +11,7 @@ import {
 import { UCID, Vendor, CatalogSKU } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { TopBarSearch } from "./TopBarSearch";
+import { useCoreStore } from "../../store/coreStore";
 
 interface TopBarProps {
   activeView: string;
@@ -20,9 +21,6 @@ interface TopBarProps {
   apiProgress?: number;
   isPendingAPI?: boolean;
   syncHealth?: { status: "healthy" | "warning" | "error"; message: string };
-  ucids?: UCID[];
-  vendors?: Vendor[];
-  catalogSkus?: CatalogSKU[];
   onSelectMission?: (id: string) => void;
 }
 
@@ -34,11 +32,12 @@ export function TopBar({
   apiProgress,
   isPendingAPI,
   syncHealth,
-  ucids = [],
-  vendors = [],
-  catalogSkus = [],
   onSelectMission,
 }: TopBarProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const vendors = useCoreStore((s) => s.vendors);
+  const catalogSkus = useCoreStore((s) => s.catalogSkus);
+  
   const navigate = useNavigate();
   const toast = useToast();
   const [timeStr, setTimeStr] = useState(() => {

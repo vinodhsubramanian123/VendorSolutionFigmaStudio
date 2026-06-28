@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { ForensicView } from '../../src/components/forensics/ForensicView';
 import type { ForensicIssue, SourcingRule, LearningEvent, UCID, Vendor, CatalogSKU } from '../../src/types';
 import { ToastProvider } from '../../src/components/shared/ToastContext';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
+import { useCoreStore } from '../../src/store/coreStore';
+import { createMockCoreState } from '../../src/tests/shared/mockFactories';
+
+vi.mock('../../src/store/coreStore', () => ({
+  useCoreStore: vi.fn(),
+}));
 
 const server = setupServer(
   http.post('http://localhost:3000/api/forensics/align', () => {
@@ -76,25 +82,30 @@ function TestWrapper() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [catalogSkus, setCatalogSkus] = useState<CatalogSKU[]>([]);
   const [activeMissionId, setActiveMissionId] = useState<string | undefined>('mock-ucid-1');
-
   (window as any).TEST_STATE = { forensicIssues, sourcingRules, learningEvents };
+
+  vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({
+    forensicIssues,
+    setForensicIssues: (val: any) => setForensicIssues(prev => typeof val === 'function' ? val(prev) : val),
+    sourcingRules,
+    setSourcingRules: (val: any) => setSourcingRules(prev => typeof val === 'function' ? val(prev) : val),
+    learningEvents,
+    setLearningEvents: (val: any) => setLearningEvents(prev => typeof val === 'function' ? val(prev) : val),
+    ucids,
+    setUcids: (val: any) => setUcids(prev => typeof val === 'function' ? val(prev) : val),
+    vendors,
+    setVendors: (val: any) => setVendors(prev => typeof val === 'function' ? val(prev) : val),
+    catalogSkus,
+    setCatalogSkus: (val: any) => setCatalogSkus(prev => typeof val === 'function' ? val(prev) : val),
+    activeSolutionId: null,
+    activeMissionId,
+    setActiveMissionId: (val: any) => setActiveMissionId(prev => typeof val === 'function' ? val(prev) : val),
+    solutions: []
+  })));
 
   return (
     <ToastProvider>
-      <ForensicView
-        forensicIssues={forensicIssues}
-        setForensicIssues={setForensicIssues}
-        setVendors={setVendors}
-        setCatalogSkus={setCatalogSkus}
-        ucids={ucids}
-        setUcids={setUcids}
-        activeMissionId={activeMissionId}
-        setActiveMissionId={setActiveMissionId}
-        sourcingRules={sourcingRules}
-        setSourcingRules={setSourcingRules}
-        learningEvents={learningEvents}
-        setLearningEvents={setLearningEvents}
-      />
+      <ForensicView />
     </ToastProvider>
   );
 }

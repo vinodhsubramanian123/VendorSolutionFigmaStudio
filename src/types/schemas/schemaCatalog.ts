@@ -24,7 +24,7 @@ export const VendorSchema = z.object({
   lastSync: z.string(),
   credentials: z.object({
     username: z.string(),
-    password: z.string().optional(),
+    apiToken: z.string().optional(),
     mfaToken: z.string().optional(),
   }).optional(),
 });

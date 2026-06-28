@@ -1,14 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "motion/react";
 import { Database, Globe, Target, Search, ArrowUpRight, Sparkles } from "lucide-react";
-import type { AppView, UCID, Vendor, CatalogSKU } from "../../types";
+import type { AppView, UCID } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+
+import { useCoreStore } from "../../store/coreStore";
 
 interface SearchViewProps {
   query: string;
-  ucids: UCID[];
-  vendors: Vendor[];
-  catalogSkus: CatalogSKU[];
   onNavigate: (view: AppView) => void;
   onSelectMission: (id: string) => void;
   onSearchChange?: (newQuery: string) => void;
@@ -47,13 +46,14 @@ function highlightText(text: string, query: string) {
 
 export function SearchView({
   query,
-  ucids,
-  vendors,
-  catalogSkus,
   onNavigate,
   onSelectMission,
   onSearchChange,
 }: SearchViewProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const vendors = useCoreStore((s) => s.vendors);
+  const catalogSkus = useCoreStore((s) => s.catalogSkus);
+  
   const [localInput, setLocalInput] = useState(query);
   const [prevQuery, setPrevQuery] = useState(query);
 

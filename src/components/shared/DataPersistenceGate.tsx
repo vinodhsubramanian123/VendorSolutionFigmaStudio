@@ -100,14 +100,12 @@ export function DataPersistenceGate({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
-        <motion.div
-          className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-          animate={{ boxShadow: ["0 0 20px rgba(239,68,68,0.2)", "0 0 35px rgba(239,68,68,0.35)", "0 0 20px rgba(239,68,68,0.2)"] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        <div
+          className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)] animate-pulse"
         >
           <Database className="w-8 h-8 text-red-400 opacity-60 absolute" />
           <AlertCircle className="w-5 h-5 text-red-500 relative mt-4 ml-4" />
-        </motion.div>
+        </div>
 
         <motion.div
           className="text-center space-y-2 max-w-sm"

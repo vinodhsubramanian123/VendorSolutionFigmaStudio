@@ -18,12 +18,12 @@ test.describe('16 - Taxonomy Graph Constraint & Orphan Fix E2E', () => {
 
   test('should perform socket compatibility validation check', async ({ page }) => {
     // Select Chassis option
-    const chassisSelect = page.locator('select').first();
+    const chassisSelect = page.locator('#chassis-select');
     await chassisSelect.selectOption({ index: 1 });
     await delay(200);
 
     // Select CPU option
-    const cpuSelect = page.locator('select').nth(1);
+    const cpuSelect = page.locator('#cpu-select');
     await cpuSelect.selectOption({ index: 1 });
     await delay(200);
 

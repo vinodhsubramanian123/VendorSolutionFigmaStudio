@@ -3,6 +3,13 @@ import { ReconciliationView } from "../ReconciliationView";
 import { ToastProvider } from "../../shared/ToastContext";
 import { describe, it, expect, vi } from "vitest";
 import type { UCID } from "../../../types";
+import { createMockCoreState } from '../../../tests/shared/mockFactories';
+
+import { useCoreStore } from "../../../store/coreStore";
+
+vi.mock("../../../store/coreStore", () => ({
+  useCoreStore: vi.fn(),
+}));
 
 vi.mock("../ReconciliationOverview", () => ({
   ReconciliationOverview: () => <div data-testid="reconciliation-overview">Overview</div>
@@ -32,7 +39,22 @@ const mockUcids: UCID[] = [
     currentStep: "comparison",
     completedSteps: [],
     rawBOM: "raw bom 1",
-    solutions: [],
+    solutions: [
+      {
+        id: "sol-1",
+        vendorSubmissions: [
+          {
+            vendor: "HPE",
+            configs: [
+              {
+                id: "cfg-1",
+                items: [{ partNumber: "123", name: "test", type: "Chassis" }]
+              }
+            ]
+          }
+        ]
+      }
+    ] as any,
     events: [],
     snapshots: [],
   solutionId: "11111111-1111-1111-8111-111111111111",
@@ -73,18 +95,22 @@ const mockUcids: UCID[] = [
 describe("ReconciliationView", () => {
   it("renders empty state when no ucids have drift", () => {
     const syncedUcids: UCID[] = [{ ...mockUcids[1], currentStep: "boq-intake" }];
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: syncedUcids })));
+
     render(
       <ToastProvider>
-        <ReconciliationView ucids={syncedUcids} setUcids={vi.fn()} catalogSkus={[]} />
+        <ReconciliationView />
       </ToastProvider>
     );
     expect(screen.getByText("No Reconciliation Discrepancies")).toBeInTheDocument();
   });
 
   it("renders overview when there is drift", () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: mockUcids })));
+
     render(
       <ToastProvider>
-        <ReconciliationView ucids={mockUcids} setUcids={vi.fn()} catalogSkus={[]} />
+        <ReconciliationView />
       </ToastProvider>
     );
     expect(screen.getByText(/BOM DRIFT RECONCILIATION/i)).toBeInTheDocument();
@@ -94,9 +120,11 @@ describe("ReconciliationView", () => {
   });
 
   it("switches to Snapshots panel when clicked", () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: mockUcids })));
+
     render(
       <ToastProvider>
-        <ReconciliationView ucids={mockUcids} setUcids={vi.fn()} catalogSkus={[]} />
+        <ReconciliationView />
       </ToastProvider>
     );
     

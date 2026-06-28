@@ -76,8 +76,12 @@ The platform is structured into twelve unified navigation views, preserving a co
 *   **Objective**: Protect margins by mapping real-time pricing anomalies utilizing automated repair micro-scripts (re-computing base discount thresholds versus identified distributor markups) and hardware lifecycle checks (EOL risks).
 
 #### 3.6 Interactive Splicing & Mapping Workshop (Cleansing View)
-*   **Objective**: Resolve bad or corrupted supplier quote entries natively within the interface (handling spelling mistakes, incomplete tags).
-
+*   **Objective**: Act as the "Golden Master Gatekeeper" for all BOQ configurations before they are permitted into the Solution Builder. 
+*   **Core Capabilities**:
+    1.  **Auto-Mapping Resolution**: Resolve bad or corrupted supplier quote entries natively (handling spelling mistakes, incomplete tags).
+    2.  **Interactive BOQ Editor**: Perform inline quantity adjustments and add/remove catalog items natively without destroying the original source file.
+    3.  **1-to-N Quantity Forking (Split & Move Wizard)**: Visually split a single large configuration (e.g., 22 servers) into multiple divergent configurations (e.g., 5 servers with transceivers, 17 without) using a side-by-side moving wizard.
+    4.  **Immutable Audit Trail (Event Sourcing)**: All edits, additions, and splits are logged as `CleansingEvents` and batch-committed to the backend, preserving a cryptographic ledger of all changes made to the customer's original BOQ.
 #### 3.7 Taxonomic Procurement Knowledge Graph (Taxonomy Graph View)
 *   **Objective**: Interact with physically-binding server configurations to prevent installing incompatible parts (e.g., non-LGA4677 CPUs inside an LGA1700 chassis) using SVG/node visual validation. Provides a graphical interface and an automated diagnostic side-panel to resolve unmapped/orphaned hierarchical BOQ components utilizing user-guided Drag & Drop or Auto-Fix resolution paths. Also supports drag-and-drop reassignment of existing mapped elements to correct faulty topological branches manually.
 
@@ -199,178 +203,9 @@ To improve this application with subsequent AI models, consider the following pr
 
 To eliminate any ambiguity for backend engineering agents, the following definitions strictly dictate the input/output boundaries mapping directly to the endpoints documented in Section 4.
 
-```typescript
-// 1. Workbook Parsing
-export interface IngestRequest {
-  fileName: string;
-  presetType: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
-  rawText?: string;
-}
-
-export interface IngestResponse {
-  success: boolean;
-  message: string;
-  sourceFile: string;
-  ucid: import('../src/types/data').UCID; // Complete natively translated UCID entity
-  timestamp: string;
-  parsedSummary: {
-    vendorBrand: string;
-    detectedChassis: string;
-    itemsCount: number;
-    initialConfidenceScore: number;
-  };
-}
-
-// 2. Playwright Automation Scraper Web Crawl
-export interface PlaywrightRunRequest {
-  agentName: "AribaScraper" | "HPEMarketplace" | "DellPremierPortal";
-  ucidRef: string;
-  targetPortalUrl: string;
-  bypassCaptchas: boolean;
-}
-
-export interface PlaywrightRunResponse {
-  taskId: string;
-  status: "idle" | "running" | "success" | "failed";
-  executionTimeMs: number;
-  crawledItemsExtracted: number;
-  logTrail: Array<{
-    timestamp: string;
-    level: "info" | "debug" | "warning" | "error";
-    message: string;
-  }>;
-}
-
-// 3. Hybrid Portfolio Orchestration
-export interface PortfolioOrchestrateRequest {
-  portfolioId: string;
-  ucids: Array<{ id: string; channel: 'manual' | 'automated'; vendor: string }>;
-}
-
-export interface PortfolioOrchestrateResponse {
-  success: boolean;
-  transactionId: string;
-  status: 'orchestrating' | 'failed';
-  timestamp: string;
-}
-
-export interface PortfolioManualUploadRequest {
-  portfolioId: string;
-  ucidRef: string;
-  filename: string;
-  configsMatchedCount: number;
-  configs?: Array<{
-    configId: string;
-    status: 'synced' | 'pending';
-    priceUSD: number;
-  }>;
-}
-
-export interface PortfolioManualUploadResponse {
-  success: boolean;
-  reconciliationStatus: 'partial' | 'complete';
-  reconciledPriceUSD: number;
-  missingSlots: string[];
-  integrityScore: number;
-  message: string;
-}
-
-// 4. Reconciliation & Intelligence
-export interface ReconciliationRequest {
-  submissions: Array<{
-    id: string;
-    vendor: string;
-    configs: Array<{
-      items: Array<{
-        partNumber: string;
-        quantity: number;
-        unitPrice: number;
-        type: string;
-      }>;
-    }>;
-  }>;
-}
-
-export interface ReconciliationResponse {
-  comparisonHash: string;
-  calculatedAt: string;
-  metrics: {
-    cheapestSolutionId: string;
-    highestComplianceId: string;
-    totalSavingsUSD: number;
-    optimumHybridAlternative: {
-      totalCost: number;
-      chassisVendor: string;
-      componentsCount: number;
-    };
-  };
-  matrix: Array<{
-    solutionId: string;
-    vendor: string;
-    baseCost: number;
-    negotiatedContractCost: number;
-    variancePercentage: number;
-    leadTimeBottleneckDays: number;
-    deliveryConfidenceRating: number;
-  }>;
-}
-
-// 5. Taxonomy Validation
-export interface ConstraintCheckRequest {
-  chassisSKU: string;
-  cpuSKU: string;
-  ramQuantity: number;
-  psuWattsCount: number;
-}
-
-export interface ConstraintCheckResponse {
-  isCompliant: boolean;
-  socketMatch: {
-    status: "compatible" | "asymmetric" | "blocked";
-    chassisSocket: string;
-    cpuSocket: string;
-    description: string;
-  };
-  powerLimitTest: { passed: boolean; estimatedTdpWatts: number; maxSupportedWatts: number; marginWatts: number; };
-  memoryBalanceCheck: { passed: boolean; quantity: number; optimalLayoutSymmetry: number; recommendsCorrection: boolean; message: string; };
-}
-
-// 6. Outbound Synchronizations
-export interface WebhookDispatchRequest {
-  endpointUrl: string;
-  secretToken: string;
-  ucidRef: string;
-  payloadData: { snapshotHash: string; committedValue: number; winnerSolution: string; timestamp: string; };
-}
-
-export interface WebhookDispatchResponse {
-  dispatchId: string;
-  status: "delivered" | "retrying" | "endpoint_unreachable";
-  cryptographicSignature: string;
-  auditLog: Array<{ attemptNumber: number; timestamp: string; httpStatusCode: number; responseBody: string; }>;
-}
-
-// 7. Taxonomy Graph & Relationships
-export interface GraphNode {
-  id: string;
-  label: string;
-  type: "Product" | "Sub-product" | "Category" | "Sub-category" | "SKU";
-  properties?: Record<string, unknown>;
-}
-
-export interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  relationship: "depends on" | "mutually exclusive" | "hierarchy";
-}
-
-export interface GraphAPIResponse {
-  metadata: { id: string; lastUpdated?: string; version?: string; };
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
-```
+> [!CAUTION]
+> All DTO contracts are declared natively in `src/types/schemas/schemaDTO.ts` and `src/types/schemas/schemaGraph.ts`. Do not duplicate schemas here to prevent schema drift.
+> Always consult the source-of-truth files for exact interfaces.
 
 ---
 

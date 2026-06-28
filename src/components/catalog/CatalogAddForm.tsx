@@ -46,12 +46,10 @@ export function CatalogAddForm({
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div 
       className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       role="dialog"
       aria-modal="true"
@@ -74,7 +72,7 @@ export function CatalogAddForm({
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white cursor-pointer"
+            className="text-gray-400 hover:text-white cursor-pointer"
             type="button"
           >
             <X className="w-4 h-4" />

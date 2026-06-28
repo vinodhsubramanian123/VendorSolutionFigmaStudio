@@ -6,6 +6,7 @@ import {
   ForensicIssueSchema, 
   BOMItemSchema
 } from '../../src/types/zodSchemas';
+import { CleansingEventSchema } from '../../src/types/schemas/schemaDTO';
 import { UCIDS, VENDORS, CATALOG_SKUS, FORENSIC_ISSUES } from '../../src/lib/mockData';
 import { UCID, Vendor, CatalogSKU, ForensicIssue } from '../../src/types';
 
@@ -92,5 +93,57 @@ describe('Zod Schema Integration Tests', () => {
     
     const result = CatalogSKUSchema.safeParse(invalidSKU);
     expect(result.success).toBe(false);
+  });
+
+  it('should validate valid CleansingEvent payloads', () => {
+    const validSplitEvent = {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      eventType: "SPLIT_CONFIG",
+      timestamp: "2026-06-28T18:00:00Z",
+      reason: "Customer divergence",
+      sourceConfigId: "cfg-1",
+      destinationConfigId: "cfg-2",
+      transferredItems: [
+        { partNumber: "P123", quantityToMove: 5 }
+      ]
+    };
+    
+    const result = CleansingEventSchema.safeParse(validSplitEvent);
+    expect(result.success).toBe(true);
+
+    const validQtyEvent = {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      eventType: "QUANTITY_UPDATE",
+      timestamp: "2026-06-28T18:00:00Z",
+      reason: "Correcting multiplier",
+      targetPartNumber: "P123",
+      oldQuantity: 10,
+      newQuantity: 15
+    };
+    expect(CleansingEventSchema.safeParse(validQtyEvent).success).toBe(true);
+  });
+
+  it('should reject invalid CleansingEvent payloads (Negative Path)', () => {
+    const invalidSplitEvent = {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      eventType: "SPLIT_CONFIG",
+      timestamp: "2026-06-28T18:00:00Z",
+      reason: "Missing transferred items",
+      sourceConfigId: "cfg-1",
+      destinationConfigId: "cfg-2",
+      // Missing transferredItems
+    };
+    expect(CleansingEventSchema.safeParse(invalidSplitEvent).success).toBe(false);
+
+    const invalidQtyEvent = {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      eventType: "QUANTITY_UPDATE",
+      timestamp: "2026-06-28T18:00:00Z",
+      reason: "Negative quantity",
+      targetPartNumber: "P123",
+      oldQuantity: 10,
+      newQuantity: -5 // Negative quantity
+    };
+    expect(CleansingEventSchema.safeParse(invalidQtyEvent).success).toBe(false);
   });
 });

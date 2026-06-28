@@ -5,6 +5,7 @@ import { Info } from "lucide-react";
 import type { CatalogSKU, Vendor, TaxonomyPath } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useToast } from "../shared/ToastContext";
+import { useCoreStore } from "../../store/coreStore";
 import { matchesDeepPath } from "../../utils/catalogUtils";
 import { CatalogHeader } from "./CatalogHeader";
 import { CatalogAddForm } from "./CatalogAddForm";
@@ -53,22 +54,16 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
       return state;
   }
 }
-interface CatalogManagerProps {
-  catalogSkus: CatalogSKU[];
-  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
-  vendors?: Vendor[];
-}
+
 // Extracted matchesDeepPath to src/utils/catalogUtils.ts
-export function CatalogManager({
-  catalogSkus,
-  setCatalogSkus,
-  vendors,
-}: CatalogManagerProps) {
+export function CatalogManager() {
+  const catalogSkus = useCoreStore((s) => s.catalogSkus);
+  const setCatalogSkus = useCoreStore((s) => s.setCatalogSkus);
+  const vendors = useCoreStore((s) => s.vendors);
    
    
    
-  // eslint-disable-next-line sonarjs/no-unused-vars
-  const { success, warn, error } = useToast();
+  const { error } = useToast();
   
   const [filterState, dispatch] = useReducer(filterReducer, DEFAULT_FILTER_STATE);
   const { searchTerm, vendorFilter, typeFilter, selectedPath } = filterState;
@@ -131,7 +126,7 @@ export function CatalogManager({
     setEditingSkuId(sku.id);
     setEditedPrice(sku.price.toString());
   }, []);
-  const savePrice = useCallback(async (skuId: string) => {
+  const savePrice = useCallback((skuId: string) => {
     const parsedPrice = parseFloat(editedPrice);
     if (isNaN(parsedPrice) || parsedPrice <= 0) return;
     const prevPrice = catalogSkus.find((s) => s.id === skuId)?.price;
@@ -142,18 +137,15 @@ export function CatalogManager({
     setEditingSkuId(null);
     
     // Background API call
-    try {
-      await apiClient.put(`/api/catalog/${skuId}`, { price: parsedPrice });
-    // eslint-disable-next-line sonarjs/no-ignored-exceptions
-    } catch (e) {
+    apiClient.put(`/api/catalog/${skuId}`, { price: parsedPrice }).catch((e) => {
       if (prevPrice !== undefined) {
         setCatalogSkus((skus) => skus.map((s) => (s.id === skuId ? { ...s, price: prevPrice } : s)));
       }
       error("Price sync failed. Rolled back.");
       console.error("Failed to sync price with API");
-    }
+    });
   }, [editedPrice, catalogSkus, setCatalogSkus, error]);
-  const handleAddSku = useCallback(async (data: Omit<CatalogSKU, "id" | "status">) => {
+  const handleAddSku = useCallback((data: Omit<CatalogSKU, "id" | "status">) => {
     const newSku: CatalogSKU = {
       id: crypto.randomUUID(),
       ...data,
@@ -162,14 +154,12 @@ export function CatalogManager({
     // Optimistic Update
     setCatalogSkus((prev) => [...prev, newSku]);
     setShowAddForm(false);
-    try {
-      await apiClient.post("/api/catalog", newSku);
-    // eslint-disable-next-line sonarjs/no-ignored-exceptions
-    } catch(err) {
+    
+    apiClient.post("/api/catalog", newSku).catch((err) => {
       setCatalogSkus((prev) => prev.filter((s) => s.id !== newSku.id));
       error("Failed to add SKU. Rolled back.");
       console.error("Failed to add new SKU via API");
-    }
+    });
   }, [setCatalogSkus, error]);
   const deleteSku = useCallback((skuId: string) => {
     const deletedSku = catalogSkus.find((s) => s.id === skuId);

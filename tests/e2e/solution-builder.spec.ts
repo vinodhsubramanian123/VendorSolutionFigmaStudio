@@ -28,7 +28,7 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
     await expect(proceedBtn).toBeVisible({ timeout: 15000 });
     
     // We should NOT see the step 2 grid yet
-    await expect(page.getByText('Deploy to Mission Control')).toBeHidden();
+    await expect(page.getByText('Deploy Solutions to Live Mission Control')).toBeHidden();
   });
 
   test('should automatically bypass Step 1 if global data is injected', async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
     await expect(page.getByText('Proceed to Assignment Map (Step 2)')).toBeHidden();
     
     // We should directly see Step 2
-    await expect(page.getByText('Deploy to Mission Control')).toBeVisible();
+    await expect(page.getByText('Deploy Solutions to Live Mission Control')).toBeVisible();
     await expect(page.locator('.font-mono', { hasText: 'UCID-' }).first()).toBeVisible();
     
     // Check for exact state enums like "pending", "automated" or lock status

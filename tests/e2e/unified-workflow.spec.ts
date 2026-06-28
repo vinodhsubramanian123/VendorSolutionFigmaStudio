@@ -50,7 +50,7 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       await delay(1000);
 
       // Assert we are in Solution Builder
-      await expect(page.getByText('Multi-Client Quote Compilation Desk').first()).toBeVisible();
+      await expect(page.getByText('Mission Builder').first()).toBeVisible();
       
       // CRITICAL ASSERTION: Since data was ingested in Phase 1, Step 1 (BOQ Intake) should be bypassed.
       // We should directly see Step 2 (UCID Assignment Map) and the deployed containers grid.

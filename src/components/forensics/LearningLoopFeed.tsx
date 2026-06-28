@@ -89,14 +89,12 @@ export function LearningLoopFeed({
               <h3 className="text-sm font-semibold text-white">
                 Intelligence Learning Loop
               </h3>
-              <motion.span
-                className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider"
-                animate={{ opacity: [1, 0.6, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
+              <span
+                className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider animate-pulse"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                 LIVE
-              </motion.span>
+              </span>
             </div>
             <p className="text-[11px] text-gray-500 mt-0.5">
               Auto-heal events that trained the catalog intelligence database

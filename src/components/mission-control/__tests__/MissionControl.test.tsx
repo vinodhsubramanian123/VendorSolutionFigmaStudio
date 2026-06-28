@@ -64,7 +64,7 @@ describe('MissionControl', () => {
   it('renders correctly with default empty selection', () => {
     render(
       <ToastProvider>
-        <MissionControl ucids={[]} setUcids={defaultProps.setUcids} onSelectId={defaultProps.onSelectId} onNavigate={defaultProps.onNavigate} />
+        <MissionControl   onSelectId={defaultProps.onSelectId} onNavigate={defaultProps.onNavigate} />
       </ToastProvider>
     );
     expect(screen.getByText(/No Active Missions/i)).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe('MissionControl', () => {
   it('passes a11y testing for the main dashboard view', async () => {
     const { container } = render(
       <ToastProvider>
-        <MissionControl ucids={mockUcids} setUcids={defaultProps.setUcids} onSelectId={defaultProps.onSelectId} onNavigate={defaultProps.onNavigate} />
+        <MissionControl   onSelectId={defaultProps.onSelectId} onNavigate={defaultProps.onNavigate} />
       </ToastProvider>
     );
     const results = await axe(container);

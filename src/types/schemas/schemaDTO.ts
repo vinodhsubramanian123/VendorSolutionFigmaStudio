@@ -132,6 +132,7 @@ export const ReconciliationResponseSchema = z.object({
       deliveryConfidenceRating: z.number().min(0).max(100),
     })
   ),
+  discrepancyCount: z.number().int().nonnegative().optional(),
 });
 export const ConstraintCheckRequestSchema = z.object({
   chassisSKU: z.string().min(1),
@@ -193,11 +194,21 @@ export const PlaywrightAgentConfigSchema = z.object({
   timeoutMs: z.number().int().positive(),
   maxRetries: z.number().int().nonnegative(),
   proxyRotation: z.boolean(),
+  baseUrl: z.string().url().optional(),
+  maxParallelWorkers: z.number().int().positive().optional(),
+  emulateMobile: z.boolean().optional(),
+  geolocation: z.object({ lat: z.number(), lng: z.number() }).optional(),
+  timezone: z.string().optional(),
+  userAgent: z.string().optional(),
+  videoRecording: z.enum(["on", "off", "retain-on-failure"]).optional(),
+  traceRecording: z.enum(["on", "off", "retain-on-failure"]).optional(),
 });
 export const PlaywrightExecutionLogSchema = z.object({
   timestamp: z.string(),
-  level: z.enum(["info", "debug", "screenshot", "error"]),
+  level: z.enum(["info", "warn", "ok", "error", "debug", "screenshot"]),
   message: z.string(),
+  source: z.enum(["agent", "browser", "network", "assertion"]).optional(),
+  screenshotId: z.string().optional(),
   screenshotUrl: z.string().optional(),
 });
 export const PlaywrightAgentTaskSchema = z.object({
@@ -206,16 +217,21 @@ export const PlaywrightAgentTaskSchema = z.object({
   ucidRef: z.string(),
   startedAt: z.string(),
   completedAt: z.string().optional(),
-  status: z.enum(["idle", "running", "success", "failed", "rate-limited"]),
+  status: z.enum(["idle", "running", "success", "failed", "rate-limited", "completed", "timed-out"]),
   config: PlaywrightAgentConfigSchema,
   logs: z.array(PlaywrightExecutionLogSchema),
   metrics: z.object({
-    pagesNavigated: z.number().int().nonnegative(),
-    selectorsResolved: z.number().int().nonnegative(),
-    bandwidthBytes: z.number().nonnegative(),
-    durationMs: z.number().nonnegative(),
+    pagesNavigated: z.number().int().nonnegative().optional(),
+    selectorsResolved: z.number().int().nonnegative().optional(),
+    bandwidthBytes: z.number().nonnegative().optional(),
+    durationMs: z.number().nonnegative().optional(),
+    ttfbMs: z.number().nonnegative().optional(),
+    domInteractiveMs: z.number().nonnegative().optional(),
+    fullyLoadedMs: z.number().nonnegative().optional(),
+    elementInteractions: z.number().int().nonnegative().optional(),
   }),
-  extractedItemsCount: z.number().int().nonnegative(),
+  extractedItemsCount: z.number().int().nonnegative().optional(),
+  progressPercentage: z.number().min(0).max(100).optional(),
 });
 export const AdviceResolutionSchema = z.object({
   id: z.string(),
@@ -234,3 +250,55 @@ export const RuleConflictSchema = z.object({
   existingMappedOutput: z.string(),
   description: z.string(),
 });
+
+export const CleansingEventTypeSchema = z.enum([
+  "QUANTITY_UPDATE",
+  "ADD_ITEM",
+  "REMOVE_ITEM",
+  "SPLIT_CONFIG",
+]);
+
+export const BaseCleansingEventSchema = z.object({
+  id: z.string(),
+  eventType: CleansingEventTypeSchema,
+  timestamp: z.string(),
+  reason: z.string(),
+});
+
+export const QuantityUpdateEventSchema = BaseCleansingEventSchema.extend({
+  eventType: z.literal("QUANTITY_UPDATE"),
+  targetPartNumber: z.string().min(1),
+  oldQuantity: z.number().int().nonnegative(),
+  newQuantity: z.number().int().nonnegative(),
+});
+
+export const AddItemEventSchema = BaseCleansingEventSchema.extend({
+  eventType: z.literal("ADD_ITEM"),
+  partNumber: z.string().min(1),
+  name: z.string().min(1),
+  quantity: z.number().int().positive(),
+});
+
+export const RemoveItemEventSchema = BaseCleansingEventSchema.extend({
+  eventType: z.literal("REMOVE_ITEM"),
+  targetPartNumber: z.string().min(1),
+});
+
+export const SplitConfigEventSchema = BaseCleansingEventSchema.extend({
+  eventType: z.literal("SPLIT_CONFIG"),
+  sourceConfigId: z.string(),
+  destinationConfigId: z.string(),
+  transferredItems: z.array(
+    z.object({
+      partNumber: z.string().min(1),
+      quantityToMove: z.number().int().positive(),
+    })
+  ),
+});
+
+export const CleansingEventSchema = z.union([
+  QuantityUpdateEventSchema,
+  AddItemEventSchema,
+  RemoveItemEventSchema,
+  SplitConfigEventSchema,
+]);

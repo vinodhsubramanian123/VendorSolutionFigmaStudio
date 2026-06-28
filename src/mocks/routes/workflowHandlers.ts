@@ -1,9 +1,9 @@
 import { http, HttpResponse, delay } from 'msw';
-import { MockCatalogApi, MockSnapshotApi, MockSolutionApi, MockTaxonomyApi } from '../../lib/api-mock';
-import { CatalogSKU, Config, Snapshot,        UCID } from '../../types';
+import { MockCatalogApi, MockSolutionApi, MockTaxonomyApi } from '../../lib/api-mock';
+import { CatalogSKU, Config, UCID } from '../../types';
 import { BOQ_PRESETS } from '../boqMocks';
 import { wrapSuccess} from './sharedState';
-export const coreHandlers = [
+export const workflowHandlers = [
   http.get('/api/jobs/:id', async ({ params }) => {
     if (process.env.NODE_ENV !== 'test') await delay(600);
     return HttpResponse.json(wrapSuccess({
@@ -42,31 +42,6 @@ export const coreHandlers = [
     await MockCatalogApi.deleteCatalogSku(params.id as string);
     return HttpResponse.json(wrapSuccess({}));
   }),
-  // GET /api/ucids/:ucid/snapshots
-  http.get('/api/ucids/:ucid/snapshots', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(600);
-    const data = await MockSnapshotApi.getSnapshots();
-    return HttpResponse.json(wrapSuccess(data));
-  }),
-  // POST /api/ucids/:ucid/snapshots
-  http.post('/api/ucids/:ucid/snapshots', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(600);
-    const body = await request.json();
-    const data = await MockSnapshotApi.addSnapshot(body as Snapshot);
-    return HttpResponse.json(wrapSuccess(data));
-  }),
-  // PATCH /api/ucids/:ucid/snapshots/:snapshotId/lock
-  http.patch('/api/ucids/:ucid/snapshots/:snapshotId/lock', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(600);
-    // Mock locking logic (just returning success)
-    return HttpResponse.json(wrapSuccess({ locked: true }));
-  }),
-  // DELETE /api/ucids/:ucid/snapshots/:snapshotId
-  http.delete('/api/ucids/:ucid/snapshots/:snapshotId', async ({ params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(600);
-    await MockSnapshotApi.deleteSnapshot(params.snapshotId as string);
-    return HttpResponse.json(wrapSuccess({}));
-  }),
   // GET /api/solution-builder/init
   http.get('/api/solution-builder/init', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(600);
@@ -87,7 +62,7 @@ export const coreHandlers = [
   }),
   // POST /api/jobs
   http.post('/api/jobs', async ({ request }) => {
-    const body = (await request.json().catch(() => ({}))) as any;
+    const body = (await request.json().catch(() => ({}))) as { context?: { executionMode?: string } };
     if (process.env.NODE_ENV !== 'test') await delay(800);
     
     // Skip automated provisioning/intelligence steps if execution mode is manual
@@ -147,7 +122,6 @@ export const coreHandlers = [
     const b = (await request.json()) as { configsMatchedCount?: number };
     return HttpResponse.json(wrapSuccess({ reconciliationStatus: b?.configsMatchedCount === 4 ? "complete" : "partial" }));
   }),
-  // POST /api/boq/ingest
   http.post('/api/boq/ingest', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
     const body = (await request.json()) as { presetType?: string; fileName?: string };
@@ -155,7 +129,7 @@ export const coreHandlers = [
     const preset = BOQ_PRESETS[presetType] || BOQ_PRESETS["hpe-legacy"];
     const ucidObj: UCID = {
       id: crypto.randomUUID(),
-      displayId: "UCID-2026-NEW",
+      displayId: "UCID-2026-9999",
       name: "Auto-Ingested Sourcing Job",
       priority: "high",
       projectRef: "PRJ-NEW-BOQ",
@@ -163,8 +137,8 @@ export const coreHandlers = [
       currentStep: "boq-intake",
       completedSteps: [],
       rawBOM: preset.rawText || "Parsed mock payload",
-      solutionId: "sol-api-mock",
-      solutionDisplayId: "SOL-API-MOCK",
+      solutionId: "sol-ylng-2026-001",
+      solutionDisplayId: "SOL-2026-001",
       configIndex: 1,
       configLabel: "API Config",
       parallelGroup: null,
@@ -173,12 +147,15 @@ export const coreHandlers = [
       snapshots: []
     };
     return HttpResponse.json(wrapSuccess({ 
-      ucid: ucidObj.displayId,
-      configsCreated: 2,
+      success: true,
+      message: "BOQ ingested successfully.",
       sourceFile: body?.fileName || "mock-upload.xlsx",
+      ucid: ucidObj.displayId,
+      timestamp: new Date().toISOString(),
       parsedSummary: {
         vendorBrand: "Consolidated",
         detectedChassis: "Multi-Node",
+        itemsCount: 12,
         initialConfidenceScore: 92
       },
       rawText: preset.rawText,
@@ -189,10 +166,38 @@ export const coreHandlers = [
   http.post('/api/reconciliation/compare', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({
-      boqItems: 24,
-      bomItems: 24,
-      matchRate: 100,
-      anomalies: 0,
+      comparisonHash: "hash-" + crypto.randomUUID(),
+      calculatedAt: new Date().toISOString(),
+      metrics: {
+        cheapestSolutionId: "vs-u1-dell",
+        highestComplianceId: "vs-u1-hpe",
+        totalSavingsUSD: 16200,
+        optimumHybridAlternative: {
+          totalCost: 235000,
+          chassisVendor: "Dell",
+          componentsCount: 12
+        }
+      },
+      matrix: [
+        {
+          solutionId: "vs-u1-hpe",
+          vendor: "HPE",
+          baseCost: 261000,
+          negotiatedContractCost: 244800,
+          variancePercentage: 6.2,
+          leadTimeBottleneckDays: 14,
+          deliveryConfidenceRating: 98
+        },
+        {
+          solutionId: "vs-u1-dell",
+          vendor: "Dell",
+          baseCost: 255200,
+          negotiatedContractCost: 239630,
+          variancePercentage: 6.1,
+          leadTimeBottleneckDays: 12,
+          deliveryConfidenceRating: 96
+        }
+      ]
     }));
   }),
   // POST /api/vendors/sync
@@ -277,10 +282,26 @@ export const coreHandlers = [
   http.post('/api/taxonomy/check-constraints', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
     return HttpResponse.json(wrapSuccess({
-      chassisSocket: "LGA-4677",
-      cpuSocket: "LGA-4677",
-      memoryChannels: "Validated",
-      storageController: "Tri-Mode Supported",
+      isCompliant: true,
+      socketMatch: {
+        status: "compatible",
+        chassisSocket: "LGA-4677",
+        cpuSocket: "LGA-4677",
+        description: "Socket match verified successfully."
+      },
+      powerLimitTest: {
+        passed: true,
+        estimatedTdpWatts: 270,
+        maxSupportedWatts: 350,
+        marginWatts: 80
+      },
+      memoryBalanceCheck: {
+        passed: true,
+        quantity: 16,
+        optimalLayoutSymmetry: 8,
+        recommendsCorrection: false,
+        message: "Memory layout is perfectly balanced (16 modules across 8 channels)."
+      }
     }));
   }),
   // POST /api/taxonomy/map

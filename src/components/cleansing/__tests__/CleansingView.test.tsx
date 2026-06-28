@@ -15,7 +15,7 @@ describe('CleansingView Component', () => {
     (apiClient.get as any).mockResolvedValueOnce([]);
     render(
       <ToastProvider>
-        <CleansingView catalogSkus={[]} />
+        <CleansingView  />
       </ToastProvider>
     );
     expect(screen.getByText(/Interactive Splicing & Mapping Workshop/i)).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe('CleansingView Component', () => {
   it('renders table headers and rows when data is loaded', async () => {
     render(
       <ToastProvider>
-        <CleansingView catalogSkus={[]} />
+        <CleansingView  />
       </ToastProvider>
     );
     expect(await screen.findByText(/Interactive Splicing/i)).toBeInTheDocument();

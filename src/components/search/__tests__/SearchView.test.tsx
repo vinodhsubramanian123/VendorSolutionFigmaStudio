@@ -7,9 +7,9 @@ describe('SearchView', () => {
     const { rerender } = render(
       <SearchView
         query="initial query"
-        ucids={[]}
-        vendors={[]}
-        catalogSkus={[]}
+        
+        
+        
         onNavigate={vi.fn()}
         onSelectMission={vi.fn()}
       />
@@ -21,9 +21,9 @@ describe('SearchView', () => {
     rerender(
       <SearchView
         query="updated query"
-        ucids={[]}
-        vendors={[]}
-        catalogSkus={[]}
+        
+        
+        
         onNavigate={vi.fn()}
         onSelectMission={vi.fn()}
       />

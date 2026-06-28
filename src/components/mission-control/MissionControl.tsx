@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 import React, { useState} from "react";
 import { motion } from "motion/react";
 import {
@@ -28,8 +27,6 @@ import { JobStreamer } from "../shared/JobStreamer";
 interface MissionControlProps {
   selectedId?: string;
   onSelectId: (id: string | undefined) => void;
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   onNavigate: (view: import("../../types").AppView) => void;
   deployedSolution?: {
     name: string;
@@ -47,12 +44,14 @@ interface MissionControlProps {
 export const MissionControl = React.memo(function MissionControl({
   selectedId,
   onSelectId,
-  ucids,
-  setUcids,
   onNavigate,
   deployedSolution,
   setDeployedSolution,
 }: MissionControlProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
+  const solutions = useCoreStore((s) => s.solutions);
+
   const { toast } = useToast();
   const [viewStep, setViewStep] = useState<UCIDStep | null>(null);
   const [showNewUCID, setShowNewUCID] = useState(false);
@@ -65,8 +64,8 @@ export const MissionControl = React.memo(function MissionControl({
     {},
   );
   // Helper function to extract or resolve Parent Solution/Campaign group
-  function getSolutionName(u: UCID): string {
-    const solution = useCoreStore.getState().solutions.find(s => s.id === u.solutionId);
+  const getSolutionName = React.useCallback((u: UCID): string => {
+    const solution = solutions.find(s => s.id === u.solutionId);
     if (solution) {
       return solution.name;
     }
@@ -85,7 +84,7 @@ export const MissionControl = React.memo(function MissionControl({
       return u.projectRef;
     }
     return "General Sourcing Projects";
-  }
+  }, [solutions]);
   // Group UCIDs by their overarching Solution name
   const groupedUcids = React.useMemo(() => {
     const groups: Record<string, UCID[]> = {};
@@ -97,7 +96,7 @@ export const MissionControl = React.memo(function MissionControl({
       groups[groupName].push(u);
     });
     return groups;
-  }, [ucids]);
+  }, [ucids, getSolutionName]);
   // Default to first UCID if none selected or if selected is not found
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");

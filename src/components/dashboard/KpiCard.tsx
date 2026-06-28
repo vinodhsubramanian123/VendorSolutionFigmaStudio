@@ -63,7 +63,6 @@ export function KpiCard({
       
       return controls.stop;
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayValue(value);
     }
   }, [value]);

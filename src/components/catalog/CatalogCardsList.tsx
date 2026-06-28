@@ -100,15 +100,15 @@ export function CatalogCardsList({
                       </span>
                       <StatusBadge status={sku.type} variant="default" size="sm" />
                     </div>
-                    <h4 className="font-bold text-white text-xs mt-1 truncate" title={sku.name}>
+                    <h3 className="font-bold text-white text-xs mt-1 truncate" title={sku.name}>
                       {sku.name}
-                    </h4>
+                    </h3>
                     <p className="font-mono text-[9px] text-indigo-400 font-bold mt-1 tracking-wider">
                       {sku.partNumber}
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 p-2 bg-black/15 border border-white/2 rounded flex items-center justify-between text-[9px] text-gray-500 leading-none">
+                <div className="mt-4 p-2 bg-black/15 border border-white/2 rounded flex items-center justify-between text-[9px] text-gray-400 leading-none">
                   <span className="font-mono">SPEC: COMMON {sku.type.toUpperCase()}</span>
                   <span className="font-mono text-gray-400">{sku.leadTimeDays}D Lead</span>
                 </div>
@@ -119,13 +119,12 @@ export function CatalogCardsList({
                   <div className="text-right">
                     {isEditing ? (
                       <div className="flex items-center gap-1 justify-end">
-                        <span className="text-gray-500 font-mono font-bold">$</span>
+                        <span className="text-gray-400 font-mono font-bold">$</span>
                         <input
                           type="text"
                           value={editedPrice}
                           onChange={(e) => setEditedPrice(e.target.value)}
                           className="w-16 p-1 h-6 text-right bg-surface-header text-status-success font-mono border rounded border-status-success/35 text-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
-                          // eslint-disable-next-line jsx-a11y/no-autofocus
                           autoFocus
                         />
                         <button type="button" onClick={() => savePrice(sku.id)} aria-label="Save Price" className="p-0.5 rounded hover:bg-emerald-500/20 text-status-success cursor-pointer" title="Save Price">
@@ -140,10 +139,10 @@ export function CatalogCardsList({
                         <span className="font-mono text-xs font-black text-status-success">
                           ${sku.price.toLocaleString()}
                         </span>
-                        <button type="button" onClick={() => startEditing(sku)} aria-label="Edit Price" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-white/5 rounded text-gray-500 hover:text-indigo-400 transition cursor-pointer shrink-0" title="Edit Price">
+                        <button type="button" onClick={() => startEditing(sku)} aria-label="Edit Price" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-white/5 rounded text-gray-400 hover:text-indigo-400 transition cursor-pointer shrink-0" title="Edit Price">
                           <Edit2 className="w-3 h-3" />
                         </button>
-                        <button type="button" onClick={() => deleteSku(sku.id)} aria-label="Delete SKU" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-red-500/10 rounded text-gray-500 hover:text-red-400 transition cursor-pointer shrink-0" title="Delete SKU">
+                        <button type="button" onClick={() => deleteSku(sku.id)} aria-label="Delete SKU" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-red-500/10 rounded text-gray-400 hover:text-red-400 transition cursor-pointer shrink-0" title="Delete SKU">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -156,7 +155,7 @@ export function CatalogCardsList({
           className="scrollbar-hide"
         />
       ) : (
-        <div className="col-span-12 p-8 text-center text-gray-500 bg-surface-elevated border border-white/5 rounded-xl border-dashed">
+        <div className="col-span-12 p-8 text-center text-gray-400 bg-surface-elevated border border-white/5 rounded-xl border-dashed">
           <AlertTriangle className="w-7 h-7 text-amber-500 m-auto opacity-50 mb-2" />
           <p className="italic text-xs">
             No project SKUs discovered matching current taxonomy filter parameters.

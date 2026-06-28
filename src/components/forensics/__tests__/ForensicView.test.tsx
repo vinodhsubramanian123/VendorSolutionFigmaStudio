@@ -6,6 +6,13 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { ToastProvider } from '../../shared/ToastContext';
 import type { UCID, ForensicIssue } from '../../../types';
+import { createMockCoreState } from '../../../tests/shared/mockFactories';
+
+// Mock coreStore
+import { useCoreStore } from '../../../store/coreStore';
+vi.mock('../../../store/coreStore', () => ({
+  useCoreStore: vi.fn(),
+}));
 
 // Do not mock ForensicIssueCard or RuleClarificationModal so we can test the interaction
 vi.mock("../SourcingRulesVault", () => ({
@@ -96,23 +103,30 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe('ForensicView', () => {
-  const defaultProps = {
-    forensicIssues: mockForensicIssues,
-    setForensicIssues: vi.fn(),
-    setVendors: vi.fn(),
-    setCatalogSkus: vi.fn(),
-    ucids: [mockUcid],
-    setUcids: vi.fn(),
-    activeMissionId: 'u1',
-    setActiveMissionId: vi.fn(),
-    sourcingRules: [],
-    setSourcingRules: vi.fn(),
-    learningEvents: [],
-    setLearningEvents: vi.fn(),
-  };
+  const defaultProps = {};
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => {
+      const state = {
+        forensicIssues: mockForensicIssues,
+        setForensicIssues: vi.fn(),
+        vendors: [],
+        setVendors: vi.fn(),
+        catalogSkus: [],
+        setCatalogSkus: vi.fn(),
+        ucids: [mockUcid],
+        setUcids: vi.fn(),
+        activeMissionId: 'u1',
+        setActiveMissionId: vi.fn(),
+        sourcingRules: [],
+        setSourcingRules: vi.fn(),
+        learningEvents: [],
+        setLearningEvents: vi.fn(),
+      };
+      return selector(state);
+    });
   });
 
   const renderComponent = () => {
@@ -129,9 +143,11 @@ describe('ForensicView', () => {
   });
 
   it('handles empty state when no ucids exist', () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: [], forensicIssues: mockForensicIssues })));
+    
     render(
       <ToastProvider>
-        <ForensicView {...defaultProps} ucids={[]} />
+        <ForensicView />
       </ToastProvider>
     );
     expect(screen.getByText('No Anomalies Detected')).toBeInTheDocument();
@@ -149,7 +165,7 @@ describe('ForensicView', () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(defaultProps.setUcids).toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 

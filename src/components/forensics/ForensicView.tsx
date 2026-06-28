@@ -12,24 +12,16 @@ import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { ActiveSourcingRules } from "../../config/sourcingRules";
 import { RuleClarificationModal } from "./RuleClarificationModal";
 import { useForensicsLogic } from "./useForensicAutoHeal";
+import { useCoreStore } from "../../store/coreStore";
 
 interface ForensicViewProps {
-  forensicIssues: ForensicIssue[];
-  setForensicIssues: React.Dispatch<React.SetStateAction<ForensicIssue[]>>;
-  setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
-  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  activeMissionId?: string;
-  setActiveMissionId: React.Dispatch<React.SetStateAction<string | undefined>>;
   onNavigate?: (view: AppView) => void;
-  sourcingRules: SourcingRule[];
-  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
-  learningEvents: LearningEvent[];
-  setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
 }
 
 export function ForensicView(props: ForensicViewProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const forensicIssues = useCoreStore((s) => s.forensicIssues);
+  const setActiveMissionId = useCoreStore((s) => s.setActiveMissionId);
   const {
     scanning,
     scanStdout,
@@ -49,9 +41,9 @@ export function ForensicView(props: ForensicViewProps) {
     handleManualPromote,
     pendingHealIssueId,
     setPendingHealIssueId,
-  } = useForensicsLogic(props);
+  } = useForensicsLogic();
 
-  if (props.ucids.length === 0) {
+  if (ucids.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center text-center p-12 bg-surface-elevated border border-white/5 rounded-xl gap-4 animate-fadeIn my-auto max-w-2xl mx-auto mt-12">
         <div className="w-16 h-16 rounded-full bg-status-success/10 flex items-center justify-center border border-status-success/20 text-status-success">
@@ -86,9 +78,9 @@ export function ForensicView(props: ForensicViewProps) {
 
       <ForensicHeader
         currUcid={currUcid}
-        ucids={props.ucids}
+        ucids={ucids}
         scanning={scanning}
-        setActiveMissionId={props.setActiveMissionId}
+        setActiveMissionId={setActiveMissionId}
         runAuditScanner={runAuditScanner}
       />
 
@@ -135,10 +127,9 @@ export function ForensicView(props: ForensicViewProps) {
           </div>
         </div>
 
-        {/* Audit reports sidebar */}
           <ForensicSidebar
             openIssuesCount={openIssues.length}
-            forensicIssues={props.forensicIssues}
+            forensicIssues={forensicIssues}
           />
         </div>
 

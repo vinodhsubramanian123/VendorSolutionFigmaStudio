@@ -42,7 +42,7 @@ export function CatalogTypeFilters({
             <span>{type === "all" ? "All" : type}</span>
             <span
               className={`font-mono text-[9px] px-1.5 py-0.2 rounded font-black ${
-                isActive ? "bg-black/30 text-white" : "bg-black/40 text-gray-500"
+                isActive ? "bg-black/30 text-white" : "bg-black/40 text-gray-400"
               }`}
             >
               {matchesCount}

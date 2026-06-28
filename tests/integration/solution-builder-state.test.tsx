@@ -4,6 +4,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { SolutionBuilder } from '../../src/components/solution-builder/SolutionBuilder';
 import type { UCID } from '../../src/types';
 import { ToastProvider } from '../../src/components/shared/ToastContext';
+import { useCoreStore } from '../../src/store/coreStore';
+import { createMockCoreState } from '../../src/tests/shared/mockFactories';
+
+vi.mock('../../src/store/coreStore', () => ({
+  useCoreStore: vi.fn(),
+}));
 
 function TestWrapper() {
   const [ucids, setUcids] = useState<UCID[]>([
@@ -47,12 +53,26 @@ function TestWrapper() {
   ]);
 
   (window as any).TEST_UCIDS = ucids;
+  vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({
+    ucids: ucids,
+    solutions: [],
+    activeSolutionId: null,
+    addSolution: vi.fn(),
+    setActiveSolution: vi.fn(),
+    setUcids: (val: any) => {
+      setUcids((prev) => {
+        const next = typeof val === 'function' ? val(prev) : val;
+        (window as any).TEST_UCIDS = next;
+        return next;
+      });
+    }
+  })));
 
   return (
     <ToastProvider>
       <SolutionBuilder
-        ucids={ucids}
-        setUcids={setUcids}
+        
+        
         onNavigate={() => {}}
         setDeployedSolution={() => {}}
         onSelectMission={() => {}}

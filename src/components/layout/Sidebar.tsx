@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { tokens } from "../../styles/tokens";
 import { motion } from "motion/react";
+import { useCoreStore } from "../../store/coreStore";
 import {
   LayoutDashboard,
   Target,
@@ -31,19 +32,17 @@ interface SidebarProps {
   onToggle: () => void;
   activeMissionId?: string;
   onSelectMission: (id: string) => void;
-  ucids: UCID[];
-  vendors: Vendor[];
-  forensicIssues: ForensicIssue[];
 }
 export function Sidebar({
   collapsed,
   onToggle,
   activeMissionId,
   onSelectMission,
-  ucids,
-  vendors,
-  forensicIssues,
 }: SidebarProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const vendors = useCoreStore((s) => s.vendors);
+  const forensicIssues = useCoreStore((s) => s.forensicIssues);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const activePath = location.pathname;
@@ -128,8 +127,8 @@ export function Sidebar({
     },
   ];
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
-    <div
+    <nav
+      aria-label="Sidebar Navigation"
       className={`flex flex-col h-screen shrink-0 border-r transition-all duration-300 z-50 bg-background-card ${collapsed ? "cursor-pointer hover:bg-white/[0.01] w-[4.5rem]" : "w-[4.5rem] lg:w-[17.5rem]"} absolute lg:relative`}
       onClick={collapsed ? onToggle : undefined}
       style={{
@@ -286,6 +285,6 @@ export function Sidebar({
           </div>
         </div>
       )}
-    </div>
+    </nav>
   );
 }

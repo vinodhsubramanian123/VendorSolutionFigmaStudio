@@ -10,6 +10,25 @@ interface BreadcrumbNavProps {
   ucids: UCID[];
 }
 
+
+function useActiveContext(path: string, activeMissionId: string | undefined, ucids: UCID[]) {
+  const solutions = useCoreStore(s => s.solutions);
+  const activeSolutionId = useCoreStore(s => s.activeSolutionId);
+
+  const activeMission = React.useMemo(() =>
+    path.startsWith("/mission-control") && activeMissionId
+      ? ucids.find((u) => u.id === activeMissionId)
+      : null,
+  [path, activeMissionId, ucids]);
+
+  const activeSolution = React.useMemo(() => {
+    if (activeSolutionId) return solutions.find(s => s.id === activeSolutionId);
+    if (activeMission) return solutions.find(s => s.id === activeMission.solutionId);
+    return null;
+  }, [activeSolutionId, activeMission, solutions]);
+  return { activeMission, activeSolution };
+}
+
 export function BreadcrumbNav({
   view,
   activeMissionId,
@@ -35,15 +54,7 @@ export function BreadcrumbNav({
     telemetry: "System Telemetry & Logs",
   };
 
-  const activeMission =
-    path.startsWith("/mission-control") && activeMissionId
-      ? ucids.find((u) => u.id === activeMissionId)
-      : null;
-
-  const solutions = useCoreStore(s => s.solutions);
-  const activeSolution = useCoreStore(s => s.activeSolutionId) 
-    ? solutions.find(s => s.id === useCoreStore.getState().activeSolutionId) 
-    : (activeMission ? solutions.find(s => s.id === activeMission.solutionId) : null);
+  const { activeMission, activeSolution } = useActiveContext(path, activeMissionId, ucids);
 
   return (
     <div className="flex items-center text-[10px] font-mono tracking-wider mb-4 px-1 rounded bg-surface-elevated/50 py-2 border border-white/5 shrink-0">

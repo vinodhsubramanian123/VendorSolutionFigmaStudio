@@ -30,7 +30,7 @@ export function CatalogHeader({
           <h2 className="text-sm font-semibold text-white tracking-tight">
             Central Sourcing Database & Inventory Rules
           </h2>
-          <p className="text-[10.5px] text-gray-500 flex items-center gap-1.5 mt-0.5">
+          <p className="text-[10.5px] text-gray-400 flex items-center gap-1.5 mt-0.5">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>
               Sourcing Engine Database — {totalCatalogItems.toLocaleString()}{" "}

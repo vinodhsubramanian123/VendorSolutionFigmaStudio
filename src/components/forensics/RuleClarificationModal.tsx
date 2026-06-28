@@ -46,7 +46,6 @@ export function RuleClarificationModal({
           <div className="space-y-2">
             <div className="text-[10px] font-bold text-gray-500 uppercase">Apply this intelligence to:</div>
             <div className="space-y-2">
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label htmlFor="scope-global" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Global" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-global" type="radio" checked={scope === "Global"} onChange={() => setScope("Global")} className="mt-1" />
                 <div>
@@ -55,7 +54,6 @@ export function RuleClarificationModal({
                 </div>
               </label>
               
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label htmlFor="scope-brand" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Brand" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-brand" type="radio" checked={scope === "Brand"} onChange={() => setScope("Brand")} className="mt-1" />
                 <div>
@@ -64,7 +62,6 @@ export function RuleClarificationModal({
                 </div>
               </label>
 
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label htmlFor="scope-exact" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Exact" ? "bg-indigo-500/10 border-indigo-500/50" : "bg-black/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-exact" type="radio" checked={scope === "Exact"} onChange={() => setScope("Exact")} className="mt-1" />
                 <div>

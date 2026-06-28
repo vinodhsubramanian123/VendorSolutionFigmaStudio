@@ -1,8 +1,7 @@
-// eslint-disable-next-line sonarjs/unused-import
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Target, Globe, Database, ArrowUpRight } from "lucide-react";
-import { UCID, Vendor, CatalogSKU } from "../../types";
+import type { UCID, Vendor, CatalogSKU } from "../../types";
 import { tokens } from "../../styles/tokens";
 
 interface TopBarSearchProps {
@@ -14,7 +13,6 @@ interface TopBarSearchProps {
   onSelectMission?: (id: string) => void;
 }
 
-// eslint-disable-next-line complexity
 export function TopBarSearch({
   searchQuery,
   onSearch,
@@ -86,7 +84,18 @@ export function TopBarSearch({
     return list;
   }, [matchedMissions, matchedVendors, matchedSkus]);
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
+  const navigateToMatch = (match: { type: string; id: string }) => {
+    if (match.type === "mission") {
+      if (onSelectMission) onSelectMission(match.id);
+      navigate(`/mission-control/${match.id}`);
+    } else if (match.type === "vendor") {
+      navigate("/vendor-portal");
+    } else if (match.type === "sku") {
+      navigate("/catalog");
+    }
+    setShowDropdown(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -102,16 +111,7 @@ export function TopBarSearch({
     } else if (e.key === "Enter") {
       if (activeIndex >= 0 && activeIndex < allMatches.length) {
         e.preventDefault();
-        const match = allMatches[activeIndex];
-        if (match.type === "mission") {
-          if (onSelectMission) onSelectMission(match.id);
-          navigate(`/mission-control/${match.id}`);
-        } else if (match.type === "vendor") {
-          navigate("/vendor-portal");
-        } else if (match.type === "sku") {
-          navigate("/catalog");
-        }
-        setShowDropdown(false);
+        navigateToMatch(allMatches[activeIndex]);
       } else {
         setShowDropdown(false);
         navigate("/search");
@@ -156,7 +156,7 @@ export function TopBarSearch({
           borderColor: "rgba(74, 133, 253,0.12)",
         }}
       />
-      <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-[9px] font-mono text-gray-600">
+      <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-[9px] font-mono text-gray-400">
         <span>↵ Enter</span>
       </div>
 
@@ -262,7 +262,7 @@ export function TopBarSearch({
             </div>
           )}
 
-          <div className="mt-1 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500 font-medium">
+          <div className="mt-1 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-400 font-medium">
             <span>↵ Press Enter to review details</span>
             <button type="button"
               onClick={() => {

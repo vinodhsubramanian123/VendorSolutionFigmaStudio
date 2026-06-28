@@ -70,13 +70,16 @@ export function BomReconciliationPanel({
         </div>
         {/* BOM Upload Dropzone */}
         { }
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events */}
-        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        { }
         <div
           id="bom-dropzone"
+          role="button"
+          tabIndex={0}
+          aria-label="Upload BOM spreadsheet"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') document.getElementById('hub-bom-picker')?.click(); }}
           onDragOver={handleDragOver}
           onDrop={handleBOMDrop}
-          onClick={() => document.getElementById("hub-bom-picker")?.click()}
+          onClick={() => document.getElementById('hub-bom-picker')?.click()}
           className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 relative overflow-hidden bg-black/10 hover:bg-black/20 hover:border-sky-500/40 ${
             isBOMIngesting ? "border-sky-500" : "border-white/10"
           }`}

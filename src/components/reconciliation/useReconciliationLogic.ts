@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { UCID, CatalogSKU, ForensicIssue} from '../../types';
-import { TableRow as TableRowType, TableGroup } from "../../types/data";
+import { TableRow as TableRowType, TableGroup, BOMItem } from "../../types/data";
 import { ActiveSourcingRules } from "../../config/sourcingRules";
 import { useDrillDownAutoHeal } from './useDrillDownAutoHeal';
 import { useToast } from '../shared/ToastContext';
@@ -91,8 +91,7 @@ export function useReconciliationLogic(
   };
 }
 
-// eslint-disable-next-line complexity
-function processReconciliationItem(item: any, idx: number, catalogSkus?: CatalogSKU[], forensicIssues?: ForensicIssue[]): TableRowType {
+function processReconciliationItem(item: BOMItem, idx: number, catalogSkus?: CatalogSKU[], forensicIssues?: ForensicIssue[]): TableRowType {
   const type = item.type || "Misc";
   const isMatched = catalogSkus?.some(sku => sku.partNumber === item.partNumber);
   const isSimulated = item.name.includes("Simulated");

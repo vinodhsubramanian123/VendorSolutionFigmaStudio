@@ -8,6 +8,9 @@ interface UCIDEventLedgerProps {
   onClear: () => void;
 }
 type LogLevel = "all" | "ok" | "warn" | "err" | "info";
+
+const FILTER_LEVELS = ["all", "ok", "warn", "err"] as const;
+
 export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
   const [filter, setFilter] = useState<LogLevel>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -37,7 +40,7 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
         <div className="flex items-center gap-2">
           {/* Level Filter Chips */}
           <div className="flex items-center bg-black/40 p-0.5 rounded-lg border border-white/5 gap-0.5">
-            {(["all", "ok", "warn", "err"] as const).map((lvl) => {
+            {FILTER_LEVELS.map((lvl) => {
               const isActive = filter === lvl;
               const label = lvl.toUpperCase();
               let activeClass = "bg-indigo-600 text-white";

@@ -149,7 +149,7 @@ const BaseUCIDSchema = z.object({
 
 export const UCIDSchema = BaseUCIDSchema.extend({
   solutionId:        z.string(),
-  solutionDisplayId: z.string(),
+  solutionDisplayId: z.string().regex(/^SOL-\d{4}-\d+$/),
   configIndex:       z.number().int().positive(),
   configLabel:       z.string().min(1),
   parallelGroup:     z.string().nullable(),

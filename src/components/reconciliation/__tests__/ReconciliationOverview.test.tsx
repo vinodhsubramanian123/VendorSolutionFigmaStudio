@@ -60,7 +60,6 @@ const ReconciliationOverviewTestWrapper = ({
       initialUnassignedSpares={initialUnassignedSpares}
       initialAssignedSpares={initialAssignedSpares}
       setSelectedConfigSheet={setSelectedConfigSheet}
-      setHasDrift={setHasDrift}
     />
   );
 };
@@ -115,7 +114,6 @@ describe('ReconciliationOverview Component', () => {
     expect(setSelectedConfigSheet).toHaveBeenCalledWith('cfg1');
   });
   it('starts reconciliation job and handles success via JobStreamer', async () => {
-    const setHasDrift = vi.fn();
     const setUcidsSpy = vi.fn();
     
     global.fetch = vi.fn().mockResolvedValueOnce({
@@ -126,7 +124,6 @@ describe('ReconciliationOverview Component', () => {
     render(
       <ReconciliationOverviewTestWrapper 
         initialUcids={[mockUcid, mockUcid2]}
-        setHasDrift={setHasDrift}
         setUcidsSpy={setUcidsSpy}
       />, 
       { wrapper: Wrapper }
@@ -141,7 +138,6 @@ describe('ReconciliationOverview Component', () => {
     fireEvent.click(screen.getByTestId('job-success-btn'));
     await waitFor(() => {
       expect(screen.queryByTestId('job-streamer')).not.toBeInTheDocument();
-      expect(setHasDrift).toHaveBeenCalledWith(false);
       expect(setUcidsSpy).toHaveBeenCalled();
     });
     // Verify snapshot creation logic inside state updater

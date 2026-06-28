@@ -72,7 +72,6 @@ export function useDiffConfigs(
   return { diffConfigs, diffSummary };
 }
 
-// eslint-disable-next-line complexity
 function resolveSnapshots(
   selectedForCompare: string[],
   compareAgainstCurrent: boolean,

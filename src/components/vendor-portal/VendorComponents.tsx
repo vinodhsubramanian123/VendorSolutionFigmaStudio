@@ -9,7 +9,7 @@ interface VendorCredentialsCardProps {
   authStatus: "authorized" | "expired" | "verifying";
   username: string;
   setUsername: (val: string) => void;
-  password: string;
+  apiToken: string;
   setPassword: (val: string) => void;
   mfaToken: string;
   setMfaToken: (val: string) => void;
@@ -29,7 +29,7 @@ export function VendorCredentialsCard({
   authStatus,
   username,
   setUsername,
-  password,
+  apiToken,
   setPassword,
   mfaToken,
   setMfaToken,
@@ -118,12 +118,12 @@ export function VendorCredentialsCard({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="partner-password" className="text-[9px] font-bold text-gray-500 uppercase">Secure Client Password</label>
+          <label htmlFor="partner-apiToken" className="text-[9px] font-bold text-gray-500 uppercase">Secure Client Password</label>
           <div className="relative">
             <input
-              id="partner-password"
-              type={showPassword ? "text" : "password"}
-              value={password}
+              id="partner-apiToken"
+              type={showPassword ? "text" : "apiToken"}
+              value={apiToken}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••••"
               className="w-full bg-surface-canvas border border-white/10 rounded pl-2 pr-8 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/50"
@@ -182,7 +182,7 @@ export function VendorCredentialsCard({
           <button
             type="button"
             onClick={handleRunPortalTest}
-            disabled={isRunningTest || !username || !password}
+            disabled={isRunningTest || !username || !apiToken}
             className="flex-1 bg-indigo-500 hover:bg-indigo-600 border border-indigo-400/20 rounded text-[10px] font-bold text-white py-2 cursor-pointer transition transition-all flex items-center justify-center gap-1 disabled:opacity-40"
           >
             {isRunningTest ? <RotateCw className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}

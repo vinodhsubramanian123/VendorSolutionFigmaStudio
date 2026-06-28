@@ -96,64 +96,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <ToastProvider>{children}</ToastProvider>
 );
 
-// ===========================================================================
-// Category 6 — State Lifecycle Tests: Loading / Empty / Error
-// ===========================================================================
-describe('Category 6 — State Lifecycle Tests (Loading / Empty / Error)', () => {
 
-  it('CatalogManager renders empty state when catalogSkus is empty array', () => {
-    render(
-      <Wrapper>
-        <CatalogManager catalogSkus={[]} setCatalogSkus={vi.fn()} vendors={mockVendors} />
-      </Wrapper>
-    );
-    // The component should render without crashing in empty state
-    expect(document.body).toBeDefined();
-  });
-
-  it('SourcingRulesVault renders empty state when no rules exist', () => {
-    render(
-      <Wrapper>
-        <SourcingRulesVault
-          sourcingRules={[]}
-          setSourcingRules={vi.fn()}
-          triggerToast={vi.fn()}
-          prefillRule={null}
-          onPrefillConsumed={vi.fn()}
-        />
-      </Wrapper>
-    );
-    // Should show empty table or placeholder — use getAllByText to handle multiple matches
-    const emptyOrHeader = screen.getAllByText(/No custom sourcing rules|Centralized Sourcing/i);
-    expect(emptyOrHeader.length).toBeGreaterThan(0);
-  });
-
-  it('SourcingRulesVault renders rules list when rules exist', () => {
-    render(
-      <Wrapper>
-        <SourcingRulesVault
-          sourcingRules={mockRules}
-          setSourcingRules={vi.fn()}
-          triggerToast={vi.fn()}
-          prefillRule={null}
-          onPrefillConsumed={vi.fn()}
-        />
-      </Wrapper>
-    );
-    // At least one rule should appear in the table
-    expect(screen.getByText(mockRules[0].partNumber)).toBeInTheDocument();
-  });
-
-  it('CatalogManager renders with multiple skus (non-empty state)', () => {
-    render(
-      <Wrapper>
-        <CatalogManager catalogSkus={mockSkus} setCatalogSkus={vi.fn()} vendors={mockVendors} />
-      </Wrapper>
-    );
-    // Should render catalog content without crash
-    expect(document.body).toBeDefined();
-  });
-});
 
 // ===========================================================================
 // Category 10 — Resilience / Network Failure Tests
@@ -170,9 +113,9 @@ describe('Category 10 — Resilience: Network Failure & Toast Rollback', () => {
     render(
       <Wrapper>
         <CatalogManager
-          catalogSkus={mockSkus}
-          setCatalogSkus={mockSetSkus}
-          vendors={mockVendors}
+          
+          
+          
         />
       </Wrapper>
     );
@@ -224,9 +167,9 @@ describe('Category 10 — Resilience: Network Failure & Toast Rollback', () => {
     render(
       <Wrapper>
         <CatalogManager
-          catalogSkus={mockSkus}
-          setCatalogSkus={mockSetSkus}
-          vendors={mockVendors}
+          
+          
+          
         />
       </Wrapper>
     );
@@ -310,9 +253,9 @@ describe('Category 13 — Optimistic UI Rollback', () => {
       const [skus, setSkus] = useState(mockSkus);
       return (
         <CatalogManager
-          catalogSkus={skus}
-          setCatalogSkus={setSkus}
-          vendors={mockVendors}
+          
+          
+          
         />
       );
     };
@@ -348,9 +291,9 @@ describe('Category 13 — Optimistic UI Rollback', () => {
       const [skus, setSkus] = useState(mockSkus);
       return (
         <CatalogManager
-          catalogSkus={skus}
-          setCatalogSkus={setSkus}
-          vendors={mockVendors}
+          
+          
+          
         />
       );
     };

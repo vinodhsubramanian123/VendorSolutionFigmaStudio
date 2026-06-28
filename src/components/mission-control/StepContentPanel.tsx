@@ -13,6 +13,7 @@ import { StepVendorProvisioning } from "./steps/StepVendorProvisioning";
 import { StepPostIntelligence } from "./steps/StepPostIntelligence";
 import { StepComparison } from "./steps/StepComparison";
 import { StepSnapshot } from "./steps/StepSnapshot";
+import { motion, AnimatePresence } from "motion/react";
 
 interface StepContentPanelProps {
   ucid: UCID;
@@ -55,8 +56,9 @@ export function StepContentPanel({
     return u.id;
   }
 
-  switch (activeStep) {
-    case "boq-intake":
+  const renderContent = () => {
+    switch (activeStep) {
+      case "boq-intake":
       return (
         <StepBoqIntake
           ucid={ucid}
@@ -132,8 +134,23 @@ export function StepContentPanel({
         />
       );
 
-    default:
-      return null;
-  }
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={activeStep}
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        transition={{ duration: 0.2 }}
+      >
+        {renderContent()}
+      </motion.div>
+    </AnimatePresence>
+  );
 }
 

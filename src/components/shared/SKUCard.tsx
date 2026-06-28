@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */
 import React, { useState } from "react";
 import { StatusBadge } from "./StatusBadge";
 import { Copy } from "lucide-react";

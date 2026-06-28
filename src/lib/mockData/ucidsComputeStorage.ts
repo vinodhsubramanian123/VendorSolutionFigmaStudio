@@ -7,7 +7,7 @@ export const mockUcidsComputeStorage: UCID[] = [
     solutionName: "North Virtualization Cluster Campaign",
     priority: "high",
     projectRef: "PRJ-VIRT-NORTH-2026",
-    createdAt: "2026-06-01 10:24 AM",
+    createdAt: "2026-06-01T10:24:00.000Z",
     currentStep: "post-intelligence",
     completedSteps: [
       "boq-intake",
@@ -17,7 +17,7 @@ export const mockUcidsComputeStorage: UCID[] = [
     ],
     syncStatus: "Synced",
 
-    solutionId: "11111111-1111-1111-8111-111111111111",
+    solutionId: "sol-ylng-2026-001",
     solutionDisplayId: "SOL-2026-001",
     configIndex: 1,
     configLabel: "Compute Config",
@@ -195,12 +195,12 @@ export const mockUcidsComputeStorage: UCID[] = [
     solutionName: "East Backup Storage Consolidation",
     priority: "critical",
     projectRef: "PRJ-STO-BACKUP-EAST",
-    createdAt: "2026-06-03 14:15 PM",
+    createdAt: "2026-06-03T14:15:00.000Z",
     currentStep: "pre-intelligence",
     completedSteps: ["boq-intake"],
     syncStatus: "Out-of-Sync",
 
-    solutionId: "11111111-1111-1111-8111-111111111111",
+    solutionId: "sol-ylng-2026-001",
     solutionDisplayId: "SOL-2026-001",
     configIndex: 2,
     configLabel: "Storage Config",

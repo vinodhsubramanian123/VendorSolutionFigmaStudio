@@ -2,8 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { CatalogManager } from '../CatalogManager';
-import { CatalogSKU, Vendor } from '../../../types';
+import { CatalogSKU } from '../../../types';
 import { ToastProvider } from '../../shared/ToastContext';
+import { createMockVendor } from '../../../tests/utils/mockFactories';
 
 // Mock apiClient
 vi.mock('../../../services/apiClient', () => ({
@@ -70,19 +71,23 @@ const mockSkus: CatalogSKU[] = [
   { id: 'sku-9', vendor: 'HPE', partNumber: 'HPE-CHASSIS-REF', name: 'Chassis Child Component', type: 'Memory', price: 200, leadTimeDays: 1, status: 'active', solution: 'Server', productFamily: 'DL380', generation: 'Gen11', chassisRef: 'sku-1' },
 ];
 
-const mockVendors: Vendor[] = [
-  { id: 'v1', name: 'HPE', apiStatus: 'connected', catalogItems: 5000, lastSync: '' } as unknown as Vendor,
-  { id: 'v2', name: 'Dell', apiStatus: 'connected', catalogItems: 3000, lastSync: '' } as unknown as Vendor,
+const mockVendors = [
+  createMockVendor({ id: 'v1', name: 'HPE', catalogItems: 5000 }),
+  createMockVendor({ id: 'v2', name: 'Dell', catalogItems: 3000 }),
 ];
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <ToastProvider>{children}</ToastProvider>
 );
 
-// Container component that hosts state and replicates realistic parent component behavior
+import { useCoreStore } from '../../../store/coreStore';
+
 const CatalogManagerTestContainer = ({ initialSkus = mockSkus }: { initialSkus?: CatalogSKU[] }) => {
-  const [skus, setSkus] = React.useState(initialSkus);
-  return <CatalogManager catalogSkus={skus} setCatalogSkus={setSkus} vendors={mockVendors} />;
+  React.useEffect(() => {
+    useCoreStore.setState({ catalogSkus: initialSkus, vendors: mockVendors });
+  }, [initialSkus]);
+
+  return <CatalogManager />;
 };
 
 describe('CatalogManager Component', () => {
@@ -228,6 +233,11 @@ describe('CatalogManager Component', () => {
     expect(screen.queryByText('Err Name')).not.toBeInTheDocument(); // add rollback
     expect(screen.getByText('$500')).toBeInTheDocument(); // edit rollback (sku-2 price)
     
+    // Assert pessimistic feedback (Toasts) were surfaced
+    expect(screen.getByText('Failed to delete SKU. Rolled back.')).toBeInTheDocument();
+    expect(screen.getByText('Failed to add SKU. Rolled back.')).toBeInTheDocument();
+    expect(screen.getByText('Price sync failed. Rolled back.')).toBeInTheDocument();
+
     consoleSpy.mockRestore();
   });
 

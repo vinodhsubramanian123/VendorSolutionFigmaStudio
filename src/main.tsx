@@ -38,8 +38,8 @@ async function enableMocking() {
   if (import.meta.env.MODE !== 'development') {
     return;
   }
-  const { worker } = await import('./mocks/browser');
-  return worker.start({ onUnhandledRequest: 'bypass' });
+  const { mockServer } = await import('./mocks/browser');
+  return mockServer.start();
 }
 
 enableMocking().then(() => {

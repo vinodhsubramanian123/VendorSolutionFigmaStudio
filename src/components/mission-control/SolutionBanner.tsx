@@ -17,6 +17,30 @@ interface SolutionBannerProps {
   onClearDeployed?: () => void;
 }
 
+const STATE_CONFIG = {
+  planning: {
+    color: tokens.colors.text.muted, 
+    bg: "rgba(93,120,153,0.08)",
+    border: "rgba(93,120,153,0.18)",
+    label: "Planning",
+    dot: tokens.colors.text.muted, 
+  },
+  active: {
+    color: tokens.colors.accent.indigo, 
+    bg: "rgba(74, 133, 253,0.1)",
+    border: "rgba(74, 133, 253,0.25)",
+    label: "Active Pipeline",
+    dot: tokens.colors.accent.indigo, 
+  },
+  complete: {
+    color: tokens.colors.status.success, 
+    bg: "rgba(0,212,160,0.1)",
+    border: "rgba(0,212,160,0.25)",
+    label: "Operational Sync Lock",
+    dot: tokens.colors.status.success, 
+  },
+} as const;
+
 export function SolutionBanner({
   ucids,
   solutionState,
@@ -28,29 +52,7 @@ export function SolutionBanner({
     .flatMap((u) => u.snapshots || [])
     .reduce((sum, sn) => sum + sn.totalValue, 0);
 
-  const stateCfg = {
-    planning: {
-      color: tokens.colors.text.muted, 
-      bg: "rgba(93,120,153,0.08)",
-      border: "rgba(93,120,153,0.18)",
-      label: "Planning",
-      dot: tokens.colors.text.muted, 
-    },
-    active: {
-      color: tokens.colors.accent.indigo, 
-      bg: "rgba(74, 133, 253,0.1)",
-      border: "rgba(74, 133, 253,0.25)",
-      label: "Active Pipeline",
-      dot: tokens.colors.accent.indigo, 
-    },
-    complete: {
-      color: tokens.colors.status.success, 
-      bg: "rgba(0,212,160,0.1)",
-      border: "rgba(0,212,160,0.25)",
-      label: "Operational Sync Lock",
-      dot: tokens.colors.status.success, 
-    },
-  }[solutionState];
+  const stateCfg = STATE_CONFIG[solutionState];
 
   return (
     <motion.div
@@ -63,11 +65,8 @@ export function SolutionBanner({
     >
       {/* Visual background ambient glow overlay for freshly deployed campaign */}
       {deployedSolution && (
-        <motion.span 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" 
+        <span 
+          className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none animate-pulse" 
         />
       )}
 
