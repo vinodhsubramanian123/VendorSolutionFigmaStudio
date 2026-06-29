@@ -219,6 +219,7 @@ export function CleansingView() {
                     return (
                       <motion.div
                         key={entry.id}
+                        data-testid="cleansing-entry"
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -8 }}

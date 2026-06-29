@@ -39,7 +39,7 @@ describe("Pessimistic Failure & Rollback Tests (Category 13 & 9.5)", () => {
 
     // Wait for the mock rules to load initially
     await waitFor(() => {
-      expect(screen.getByText("Intel Xeon 6130 End-of-Life")).toBeInTheDocument();
+      expect(screen.getByText(/Gen11 Gold 6430/i)).toBeInTheDocument();
     });
 
     // 2. Open Add Rule Modal

@@ -150,7 +150,7 @@ export const workflowHandlers = [
       success: true,
       message: "BOQ ingested successfully.",
       sourceFile: body?.fileName || "mock-upload.xlsx",
-      ucid: ucidObj.displayId,
+      ucid: ucidObj,
       timestamp: new Date().toISOString(),
       parsedSummary: {
         vendorBrand: "Consolidated",

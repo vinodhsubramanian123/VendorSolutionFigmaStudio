@@ -1,7 +1,13 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { SnapshotManager } from "../SnapshotManager";
 import { ToastProvider } from "../../shared/ToastContext";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterEach, afterAll } from "vitest";
+import { useCoreStore } from "../../../store/coreStore";
+import { server } from "../../../mocks/server";
+
+vi.mock("../../../store/coreStore", () => ({
+  useCoreStore: vi.fn(),
+}));
 
 // Mock child components
 vi.mock("../CreateSnapshotForm", () => ({
@@ -74,7 +80,15 @@ const mockUcids: import("../../../types").UCID[] = [
 ];
 
 describe("SnapshotManager", () => {
+  beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+  afterEach(() => { server.resetHandlers(); });
+  afterAll(() => server.close());
+
   it("renders the snapshot list by default", () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({
+      ucids: mockUcids,
+      setUcids: vi.fn()
+    }));
     render(
       <ToastProvider>
         <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
@@ -84,6 +98,10 @@ describe("SnapshotManager", () => {
   });
 
   it("shows the create form when Create Snapshot is clicked", () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({
+      ucids: mockUcids,
+      setUcids: vi.fn()
+    }));
     render(
       <ToastProvider>
         <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
@@ -99,6 +117,10 @@ describe("SnapshotManager", () => {
   });
 
   it("hides the form when Cancel is clicked", () => {
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({
+      ucids: mockUcids,
+      setUcids: vi.fn()
+    }));
     render(
       <ToastProvider>
         <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
@@ -117,6 +139,10 @@ describe("SnapshotManager", () => {
 
   it("calls setUcids when a new snapshot is saved", () => {
     const setUcidsMock = vi.fn();
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({
+      ucids: mockUcids,
+      setUcids: setUcidsMock
+    }));
     render(
       <ToastProvider>
         <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />

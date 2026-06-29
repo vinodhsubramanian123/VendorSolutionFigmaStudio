@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RulesTable } from '../RulesTable';
 import type { SourcingRule } from '../../../types';
+import { useCoreStore } from '../../../store/coreStore';
+
+vi.mock('../../../store/coreStore', () => ({
+  useCoreStore: vi.fn(),
+}));
 
 describe('RulesTable', () => {
   const mockRule: SourcingRule = {
@@ -30,6 +35,10 @@ describe('RulesTable', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({
+      sourcingRules: [mockRule],
+      setSourcingRules: vi.fn()
+    }));
   });
 
   it('renders correctly and handles undefined fields cleanly without crashing', () => {
@@ -39,6 +48,12 @@ describe('RulesTable', () => {
   });
 
   it('allows editing a rule and saving handles empty strings by mapping to undefined', () => {
+    const mockSet = vi.fn();
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector({
+      sourcingRules: [mockRule],
+      setSourcingRules: mockSet
+    }));
+    
     render(<RulesTable {...defaultProps} />);
     
     // Click edit
@@ -49,8 +64,8 @@ describe('RulesTable', () => {
     const saveBtn = screen.getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
-    expect(defaultProps.setSourcingRules).toHaveBeenCalled();
-    const updater = vi.mocked(defaultProps.setSourcingRules).mock.calls[0][0];
+    expect(mockSet).toHaveBeenCalled();
+    const updater = mockSet.mock.calls[0][0];
     
     // Call the updater function with prev state
     const newState = (updater as (prev: SourcingRule[]) => SourcingRule[])([mockRule]);

@@ -5,18 +5,11 @@ import { CleansingView } from '../../src/components/cleansing/CleansingView';
 import { ToastProvider } from '../../src/components/shared/ToastContext';
 import type { CatalogSKU } from '../../src/types';
 
-// Mock API calls for MSW
-import { setupServer } from 'msw/node';
-import { http, HttpResponse } from 'msw';
-
-const server = setupServer(
-  http.post('/api/taxonomy/rules', () => {
-    return HttpResponse.json({ success: true });
-  })
-);
+// Use global MSW server
+import { server } from '../../src/mocks/server';
 
 describe('06 - Cleansing Workspace Mapping Integration', () => {
-  beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
+  beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
   afterEach(() => { server.resetHandlers(); });
   afterAll(() => server.close());
 
@@ -41,7 +34,7 @@ describe('06 - Cleansing Workspace Mapping Integration', () => {
     );
 
     // Initial state: We have some fuzzy or unmatched items from the mock entries generator
-    const autoMapBtn = screen.getByRole('button', { name: /Auto-Map/i });
+    const autoMapBtn = screen.getByRole('button', { name: /^Auto-Map$/i });
     
     fireEvent.click(autoMapBtn);
 
@@ -51,15 +44,13 @@ describe('06 - Cleansing Workspace Mapping Integration', () => {
     });
 
     // We can also verify that clicking on an entry populates the search
-    const entryCards = screen.getAllByRole('button').filter(el => el.classList.contains('cursor-pointer') && !el.classList.contains('uppercase') && el.tagName !== 'BUTTON');
-    
-    // Fallback if the above filter is too strict: just find the first element with role='button' that has a 'div' tag (since entry cards are motion.div)
-    const actualEntryCards = screen.getAllByRole('button').filter(el => el.tagName === 'DIV');
-    
-    if (actualEntryCards.length > 0) {
-      fireEvent.click(actualEntryCards[0]); // click an actual entry card
+    const entryCards = screen.getAllByTestId('cleansing-entry');
+    if (entryCards.length > 0) {
+      fireEvent.click(entryCards[0]); // click an actual entry card
     }
     
-    expect(screen.getByPlaceholderText(/Search catalog.../i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Search catalog.../i)).toBeInTheDocument();
+    });
   });
 });
