@@ -7,9 +7,7 @@ import { useCoreStore } from "../../store/coreStore";
 interface BreadcrumbNavProps {
   view: string;
   activeMissionId?: string;
-  ucids: UCID[];
 }
-
 
 function useActiveContext(path: string, activeMissionId: string | undefined, ucids: UCID[]) {
   const solutions = useCoreStore(s => s.solutions);
@@ -32,8 +30,8 @@ function useActiveContext(path: string, activeMissionId: string | undefined, uci
 export function BreadcrumbNav({
   view,
   activeMissionId,
-  ucids,
 }: BreadcrumbNavProps) {
+  const ucids = useCoreStore(s => s.ucids);
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;

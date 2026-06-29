@@ -2,16 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { ShieldCheck, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence, animate } from 'motion/react';
 import type { ForensicIssue } from '../../types';
+import { useCoreStore } from '../../store/coreStore';
 
 interface ForensicSidebarProps {
   openIssuesCount: number;
-  forensicIssues: ForensicIssue[];
 }
 
 export function ForensicSidebar({
   openIssuesCount,
-  forensicIssues,
 }: ForensicSidebarProps) {
+  const forensicIssues = useCoreStore(s => s.forensicIssues);
   const targetScore = openIssuesCount === 0 ? 100 : Math.max(10, Math.round(100 - openIssuesCount * 15));
   const [displayScore, setDisplayScore] = useState(0);
 

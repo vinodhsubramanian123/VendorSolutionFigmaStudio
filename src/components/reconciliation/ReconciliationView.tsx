@@ -124,9 +124,6 @@ export function ReconciliationView() {
         isOpen={isSnapshotPanelOpen}
         onClose={() => setIsSnapshotPanelOpen(false)}
         activeUCID={activeUCID}
-        ucids={ucids}
-        setUcids={setUcids}
-        catalogSkus={catalogSkus}
       />
     </motion.div>
     </ErrorBoundary>

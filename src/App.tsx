@@ -209,15 +209,10 @@ export default function App() {
           <div className="w-full flex flex-col min-h-full">
             <BreadcrumbNav
               view={currentViewString}
-              
-              ucids={ucids}
+              activeMissionId={activeMissionId}
             />
             <ErrorBoundary>
               <DataPersistenceGate
-                ucids={ucids}
-                solutions={solutions}
-                vendors={vendors}
-                catalogSkus={catalogSkus}
                 isPendingAPI={isPendingAPI}
                 requestedView={requestedPath as AppView}
                 onConfirmNavigation={confirmNavigation}

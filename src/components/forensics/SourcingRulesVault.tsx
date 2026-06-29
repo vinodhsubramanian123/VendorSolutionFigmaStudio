@@ -9,20 +9,20 @@ import { RulesTable } from "./RulesTable";
 import { LearningLoopInjector } from "./LearningLoopInjector";
 import { RuleConflictModal } from "./RuleConflictModal";
 import type { RuleConflict } from "../../types";
+import { useCoreStore } from "../../store/coreStore";
+
 interface SourcingRulesVaultProps {
-  sourcingRules: SourcingRule[];
-  setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
   triggerToast: (message: string, type: "success" | "warn") => void;
   prefillRule: Partial<SourcingRule> | null;
   onPrefillConsumed: () => void;
 }
 export function SourcingRulesVault({
-  sourcingRules,
-  setSourcingRules,
   triggerToast,
   prefillRule,
   onPrefillConsumed,
 }: SourcingRulesVaultProps) {
+  const sourcingRules = useCoreStore(s => s.sourcingRules);
+  const setSourcingRules = useCoreStore(s => s.setSourcingRules);
   const [isAddingRule, setIsAddingRule] = useState(false);
   const [isInjectingIntel, setIsInjectingIntel] = useState(false);
   const [simulatingRuleId, setSimulatingRuleId] = useState<string | null>(null);
@@ -191,8 +191,6 @@ export function SourcingRulesVault({
       )}
       </AnimatePresence>
       <RulesTable
-        sourcingRules={sourcingRules}
-        setSourcingRules={setSourcingRules}
         triggerToast={triggerToast}
         onSimulateAndPromote={handleSimulateAndPromote}
         simulatingRuleId={simulatingRuleId}

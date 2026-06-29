@@ -167,7 +167,7 @@ class ApiClient {
     this.get(`/api/jobs/${jobId}`)
       .then((res) => {
         if (!active) return;
-        const data = res.data as { status: string, progress: number, result: any };
+        const data = res.data as { status: string, progress: number, result: unknown };
         onMessage({
           status: data.status || "completed",
           progress: data.progress || 100,

@@ -2,10 +2,10 @@ import React from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 import type { UCID } from '../../types';
 import { Select } from '../shared/Select';
+import { useCoreStore } from '../../store/coreStore';
 
 interface ForensicHeaderProps {
   currUcid: UCID | undefined;
-  ucids: UCID[];
   scanning: boolean;
   setActiveMissionId: (id: string) => void;
   runAuditScanner: () => void;
@@ -13,11 +13,11 @@ interface ForensicHeaderProps {
 
 export function ForensicHeader({
   currUcid,
-  ucids,
   scanning,
   setActiveMissionId,
   runAuditScanner,
 }: ForensicHeaderProps) {
+  const ucids = useCoreStore(s => s.ucids);
   return (
     <div className="space-y-4">
       {/* Head */}

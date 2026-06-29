@@ -4,6 +4,7 @@ import { StatusBadge } from "../shared/StatusBadge";
 import type { UCID } from "../../types";
 import type { ConfigItem, UcidContainer } from "../../types/data";
 import { motion, AnimatePresence } from "motion/react";
+import { useCoreStore } from "../../store/coreStore";
 
 export type ExecutionMode = 'automated' | 'manual' | 'hybrid';
 
@@ -11,7 +12,6 @@ interface UcidContainerListProps {
   isMultiUcid: boolean;
   ucidsList: UcidContainer[];
   configs: ConfigItem[];
-  ucids: UCID[];
   updateContainerName: (id: string, name: string) => void;
   updateContainerReasoning: (id: string, reasoning: string) => void;
   toggleContainerLock: (id: string) => void;
@@ -286,7 +286,6 @@ export function UcidContainerList({
   isMultiUcid,
   ucidsList,
   configs,
-  ucids,
   updateContainerName,
   updateContainerReasoning,
   toggleContainerLock,
@@ -295,6 +294,7 @@ export function UcidContainerList({
   updateContainerExecutionMode,
   handleContainerUpload,
 }: UcidContainerListProps) {
+  const ucids = useCoreStore(s => s.ucids);
   return (
     <div className="lg:col-span-7 flex flex-col gap-4">
       <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-wider block shrink-0">

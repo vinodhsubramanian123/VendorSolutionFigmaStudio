@@ -6,22 +6,22 @@ import type { UCID, Snapshot } from "../../types";
 import { useSnapshotManagerLogic } from "./useSnapshotManagerLogic";
 import { CreateSnapshotForm } from "./CreateSnapshotForm";
 import { SnapshotListItem } from "./SnapshotListItem";
+import { useCoreStore } from "../../store/coreStore";
+
 interface SnapshotManagerProps {
   activeUCID: UCID | undefined;
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   selectedForCompare: string[];
   toggleCompareSelected: (snapId: string) => void;
   compareAgainstCurrent: boolean;
 }
 export function SnapshotManager({
   activeUCID,
-  ucids,
-  setUcids,
   selectedForCompare,
   toggleCompareSelected,
   compareAgainstCurrent,
 }: SnapshotManagerProps) {
+  const ucids = useCoreStore(s => s.ucids);
+  const setUcids = useCoreStore(s => s.setUcids);
   const toast = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [expandedBoms, setExpandedBoms] = useState<Record<string, boolean>>({});

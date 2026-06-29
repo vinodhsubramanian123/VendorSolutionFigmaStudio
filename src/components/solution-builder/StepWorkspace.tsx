@@ -23,7 +23,6 @@ interface StepWorkspaceProps {
   toggleContainerLock: (id: string) => void;
   updateContainerExecutionMode: (id: string, mode: 'automated' | 'manual' | 'hybrid') => void;
   handleContainerUpload: (id: string, fileName: string) => void;
-  ucids: UCID[];
   handleDeployToMissionControl: () => void;
 }
 
@@ -43,7 +42,6 @@ export function StepWorkspace({
   toggleContainerLock,
   updateContainerExecutionMode,
   handleContainerUpload,
-  ucids,
   handleDeployToMissionControl,
 }: StepWorkspaceProps) {
   const activePromoConfig =
@@ -83,7 +81,6 @@ export function StepWorkspace({
         isMultiUcid={isMultiUcid}
         ucidsList={ucidsList}
         configs={configs}
-        ucids={ucids}
         updateContainerName={updateContainerName}
         updateContainerReasoning={updateContainerReasoning}
         toggleContainerLock={toggleContainerLock}

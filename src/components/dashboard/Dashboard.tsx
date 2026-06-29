@@ -260,11 +260,11 @@ export function Dashboard({
       {/* UCID Pipeline + Vendor Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Active UCID Pipeline */}
-        <UcidPipelineCard ucids={ucids} onNavigate={onNavigate} />
+        <UcidPipelineCard onNavigate={onNavigate} />
         {/* Vendor API Status + Issues */}
         <div className="space-y-4">
-          <VendorHealthList vendors={vendors} onNavigate={onNavigate} />
-          <ActiveIssuesList forensicIssues={forensicIssues} onNavigate={onNavigate} />
+          <VendorHealthList onNavigate={onNavigate} />
+          <ActiveIssuesList onNavigate={onNavigate} />
         </div>
       </div>
     </motion.div>

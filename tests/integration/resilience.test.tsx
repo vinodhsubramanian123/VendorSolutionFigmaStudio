@@ -137,8 +137,6 @@ describe('Category 10 — Resilience: Network Failure & Toast Rollback', () => {
     render(
       <Wrapper>
         <SourcingRulesVault
-          sourcingRules={mockRules}
-          setSourcingRules={mockSetRules}
           triggerToast={vi.fn()}
           prefillRule={null}
           onPrefillConsumed={vi.fn()}
@@ -194,8 +192,6 @@ describe('Category 10 — Resilience: Network Failure & Toast Rollback', () => {
     render(
       <Wrapper>
         <SourcingRulesVault
-          sourcingRules={mockRules}
-          setSourcingRules={mockSetRules}
           triggerToast={vi.fn()}
           prefillRule={null}
           onPrefillConsumed={vi.fn()}
@@ -230,8 +226,6 @@ describe('Category 13 — Optimistic UI Rollback', () => {
     render(
       <Wrapper>
         <SourcingRulesVault
-          sourcingRules={mockRules}
-          setSourcingRules={mockSetRules}
           triggerToast={vi.fn()}
           prefillRule={null}
           onPrefillConsumed={vi.fn()}
@@ -339,8 +333,6 @@ describe('Category 13 — Optimistic UI Rollback', () => {
     render(
       <Wrapper>
         <SourcingRulesVault
-          sourcingRules={[draftRule]}
-          setSourcingRules={vi.fn()}
           triggerToast={vi.fn()}
           prefillRule={null}
           onPrefillConsumed={vi.fn()}

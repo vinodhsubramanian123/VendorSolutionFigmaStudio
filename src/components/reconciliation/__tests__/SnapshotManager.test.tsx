@@ -77,7 +77,7 @@ describe("SnapshotManager", () => {
   it("renders the snapshot list by default", () => {
     render(
       <ToastProvider>
-        <SnapshotManager activeUCID={mockUcids[0]} setUcids={vi.fn()} ucids={mockUcids} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
+        <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
       </ToastProvider>
     );
     expect(screen.getByTestId("snapshot-item-snap-1")).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe("SnapshotManager", () => {
   it("shows the create form when Create Snapshot is clicked", () => {
     render(
       <ToastProvider>
-        <SnapshotManager activeUCID={mockUcids[0]} setUcids={vi.fn()} ucids={mockUcids} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
+        <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
       </ToastProvider>
     );
     
@@ -101,7 +101,7 @@ describe("SnapshotManager", () => {
   it("hides the form when Cancel is clicked", () => {
     render(
       <ToastProvider>
-        <SnapshotManager activeUCID={mockUcids[0]} setUcids={vi.fn()} ucids={mockUcids} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
+        <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
       </ToastProvider>
     );
     
@@ -119,7 +119,7 @@ describe("SnapshotManager", () => {
     const setUcidsMock = vi.fn();
     render(
       <ToastProvider>
-        <SnapshotManager activeUCID={mockUcids[0]} setUcids={setUcidsMock} ucids={mockUcids} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
+        <SnapshotManager activeUCID={mockUcids[0]} selectedForCompare={[]} toggleCompareSelected={vi.fn()} compareAgainstCurrent={false} />
       </ToastProvider>
     );
     

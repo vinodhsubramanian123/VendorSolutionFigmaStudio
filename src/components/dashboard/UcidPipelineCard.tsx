@@ -8,11 +8,11 @@ import { motion, AnimatePresence } from "motion/react";
 import { useCoreStore } from "../../store/coreStore";
 
 interface UcidPipelineCardProps {
-  ucids: UCID[];
   onNavigate: (view: AppView) => void;
 }
 
-export function UcidPipelineCard({ ucids, onNavigate }: UcidPipelineCardProps) {
+export function UcidPipelineCard({ onNavigate }: UcidPipelineCardProps) {
+  const ucids = useCoreStore(s => s.ucids);
   const solutions = useCoreStore(s => s.solutions);
   
   const renderedSolutions = useMemo(() => {

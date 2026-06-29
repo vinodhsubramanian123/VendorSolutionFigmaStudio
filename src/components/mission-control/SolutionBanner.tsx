@@ -4,9 +4,9 @@ import { UCID } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { tokens } from "../../styles/tokens";
 import { motion } from "motion/react";
+import { useCoreStore } from "../../store/coreStore";
 
 interface SolutionBannerProps {
-  ucids: UCID[];
   solutionState: "planning" | "active" | "complete";
   completeCount: number;
   deployedSolution?: {
@@ -42,12 +42,12 @@ const STATE_CONFIG = {
 } as const;
 
 export function SolutionBanner({
-  ucids,
   solutionState,
   completeCount,
   deployedSolution,
   onClearDeployed,
 }: SolutionBannerProps) {
+  const ucids = useCoreStore((s) => s.ucids);
   const currentTotalCommitted = ucids
     .flatMap((u) => u.snapshots || [])
     .reduce((sum, sn) => sum + sn.totalValue, 0);

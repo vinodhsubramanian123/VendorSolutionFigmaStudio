@@ -68,11 +68,12 @@ export function useIngestionLogic({
   const boqIntake = useBoqIntake(setUcids, setMode, toast, setSelectedUcidId);
   
   const [selectedBomsForBatch, setSelectedBomsForBatch] = useState<string[]>([]);
-  useEffect(() => {
-    if (ucids.length > 0 && selectedBomsForBatch.length === 0) {
-      setSelectedBomsForBatch(ucids.map((u) => u.id));
-    }
-  }, [ucids, selectedBomsForBatch.length]);
+  const [bomsHydrated, setBomsHydrated] = useState(false);
+
+  if (ucids.length > 0 && !bomsHydrated) {
+    setSelectedBomsForBatch(ucids.map((u) => u.id));
+    setBomsHydrated(true);
+  }
 
   const bomConversion = useBomConversion(
     ucids,

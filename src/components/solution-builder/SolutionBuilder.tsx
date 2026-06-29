@@ -220,7 +220,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         syncStatus: "Pending",
 
         solutionId: activeSolutionId || 'sol-fallback',
-        solutionDisplayId: activeSolution?.displayId || `SOL-2026-${Math.floor(Math.random() * 9000) + 1000}`,
+        solutionDisplayId: activeSolution?.displayId || generateDisplayId().replace('UCID', 'SOL'),
         configIndex: containerIdx + 1,
         configLabel: container.name,
         parallelGroup: null,
@@ -242,7 +242,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
        const newSolId = crypto.randomUUID();
        addSolution({
          id: newSolId,
-         displayId: `SOL-2026-${Math.floor(Math.random() * 9000) + 1000}`,
+         displayId: generateDisplayId().replace('UCID', 'SOL'),
          name: solutionName,
          customerName: "Acme Corp",
          boqSourceFile: "Manual Workspace",
@@ -381,7 +381,6 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
             toggleContainerLock={toggleContainerLock}
             updateContainerExecutionMode={updateContainerExecutionMode}
             handleContainerUpload={handleContainerUpload}
-            ucids={ucids}
             handleDeployToMissionControl={handleDeployToMissionControl}
           />
         )}

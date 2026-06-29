@@ -7,12 +7,10 @@ import { SolutionProjectSchema } from "../../types/schemas/schemaUCID";
 import { z } from "zod";
 import { ErrorBoundary } from "./ErrorBoundary";
 
+import { useCoreStore } from "../../store/coreStore";
+
 interface DataPersistenceGateProps {
   children: React.ReactNode;
-  ucids: UCID[];
-  solutions: SolutionProject[];
-  vendors: Vendor[];
-  catalogSkus: CatalogSKU[];
   isPendingAPI?: boolean;
   requestedView?: string | null;
   onConfirmNavigation?: () => void;
@@ -21,15 +19,15 @@ interface DataPersistenceGateProps {
 
 export function DataPersistenceGate({
   children,
-  ucids,
-  solutions,
-  vendors,
-  catalogSkus,
   isPendingAPI,
   requestedView,
   onConfirmNavigation,
   onCancelNavigation,
 }: DataPersistenceGateProps) {
+  const ucids = useCoreStore(s => s.ucids);
+  const solutions = useCoreStore(s => s.solutions);
+  const vendors = useCoreStore(s => s.vendors);
+  const catalogSkus = useCoreStore(s => s.catalogSkus);
   // Synchronously compute data health to avoid any intermediate layout flickers or loading screens on state changes
   const isUcidsValid = Array.isArray(ucids);
   const isSolutionsValid = Array.isArray(solutions);

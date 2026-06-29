@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import type { UCID, UCIDStep } from "../../types";
+import { useCoreStore } from "../../store/coreStore";
 import { UCIDEditModal, UCIDDeleteConfirmModal } from "./UCIDModals";
 import { HierarchyHubPanel } from "./HierarchyHubPanel";
 import { SidebarHeader } from "./SidebarHeader";
@@ -7,8 +8,6 @@ import { GroupedUcidList } from "./GroupedUcidList";
 import { generateDisplayId } from "../../utils/generateDisplayId";
 
 interface MissionControlSidebarProps {
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
   selectedId?: string;
   hierarchyTab: "visual" | "faq";
   setHierarchyTab: (tab: "visual" | "faq") => void;
@@ -21,8 +20,6 @@ interface MissionControlSidebarProps {
 }
 
 export function MissionControlSidebar({
-  ucids,
-  setUcids,
   selectedId,
   hierarchyTab,
   setHierarchyTab,
@@ -33,6 +30,8 @@ export function MissionControlSidebar({
   setViewStep,
   getSolutionName,
 }: MissionControlSidebarProps) {
+  const ucids = useCoreStore((s) => s.ucids);
+  const setUcids = useCoreStore((s) => s.setUcids);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeMenuUcidId, setActiveMenuUcidId] = useState<string | null>(null);
   const [editingUcid, setEditingUcid] = useState<UCID | null>(null);

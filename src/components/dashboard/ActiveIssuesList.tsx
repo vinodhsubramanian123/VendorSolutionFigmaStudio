@@ -4,12 +4,14 @@ import { ChevronRight, CheckCircle } from 'lucide-react';
 import type { ForensicIssue, AppView } from '../../types';
 import { motion, AnimatePresence } from "motion/react";
 
+import { useCoreStore } from "../../store/coreStore";
+
 interface ActiveIssuesListProps {
-  forensicIssues: ForensicIssue[];
   onNavigate: (v: AppView) => void;
 }
 
-export function ActiveIssuesList({ forensicIssues, onNavigate }: ActiveIssuesListProps) {
+export function ActiveIssuesList({ onNavigate }: ActiveIssuesListProps) {
+  const forensicIssues = useCoreStore(s => s.forensicIssues);
   const activeIssues = React.useMemo(() => {
     return forensicIssues.filter((f) => f.status !== "resolved");
   }, [forensicIssues]);

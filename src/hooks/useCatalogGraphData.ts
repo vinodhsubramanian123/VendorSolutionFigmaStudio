@@ -58,9 +58,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
 
   useEffect(() => {
     let cancel = false;
-    Promise.resolve().then(() => {
-      fetchGraph(() => cancel);
-    });
+    fetchGraph(() => cancel);
     return () => {
       cancel = true;
     };

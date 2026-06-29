@@ -43,13 +43,13 @@ export const SKUCard: React.FC<SKUCardProps> = ({
         {sku.name}
       </h4>
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-        <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" && onCopy) onCopy(sku.partNumber); }} className="text-[11px] font-mono text-content-muted flex items-center gap-1.5 cursor-pointer hover:text-white transition" onClick={(e) => {
+        <button type="button" className="text-[11px] font-mono text-content-muted flex items-center gap-1.5 cursor-pointer hover:text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-indigo/50 rounded" onClick={(e) => {
           e.stopPropagation();
           onCopy?.(sku.partNumber);
         }}>
           {sku.partNumber}
           <Copy className="w-3 h-3 hover:text-brand-indigo" />
-        </div>
+        </button>
         <div className="text-right">
           <div className="text-xs font-bold text-white tracking-tight">${sku.price?.toLocaleString()}</div>
           <div className="text-[9px] text-content-muted font-medium">{sku.leadTimeDays}d ETA</div>

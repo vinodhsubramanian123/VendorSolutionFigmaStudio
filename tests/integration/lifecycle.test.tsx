@@ -69,8 +69,6 @@ describe('Category 6 — State Lifecycle Tests (Loading / Empty / Error)', () =>
     render(
       <Wrapper>
         <SourcingRulesVault
-          sourcingRules={[]}
-          setSourcingRules={vi.fn()}
           triggerToast={vi.fn()}
           prefillRule={null}
           onPrefillConsumed={vi.fn()}
@@ -85,8 +83,6 @@ describe('Category 6 — State Lifecycle Tests (Loading / Empty / Error)', () =>
     render(
       <Wrapper>
         <SourcingRulesVault
-          sourcingRules={mockRules}
-          setSourcingRules={vi.fn()}
           triggerToast={vi.fn()}
           prefillRule={null}
           onPrefillConsumed={vi.fn()}

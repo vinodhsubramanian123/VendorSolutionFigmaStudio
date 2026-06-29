@@ -171,7 +171,6 @@ export const MissionControl = React.memo(function MissionControl({
         )}
       {/* Top solution banner */}
       <SolutionBanner
-        ucids={ucids}
         solutionState={solutionState}
         completeCount={completeCount}
         deployedSolution={deployedSolution}
@@ -180,8 +179,6 @@ export const MissionControl = React.memo(function MissionControl({
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
         {/* Left column: parallel active tickets */}
         <MissionControlSidebar 
-          ucids={ucids}
-          setUcids={setUcids}
           selectedId={selectedId}
           hierarchyTab={hierarchyTab}
           setHierarchyTab={setHierarchyTab}

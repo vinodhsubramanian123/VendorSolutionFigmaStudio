@@ -10,23 +10,22 @@ import type { UCID, CatalogSKU } from "../../types";
 import { SnapshotManager } from "./SnapshotManager";
 import { SnapshotDiffModal } from "./SnapshotDiffModal";
 
+import { useCoreStore } from "../../store/coreStore";
+
 interface SnapshotsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   activeUCID: UCID | undefined;
-  ucids: UCID[];
-  setUcids: React.Dispatch<React.SetStateAction<UCID[]>>;
-  catalogSkus: CatalogSKU[];
 }
 
 export function SnapshotsPanel({
   isOpen,
   onClose,
   activeUCID,
-  ucids,
-  setUcids,
-  catalogSkus,
 }: SnapshotsPanelProps) {
+  const ucids = useCoreStore(s => s.ucids);
+  const setUcids = useCoreStore(s => s.setUcids);
+  const catalogSkus = useCoreStore(s => s.catalogSkus);
   // Local state for Diff selection
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
 
@@ -163,8 +162,6 @@ export function SnapshotsPanel({
                 {/* Snapshot Manager Control Center */}
                 <SnapshotManager
                   activeUCID={activeUCID}
-                  ucids={ucids}
-                  setUcids={setUcids}
                   selectedForCompare={selectedForCompare}
                   toggleCompareSelected={handleSelectForCompare}
                   compareAgainstCurrent={compareAgainstCurrent}

@@ -78,7 +78,6 @@ export function ForensicView(props: ForensicViewProps) {
 
       <ForensicHeader
         currUcid={currUcid}
-        ucids={ucids}
         scanning={scanning}
         setActiveMissionId={setActiveMissionId}
         runAuditScanner={runAuditScanner}
@@ -129,14 +128,11 @@ export function ForensicView(props: ForensicViewProps) {
 
           <ForensicSidebar
             openIssuesCount={openIssues.length}
-            forensicIssues={forensicIssues}
           />
         </div>
 
       {/* Sourcing Intelligence Policy Rules Vault */}
       <SourcingRulesVault
-        sourcingRules={sourcingRules}
-        setSourcingRules={setSourcingRules}
         triggerToast={triggerToast}
         prefillRule={prefillRule}
         onPrefillConsumed={() => setPrefillRule(null)}

@@ -4,12 +4,14 @@ import { ChevronRight, Users } from 'lucide-react';
 import type { Vendor, AppView } from '../../types';
 import { motion, AnimatePresence } from "motion/react";
 
+import { useCoreStore } from "../../store/coreStore";
+
 interface VendorHealthListProps {
-  vendors: Vendor[];
   onNavigate: (v: AppView) => void;
 }
 
-export function VendorHealthList({ vendors, onNavigate }: VendorHealthListProps) {
+export function VendorHealthList({ onNavigate }: VendorHealthListProps) {
+  const vendors = useCoreStore(s => s.vendors);
   const renderedVendors = useMemo(() => {
     if (vendors.length === 0) {
       return (

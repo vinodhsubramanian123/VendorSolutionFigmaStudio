@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DataPersistenceGate } from '../DataPersistenceGate';
 import type { UCID, Vendor, CatalogSKU } from '../../../types';
 import type { SolutionProject } from '../../../types/models/sourcing';
+import { useCoreStore } from '../../../store/coreStore';
 
 describe('DataPersistenceGate', () => {
   const validUcids: UCID[] = [{
@@ -69,14 +70,27 @@ describe('DataPersistenceGate', () => {
   }];
 
   const defaultProps = {
-    ucids: validUcids,
-    solutions: validSolutions,
-    vendors: validVendors,
-    catalogSkus: validCatalog,
+    isPendingAPI: false,
+    requestedView: null,
+    onConfirmNavigation: vi.fn(),
+    onCancelNavigation: vi.fn(),
   };
+
+  vi.mock('../../../store/coreStore', () => ({
+    useCoreStore: vi.fn(),
+  }));
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (useCoreStore as any).mockImplementation((selector: any) => {
+      const state = {
+        ucids: validUcids,
+        solutions: validSolutions,
+        vendors: validVendors,
+        catalogSkus: validCatalog,
+      };
+      return selector(state);
+    });
   });
 
   it('renders children when data is healthy', () => {
@@ -93,8 +107,18 @@ describe('DataPersistenceGate', () => {
     // Break the schema validation (e.g. invalid UCID priority)
     const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
 
+    (useCoreStore as any).mockImplementation((selector: any) => {
+      const state = {
+        ucids: invalidUcids,
+        solutions: validSolutions,
+        vendors: validVendors,
+        catalogSkus: validCatalog,
+      };
+      return selector(state);
+    });
+
     render(
-      <DataPersistenceGate {...defaultProps} ucids={invalidUcids}>
+      <DataPersistenceGate {...defaultProps}>
         <div data-testid="child-content">Child Content</div>
       </DataPersistenceGate>
     );
@@ -113,8 +137,19 @@ describe('DataPersistenceGate', () => {
     const removeItemMock = vi.spyOn(Storage.prototype, 'removeItem');
 
     const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
+    
+    (useCoreStore as any).mockImplementation((selector: any) => {
+      const state = {
+        ucids: invalidUcids,
+        solutions: validSolutions,
+        vendors: validVendors,
+        catalogSkus: validCatalog,
+      };
+      return selector(state);
+    });
+
     render(
-      <DataPersistenceGate {...defaultProps} ucids={invalidUcids}>
+      <DataPersistenceGate {...defaultProps}>
         <div data-testid="child-content">Child Content</div>
       </DataPersistenceGate>
     );

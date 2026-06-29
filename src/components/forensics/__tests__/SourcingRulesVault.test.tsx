@@ -14,13 +14,9 @@ vi.mock("../AddRuleForm", () => ({
 }));
 
 vi.mock("../RulesTable", () => ({
-  RulesTable: ({ sourcingRules }: { sourcingRules: import("../../../types").SourcingRule[] }) => (
+  RulesTable: () => (
     <div data-testid="rules-table">
-      {sourcingRules.map((r: import("../../../types").SourcingRule) => (
-        <div key={r.id} data-testid={`rule-row-${r.id}`}>
-          {r.partNumber}
-        </div>
-      ))}
+      Rules Table Mock
     </div>
   )
 }));
@@ -50,7 +46,7 @@ describe("SourcingRulesVault", () => {
   it("renders correctly with rules table", () => {
     render(
       <ToastProvider>
-        <SourcingRulesVault sourcingRules={[]} setSourcingRules={vi.fn()} triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
+        <SourcingRulesVault triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
       </ToastProvider>
     );
     expect(screen.getByTestId("rules-table")).toBeInTheDocument();
@@ -59,7 +55,7 @@ describe("SourcingRulesVault", () => {
   it("shows add rule form when Define Sourcing Override is clicked", () => {
     render(
       <ToastProvider>
-        <SourcingRulesVault sourcingRules={[]} setSourcingRules={vi.fn()} triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
+        <SourcingRulesVault triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
       </ToastProvider>
     );
     
@@ -74,7 +70,7 @@ describe("SourcingRulesVault", () => {
   it("hides add rule form when Cancel is clicked", () => {
     render(
       <ToastProvider>
-        <SourcingRulesVault sourcingRules={[]} setSourcingRules={vi.fn()} triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
+        <SourcingRulesVault triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
       </ToastProvider>
     );
     
@@ -90,10 +86,13 @@ describe("SourcingRulesVault", () => {
   });
 
   it("calls setSourcingRules when Save is clicked", async () => {
-    const setSourcingRulesMock = vi.fn();
     render(
       <ToastProvider>
-        <SourcingRulesVault sourcingRules={[]} setSourcingRules={setSourcingRulesMock} triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={vi.fn()} />
+        <SourcingRulesVault
+          triggerToast={vi.fn()}
+          prefillRule={null}
+          onPrefillConsumed={vi.fn()}
+        />
       </ToastProvider>
     );
     

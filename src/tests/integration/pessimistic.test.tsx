@@ -32,8 +32,6 @@ describe("Pessimistic Failure & Rollback Tests (Category 13 & 9.5)", () => {
     };
 
     render(<SourcingRulesVault 
-      sourcingRules={[mockRule]} 
-      setSourcingRules={vi.fn()} 
       triggerToast={vi.fn()} 
       prefillRule={null} 
       onPrefillConsumed={vi.fn()} 

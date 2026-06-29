@@ -129,8 +129,7 @@ export function Sidebar({
   return (
     <nav
       aria-label="Sidebar Navigation"
-      className={`flex flex-col h-screen shrink-0 border-r transition-all duration-300 z-50 bg-background-card ${collapsed ? "cursor-pointer hover:bg-white/[0.01] w-[4.5rem]" : "w-[4.5rem] lg:w-[17.5rem]"} absolute lg:relative`}
-      onClick={collapsed ? onToggle : undefined}
+      className={`flex flex-col h-screen shrink-0 border-r transition-all duration-300 z-50 bg-background-card ${collapsed ? "w-[4.5rem]" : "w-[4.5rem] lg:w-[17.5rem]"} absolute lg:relative`}
       style={{
         backgroundColor: tokens.colors.background.card, 
         borderColor: "rgba(74, 133, 253,0.1)",

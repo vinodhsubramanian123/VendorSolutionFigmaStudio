@@ -103,8 +103,6 @@ describe('Category 17 — AGENTS.md Architectural Compliance', () => {
       render(
         <Wrapper>
           <SourcingRulesVault
-            sourcingRules={mockRules}
-            setSourcingRules={mockSetRules}
             triggerToast={vi.fn()}
             prefillRule={null}
             onPrefillConsumed={vi.fn()}
@@ -219,8 +217,6 @@ describe('Category 17 — AGENTS.md Architectural Compliance', () => {
       render(
         <Wrapper>
           <SourcingRulesVault
-            sourcingRules={[]}
-            setSourcingRules={vi.fn()}
             triggerToast={vi.fn()}
             prefillRule={null}
             onPrefillConsumed={vi.fn()}
