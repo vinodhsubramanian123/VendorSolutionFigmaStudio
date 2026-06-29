@@ -259,6 +259,13 @@ As of Phase 7 (Refactoring & Perfection), the following structural rules are com
 *   **Rule**: Global data domains (e.g., `ucids`, `vendors`, `sourcingRules`, `forensicIssues`) MUST NOT be passed down through React `props` to deeply nested components.
 *   **Action**: Any component that requires access to global platform data must consume it directly via `useCoreStore((s) => s.propertyName)`. Top-level layouts (like `App.tsx` or `MissionControl.tsx`) are forbidden from declaring these objects in their children's `interface Props` to prevent massive cascading re-renders and state desyncs.
 
+### 13.7 Static / Dynamic Loading & Bundle Chunking Guardrails
+*   **Rule**: Heavy third-party utility modules (like `xlsx` or `exceljs`) that are only used in user interaction handlers (e.g., file intake, download/exports) MUST NOT be statically imported directly.
+*   **Action**: 
+    - Use type-only imports at the top level for type checking (e.g., `import type * as XLSXTypes from 'xlsx';`).
+    - Load the runtime module dynamically inside the asynchronous event handlers (e.g., `const XLSX = await import('xlsx');`).
+    - Define dedicated `manualChunks` in the bundler's output configuration (e.g., `vite.config.ts`) for large dependencies to enable persistent browser caching.
+
 ---
 
 ## 21. The Proactive Senior Architect Mandate (June 2026 Core Directive)
