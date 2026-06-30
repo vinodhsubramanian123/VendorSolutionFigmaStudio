@@ -47,6 +47,7 @@ export function VendorStatusBoard({ totalCatalog, vendorPieData, dimensions, cha
               cy="50%"
               innerRadius={34}
               outerRadius={54}
+              isAnimationActive={false}
               strokeWidth={0}
             >
               {vendorPieData.map((entry) => (

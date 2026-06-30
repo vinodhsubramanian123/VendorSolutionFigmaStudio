@@ -47,12 +47,13 @@ export function CatalogAddForm({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
+      className="fixed inset-0 z-[100] bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
       tabIndex={0}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="catalog-add-form-title"
     >
       <div
         className="w-full max-w-sm rounded-xl border p-5 space-y-4"
@@ -66,7 +67,7 @@ export function CatalogAddForm({
           className="flex items-center justify-between pb-2 border-b"
           style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
         >
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+          <h3 id="catalog-add-form-title" className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <Database className="w-4 h-4 text-indigo-400" /> Insert Direct
             Sourced SKU
           </h3>
@@ -74,6 +75,7 @@ export function CatalogAddForm({
             onClick={onClose}
             className="text-gray-400 hover:text-white cursor-pointer"
             type="button"
+            aria-label="Close add SKU form"
           >
             <X className="w-4 h-4" />
           </button>

@@ -96,6 +96,7 @@ export const CatalogTrendAnalyzer = React.memo(function CatalogTrendAnalyzer({ d
               key="area"
               type="monotone"
               dataKey="items"
+              isAnimationActive={false}
               stroke={tokens.colors.accent.indigo} 
               strokeWidth={2}
               fill="url(#catGrad)"

@@ -1,18 +1,29 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { SolutionBuilder } from '../SolutionBuilder';
 import { ToastProvider } from '../../shared/ToastContext';
 import { useCoreStore } from '../../../store/coreStore';
-import { createMockCoreState } from '../../../tests/shared/mockFactories';
+import type { UCID } from '../../../types';
 
-vi.mock('../../../store/coreStore', () => ({
-  useCoreStore: vi.fn(),
-}));
+const mockSetUcids = vi.fn();
+const mockAddSolution = vi.fn();
+
+beforeEach(() => {
+  mockSetUcids.mockReset();
+  mockAddSolution.mockReset();
+  useCoreStore.setState({
+    ucids: [],
+    solutions: [],
+    activeSolutionId: null,
+    setUcids: mockSetUcids,
+    addSolution: mockAddSolution,
+  });
+});
 
 describe('SolutionBuilder Component', () => {
   it('bypasses Step 1 (Intake) if global ucids exist and are not in snapshot state', () => {
-    const mockUcids = [
+    const mockUcids: UCID[] = [
       {
         id: 'global-1',
         displayId: 'UCID-2026-9999',
@@ -23,27 +34,22 @@ describe('SolutionBuilder Component', () => {
         solutions: [],
         events: [],
         snapshots: [],
-  solutionId: "11111111-1111-1111-8111-111111111111",
-  solutionDisplayId: "SOL-2026-001",
-  configIndex: 1,
-  configLabel: "Config 1",
-  parallelGroup: null,
-
-
-
+        solutionId: "11111111-1111-1111-8111-111111111111",
+        solutionDisplayId: "SOL-2026-001",
+        configIndex: 1,
+        configLabel: "Config 1",
+        parallelGroup: null,
         priority: 'high' as const,
         projectRef: 'proj',
         createdAt: new Date().toISOString()
       }
     ];
 
-    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: mockUcids, solutions: [], activeSolutionId: null, setUcids: vi.fn() })));
+    useCoreStore.setState({ ucids: mockUcids });
 
     render(
       <ToastProvider>
         <SolutionBuilder 
-          
-          
           onNavigate={vi.fn()}
           setDeployedSolution={vi.fn()}
           onSelectMission={vi.fn()}
@@ -56,13 +62,9 @@ describe('SolutionBuilder Component', () => {
   });
 
   it('forces Step 1 (Intake) if global ucids list is empty', () => {
-    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: [], solutions: [], activeSolutionId: null, setUcids: vi.fn() })));
-
     render(
       <ToastProvider>
         <SolutionBuilder 
-           // Empty
-          
           onNavigate={vi.fn()}
           setDeployedSolution={vi.fn()}
           onSelectMission={vi.fn()}

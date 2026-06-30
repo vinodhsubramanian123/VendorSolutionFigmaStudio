@@ -29,7 +29,7 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
     await delay(400);
 
     // Select first UCID
-    await page.locator('div[role="button"]').filter({ hasText: 'UCID-2026-' }).first().click();
+    await page.getByRole('button', { name: /UCID-2026-/ }).first().click();
     await delay(300);
 
     // Simulate HPE EOL BOQ preset via the step simulator
@@ -88,7 +88,7 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
     await delay(400);
 
     // Select a UCID with BOQ already loaded
-    await page.locator('div[role="button"]').filter({ hasText: 'UCID-2026-' }).first().click();
+    await page.getByRole('button', { name: /UCID-2026-/ }).first().click();
     await delay(300);
 
     // Check if on pre-intelligence step or navigate there

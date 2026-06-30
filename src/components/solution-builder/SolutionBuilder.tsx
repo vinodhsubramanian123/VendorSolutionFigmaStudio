@@ -11,6 +11,14 @@ import { generateDisplayId } from '../../utils/generateDisplayId';
 import { useCoreStore } from '../../store/coreStore';
 import { isSolutionComplete } from '../../utils/solutionUtils';
 
+function generatedConfigId(containerId: string, vendorKey: string, configId: string): string {
+  const generatedPrefix = `cfg-${containerId}-${vendorKey}-`;
+  if (configId.startsWith(generatedPrefix)) {
+    return configId;
+  }
+  return `cfg-${containerId}-${vendorKey}-${configId}`;
+}
+
 interface SolutionBuilderProps {
   onNavigate: (view: AppView) => void;
   setDeployedSolution: React.Dispatch<React.SetStateAction<{ name: string; ucidCount: number; timestamp: number } | null>>;
@@ -182,7 +190,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           savings: vOrgPrice - vTotalPrice,
           complianceScore: 98,
           configs: vendorCfgs.map(cfg => ({
-            id: cfg.id,
+            id: generatedConfigId(container.id, vendorKey, cfg.id),
             name: cfg.name,
             totalPrice: cfg.totalPrice,
             originalPrice: cfg.originalPrice,

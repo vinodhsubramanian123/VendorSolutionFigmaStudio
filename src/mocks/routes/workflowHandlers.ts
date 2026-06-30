@@ -58,7 +58,12 @@ export const workflowHandlers = [
   // POST /api/portfolio/orchestrate
   http.post('/api/portfolio/orchestrate', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({ status: "accepted", job_id: "job-portfolio-sync" }));
+    return HttpResponse.json(wrapSuccess({
+      success: true,
+      transactionId: "job-portfolio-sync",
+      status: "orchestrating",
+      timestamp: new Date().toISOString()
+    }));
   }),
   // POST /api/jobs
   http.post('/api/jobs', async ({ request }) => {
@@ -120,7 +125,17 @@ export const workflowHandlers = [
   http.post('/api/portfolio/upload-manual', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
     const b = (await request.json()) as { configsMatchedCount?: number };
-    return HttpResponse.json(wrapSuccess({ reconciliationStatus: b?.configsMatchedCount === 4 ? "complete" : "partial" }));
+    const isComplete = b?.configsMatchedCount === 4;
+    return HttpResponse.json(wrapSuccess({
+      success: true,
+      reconciliationStatus: isComplete ? "complete" : "partial",
+      reconciledPriceUSD: isComplete ? 244800 : 122400,
+      missingSlots: isComplete ? [] : ["config-slot-4"],
+      integrityScore: isComplete ? 100 : 75,
+      message: isComplete
+        ? "Manual partner upload fully reconciled against portfolio slots."
+        : "Manual partner upload accepted with unresolved configuration slots."
+    }));
   }),
   http.post('/api/boq/ingest', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);

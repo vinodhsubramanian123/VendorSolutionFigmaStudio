@@ -7,7 +7,7 @@ import { useCoreStore } from "../../store/coreStore";
 import { generateSolutionDisplayId, generateSolutionName } from "../../utils/solutionUtils";
 
 export interface BoqResponsePayload {
-  ucid: string;
+  ucid: string | UCID;
   solutions?: Solution[];
   sourceFile?: string;
   parsedSummary?: {
@@ -28,11 +28,27 @@ function getBoqVendorName(sol: Solution): string {
   return sol.vendorSubmissions?.[0]?.vendor || sol.name;
 }
 
+function namespaceGeneratedSolution(sol: Solution, targetUcidId: string): Solution {
+  return {
+    ...sol,
+    targetUcidId,
+    vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({
+      ...vs,
+      configs: vs.configs?.map((cfg) => ({
+        ...cfg,
+        id: `cfg-${targetUcidId}-${vs.vendor}-${cfg.id}`,
+        items: cfg.items.map((item) => ({ ...item })),
+      })),
+    })) || [],
+  };
+}
+
 function buildGeneratedUcid(sol: Solution, idx: number, sourceFile: string, solutionId: string, solutionDisplayId: string): UCID {
   const displayId = generateDisplayId();
   const detailsText = getBoqDetailsText(sol);
   const vendorName = getBoqVendorName(sol);
   const ucidUuid = crypto.randomUUID();
+  const generatedSolution = namespaceGeneratedSolution(sol, ucidUuid);
 
   return {
     id: ucidUuid,
@@ -48,9 +64,9 @@ function buildGeneratedUcid(sol: Solution, idx: number, sourceFile: string, solu
     solutions: [
       {
         id: `sol-${displayId}-primary`,
-        name: sol.name,
+        name: generatedSolution.name,
         targetUcidId: ucidUuid,
-        vendorSubmissions: sol.vendorSubmissions?.map((vs) => ({ ...vs })) || [],
+        vendorSubmissions: generatedSolution.vendorSubmissions,
       },
     ],
     events: [

@@ -54,12 +54,18 @@ export function SearchView({
   const vendors = useCoreStore((s) => s.vendors);
   const catalogSkus = useCoreStore((s) => s.catalogSkus);
   
-  const [localInput, setLocalInput] = useState(query);
-  const [prevQuery, setPrevQuery] = useState(query);
+  const [searchState, setSearchState] = useState(() => ({
+    externalQuery: query,
+    localInput: query,
+  }));
 
-  if (query !== prevQuery) {
-    setPrevQuery(query);
-    setLocalInput(query);
+  const localInput = query === searchState.externalQuery ? searchState.localInput : query;
+
+  if (query !== searchState.externalQuery) {
+    setSearchState({
+      externalQuery: query,
+      localInput: query,
+    });
   }
 
   // Drive the active query from whichever is more recent: local override or external prop
@@ -68,7 +74,10 @@ export function SearchView({
   const normQuery = activeQuery.toLowerCase().trim();
 
   const handleSearchSubmit = (val: string) => {
-    setLocalInput(val);
+    setSearchState({
+      externalQuery: query,
+      localInput: val,
+    });
     if (onSearchChange) {
       onSearchChange(val);
     }

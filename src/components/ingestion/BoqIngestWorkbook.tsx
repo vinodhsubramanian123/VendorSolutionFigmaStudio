@@ -11,19 +11,23 @@ import {
 import { StatusBadge } from "../shared/StatusBadge";
 import { Select } from "../shared/Select";
 import { Button } from "../shared/Button";
-import type { Solution, Config } from "../../types";
+import type { Solution, Config, UCID } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 
 import type { IngestionPreset } from "../../store/ingestionStore";
 
 interface BoqResponsePayload {
-  ucid: string;
+  ucid: string | UCID;
   solutions?: Solution[];
   parsedSummary?: {
     vendorBrand: string;
     detectedChassis: string;
     initialConfidenceScore: number;
   };
+}
+
+function getUcidDisplayRef(ucid: string | UCID): string {
+  return typeof ucid === "string" ? ucid : ucid.displayId;
 }
 
 interface BoqIngestWorkbookProps {
@@ -167,7 +171,7 @@ export function BoqIngestWorkbook({
                   </p>
                   <p className="text-[10px] text-gray-400 mt-1 font-mono">
                     UCID session created:{" "}
-                    <strong className="text-white">{boqResponse.ucid}</strong>
+                    <strong className="text-white">{getUcidDisplayRef(boqResponse.ucid)}</strong>
                   </p>
                 </div>
               </div>

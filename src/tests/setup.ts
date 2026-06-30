@@ -9,11 +9,17 @@ window.HTMLElement.prototype.scrollIntoView = () => {};
 // Extend vitest's expect with axe matchers
 expect.extend(matchers);
 
-import { beforeEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach, beforeEach } from 'vitest';
 import { useCoreStore } from '../store/coreStore';
 import { useWorkflowStore } from '../store/workflowStore';
 import { useIngestionStore } from '../store/ingestionStore';
 import { useAuditStore } from '../store/auditStore';
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 beforeEach(() => {
   useCoreStore.setState({ ucids: [], vendors: [] });
@@ -86,6 +92,52 @@ HTMLCanvasElement.prototype.getContext = (() => {
 // Mock react-virtuoso for testing to render all elements in JSDOM
 import React from 'react';
 import { vi } from 'vitest';
+
+type MotionMockProps = React.HTMLAttributes<HTMLElement> & {
+  children?: React.ReactNode;
+  initial?: unknown;
+  animate?: unknown;
+  exit?: unknown;
+  transition?: unknown;
+  variants?: unknown;
+  whileHover?: unknown;
+  whileTap?: unknown;
+  layout?: unknown;
+};
+
+const MotionTag = (tag: keyof React.JSX.IntrinsicElements) =>
+  React.forwardRef<HTMLElement, MotionMockProps>(function MotionMock(
+    { children, ...props },
+    ref,
+  ) {
+    delete props.initial;
+    delete props.animate;
+    delete props.exit;
+    delete props.transition;
+    delete props.variants;
+    delete props.whileHover;
+    delete props.whileTap;
+    delete props.layout;
+    return React.createElement(tag, { ...props, ref }, children);
+  });
+
+const motionTagCache = new Map<string, React.ForwardRefExoticComponent<MotionMockProps & React.RefAttributes<HTMLElement>>>();
+
+const getMotionTag = (tag: string) => {
+  const cached = motionTagCache.get(tag);
+  if (cached) return cached;
+  const component = MotionTag(tag as keyof React.JSX.IntrinsicElements);
+  motionTagCache.set(tag, component);
+  return component;
+};
+
+vi.mock('motion/react', () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+  animate: () => ({ stop: () => {} }),
+  motion: new Proxy({}, {
+    get: (_target, prop: string) => getMotionTag(prop),
+  }),
+}));
 
 vi.mock('react-virtuoso', async () => {
   type ItemContentFn = (index: number, item?: unknown) => React.ReactNode;

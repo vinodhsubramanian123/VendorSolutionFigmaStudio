@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { useAuditStore } from '../../../store/auditStore';
 
 const ThrowError = ({ shouldThrow }: { shouldThrow?: boolean }) => {
   if (shouldThrow) {
@@ -42,6 +43,15 @@ describe('ErrorBoundary Component', () => {
     
     // Verify console.error was called
     expect(console.error).toHaveBeenCalled();
+    expect(useAuditStore.getState().logs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fromStep: 'ErrorBoundary',
+          toStep: 'error',
+          action: expect.stringContaining('Uncaught error in application view'),
+        }),
+      ]),
+    );
   });
 
   it('resets the error boundary state when Reset View is clicked', () => {

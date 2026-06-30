@@ -1,13 +1,13 @@
 import React from "react";
 import { AlertCircle, Database, RefreshCw, AlertTriangle } from "lucide-react";
 import { motion } from "motion/react";
-import type { UCID, Vendor, CatalogSKU, SolutionProject } from "../../types";
 import { UCIDSchema, VendorSchema, CatalogSKUSchema } from "../../types";
 import { SolutionProjectSchema } from "../../types/schemas/schemaUCID";
 import { z } from "zod";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 import { useCoreStore } from "../../store/coreStore";
+import { recordApplicationDiagnostic } from "../../utils/applicationDiagnostics";
 
 interface DataPersistenceGateProps {
   children: React.ReactNode;
@@ -60,25 +60,38 @@ export function DataPersistenceGate({
         errors.push("CatalogSKU Schema Mismatch: " + msgs.join(", "));
       }
 
-      if (errors.length > 0) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("⚠️ [VSIP Schema Validation Drift Detected]:", errors);
-        }
-      } else {
-        if (process.env.NODE_ENV !== "production") {
-          console.log("✅ [VSIP Schema Alignment Secure]: 100% compliant with standard relational contracts.");
-        }
-      }
-
       return {
         aligned: errors.length === 0,
-        errors
+        errors,
+        level: "warn" as const,
       };
     } catch (e) {
       console.error("Zod verification crashed:", e);
-      return { aligned: false, errors: ["Zod verification crashed."] };
+      return { aligned: false, errors: ["Zod verification crashed."], level: "error" as const };
     }
   }, [ucids, solutions, vendors, catalogSkus]);
+
+  const schemaDriftSignature = schemaDrift.errors.join(" | ");
+
+  React.useEffect(() => {
+    if (!schemaDrift.aligned) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("⚠️ [VSIP Schema Validation Drift Detected]:", schemaDrift.errors);
+      }
+
+      recordApplicationDiagnostic({
+        level: schemaDrift.level,
+        source: "DataPersistenceGate",
+        title: schemaDrift.level === "error" ? "Zod verification crashed" : "VSIP Schema Validation Drift Detected",
+        details: schemaDriftSignature,
+      });
+      return;
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log("✅ [VSIP Schema Alignment Secure]: 100% compliant with standard relational contracts.");
+    }
+  }, [schemaDrift.aligned, schemaDrift.errors, schemaDrift.level, schemaDriftSignature]);
 
   const isHealthy = isUcidsValid && isSolutionsValid && isVendorsValid && isCatalogValid && schemaDrift.aligned;
 

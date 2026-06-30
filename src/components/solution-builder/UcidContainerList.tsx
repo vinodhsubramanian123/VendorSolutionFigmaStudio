@@ -306,7 +306,7 @@ export function UcidContainerList({
             const assignedConfigs = configs.filter(
               (c) => c.targetUcidId === container.id || !isMultiUcid,
             );
-            const matchGlobalUcid = ucids.find((u) => u.displayId === container.id);
+            const matchGlobalUcid = ucids.find((u) => u.id === container.id);
             return (
               <UcidContainerCard
                 key={container.id}

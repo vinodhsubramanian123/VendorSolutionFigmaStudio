@@ -1,10 +1,25 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { DataPersistenceGate } from '../DataPersistenceGate';
 import type { UCID, Vendor, CatalogSKU } from '../../../types';
 import type { SolutionProject } from '../../../types/models/sourcing';
 import { useCoreStore } from '../../../store/coreStore';
+import { useAuditStore } from '../../../store/auditStore';
+
+vi.mock('../../../store/coreStore', () => ({
+  useCoreStore: vi.fn(),
+}));
+
+type GateState = {
+  ucids: UCID[];
+  solutions: SolutionProject[];
+  vendors: Vendor[];
+  catalogSkus: CatalogSKU[];
+};
+
+type CoreStoreSelector = (state: GateState) => unknown;
 
 describe('DataPersistenceGate', () => {
   const validUcids: UCID[] = [{
@@ -76,13 +91,10 @@ describe('DataPersistenceGate', () => {
     onCancelNavigation: vi.fn(),
   };
 
-  vi.mock('../../../store/coreStore', () => ({
-    useCoreStore: vi.fn(),
-  }));
-
   beforeEach(() => {
     vi.clearAllMocks();
-    (useCoreStore as any).mockImplementation((selector: any) => {
+    const mockUseCoreStore = useCoreStore as unknown as Mock;
+    mockUseCoreStore.mockImplementation((selector: CoreStoreSelector) => {
       const state = {
         ucids: validUcids,
         solutions: validSolutions,
@@ -107,7 +119,8 @@ describe('DataPersistenceGate', () => {
     // Break the schema validation (e.g. invalid UCID priority)
     const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
 
-    (useCoreStore as any).mockImplementation((selector: any) => {
+    const mockUseCoreStore = useCoreStore as unknown as Mock;
+    mockUseCoreStore.mockImplementation((selector: CoreStoreSelector) => {
       const state = {
         ucids: invalidUcids,
         solutions: validSolutions,
@@ -125,6 +138,15 @@ describe('DataPersistenceGate', () => {
 
     expect(screen.queryByTestId('child-content')).not.toBeInTheDocument();
     expect(screen.getByText(/Session Data Corrupted/i)).toBeInTheDocument();
+    expect(useAuditStore.getState().logs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fromStep: 'DataPersistenceGate',
+          toStep: 'warn',
+          action: expect.stringContaining('VSIP Schema Validation Drift Detected'),
+        }),
+      ]),
+    );
   });
 
   it('calls window.location.reload and clears localStorage on restore session', () => {
@@ -138,7 +160,8 @@ describe('DataPersistenceGate', () => {
 
     const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
     
-    (useCoreStore as any).mockImplementation((selector: any) => {
+    const mockUseCoreStore = useCoreStore as unknown as Mock;
+    mockUseCoreStore.mockImplementation((selector: CoreStoreSelector) => {
       const state = {
         ucids: invalidUcids,
         solutions: validSolutions,

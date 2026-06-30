@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { recordApplicationDiagnostic } from "../../utils/applicationDiagnostics";
 
 interface Props {
   children?: ReactNode;
@@ -23,6 +24,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error in application view:", error, errorInfo);
+    recordApplicationDiagnostic({
+      level: "error",
+      source: "ErrorBoundary",
+      title: "Uncaught error in application view",
+      details: error.message,
+    });
   }
 
   private handleReset = () => {

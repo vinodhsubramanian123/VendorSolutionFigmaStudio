@@ -9,7 +9,7 @@ import { useIngestionStore } from "../../store/ingestionStore";
 import type { UCID, Solution } from "../../types";
 
 export interface BoqResponsePayload {
-  ucid: string;
+  ucid: string | UCID;
   solutions?: Solution[];
   sourceFile?: string;
   rawText?: string;
