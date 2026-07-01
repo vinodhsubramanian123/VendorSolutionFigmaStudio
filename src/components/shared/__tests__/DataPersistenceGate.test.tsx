@@ -180,6 +180,9 @@ describe('DataPersistenceGate', () => {
     const btn = screen.getByRole('button', { name: /Attempt session restore/i });
     fireEvent.click(btn);
 
+    // Primary Zustand persist key must be cleared
+    expect(removeItemMock).toHaveBeenCalledWith('vsip-core-storage');
+    // Legacy sys_* keys are also cleared for backward compat
     expect(removeItemMock).toHaveBeenCalledWith('sys_ucids');
     expect(reloadMock).toHaveBeenCalled();
 
@@ -188,6 +191,30 @@ describe('DataPersistenceGate', () => {
       value: { reload: originalReload },
       writable: true,
     });
+  });
+
+  it('surfaces the first Zod schema error in the corruption UI', () => {
+    const invalidUcids = [{ ...validUcids[0], priority: 'invalid_priority' as const }] as unknown as UCID[];
+
+    const mockUseCoreStore = useCoreStore as unknown as Mock;
+    mockUseCoreStore.mockImplementation((selector: CoreStoreSelector) => {
+      const state = {
+        ucids: invalidUcids,
+        solutions: validSolutions,
+        vendors: validVendors,
+        catalogSkus: validCatalog,
+      };
+      return selector(state);
+    });
+
+    render(
+      <DataPersistenceGate {...defaultProps}>
+        <div data-testid="child-content">Child Content</div>
+      </DataPersistenceGate>
+    );
+
+    // The corruption UI must surface the Zod error detail so the user understands what failed
+    expect(screen.getByText(/UCID Schema Mismatch/i)).toBeInTheDocument();
   });
 
   it('shows navigation dialog when isPendingAPI is true and requestedView exists', () => {

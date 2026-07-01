@@ -166,6 +166,15 @@ export const useCoreStore = create<CoreState>()(
     }),
     {
       name: 'vsip-core-storage',
+      version: 3,
+      migrate: (_persistedState, version) => {
+        if (version < 3) {
+          // Schema evolved — drop stale rehydrated snapshot so
+          // initial mock seed values are used instead of corrupted fields.
+          return {};
+        }
+        return _persistedState;
+      },
     }
   )
 );

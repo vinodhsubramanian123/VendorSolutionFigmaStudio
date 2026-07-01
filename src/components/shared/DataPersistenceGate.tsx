@@ -96,6 +96,9 @@ export function DataPersistenceGate({
   const isHealthy = isUcidsValid && isSolutionsValid && isVendorsValid && isCatalogValid && schemaDrift.aligned;
 
   const handleRestoreSession = () => {
+    // 'vsip-core-storage' is the primary Zustand persist key.
+    // The legacy sys_* keys are retained for backward compat cleanup.
+    localStorage.removeItem("vsip-core-storage");
     localStorage.removeItem("sys_ucids");
     localStorage.removeItem("sys_solutions");
     localStorage.removeItem("sys_vendors");
@@ -132,6 +135,11 @@ export function DataPersistenceGate({
             Vendors, or Catalog). Navigation to this tab is halted to prevent
             cascading errors.
           </p>
+          {schemaDrift.errors.length > 0 && (
+            <p className="text-xs font-mono text-red-400/80 bg-red-900/20 border border-red-500/15 rounded px-3 py-2 mt-2 text-left max-w-sm break-all">
+              {schemaDrift.errors[0]}
+            </p>
+          )}
         </motion.div>
 
         <motion.button
