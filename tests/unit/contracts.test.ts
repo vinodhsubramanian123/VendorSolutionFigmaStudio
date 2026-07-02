@@ -73,16 +73,12 @@ describe('Data Contract & Integrity Validation Tests', () => {
 
   // 2. Validate Endpoint Responses via MSW Interception
   describe('MSW Handler Contract Enforcement', () => {
-    it('GET /api/catalog returns compliant items', async () => {
+    it('GET /api/catalog is an empty stateless pass-through (coreStore is the source of truth, not this endpoint)', async () => {
       const response = await apiClient.get<any[]>('/api/catalog');
       expect(response.success).toBe(true);
       const data = response.data;
       expect(Array.isArray(data)).toBe(true);
-      expect(data.length).toBeGreaterThan(0);
-      data.forEach(item => {
-        const parsed = CatalogSKUSchema.safeParse(item);
-        expect(parsed.success).toBe(true);
-      });
+      expect(data.length).toBe(0);
     });
 
     

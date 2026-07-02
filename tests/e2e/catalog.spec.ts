@@ -72,19 +72,27 @@ test.describe('06 - Catalog Manager E2E', () => {
     // The Edit Price button is hidden until hover (opacity-0 group-hover). Use force:true
     const editBtn = page.locator('button[title="Edit Price"]').first();
     // Force click ignores visibility (opacity)
-    if (await editBtn.count() > 0) {
-      await editBtn.click({ force: true });
-      await delay(500);
-      // Should see price input field
-      const priceInput = page.locator('input[type="text"]').filter({ hasText: '' }).first();
-      if (await priceInput.isVisible()) {
-        await priceInput.fill('9999');
-        const saveBtn = page.locator('button[title="Save Price"]').first();
-        await saveBtn.click({ force: true });
-        await delay(500);
-      }
-    }
-    // Just verify SKU is still visible after the interaction
+    await expect(editBtn).toHaveCount(1);
+    await editBtn.click({ force: true });
+    await delay(500);
+    // Should see price input field
+    const priceInput = page.locator('input[type="text"]').filter({ hasText: '' }).first();
+    await expect(priceInput).toBeVisible();
+    await priceInput.fill('9999');
+    const saveBtn = page.locator('button[title="Save Price"]').first();
+    await saveBtn.click({ force: true });
+    await delay(800);
+
+    // Regression guard for the Catalog Manager price-rollback bug: the
+    // background sync used to hit a stub backend (MockCatalogApi's old
+    // 2-SKU serverState.catalog) that never had this SKU's real id, so
+    // updateCatalogSku() threw "SKU not found" and the edit silently
+    // rolled back. This assertion previously only checked the SKU text
+    // was "still visible", which passed whether or not the price actually
+    // stuck — it never would have caught the bug. Now it checks the
+    // displayed price directly, and that no rollback toast appeared.
+    await expect(page.getByText('$9,999').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Price sync failed')).toHaveCount(0);
     await expect(page.getByText('P40424-B21').first()).toBeVisible({ timeout: 5000 });
   });
 });

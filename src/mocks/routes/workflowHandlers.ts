@@ -337,8 +337,10 @@ export const workflowHandlers = [
     await MockTaxonomyApi.addRule(b.sourceId as string, b.ruleType as "requires" | "exclusive", b.explanation as string);
     return HttpResponse.json(wrapSuccess({}));
   }),
-  // Phase 11 Missing Endpoints
-
+  // NOTE: coreStore.ts (useCoreStore(s => s.solutions)) is the single source
+  // of truth for solutions — nothing in the UI currently reads this
+  // endpoint's response, so it intentionally has no independent state to
+  // keep in sync (see docs/architecture/data-ownership.md).
   // Solutions
   http.get('/api/solutions', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(300);

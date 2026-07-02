@@ -5,55 +5,30 @@ import { GraphNode, GraphEdge, GraphAPIResponse } from "../types/data";
 const serverState = {
   customRules: {} as Record<string, {type: "requires"|"exclusive", note: string}[]>,
   manualLinks: [] as {childId: string, parentId: string, childInfo: { partNumber: string; name: string }}[],
-  catalog: [] as CatalogSKU[],
   snapshots: [] as Snapshot[]
 };
 
-// Seed catalog
-serverState.catalog = [
-  {
-    id: "sku-seed-1",
-    vendor: "HPE",
-    partNumber: "P40411-B21",
-    name: "HPE ProLiant DL380 Gen11 8SFF Chassis",
-    type: "Chassis",
-    price: 3400,
-    leadTimeDays: 14,
-    status: "active"
-  },
-  {
-    id: "sku-seed-2",
-    vendor: "HPE",
-    partNumber: "P40424-B21",
-    name: "Intel Xeon Gold 6430 32-Core CPU",
-    type: "Processor",
-    price: 2150,
-    leadTimeDays: 7,
-    status: "active"
-  }
-];
-
+// NOTE: catalog data is intentionally NOT held here. coreStore.ts is the
+// single source of truth for the catalog (see docs/architecture/data-ownership.md).
+// This used to have its own 2-SKU serverState.catalog with ids that never
+// matched the real 38-SKU catalog seeded into coreStore — every real edit
+// made through CatalogManager.tsx silently rolled back because
+// updateCatalogSku() could never find the id it was looking for. These
+// handlers are now stateless pass-throughs: nothing in the UI reads
+// GET /api/catalog's response (the catalog list always comes from
+// useCoreStore(s => s.catalogSkus)), so there is nothing to keep in sync.
 export const MockCatalogApi = {
   getCatalog: async (): Promise<CatalogSKU[]> => {
-    return [...serverState.catalog];
+    return [];
   },
   addCatalogSku: async (sku: CatalogSKU): Promise<CatalogSKU> => {
-    serverState.catalog.push(sku);
     return sku;
   },
-  updateCatalogSku: async (id: string, updates: Partial<CatalogSKU>): Promise<CatalogSKU> => {
-    const idx = serverState.catalog.findIndex(c => c.id === id);
-    if (idx !== -1) {
-      serverState.catalog[idx] = { ...serverState.catalog[idx], ...updates };
-      return serverState.catalog[idx];
-    }
-    throw new Error("SKU not found");
+  updateCatalogSku: async (id: string, updates: Partial<CatalogSKU>): Promise<Partial<CatalogSKU> & { id: string }> => {
+    return { id, ...updates };
   },
-  deleteCatalogSku: async (id: string): Promise<void> => {
-    const idx = serverState.catalog.findIndex(c => c.id === id);
-    if (idx !== -1) {
-      serverState.catalog.splice(idx, 1);
-    }
+  deleteCatalogSku: async (_id: string): Promise<void> => {
+    return;
   }
 };
 

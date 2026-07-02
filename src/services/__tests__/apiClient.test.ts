@@ -214,10 +214,20 @@ describe('ApiClient & ApiMock Services', () => {
   });
 
   describe('MockCatalogApi', () => {
-    it('manages catalog SKUs: get, add, update, and delete', async () => {
+    // coreStore.ts is now the single source of truth for the catalog (see
+    // docs/architecture/data-ownership.md). MockCatalogApi used to hold its
+    // own 2-SKU serverState.catalog with ids that never matched the real
+    // 38-SKU catalog, so updateCatalogSku() on any real SKU id threw "SKU
+    // not found" — which is exactly what caused CatalogManager's price
+    // edits to silently roll back. These handlers are now stateless
+    // pass-throughs: they must succeed for ANY id, since there is no
+    // longer a competing local array to look the id up against.
+    it('is a stateless pass-through: getCatalog always returns empty (UI reads the store, not this endpoint)', async () => {
       const skus = await MockCatalogApi.getCatalog();
-      expect(skus.length).toBeGreaterThan(0);
+      expect(skus).toEqual([]);
+    });
 
+    it('addCatalogSku echoes the SKU back without persisting local state', async () => {
       const newSku: CatalogSKU = {
         id: 'sku-test-999',
         vendor: 'Cisco',
@@ -228,20 +238,21 @@ describe('ApiClient & ApiMock Services', () => {
         leadTimeDays: 5,
         status: 'active'
       };
+      const result = await MockCatalogApi.addCatalogSku(newSku);
+      expect(result).toEqual(newSku);
+      // getCatalog stays empty — addCatalogSku doesn't accumulate state.
+      expect(await MockCatalogApi.getCatalog()).toEqual([]);
+    });
 
-      await MockCatalogApi.addCatalogSku(newSku);
-      const skusAfterAdd = await MockCatalogApi.getCatalog();
-      expect(skusAfterAdd.find(s => s.id === 'sku-test-999')).toBeDefined();
+    it('updateCatalogSku succeeds for any id, including ids with no prior local record (regression guard for the price-rollback bug)', async () => {
+      // A real catalog id (e.g. "sku-4") that this mock has never seen before
+      // must NOT throw — this is the exact scenario that broke CatalogManager.
+      const result = await MockCatalogApi.updateCatalogSku('sku-4', { price: 1700 });
+      expect(result).toEqual({ id: 'sku-4', price: 1700 });
+    });
 
-      await MockCatalogApi.updateCatalogSku('sku-test-999', { price: 1700 });
-      const updatedSkus = await MockCatalogApi.getCatalog();
-      expect(updatedSkus.find(s => s.id === 'sku-test-999')?.price).toBe(1700);
-
-      await expect(MockCatalogApi.updateCatalogSku('non-existing', { price: 100 })).rejects.toThrow('SKU not found');
-
-      await MockCatalogApi.deleteCatalogSku('sku-test-999');
-      const skusAfterDelete = await MockCatalogApi.getCatalog();
-      expect(skusAfterDelete.find(s => s.id === 'sku-test-999')).toBeUndefined();
+    it('deleteCatalogSku resolves without throwing for any id', async () => {
+      await expect(MockCatalogApi.deleteCatalogSku('sku-does-not-exist')).resolves.toBeUndefined();
     });
   });
 
