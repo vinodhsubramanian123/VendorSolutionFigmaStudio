@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -24,9 +24,27 @@ import { DeepCleansingEditor } from "./DeepCleansingEditor";
 export function CleansingView() {
   const catalogSkus = useCoreStore((s) => s.catalogSkus);
   const { toast } = useToast();
-  const [entries, setEntries] = useState<CleansingEntry[]>(() =>
-    generateMockEntries(catalogSkus)
-  );
+
+  // Re-derives match status/confidence for the fixed set of ingested BOQ lines
+  // whenever the catalog changes (e.g. a heal action corrects a SKU that one of
+  // these lines should now match). Previously this only ran once on mount via a
+  // useState initializer, so entries never picked up later catalog fixes.
+  const baselineEntries = useMemo(() => generateMockEntries(catalogSkus), [catalogSkus]);
+
+  const [entries, setEntries] = useState<CleansingEntry[]>(() => baselineEntries);
+
+  useEffect(() => {
+    // Merge the fresh catalog-derived baseline in, but never clobber an entry
+    // the user has already reviewed (mapped, quarantined, or auto-map-promoted)
+    // — reviewedAt is the signal that this entry has diverged from the pristine
+    // auto-detected state and should be preserved rather than regenerated.
+    setEntries((prev) =>
+      baselineEntries.map((fresh) => {
+        const existing = prev.find((e) => e.id === fresh.id);
+        return existing?.reviewedAt ? existing : fresh;
+      })
+    );
+  }, [baselineEntries]);
   
   // Toggles between standard auto-mapping and the deep BOQ editor
   const [viewMode, setViewMode] = useState<"auto-map" | "deep-editor">("auto-map");
@@ -103,6 +121,7 @@ export function CleansingView() {
               matchedPartNumber: skuMatch.partNumber,
               normalizedName: skuMatch.name,
               confidence: 74,
+              reviewedAt: new Date().toISOString(),
             };
           }
         }
@@ -138,7 +157,7 @@ export function CleansingView() {
     setEntries((prev) =>
       prev.map((e) =>
         e.id === entryId
-          ? { ...e, matchStatus: "quarantined", flagReason: "Manually quarantined for review" }
+          ? { ...e, matchStatus: "quarantined", flagReason: "Manually quarantined for review", reviewedAt: new Date().toISOString() }
           : e
       )
     );

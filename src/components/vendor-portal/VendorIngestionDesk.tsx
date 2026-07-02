@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import type { UCID, PlaywrightRunResponse, CatalogSKU,  SourcingRule, LearningEvent, AdviceResolution } from "../../types";
+import type { UCID, PlaywrightRunResponse, CatalogSKU, SourcingRule, LearningEvent, AdviceResolution, Vendor } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../services/apiClient";
-import { VENDORS } from "../../lib/mockData/misc";
 import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
 import { VendorCredentialsCard, VendorConsoleLogs } from "./VendorComponents";
 interface VendorIngestionDeskProps {
@@ -14,6 +13,7 @@ interface VendorIngestionDeskProps {
   setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
   learningEvents: LearningEvent[];
   setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
+  vendors: Vendor[];
 }
 export function VendorIngestionDesk({
   ucids,
@@ -24,6 +24,7 @@ export function VendorIngestionDesk({
   setSourcingRules,
   learningEvents,
   setLearningEvents,
+  vendors,
 }: VendorIngestionDeskProps) {
   const [selectedPortal, setSelectedPortal] = useState<"HPE" | "Dell" | "Cisco">("HPE");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,7 @@ export function VendorIngestionDesk({
   ]);
   // Advice sheet resolution state
   const [adviceResolutions, setAdviceResolutions] = useState<AdviceResolution[]>([]);
-  const portalConfig = resolvePortalConfig(selectedPortal);
+  const portalConfig = resolvePortalConfig(selectedPortal, vendors);
   
   // User overrideable credential fields — initialized from portalConfig defaults
   const [username, setUsername] = useState(portalConfig.username);
@@ -246,8 +247,8 @@ export function VendorIngestionDesk({
     </motion.div>
   );
 }
-function resolvePortalConfig(selectedPortal: string) {
-  const vendorData = VENDORS.find(v => v.shortName === selectedPortal) || VENDORS[0];
+function resolvePortalConfig(selectedPortal: string, vendors: Vendor[]) {
+  const vendorData = vendors.find(v => v.shortName === selectedPortal) || vendors[0] || ({} as Partial<Vendor>);
   if (selectedPortal === "HPE") {
     return {
       username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",

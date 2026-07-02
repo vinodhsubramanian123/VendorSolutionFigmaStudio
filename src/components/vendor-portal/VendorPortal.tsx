@@ -173,6 +173,7 @@ export const VendorPortal = React.memo(function VendorPortal() {
             setSourcingRules={setSourcingRules}
             learningEvents={learningEvents}
             setLearningEvents={setLearningEvents}
+            vendors={vendors}
           />
         </div>
       </div>
