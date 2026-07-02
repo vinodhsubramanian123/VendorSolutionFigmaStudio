@@ -29,7 +29,7 @@ describe('MappingPanel Component', () => {
     const handleQuarantineFn = vi.fn();
     const handleManualMapFn = vi.fn();
     const mockCatalog = [
-      { id: 'sku-1', partNumber: 'NEW-SKU-456', name: 'New Sku', vendor: 'HPE', type: 'Chassis', price: 100, leadTimeDays: 1, status: 'active' as const }
+      { id: 'sku-1', partNumber: 'NEW-SKU-456', name: 'New Sku', vendor: 'HPE', type: 'Chassis' as const, price: 100, leadTimeDays: 1, status: 'active' as const }
     ];
     render(
       <MappingPanel

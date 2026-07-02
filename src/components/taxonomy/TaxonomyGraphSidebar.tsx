@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { CatalogSKU, ConstraintCheckResponse } from "../../types";
+import type { CatalogItemType } from "../../types/schemas/schemaCatalog";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
 import { NodeEditorPanel } from "./NodeEditorPanel";
@@ -99,7 +100,7 @@ export function TaxonomyGraphSidebar({
   const handleMapOrphanNode = async (orphanId: string, categoryId: string) => {
     const orphanNodeName = catalogSkus.find(s => s.partNumber === orphanId || s.id === orphanId)?.name || "Mapped Item";
     
-    let type = "Unknown";
+    let type: CatalogItemType = "Unknown";
     if (categoryId.includes("Processor")) type = "Processor";
     else if (categoryId.includes("Memory")) type = "Memory";
     else if (categoryId.includes("Storage")) type = "Storage";
@@ -107,7 +108,7 @@ export function TaxonomyGraphSidebar({
     else if (categoryId.includes("Network")) type = "Network";
     else if (categoryId.includes("Power")) type = "Power";
     else if (categoryId.includes("Cooling")) type = "Cooling";
-    else if (categoryId.includes("Chassis")) type = "Chassis Option";
+    else if (categoryId.includes("Chassis")) type = "Chassis";
     try {
       await mapNode(orphanId, categoryId, { partNumber: orphanId, name: orphanNodeName, type });
       

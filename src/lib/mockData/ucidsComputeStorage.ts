@@ -34,17 +34,17 @@ export const mockUcidsComputeStorage: UCID[] = [
             id: "vs-u1-hpe",
             vendor: "HPE",
             label: "HPE ProLiant DL380 Gen11 Alternative",
-            totalPrice: 244800,
-            originalPrice: 261000,
-            savings: 16200,
+            totalPrice: 423120,
+            originalPrice: 451120,
+            savings: 28000,
             complianceScore: 98,
             configs: [
               {
                 id: "cfg-u1-hpe-1",
                 name: "HPE Server Config",
-                totalPrice: 244800,
-                originalPrice: 261000,
-                savings: 16200,
+                totalPrice: 423120,
+                originalPrice: 451120,
+                savings: 28000,
                 items: [
                   {
                     id: "bi-1",
@@ -94,17 +94,17 @@ export const mockUcidsComputeStorage: UCID[] = [
             id: "vs-u1-dell",
             vendor: "Dell",
             label: "Dell PowerEdge R760 Alternative",
-            totalPrice: 239630,
-            originalPrice: 255200,
-            savings: 15570,
+            totalPrice: 421080,
+            originalPrice: 448160,
+            savings: 27080,
             complianceScore: 96,
             configs: [
               {
                 id: "cfg-u1-dell-1",
                 name: "Dell Server Config",
-                totalPrice: 239630,
-                originalPrice: 255200,
-                savings: 15570,
+                totalPrice: 421080,
+                originalPrice: 448160,
+                savings: 27080,
                 items: [
                   {
                     id: "bi-6",
@@ -136,7 +136,7 @@ export const mockUcidsComputeStorage: UCID[] = [
                     name: "Dell 3.84TB NVMe SSD SFF",
                     type: "Drive",
                     quantity: 96,
-                    unitPrice: 1195,
+                    unitPrice: 1190,
                   },
                   {
                     id: "bi-10",
@@ -217,17 +217,17 @@ export const mockUcidsComputeStorage: UCID[] = [
             id: "vs-u2-dell",
             vendor: "Dell",
             label: "Dell Storage Deployment Node Config",
-            totalPrice: 65110,
-            originalPrice: 74700,
-            savings: 9590,
+            totalPrice: 67560,
+            originalPrice: 77520,
+            savings: 9960,
             complianceScore: 92,
             configs: [
               {
                 id: "cfg-u2-dell-1",
                 name: "Dell Storage Config",
-                totalPrice: 65110,
-                originalPrice: 74700,
-                savings: 9590,
+                totalPrice: 67560,
+                originalPrice: 77520,
+                savings: 9960,
                 items: [
                   {
                     id: "bi-11",

@@ -7,6 +7,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CatalogSKU } from "../../types";
+import { CatalogItemTypeSchema } from "../../types/schemas/schemaCatalog";
 import { motion, AnimatePresence } from "motion/react";
 
 interface CatalogAddFormProps {
@@ -16,7 +17,7 @@ interface CatalogAddFormProps {
 
 const formSchema = z.object({
   vendor: z.string().min(1, "Vendor is required"),
-  type: z.string().min(1, "Category is required"),
+  type: CatalogItemTypeSchema,
   partNumber: z.string().min(1, "Part Number is required"),
   name: z.string().min(1, "Description is required"),
   price: z.number().min(0, "Price must be positive"),
@@ -110,6 +111,7 @@ export function CatalogAddForm({
                 render={({ field }) => (
                   <Select id="type" value={field.value} onChange={field.onChange}>
                     <option value="Processor">Processor</option>
+                    <option value="GPU">GPU</option>
                     <option value="Memory">Memory</option>
                     <option value="Drive">Drive</option>
                     <option value="Chassis">Chassis</option>

@@ -1,10 +1,33 @@
 import { z } from "zod";
 
+// Shared across BOMItemSchema and CatalogSKUSchema so a hardware item's `type`
+// means the same thing everywhere in the app, and mismatches (e.g. a standalone
+// switch mislabeled "Network Adapter") fail validation instead of shipping silently.
+// See docs/architecture/data-ownership.md.
+export const CatalogItemTypeSchema = z.enum([
+  "Chassis",
+  "Processor",
+  "GPU",
+  "Memory",
+  "Drive",
+  "Network Adapter",
+  "Network",
+  "Power Supply",
+  "Riser Card",
+  "Controller",
+  "Power",
+  "Cooling",
+  "Storage",
+  "Unknown",
+]);
+
+export type CatalogItemType = z.infer<typeof CatalogItemTypeSchema>;
+
 export const BOMItemSchema = z.object({
   id: z.string().uuid("BOMItem ID must be a valid UUID").or(z.string().regex(/^[a-zA-Z0-9_-]+$/)),
   partNumber: z.string().min(1, "Manufacturer SKU part number cannot be empty"),
   name: z.string().min(1, "Standard English representation name cannot be empty"),
-  type: z.enum(["Chassis", "Processor", "Memory", "Drive", "Network Adapter", "Power Supply", "Riser Card", "Controller", "Network", "Power", "Cooling", "Storage", "Unknown"]),
+  type: CatalogItemTypeSchema,
   quantity: z.number().int().positive("Quantity must be a positive integer"),
   unitPrice: z.number().nonnegative("Unit price must be non-negative (denominated in USD)"),
 });
@@ -36,7 +59,7 @@ export const CatalogSKUSchema = z.object({
   vendorPortalId: z.string().optional(),
   partNumber: z.string(),
   name: z.string(),
-  type: z.string(),
+  type: CatalogItemTypeSchema,
   catalogTier: z.string().optional(),
   price: z.number().nonnegative(),
   currency: z.enum(['USD', 'AED', 'INR']).optional(),

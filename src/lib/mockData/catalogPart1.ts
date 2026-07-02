@@ -14,6 +14,11 @@ export const catalogSkusPart1: CatalogSKU[] = [
     productFamily: "DL380",
     generation: "Gen11",
     chassisRef: "sku-4",
+    complianceFlags: {
+      taaCompliant: true,
+      clicWarning: false,
+      regionRestricted: false,
+    },
   },
   {
     id: "sku-2",
@@ -190,7 +195,7 @@ export const catalogSkusPart1: CatalogSKU[] = [
     vendor: "HPE",
     partNumber: "P58425-B21",
     name: "NVIDIA H100 NVL 80GB GPU PCIe Accelerator Card (DL380a)",
-    type: "Processor",
+    type: "GPU",
     price: 32500,
     leadTimeDays: 45,
     status: "active",
