@@ -160,34 +160,41 @@ describe('ApiClient & ApiMock Services', () => {
       await expect(apiClient.delete('/api/test')).rejects.toEqual(expect.any(Object));
     });
 
-    it('streams job progress until completed', async () => {
-      const mockResponseData = { success: true, data: { status: 'completed', progress: 100 } };
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponseData,
-      } as Response);
-      
+    it('streams job progress until completed via genuine repeated polling (not a single fake message + one real call)', async () => {
+      // Three polls: processing -> processing -> completed. The old
+      // implementation could only ever report one real update; this proves
+      // multiple genuine polls happen and each one is reported.
+      vi.mocked(fetch)
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { status: 'processing', progress: 25 } }) } as Response)
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { status: 'processing', progress: 55 } }) } as Response)
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { status: 'completed', progress: 100, result: { success: true } } }) } as Response);
+
       const onMessage = vi.fn();
       const onError = vi.fn();
 
-      const stream = apiClient.streamJob('job-123', onMessage, onError);
-      
-      // Allow promise to resolve
-      await vi.runAllTimersAsync();
-      
-      expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
-        status: 'processing'
-      }));
+      const stream = apiClient.streamJob('job-123', onMessage, onError, 100);
 
-      expect(onMessage).toHaveBeenLastCalledWith(expect.objectContaining({
-        status: 'completed',
-        progress: 100
-      }));
+      // First poll fires immediately.
+      await vi.advanceTimersByTimeAsync(0);
+      expect(onMessage).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'processing', progress: 25 }));
+
+      // Second poll after one interval tick.
+      await vi.advanceTimersByTimeAsync(100);
+      expect(onMessage).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'processing', progress: 55 }));
+
+      // Third poll reaches a terminal status — polling should stop here.
+      await vi.advanceTimersByTimeAsync(100);
+      expect(onMessage).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'completed', progress: 100 }));
+      expect(fetch).toHaveBeenCalledTimes(3);
+
+      // No further polling after completion, even if more time passes.
+      await vi.advanceTimersByTimeAsync(500);
+      expect(fetch).toHaveBeenCalledTimes(3);
 
       stream.close();
     });
 
-    it('allows closing a running job stream', async () => {
+    it('allows closing a running job stream mid-poll', async () => {
       const onMessage = vi.fn();
       const onError = vi.fn();
 
@@ -196,20 +203,20 @@ describe('ApiClient & ApiMock Services', () => {
       const fetchPromise = new Promise((resolve) => { resolveFetch = resolve; });
       vi.mocked(fetch).mockReturnValueOnce(fetchPromise as Promise<Response>);
 
-      const stream = apiClient.streamJob('job-123', onMessage, onError);
-      
-      await vi.runAllTimersAsync();
-      expect(onMessage).toHaveBeenCalledTimes(1);
+      const stream = apiClient.streamJob('job-123', onMessage, onError, 100);
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(onMessage).toHaveBeenCalledTimes(0); // first fetch hasn't resolved yet
 
       // Close the stream before fetch resolves
       stream.close();
-      
+
       // Resolve the fetch now
-      resolveFetch({ ok: true, json: async () => ({ data: { status: 'completed' } }) });
-      await vi.runAllTimersAsync();
-      
-      // Should not be called with 'completed' since it is inactive
-      expect(onMessage).toHaveBeenCalledTimes(1);
+      resolveFetch({ ok: true, json: async () => ({ success: true, data: { status: 'completed' } }) });
+      await vi.advanceTimersByTimeAsync(500);
+
+      // Should not be called at all since the stream was closed first
+      expect(onMessage).toHaveBeenCalledTimes(0);
     });
   });
 

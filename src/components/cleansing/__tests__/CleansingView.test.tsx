@@ -8,7 +8,8 @@ import { useCoreStore } from '../../../store/coreStore';
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
     get: vi.fn(),
-    post: vi.fn()
+    post: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 describe('CleansingView Component', () => {

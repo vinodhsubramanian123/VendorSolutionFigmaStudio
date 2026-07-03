@@ -4,6 +4,7 @@ import { useCoreStore } from "../../store/coreStore";
 import { repairBomItem } from "../../utils/bomRepairUtils";
 import { apiClient } from "../../services/apiClient";
 import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
+import { ConstraintCheckResponseSchema, ReconciliationResponseSchema } from "../../types/zodSchemas";
 
 export function useBomConversion(
   ucids: UCID[],
@@ -61,7 +62,7 @@ export function useBomConversion(
       });
 
       if (!constraintsRes.success || !constraintsRes.data) throw constraintsRes;
-      const constraintsData = constraintsRes.data;
+      const constraintsData = apiClient.parseResponse(ConstraintCheckResponseSchema, constraintsRes.data);
       setBomVerifyResult(constraintsData);
 
       const reconRes = await apiClient.post<ReconciliationResponse>("/api/reconciliation/compare", {
@@ -69,7 +70,7 @@ export function useBomConversion(
       });
 
       if (!reconRes.success || !reconRes.data) throw reconRes;
-      const reconData = reconRes.data;
+      const reconData = apiClient.parseResponse(ReconciliationResponseSchema, reconRes.data);
 
       setBomProgress(100);
       setBomReconResult(reconData);

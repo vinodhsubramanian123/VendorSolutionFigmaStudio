@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { GraphNode, GraphEdge, GraphAPIResponse, GraphPath } from "../types/data";
 import { Config, CatalogSKU, BOMItem } from "../types";
 import type { CatalogItemType } from "../types/schemas/schemaCatalog";
@@ -126,6 +126,42 @@ function applyOverlay(baseline: GraphAPIResponse, overlay: GraphOverlay): GraphA
   return { nodes, edges, unmappedIds };
 }
 
+// Immutable helpers so every overlay update creates a new object/Map/Set —
+// required for the overlay to live in real React state (setOverlay) rather
+// than a ref, since reading a ref's value during render (inside useMemo) is
+// an anti-pattern React's own lint rules correctly flag.
+function withUpdatedNode(overlay: GraphOverlay, id: string, patch: Partial<GraphNode>): GraphOverlay {
+  const updatedNodes = new Map(overlay.updatedNodes);
+  updatedNodes.set(id, { ...(updatedNodes.get(id) || {}), ...patch });
+  const deletedNodeIds = new Set(overlay.deletedNodeIds);
+  deletedNodeIds.delete(id);
+  return { ...overlay, updatedNodes, deletedNodeIds };
+}
+
+function withAddedNode(overlay: GraphOverlay, node: GraphNode): GraphOverlay {
+  const addedNodes = new Map(overlay.addedNodes);
+  addedNodes.set(node.id, node);
+  return { ...overlay, addedNodes };
+}
+
+function withDeletedNode(overlay: GraphOverlay, id: string): GraphOverlay {
+  const deletedNodeIds = new Set(overlay.deletedNodeIds);
+  deletedNodeIds.add(id);
+  return { ...overlay, deletedNodeIds };
+}
+
+function withAddedEdge(overlay: GraphOverlay, edge: GraphEdge): GraphOverlay {
+  const addedEdges = new Map(overlay.addedEdges);
+  addedEdges.set(edge.id, edge);
+  return { ...overlay, addedEdges };
+}
+
+function withDeletedEdge(overlay: GraphOverlay, id: string): GraphOverlay {
+  const deletedEdgeIds = new Set(overlay.deletedEdgeIds);
+  deletedEdgeIds.add(id);
+  return { ...overlay, deletedEdgeIds };
+}
+
 export function useCatalogGraphData(
   configId: string | null,
   allConfigs: Config[],
@@ -135,19 +171,20 @@ export function useCatalogGraphData(
   const config = useMemo(() => allConfigs.find((c) => c.id === configId), [allConfigs, configId]);
   const baseline = useMemo(() => deriveGraphFromConfig(config, catalogSkus), [config, catalogSkus]);
 
-  const overlayRef = useRef<GraphOverlay>(emptyOverlay());
+  const [overlay, setOverlay] = useState<GraphOverlay>(() => emptyOverlay());
   // Reset the overlay when the selected config changes (switching configs
   // shouldn't carry another config's manual edits with it), but NOT when
   // catalogSkus changes (that's exactly the case the overlay exists to
-  // survive).
-  useEffect(() => {
-    overlayRef.current = emptyOverlay();
-  }, [configId]);
+  // survive). Adjusted directly during render, per React's documented
+  // pattern for "resetting state when a prop changes" — doing this in a
+  // useEffect instead causes an extra cascading render.
+  const [prevConfigId, setPrevConfigId] = useState(configId);
+  if (configId !== prevConfigId) {
+    setPrevConfigId(configId);
+    setOverlay(emptyOverlay());
+  }
 
-  const [renderTick, forceRender] = useState(0);
-  const bump = () => forceRender((n) => n + 1);
-
-  const data = useMemo(() => applyOverlay(baseline, overlayRef.current), [baseline, renderTick]);
+  const data = useMemo(() => applyOverlay(baseline, overlay), [baseline, overlay]);
 
   const [alternativePaths, setAlternativePaths] = useState<GraphPath[]>([]);
   const isLoading = false;
@@ -176,8 +213,6 @@ export function useCatalogGraphData(
       // local overlay node so the graph reflects the fix immediately, and
       // (if we have write access) add it as a genuinely new catalog SKU so
       // it isn't lost the moment this view is closed.
-      overlayRef.current.updatedNodes.set(childId, { type: "catalog_part", status: "healthy" });
-      overlayRef.current.deletedNodeIds.delete(childId);
       if (setCatalogSkus && childInfo.partNumber) {
         setCatalogSkus((prev) => [
           ...prev,
@@ -194,9 +229,13 @@ export function useCatalogGraphData(
         ]);
       }
       const edgeId = `e-${parentId}-${childId}`;
-      overlayRef.current.addedEdges.set(edgeId, { id: edgeId, source: parentId, target: childId, relationship: "contains" });
+      setOverlay((prev) =>
+        withAddedEdge(
+          withUpdatedNode(prev, childId, { type: "catalog_part", status: "healthy" }),
+          { id: edgeId, source: parentId, target: childId, relationship: "contains" }
+        )
+      );
     }
-    bump();
   }, [setCatalogSkus]);
 
   const healOrphanMapping = async (orphanId: string, orphanName: string, targetNodeId: string) => {
@@ -204,17 +243,13 @@ export function useCatalogGraphData(
   };
 
   const unmapNode = async (nodeId: string) => {
-    overlayRef.current.deletedNodeIds.add(nodeId);
-    bump();
+    setOverlay((prev) => withDeletedNode(prev, nodeId));
   };
 
   const addRule = async (nodeId: string, _type: "requires" | "exclusive", note: string) => {
     const current = data.nodes.find((n) => n.id === nodeId);
     if (current) {
-      overlayRef.current.updatedNodes.set(nodeId, {
-        constraints: [...(current.constraints || []), note],
-      });
-      bump();
+      setOverlay((prev) => withUpdatedNode(prev, nodeId, { constraints: [...(current.constraints || []), note] }));
     }
   };
 
@@ -247,45 +282,41 @@ export function useCatalogGraphData(
 
   const addGraphNode = async (node: Partial<GraphNode>) => {
     const id = node.id || `node-manual-${Date.now()}`;
-    overlayRef.current.addedNodes.set(id, { id, label: node.label || id, type: node.type || "sku", ...node });
-    bump();
+    const fullNode: GraphNode = { id, label: node.label || id, type: node.type || "sku", ...node };
+    setOverlay((prev) => withAddedNode(prev, fullNode));
     return true;
   };
 
   const updateGraphNode = async (nodeId: string, updates: Partial<GraphNode>) => {
-    overlayRef.current.updatedNodes.set(nodeId, { ...(overlayRef.current.updatedNodes.get(nodeId) || {}), ...updates });
-    bump();
+    setOverlay((prev) => withUpdatedNode(prev, nodeId, updates));
     return true;
   };
 
   const deleteGraphNode = async (nodeId: string) => {
-    overlayRef.current.deletedNodeIds.add(nodeId);
-    bump();
+    setOverlay((prev) => withDeletedNode(prev, nodeId));
     return true;
   };
 
   const addGraphEdge = async (edge: Partial<GraphEdge>) => {
     const id = edge.id || `edge-manual-${Date.now()}`;
-    overlayRef.current.addedEdges.set(id, {
+    const fullEdge: GraphEdge = {
       id,
       source: edge.source || "",
       target: edge.target || "",
       relationship: edge.relationship || "compatible",
       ...edge,
-    });
-    bump();
+    };
+    setOverlay((prev) => withAddedEdge(prev, fullEdge));
     return true;
   };
 
   const deleteGraphEdge = async (edgeId: string) => {
-    overlayRef.current.deletedEdgeIds.add(edgeId);
-    bump();
+    setOverlay((prev) => withDeletedEdge(prev, edgeId));
     return true;
   };
 
   const refresh = () => {
-    overlayRef.current = emptyOverlay();
-    bump();
+    setOverlay(emptyOverlay());
   };
 
   return {

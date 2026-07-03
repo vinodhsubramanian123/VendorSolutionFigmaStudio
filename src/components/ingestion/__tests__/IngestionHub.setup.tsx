@@ -108,7 +108,8 @@ vi.mock('../../../services/apiClient', () => ({
     post: vi.fn(),
     get: vi.fn(),
     put: vi.fn(),
-    delete: vi.fn()
+    delete: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 const Wrapper = ({ children }: { children: React.ReactNode }) => (

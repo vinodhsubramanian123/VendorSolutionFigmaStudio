@@ -9,6 +9,7 @@ import * as resetSeedDataModule from '../../../lib/resetSeedData';
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
     get: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 

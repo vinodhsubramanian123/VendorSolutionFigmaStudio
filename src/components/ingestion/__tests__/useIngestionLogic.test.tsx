@@ -11,6 +11,7 @@ import { screen, fireEvent } from '@testing-library/react';
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
     post: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 

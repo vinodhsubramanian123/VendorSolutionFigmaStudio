@@ -3,17 +3,35 @@ import { MockCatalogApi, MockSolutionApi, MockTaxonomyApi } from '../../lib/api-
 import { CatalogSKU, Config, UCID } from '../../types';
 import { BOQ_PRESETS } from '../boqMocks';
 import { wrapSuccess} from './sharedState';
+
+// Tracks how many times each job_id has been polled, so streamJob()'s real
+// interval-based polling (see apiClient.ts) has genuine incremental
+// progress to observe instead of jumping straight to "completed" on the
+// very first call — see docs/architecture/data-ownership.md, Phase 6.
+// This is ephemeral per-job session state (not entity data coreStore owns),
+// scoped to this module the same way alternative-paths/path-selection
+// already are.
+const jobPollCounts = new Map<string, number>();
+
 export const workflowHandlers = [
   http.get('/api/jobs/:id', async ({ params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(600);
+    if (process.env.NODE_ENV !== 'test') await delay(150);
+    const jobId = params.id as string;
+    const pollCount = (jobPollCounts.get(jobId) || 0) + 1;
+    jobPollCounts.set(jobId, pollCount);
+
+    // First 3 polls report increasing progress; 4th+ reports completed.
+    // Real jobs would report genuine backend progress here instead.
+    const progressSteps = [25, 55, 80];
+    const isComplete = pollCount > progressSteps.length;
     return HttpResponse.json(wrapSuccess({
-      job_id: params.id,
-      status: 'completed',
-      progress: 100,
-      result: {
+      job_id: jobId,
+      status: isComplete ? 'completed' : 'processing',
+      progress: isComplete ? 100 : progressSteps[pollCount - 1],
+      result: isComplete ? {
         success: true,
         reconciliationStatus: 'complete'
-      }
+      } : undefined
     }));
   }),
   // GET /api/catalog

@@ -56,5 +56,23 @@ export default tseslint.config(
         version: 'detect'
       }
     }
+  },
+  {
+    // All network requests from UI code must go through the apiClient
+    // boundary (src/services/apiClient.ts) so responses can be validated
+    // and the transport (MSW vs a real backend) is a single-point swap —
+    // see docs/architecture/data-ownership.md. apiClient.ts itself, MSW
+    // route handlers, server.ts, and tests are exempt.
+    files: ['src/components/**/*.{ts,tsx}', 'src/hooks/**/*.{ts,tsx}'],
+    ignores: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'fetch',
+          message: 'Use apiClient (src/services/apiClient.ts) instead of calling fetch() directly, so requests go through the validated, transport-agnostic API boundary.',
+        },
+      ],
+    },
   }
 );

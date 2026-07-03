@@ -8,7 +8,8 @@ import type { GraphNode, GraphEdge } from '../../../types/data';
 
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
-    updateGraphEdge: vi.fn()
+    updateGraphEdge: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 

@@ -11,7 +11,8 @@ vi.mock('../../../services/apiClient', () => ({
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
-    delete: vi.fn()
+    delete: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 

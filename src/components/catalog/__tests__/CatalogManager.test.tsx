@@ -12,6 +12,7 @@ vi.mock('../../../services/apiClient', () => ({
     put: vi.fn().mockResolvedValue({ success: true }),
     post: vi.fn().mockResolvedValue({ success: true }),
     delete: vi.fn().mockResolvedValue({ success: true }),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 

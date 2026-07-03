@@ -152,36 +152,59 @@ class ApiClient {
   }
 
   /**
-   * Simulates a Server-Sent Events (SSE) stream for real-time job progress tracking.
-   * Replaces legacy HTTP polling architectures.
+   * Polls for real-time job progress until a terminal status (completed/
+   * failed) is reached, or close() is called.
+   *
+   * This used to be a single GET call dressed up as an "SSE stream" — it
+   * could only ever report one update, because it only ever asked once.
+   * The interface JobStreamer.tsx (and any future caller) consumes hasn't
+   * changed: onMessage/onError callbacks, a close() to stop early. What's
+   * behind it now is genuine repeated polling, so a real multi-stage
+   * backend job can report as many incremental updates as it needs to,
+   * with zero changes required on the calling side. See
+   * docs/architecture/data-ownership.md, Phase 6.
    */
-  streamJob(jobId: string, onMessage: (data: unknown) => void, onError: (err: unknown) => void) {
+  streamJob(jobId: string, onMessage: (data: unknown) => void, onError: (err: unknown) => void, pollIntervalMs: number = 400) {
     let active = true;
+    let polling = false;
 
-    // Send initial processing state
-    Promise.resolve().then(() => {
-      if (active) onMessage({ status: "processing", progress: 15 });
-    });
-
-    // Delegate the delay entirely to the network mock layer (MSW)
-    this.get(`/api/jobs/${jobId}`)
-      .then((res) => {
+    const poll = async () => {
+      if (!active || polling) return;
+      polling = true;
+      try {
+        const res = await this.get(`/api/jobs/${jobId}`);
         if (!active) return;
         const data = res.data as { status: string, progress: number, result: unknown };
+        const status = data.status || "completed";
         onMessage({
-          status: data.status || "completed",
-          progress: data.progress || 100,
-          result: data.result || { success: true, reconciliationStatus: "complete" }
+          status,
+          progress: data.progress ?? 100,
+          result: data.result,
         });
-        active = false;
-      })
-      .catch((err) => {
-        if (active) onError(err);
-      });
+        if (status === "completed" || status === "failed") {
+          active = false;
+          clearInterval(intervalHandle);
+        }
+      } catch (err) {
+        if (active) {
+          onError(err);
+          active = false;
+          clearInterval(intervalHandle);
+        }
+      } finally {
+        polling = false;
+      }
+    };
+
+    // Fire immediately, then keep polling on an interval until a terminal
+    // status is reached — real polling, not a single call.
+    void poll();
+    const intervalHandle = setInterval(() => { void poll(); }, pollIntervalMs);
 
     return {
       close: () => {
         active = false;
+        clearInterval(intervalHandle);
       }
     };
   }

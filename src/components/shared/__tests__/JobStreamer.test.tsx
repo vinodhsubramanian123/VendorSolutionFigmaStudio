@@ -7,6 +7,7 @@ import { JobContext } from '../../../types';
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
     streamJob: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 const mockContext: JobContext = {

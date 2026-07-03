@@ -25,7 +25,8 @@ vi.mock("../../../services/apiClient", () => ({
   apiClient: {
     post: vi.fn().mockResolvedValue({ data: {} }),
     get: vi.fn().mockResolvedValue({ data: [] }),
-    delete: vi.fn().mockResolvedValue({ data: {} })
+    delete: vi.fn().mockResolvedValue({ data: {} }),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 

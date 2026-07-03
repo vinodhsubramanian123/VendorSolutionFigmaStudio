@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { UCID, PlaywrightRunResponse, CatalogSKU, SourcingRule, LearningEvent, AdviceResolution, Vendor } from "../../types";
+import { PlaywrightRunResponseSchema } from "../../types/zodSchemas";
 import { motion, AnimatePresence } from "motion/react";
 import { apiClient } from "../../services/apiClient";
 import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
@@ -114,7 +115,7 @@ export function VendorIngestionDesk({
         targetPortalUrl: selectedPortal === "HPE" ? "https://partner.hpe.com/ready/login" : selectedPortal === "Dell" ? "https://premier.dell.com" : "https://commerce.cisco.com/ccw",
         bypassCaptchas: true
       });
-      const data = response.data;
+      const data = apiClient.parseResponse(PlaywrightRunResponseSchema, response.data);
       if (data.logTrail && Array.isArray(data.logTrail)) {
         setConsoleLogs((prev) => [
           ...prev,

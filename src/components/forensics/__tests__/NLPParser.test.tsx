@@ -7,6 +7,7 @@ import { apiClient } from '../../../services/apiClient';
 vi.mock('../../../services/apiClient', () => ({
   apiClient: {
     post: vi.fn(),
+    parseResponse: vi.fn((schema: any, data: any) => data),
   }
 }));
 
