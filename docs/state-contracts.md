@@ -1,5 +1,9 @@
 # State Contracts
 
-- Global State: React Context for ephemeral shared state (Toast, Auth, Theme).
-- Config: useWorkflowManager handles multi-step UCID workflows.
-- Server State: Transiently queried and tracked via `data.ts` typed components.
+**Read `docs/architecture/data-ownership.md` first — this file is a quick index, that one is the actual explanation.**
+
+- **Entity data** (catalogSkus, vendors, ucids, solutions, forensicIssues, sourcingRules): owned exclusively by `coreStore.ts` (Zustand, persisted to `localStorage` under `vsip-core-storage`). All reads/writes go through `useCoreStore(s => s.X)` selectors. Components must never import an entity mock array directly from `src/lib/mockData/*`.
+- **Session/UI state**: three additional Zustand stores, each independently persisted — `ingestionStore.ts` (`vsip-ingestion-storage`), `workflowStore.ts` (`vsip-workflow-storage`), `auditStore.ts` (`vsip-audit-logs`). All four stores share the same `version` + `migrate` guard pattern (drop stale persisted state on a shape mismatch rather than risk rehydrating an incompatible one).
+- **React Context**: reserved for genuinely ephemeral, non-persisted UI concerns only — Toast notifications, theme. Not used for entity or session data; if you're tempted to put domain data in a Context, it belongs in `coreStore` instead.
+- **Server state**: `apiClient.ts` is the sole network boundary (enforced by an ESLint rule banning direct `fetch()` in `src/components/**`/`src/hooks/**`). Responses are validated against Zod schemas via `apiClient.parseResponse(schema, data)` — currently applied at a handful of verified call sites, with the rest tracked as a scoped follow-up (`docs/architecture/data-architecture-plan.md`, Phase 6). MSW and `server.ts` are transport-layer mocks only; neither should ever hold an independent copy of entity data `coreStore` already owns.
+- **Reset**: `src/lib/resetSeedData.ts` clears all 4 persisted store keys — use this (or the "Reset to Seed Data" button in System Telemetry) to get back to pristine mock data instead of manually clearing browser storage.
