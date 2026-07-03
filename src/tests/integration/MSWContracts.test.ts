@@ -162,11 +162,22 @@ describe("MSW Endpoint Response Schema Verification (Category 8)", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("GET /api/graph/solution/:ucid matches GraphAPIResponseSchema structure", async () => {
-    const response = await apiClient.get<unknown>("/api/graph/solution/u1");
-    expect(response.success).toBe(true);
-
-    const parsed = GraphAPIResponseSchema.safeParse(response.data);
+  it("deriveGraphFromConfig output matches GraphAPIResponseSchema structure (replaces the removed GET /api/graph/solution/:ucid mock — see docs/architecture/data-ownership.md Phase 4)", async () => {
+    const { deriveGraphFromConfig } = await import("../../hooks/useCatalogGraphData");
+    const graph = deriveGraphFromConfig(
+      {
+        id: "cfg-contract-test",
+        name: "Contract Test Config",
+        vendor: "HPE",
+        totalPrice: 100,
+        originalPrice: 100,
+        items: [
+          { id: "i1", partNumber: "P40424-B21", name: "Test CPU", type: "Processor", quantity: 1, unitPrice: 100 },
+        ],
+      },
+      []
+    );
+    const parsed = GraphAPIResponseSchema.safeParse(graph);
     if (!parsed.success) {
       console.error("GraphAPIResponseSchema mismatch:", parsed.error.issues);
     }

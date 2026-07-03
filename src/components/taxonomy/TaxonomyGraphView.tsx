@@ -46,6 +46,14 @@ export function TaxonomyGraphView() {
     return configs && configs.length > 0 ? configs : DEFAULT_CONFIGS;
   }, [activeUcid]);
 
+  const [selectedConfigIdState, setSelectedConfigIdState] = useState<string>("");
+  const selectedConfigId = useMemo(() => {
+    if (activeConfigs.some(c => c.id === selectedConfigIdState)) {
+      return selectedConfigIdState;
+    }
+    return activeConfigs[0]?.id || "";
+  }, [activeConfigs, selectedConfigIdState]);
+
   const { 
     data, 
     isLoading, 
@@ -60,9 +68,16 @@ export function TaxonomyGraphView() {
     addGraphEdge,
     deleteGraphEdge
   } = useCatalogGraphData(
-    activeUcid?.id || "cfg-base", 
+    // BUG FIX: this used to pass activeUcid?.id, which is a UCID id and
+    // never matches any Config.id in activeConfigs — the internal lookup
+    // always failed, so the graph silently kept showing whatever it last
+    // successfully loaded (the same 5 hardcoded mock nodes) no matter which
+    // solution/UCID was actually selected. Now it derives from the real
+    // selected config's own id.
+    selectedConfigId || "cfg-base",
     activeConfigs, 
-    catalogSkus
+    catalogSkus,
+    setCatalogSkus
   );
   // States
   const [, setExpandedNode] = useState<string | null>(null);
@@ -182,7 +197,6 @@ export function TaxonomyGraphView() {
       {/* RIGHT: Mechanical Validation & Orphan Repair Workshop */}
       <TaxonomyGraphSidebar
         catalogSkus={catalogSkus}
-        setCatalogSkus={setCatalogSkus}
         data={data}
         categories={categories}
         mapNode={mapNode}

@@ -12,7 +12,6 @@ import {
 } from "./TaxonomyGraphPanels";
 interface TaxonomyGraphSidebarProps {
   catalogSkus: CatalogSKU[];
-  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
   data: { nodes: import('../../types').GraphNode[], edges: import('../../types').GraphEdge[], unmappedIds?: string[] };
   categories: import('../../types').GraphNode[];
   mapNode: (nodeId: string, parentId: string, metadata: import('../../hooks/useCatalogGraphData').MapNodeRequest) => Promise<void>;
@@ -38,7 +37,6 @@ interface TaxonomyGraphSidebarProps {
 }
 export function TaxonomyGraphSidebar({
   catalogSkus,
-  setCatalogSkus,
   data,
   categories,
   mapNode,
@@ -110,18 +108,13 @@ export function TaxonomyGraphSidebar({
     else if (categoryId.includes("Cooling")) type = "Cooling";
     else if (categoryId.includes("Chassis")) type = "Chassis";
     try {
+      // mapNode now writes the classification onto the matching catalog SKU
+      // itself (see useCatalogGraphData.ts) — the graph re-derives from
+      // catalogSkus automatically, so there's no separate setCatalogSkus
+      // call needed here anymore. Keeping both was two places doing the
+      // same write differently, which is exactly the drift this whole
+      // effort is meant to eliminate.
       await mapNode(orphanId, categoryId, { partNumber: orphanId, name: orphanNodeName, type });
-      
-      setCatalogSkus(prev => prev.map(s => {
-        if (s.partNumber === orphanId) {
-          return {
-            ...s,
-            type: type,
-            status: "active" as const
-          };
-        }
-        return s;
-      }));
       setSelectedOrphanToMap(null);
       toast(`Successfully mapped ${orphanId} to ${type} Category node.`, "success");
     } catch (e) {

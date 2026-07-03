@@ -1,8 +1,8 @@
 import { http, HttpResponse, delay } from 'msw';
-import { CatalogSKU, Config,  GraphNode, GraphEdge, Solution, VendorSubmission, BOMItem, SourcingRule, LearningEvent, UCID } from '../../types';
+import { CatalogSKU, Config, Solution, VendorSubmission, BOMItem, SourcingRule, LearningEvent, UCID } from '../../types';
 import { CleansingEntry } from '../../components/cleansing/types';
 import { makeMockApiLogs, makeMockWebhooks } from '../../components/telemetry/telemetryUtils';
-import { wrapSuccess, memoryGraphNodes, memoryGraphEdges } from './sharedState';
+import { wrapSuccess } from './sharedState';
 export const graphHandlers = [
   http.post('/api/forensics/align', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
@@ -168,60 +168,20 @@ export const graphHandlers = [
     return HttpResponse.json(wrapSuccess({ simulated: true }));
   }),
   // ======================================================================
-  // KNOWLEDGE GRAPH ENDPOINTS (Phase 2)
+  // KNOWLEDGE GRAPH ENDPOINTS
   // ======================================================================
-  // GET /api/graph/solution/:ucid
-  http.get('/api/graph/solution/:ucid', async ({ params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(600);
-    return HttpResponse.json(wrapSuccess({
-      metadata: { id: params.ucid as string, version: "v2" },
-      nodes: memoryGraphNodes,
-      edges: memoryGraphEdges,
-      unmappedIds: memoryGraphNodes.filter(n => n.type === 'scraped_orphan').map(n => n.id)
-    }));
-  }),
-  // POST /api/graph/nodes
-  http.post('/api/graph/nodes', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as Omit<GraphNode, 'id'>;
-    const newNode: GraphNode = { ...body, id: `node-${crypto.randomUUID()}` };
-    memoryGraphNodes.push(newNode);
-    return HttpResponse.json(wrapSuccess(newNode));
-  }),
-  // PUT /api/graph/nodes/:id
-  http.put('/api/graph/nodes/:id', async ({ request, params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as Partial<GraphNode>;
-    const idx = memoryGraphNodes.findIndex(n => n.id === params.id);
-    if (idx !== -1) {
-      memoryGraphNodes[idx] = { ...memoryGraphNodes[idx], ...body };
-      return HttpResponse.json(wrapSuccess(memoryGraphNodes[idx]));
-    }
-    return HttpResponse.json({ success: false, error: { message: "Node not found" } }, { status: 404 });
-  }),
-  // DELETE /api/graph/nodes/:id
-  http.delete('/api/graph/nodes/:id', async ({ params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(300);
-    const nodeId = params.id as string;
-    memoryGraphNodes.splice(0, memoryGraphNodes.length, ...memoryGraphNodes.filter(n => n.id !== nodeId));
-    // Also remove any edges connected to it
-    memoryGraphEdges.splice(0, memoryGraphEdges.length, ...memoryGraphEdges.filter(e => e.source !== nodeId && e.target !== nodeId));
-    return HttpResponse.json(wrapSuccess({ success: true }));
-  }),
-  // POST /api/graph/edges
-  http.post('/api/graph/edges', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as Omit<GraphEdge, 'id'>;
-    const newEdge: GraphEdge = { ...body, id: `edge-${crypto.randomUUID()}` };
-    memoryGraphEdges.push(newEdge);
-    return HttpResponse.json(wrapSuccess(newEdge));
-  }),
-  // DELETE /api/graph/edges/:id
-  http.delete('/api/graph/edges/:id', async ({ params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(300);
-    memoryGraphEdges.splice(0, memoryGraphEdges.length, ...memoryGraphEdges.filter(e => e.id !== params.id));
-    return HttpResponse.json(wrapSuccess({ success: true }));
-  }),
+  // NOTE: GET /api/graph/solution/:ucid and the node/edge CRUD routes that
+  // used to live here were removed in Phase 4 of the data-ownership cleanup
+  // (see docs/architecture/data-ownership.md). The taxonomy graph now
+  // derives client-side from the selected config's real BOM items
+  // cross-referenced against coreStore.catalogSkus (see
+  // deriveGraphFromConfig in src/hooks/useCatalogGraphData.ts), with a
+  // local overlay for manual node/edge edits. The old version always
+  // returned the same 5 hardcoded nodes regardless of which UCID/config was
+  // selected (the :ucid param was never read), and orphan-mapping only
+  // patched a disconnected in-memory array that never touched the real
+  // catalog. What's left below (alternative-paths / path-selection) is
+  // genuinely algorithmic and stays network-backed.
   // POST /api/graph/algorithms/alternative-paths
   http.post('/api/graph/algorithms/alternative-paths', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
