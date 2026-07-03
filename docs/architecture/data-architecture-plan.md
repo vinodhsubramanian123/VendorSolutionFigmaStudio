@@ -112,10 +112,14 @@ Leave `/api/agents/run`'s "Simulator" framing as-is either way — it's honest a
 
 Verified: `tsc --noEmit` clean, full vitest suite green (84 files / 397 tests, 0 regressions).
 
-### Phase 5 — Persistence & session integrity (issues #16–17)
-- [ ] Add `version` + `migrate` guards to `ingestionStore.ts`, `workflowStore.ts`, `auditStore.ts`, matching the pattern already in `coreStore.ts`.
-- [ ] Add a "Reset to seed data" dev action that clears all four `localStorage` keys (`vsip-core-storage`, `vsip-ingestion-storage`, `vsip-workflow-storage`, `vsip-audit-logs`) and reloads — gives a reproducible clean-slate on demand instead of manually clearing browser storage.
-- [ ] Optionally: a `VITE_RESET_ON_LOAD` env flag your test setup (Vitest/Playwright) can use to force fresh mock data every run, avoiding state-leak flakiness between test runs.
+### Phase 5 — Persistence & session integrity (issues #16–17) — **DONE, verified**
+- [x] Added `version: 1` + `migrate` guards to `ingestionStore.ts`, `workflowStore.ts`, `auditStore.ts`, matching `coreStore.ts`'s existing pattern exactly (drop stale persisted state on a version mismatch rather than risk rehydrating an incompatible shape).
+- [x] Added `src/lib/resetSeedData.ts`: `resetToSeedData()` clears all 4 `localStorage` keys and reloads; `clearPersistedStores()` is the same without the reload, for use before the app has rendered.
+- [x] Wired a "Reset to Seed Data" button into `SystemTelemetry.tsx`'s header, with an explicit inline confirm step (it's destructive — wipes real session edits) — chose this page since it's already the closest thing to a system/diagnostics view; there's no dedicated settings page yet.
+- [x] Added the optional `VITE_RESET_ON_LOAD` env flag in `main.tsx`: when set, clears persisted state before the app boots, so CI/demo runs always start from pristine mock data instead of whatever a previous run left behind. Off by default — normal dev/prod behavior (persisting real edits across reloads) is unchanged.
+- [x] Tests: `resetSeedData.test.ts` (3 tests covering both functions + the key list itself), `SystemTelemetry.test.tsx` gained a 3rd test proving the confirm-before-destructive-action flow (click once → confirm step appears, nothing happens yet; Cancel backs out; Confirm actually triggers it).
+
+Verified: `tsc --noEmit` clean, full vitest suite green (85 files / 401 tests, 0 regressions).
 
 ### Phase 6 — Backend-readiness guardrails (issue #18, forward-looking)
 - [ ] Confirm every write from UI already goes through `apiClient` (no direct `fetch()` in components) — enforce as a lint rule if not already.

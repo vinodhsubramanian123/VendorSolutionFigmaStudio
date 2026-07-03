@@ -15,6 +15,13 @@ export const useAuditStore = create<AuditStoreState>()(
     }),
     {
       name: 'vsip-audit-logs',
+      version: 1,
+      migrate: (_persistedState, version) => {
+        if (version < 1) {
+          return {};
+        }
+        return _persistedState;
+      },
     }
   )
 );

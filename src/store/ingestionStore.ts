@@ -55,6 +55,17 @@ export const useIngestionStore = create<IngestionState>()(
     }),
     {
       name: 'vsip-ingestion-storage',
+      version: 1,
+      migrate: (_persistedState, version) => {
+        if (version < 1) {
+          // No version was ever set before this — treat any pre-existing
+          // persisted state as stale rather than risk rehydrating a shape
+          // that doesn't match the current store (see coreStore.ts, which
+          // already had this guard; the other three stores didn't).
+          return {};
+        }
+        return _persistedState;
+      },
     }
   )
 );

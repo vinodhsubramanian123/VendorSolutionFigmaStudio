@@ -5,6 +5,18 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import "./index.css";
 import { ToastProvider } from "./components/shared/ToastContext.tsx";
+import { clearPersistedStores } from "./lib/resetSeedData.ts";
+
+// When set, forces every load to start from pristine mock seed data instead
+// of rehydrating from whatever a previous session left in localStorage.
+// Intended for CI/demo runs where "same test, different result depending on
+// what's in localStorage" would otherwise be a flake source (see
+// docs/architecture/data-ownership.md, Phase 5). Not used by the default
+// dev/prod flow, where persisting real session edits across reloads is the
+// intended, correct behavior.
+if (import.meta.env.VITE_RESET_ON_LOAD === 'true') {
+  clearPersistedStores();
+}
 
 // Gently suppress benign sandbox development environment websocket/Vite connection alerts
 if (typeof window !== "undefined") {

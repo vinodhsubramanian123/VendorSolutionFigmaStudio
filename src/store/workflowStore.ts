@@ -35,6 +35,13 @@ export const useWorkflowStore = create<WorkflowStoreState>()(
     }),
     {
       name: 'vsip-workflow-storage',
+      version: 1,
+      migrate: (_persistedState, version) => {
+        if (version < 1) {
+          return {};
+        }
+        return _persistedState;
+      },
     }
   )
 );

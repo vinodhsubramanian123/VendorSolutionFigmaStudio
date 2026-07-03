@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Radio, Webhook, Upload, Terminal } from "lucide-react";
+import { Radio, Webhook, Upload, Terminal, RotateCcw } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 import { DocumentPipelinePanel } from "./DocumentPipelinePanel";
 import { ApiLogsTable } from "./ApiLogsTable";
 import { WebhookMonitor } from "./WebhookMonitor";
+import { resetToSeedData } from "../../lib/resetSeedData";
 import type { ApiLogEntry, WebhookEvent } from "./types";
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ export function SystemTelemetry() {
   const [activeTab, setActiveTab] = useState<"pipeline" | "api-logs" | "webhooks">("pipeline");
   const [apiLogs, setApiLogs] = useState<ApiLogEntry[]>([]);
   const [webhooks, setWebhooks] = useState<WebhookEvent[]>([]);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   useEffect(() => {
     apiClient.get<ApiLogEntry[]>("/api/telemetry/logs")
@@ -62,6 +64,35 @@ export function SystemTelemetry() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               TELEMETRY LIVE
             </span>
+            {confirmingReset ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-mono text-amber-400">Wipe all local session data?</span>
+                <button
+                  type="button"
+                  onClick={resetToSeedData}
+                  className="text-[9px] font-bold font-mono px-2.5 py-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 cursor-pointer transition"
+                >
+                  Confirm Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingReset(false)}
+                  className="text-[9px] font-mono px-2.5 py-1.5 rounded-full border border-white/10 text-gray-400 hover:text-white cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingReset(true)}
+                title="Clear all persisted session data and reload from pristine seed data"
+                className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-gray-400 border border-white/10 px-2.5 py-1.5 rounded-full hover:text-white hover:border-white/20 cursor-pointer transition"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset to Seed Data
+              </button>
+            )}
           </div>
         </div>
 
