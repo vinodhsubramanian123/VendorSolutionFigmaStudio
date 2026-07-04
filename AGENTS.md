@@ -262,6 +262,10 @@ As of Phase 7 (Refactoring & Perfection), the following structural rules are com
 
 ### 13.6a Single Ownership for Simulated-Backend Layers
 *   **Rule**: `api-mock.ts`, MSW route handlers, and `server.ts` MUST NOT maintain an independent copy of any entity array already owned by `coreStore.ts`. There is exactly one source of truth for entity data; the simulated-backend layer either seeds from it, defers to it, or acts as a stateless pass-through — it never forks its own competing copy (this is precisely how the `api-mock.ts` catalog/solutions divergence and the `CatalogManager` price-rollback bug happened: a pre-Zustand mock catalog was never retired when `coreStore` became the source of truth).
+    > [!IMPORTANT]
+    > For the full investigation trail and rules enforcing this, read:
+    > - **[Data Ownership Hierarchy](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/architecture/data-ownership.md)**
+    > - **[Data Architecture & Migration Plan](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/architecture/data-architecture-plan.md)**
 *   **Action**: Entity-CRUD MSW/`server.ts` handlers accept the payload and echo it back (`wrapSuccess(payload)`), or read from data explicitly passed in by the caller. They must not `find()`/`filter()` against a hand-seeded local array using ids that may not match `coreStore`'s.
 *   **`server.ts` vs. MSW**: `server.ts` is the designated seam for future real-backend logic (it is a real Node process and can eventually perform real work; MSW is browser-sandboxed and structurally cannot). MSW route handlers must not duplicate a route `server.ts` already implements — MSW's `onUnhandledRequest: 'bypass'` means a duplicate MSW handler permanently shadows the real one during development.
 
