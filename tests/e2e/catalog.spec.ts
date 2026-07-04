@@ -76,7 +76,7 @@ test.describe('06 - Catalog Manager E2E', () => {
     await editBtn.click({ force: true });
     await delay(500);
     // Should see price input field
-    const priceInput = page.locator('input[type="text"]').filter({ hasText: '' }).first();
+    const priceInput = page.locator('input.w-16').first();
     await expect(priceInput).toBeVisible();
     await priceInput.fill('9999');
     const saveBtn = page.locator('button[title="Save Price"]').first();
