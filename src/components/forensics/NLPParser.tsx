@@ -65,21 +65,27 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
     } else if (state === "clarifying_target") {
       setParsedIntent(prev => ({ ...prev, partNumber: userText }));
       setState("parsing");
-      try {
-        await apiClient.post("/api/agents/run", { message: userText });
-        setState("clarifying_scope");
-        setMessages(prev => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            sender: "agent",
-            text: `Got it. Target parameter set to "${userText}". To prevent rule bleeding, what is the strict scope level for this directive? (e.g. "Global Brand", "Specific Category Only", "Exact SKU Match Only")`,
-            isActionable: true,
-          }
-        ]);
-      } catch (e) {
-        logger.error("Failed to run agent scope parsing", e);
-      }
+      // NOTE: This step is a pure client-side state transition (accumulating
+      // parsedIntent from the conversation) -- there is no real agent/backend
+      // work to do here. Previously this called POST /api/agents/run with
+      // {message: userText}, which is the Playwright partner-portal scraper
+      // endpoint (see PlaywrightRunRequestSchema in server.ts: agentName,
+      // ucidRef, targetPortalUrl, bypassCaptchas). The response was never read.
+      // Under MSW that "succeeded" silently because the mock doesn't validate
+      // the body; against the real server it would 400 and the catch block
+      // would strand every user at this step. Removed rather than reshaped
+      // into a fake Playwright payload -- this flow was never meant to call
+      // that endpoint.
+      setState("clarifying_scope");
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "agent",
+          text: `Got it. Target parameter set to "${userText}". To prevent rule bleeding, what is the strict scope level for this directive? (e.g. "Global Brand", "Specific Category Only", "Exact SKU Match Only")`,
+          isActionable: true,
+        }
+      ]);
     } else if (state === "clarifying_scope") {
       const allowedScopes = ["Global Brand", "Specific Category Only", "Exact SKU Match Only"];
       const scopeMatch = allowedScopes.find(s => s.toLowerCase() === userText.toLowerCase());
@@ -98,8 +104,10 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
       }
 
       setState("parsing");
+      // Same rationale as clarifying_target above: no real backend call
+      // belongs here, this is local state accumulation before the actual
+      // persistence call in finalizeRule() -> POST /api/taxonomy/rules.
       try {
-        await apiClient.post("/api/agents/run", { message: scopeMatch });
         await finalizeRule(scopeMatch);
       } catch (e) {
         logger.error("Failed to finalize semantic rule scope", e);
