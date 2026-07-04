@@ -126,35 +126,66 @@ export function useForensicsLogic() {
     toast(message, type);
   }
 
-  async function runAuditScanner() {
+  function runAuditScanner() {
     setScanning(true);
     setScanStdout([
       "Booting VSIP forensic diagnostic sweep engine...",
       `Connecting active configuration workspace profile [${currUcid?.displayId || "UNKNOWN"}]`,
     ]);
-    
-    try {
-      const res = await apiClient.post<{ logTrail?: string[] }>("/api/jobs", {
+
+    // NOTE: This previously treated POST /api/jobs's response as the final,
+    // already-completed scan result (reading res.data.logTrail synchronously
+    // and immediately showing "Diagnostic scan complete!"). That only
+    // "worked" against MSW, whose mock for this route returns
+    // {status: "completed", logTrail: [...]} directly in the POST body.
+    // The real server.ts creates the job in status: 'processing' and
+    // requires polling GET /api/jobs/:job_id until it reaches 'completed' --
+    // against the real backend this was reporting a false-positive
+    // "scan complete" instantly, before any actual audit work had run.
+    // Fixed to poll like every other correctly-wired job flow in this
+    // codebase (see JobStreamer.tsx / apiClient.streamJob).
+    apiClient
+      .post<{ job_id: string }>("/api/jobs", {
         type: "forensics",
         context: { ucid: currUcid?.id || "mock-ucid", config_id: "all", solution_id: "all" },
         parent_job_id: ""
+      })
+      .then(({ data }) => {
+        const jobId = data.job_id;
+        const stream = apiClient.streamJob(
+          jobId,
+          (raw: unknown) => {
+            const msg = raw as { status: string; result?: { logTrail?: string[] } };
+            if (msg.status === "completed") {
+              stream.close();
+              if (msg.result?.logTrail) {
+                setScanStdout(prev => [...prev, ...msg.result!.logTrail!]);
+              }
+              setScanning(false);
+              setLastScanCount(openIssues.length);
+              triggerToast(
+                "Diagnostic scan complete! Sourcing sheet analyzed successfully.",
+                "success",
+              );
+            } else if (msg.status === "failed") {
+              stream.close();
+              console.error("Diagnostic scan failed: job reported failed status");
+              setScanning(false);
+              triggerToast("Diagnostic scan failed.", "error");
+            }
+          },
+          (err: unknown) => {
+            console.error("Diagnostic scan failed:", err);
+            setScanning(false);
+            triggerToast("Diagnostic scan failed.", "error");
+          }
+        );
+      })
+      .catch((err: unknown) => {
+        console.error("Diagnostic scan failed:", err);
+        setScanning(false);
+        triggerToast("Diagnostic scan failed.", "error");
       });
-
-      if (res.data?.logTrail) {
-        setScanStdout(prev => [...prev, ...res.data.logTrail!]);
-      }
-
-      setScanning(false);
-      setLastScanCount(openIssues.length);
-      triggerToast(
-        "Diagnostic scan complete! Sourcing sheet analyzed successfully.",
-        "success",
-      );
-    } catch (err) {
-      console.error("Diagnostic scan failed:", err);
-      setScanning(false);
-      triggerToast("Diagnostic scan failed.", "error");
-    }
   }
 
   async function executeAutoHeal(scope: "Global" | "Brand" | "Exact") {
