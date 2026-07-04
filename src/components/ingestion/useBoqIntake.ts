@@ -1,10 +1,32 @@
 import { useState } from "react";
-import { useIngestionStore } from "../../store/ingestionStore";
+import { useIngestionStore, type IngestionPreset } from "../../store/ingestionStore";
 import { apiClient } from "../../services/apiClient";
 import { generateDisplayId } from "../../utils/generateDisplayId";
 import type { UCID, Solution, SolutionProject } from "../../types";
 import { useCoreStore } from "../../store/coreStore";
 import { generateSolutionDisplayId, generateSolutionName } from "../../utils/solutionUtils";
+import { IngestRequestSchema } from "../../types/schemas/schemaDTO";
+
+// IngestRequestSchema.shape.presetType is the single source of truth for which
+// preset values server.ts's IngestRequestSchema will actually accept. JobContext
+// (see JobStreamer.tsx) is a generic, loosely-typed { solution_id: string } bag
+// shared across unrelated flows (reconciliation, mission-control intel scans,
+// and this BOQ preset) — nothing at the type level guarantees the value arriving
+// here still satisfies the enum by the time a future caller changes. Validate at
+// this API boundary instead of trusting the cast; fall back safely rather than
+// letting a bad value reach server.ts as a hard 400.
+const DEFAULT_PRESET: IngestionPreset = "hpe-legacy";
+
+function resolvePresetType(rawSolutionId: unknown): IngestionPreset {
+  const result = IngestRequestSchema.shape.presetType.safeParse(rawSolutionId);
+  if (result.success) return result.data;
+  console.warn(
+    `[useBoqIntake] JobContext.solution_id ("${String(rawSolutionId)}") is not a valid BOQ preset — ` +
+    `falling back to "${DEFAULT_PRESET}". This means a caller is reusing JobContext.solution_id ` +
+    `for something other than an ingestion preset; check the JobStreamer wiring that produced this job.`
+  );
+  return DEFAULT_PRESET;
+}
 
 export interface BoqResponsePayload {
   ucid: string | UCID;
@@ -123,10 +145,11 @@ export function useBoqIntake(
   };
 
   const onJobSuccess = async (result: unknown, context: unknown) => {
+      const presetType = resolvePresetType((context as { solution_id?: unknown } | undefined)?.solution_id);
       const response = await apiClient.post<BoqResponsePayload>("/api/boq/ingest", {
         fileName: boqFile,
-        presetType: (context as { solution_id: string }).solution_id,
-        rawText: `[Manual central upload: ${boqFile}] presetType=${(context as { solution_id: string }).solution_id}`,
+        presetType,
+        rawText: `[Manual central upload: ${boqFile}] presetType=${presetType}`,
       });
       const data = response.data;
       setBoqResponse(data);

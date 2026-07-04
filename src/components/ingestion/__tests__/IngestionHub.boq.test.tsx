@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IngestionHubTestWrapper, Wrapper } from './IngestionHub.setup';
 import { apiClient } from '../../../services/apiClient';
+import { useIngestionStore } from '../../../store/ingestionStore';
 import type { UCID } from '../../../types';
 import type { Mock } from 'vitest';
 
@@ -144,6 +145,49 @@ describe('IngestionHub Component Stateful Wrapper Tests', () => {
     await waitFor(() => {
       expect(screen.getByTestId('boq-error')).toHaveTextContent('Failed to start job due to network error');
     });
+  });
+
+  it('falls back to the default preset when JobContext.solution_id is not a valid enum value (e.g. stale persisted state)', async () => {
+    // Simulate drift that the TS union type can't catch at runtime: a persisted
+    // or otherwise corrupted selectedPreset that no longer satisfies
+    // IngestionPreset / IngestRequestSchema.presetType (e.g. an old localStorage
+    // value from before a preset was renamed or removed).
+    useIngestionStore.setState({ selectedPreset: 'legacy-removed-preset' as never });
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      success: true,
+      data: { job_id: 'job-boq-drift' }
+    });
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      success: true,
+      data: { ucid: 'mock-ucid', sourceFile: 'drift.xlsx', solutions: [] }
+    });
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    render(<IngestionHubTestWrapper onNavigate={onNavigate} onSelectMission={onSelectMission} />, { wrapper: Wrapper });
+
+    fireEvent.click(screen.getByTestId('trigger-parse-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('job-streamer')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('job-success-btn'));
+    });
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/api/boq/ingest',
+        expect.objectContaining({ presetType: 'hpe-legacy' })
+      );
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('legacy-removed-preset'));
+
+    warnSpy.mockRestore();
+    useIngestionStore.setState({ selectedPreset: 'hpe-legacy' });
   });
 
 });
