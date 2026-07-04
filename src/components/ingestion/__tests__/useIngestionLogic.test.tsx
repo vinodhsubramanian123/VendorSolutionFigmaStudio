@@ -68,19 +68,26 @@ describe('useIngestionLogic Hook', () => {
       await result.current.handleStartPortfolioPipeline();
     });
 
-    expect(apiClient.post).toHaveBeenCalledWith('/api/portfolio/orchestrate', expect.any(Object));
+    expect(apiClient.post).toHaveBeenCalledWith('/api/portfolio/orchestrate', {
+      portfolioId: 'PORT-2026-HQ-EXPANSION',
+      ucids: [
+        { id: 'UCID-1', channel: 'automated', vendor: 'Mixed' },
+        { id: 'UCID-2', channel: 'automated', vendor: 'Mixed' },
+      ],
+    });
     expect(result.current.hpeSyncedConfigs).toBe(4);
     expect(result.current.ciscoSyncedConfigs).toBe(4);
     expect(mockSetIsPendingAPI).toHaveBeenCalledWith(true);
     expect(mockSetIsPendingAPI).toHaveBeenLastCalledWith(false);
   });
 
-  it('starts portfolio pipeline with default Dell fallback UCID when ucids is empty', async () => {
-    vi.mocked(apiClient.post).mockResolvedValueOnce({
-      success: true,
-      data: { success: true }
-    });
-
+  it('guards against starting the portfolio pipeline with zero UCIDs instead of sending id: undefined', async () => {
+    // Regression for Phase 3b landmine #4: the previous fallback
+    // (`[{ id: ucids[0]?.id, ... }]` when ucids is empty) evaluated
+    // ucids[0] on an empty array, producing `id: undefined`, which fails
+    // PortfolioOrchestrateRequestSchema's ucids[].id: z.string() on the
+    // real server. Reachable via direct navigation to the "3. Hybrid
+    // Automation" stepper tab without ever completing BOQ intake.
     const { result } = renderHook(() => useIngestionLogic({
       ucids: [],
       setUcids: mockSetUcids,
@@ -93,10 +100,8 @@ describe('useIngestionLogic Hook', () => {
       await result.current.handleStartPortfolioPipeline();
     });
 
-    expect(apiClient.post).toHaveBeenCalledWith('/api/portfolio/orchestrate', {
-      portfolioId: 'PORT-2026-HQ-EXPANSION',
-      ucids: [{ id: undefined, channel: 'manual', vendor: 'Dell' }]
-    });
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(screen.getByText(/at least one UCID configuration/i)).toBeInTheDocument();
   });
 
   it('ignores handleStartPortfolioPipeline if pipeline is already active', async () => {

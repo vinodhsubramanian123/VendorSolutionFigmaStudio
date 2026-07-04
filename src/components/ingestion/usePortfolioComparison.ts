@@ -17,6 +17,19 @@ export function usePortfolioComparison(
 
   const handleStartPortfolioPipeline = async () => {
     if (isPortfolioActive) return;
+    if (ucids.length === 0) {
+      // Reachable: the "3. Hybrid Automation" stepper tab can be clicked
+      // directly without ever completing BOQ intake first. The previous
+      // fallback here (`[{ id: ucids[0]?.id, ... }]`) evaluates ucids[0] on
+      // an empty array, producing `id: undefined` -- which fails
+      // PortfolioOrchestrateRequestSchema's ucids[].id: z.string() on the
+      // real server. MSW's handler for this route doesn't validate the
+      // body, so this only ever surfaced as a silent no-op in dev. Guard
+      // the same way triggerBatchReconciliation guards its empty-selection
+      // case, rather than send a payload that can't validate.
+      toast("Please provision at least one UCID configuration before starting the portfolio pipeline.", "warn");
+      return;
+    }
     try {
       setIsPendingAPI(true);
       setIsPortfolioActive(true);
@@ -27,9 +40,7 @@ export function usePortfolioComparison(
 
       const response = await apiClient.post("/api/portfolio/orchestrate", {
         portfolioId: "PORT-2026-HQ-EXPANSION",
-        ucids: ucids.length > 0 ? ucids.map(u => ({ id: u.id, channel: "automated", vendor: "Mixed" })) : [
-          { id: ucids[0]?.id, channel: "manual", vendor: "Dell" },
-        ],
+        ucids: ucids.map(u => ({ id: u.id, channel: "automated", vendor: "Mixed" })),
       });
 
       if (response.success) {
