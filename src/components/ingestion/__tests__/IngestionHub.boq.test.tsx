@@ -122,8 +122,12 @@ describe('IngestionHub Component Stateful Wrapper Tests', () => {
     // After split, the mode automatically transitions to 'bom'
     expect(screen.getByTestId('bom-workspace')).toBeInTheDocument();
 
+    // Toast should now lead with the Solution displayId, not UCID slot count
+    const toastMessage = screen.getByText(/Solution .* created with \d+ configuration/i);
+    expect(toastMessage).toBeInTheDocument();
+
     // Trigger Proceed to BOM Ingestion toast action
-    const toastAction = screen.getByText(/Proceed to BOM Ingestion/i);
+    const toastAction = screen.getByRole('button', { name: /Proceed to BOM Ingestion/i });
     expect(toastAction).toBeInTheDocument();
     fireEvent.click(toastAction);
   });

@@ -1,0 +1,204 @@
+From f3ce5fb90632cabe2ae1deab4baeb2eaaf218fa7 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Fri, 3 Jul 2026 20:44:41 +0000
+Subject: [PATCH] docs: sync live agent-skills docs with the actual Phase 0-6
+ architecture
+
+The .agents/skills.md master index points agents at docs/state-contracts.md,
+docs/api-contracts.md, and docs/ui-specs/*.md as authoritative -- all three
+were stale, in some cases describing endpoints/UI that never existed even
+before this cleanup:
+
+- state-contracts.md: didn't mention coreStore/Zustand as the entity-data
+  source of truth at all -- described 'React Context' as if it were the
+  main state model. Rewritten to match reality and point to
+  docs/architecture/data-ownership.md.
+- api-contracts.md: Section 3 told agents to use 'fetch or axios' directly,
+  which now directly contradicts the new apiClient-only ESLint rule.
+  Section 5 documented GET /api/taxonomy/graph/:configId, POST
+  /api/taxonomy/map, DELETE /api/taxonomy/map/:nodeId -- none of which
+  ever existed in the codebase (the real, now-removed route was
+  GET /api/graph/solution/:ucid). Replaced with accurate documentation of
+  the client-side graph derivation, the catalog pass-through fix, and
+  streamJob's real polling. Restored /api/taxonomy/rules documentation
+  (still real, unrelated to the graph node CRUD that got removed -- almost
+  lost this in the section rewrite, caught and fixed before committing).
+  Flagged the still-unresolved snapshotHandlers.ts vs server.ts collision
+  (found during Phase 3b scoping, not yet fixed) so it isn't lost.
+- ui-specs/taxonomy-graph-skills.md: claimed a 'Config Context Dropdown'
+  exists. It doesn't -- confirmed by grep before editing. TaxonomyGraphView
+  has the state for it (selectedConfigId) but nothing wired to change it.
+  Documented as a known gap instead of a phantom feature.
+- .agents/skills.md: test count was stale (311 -> 401, and noted not to
+  treat the number as load-bearing); added pointers to the new
+  data-ownership.md and data-architecture-plan.md; added dev reminders for
+  the two new enforced rules (no direct fetch, no direct mockdata imports)
+  and a note that 'npm run lint' means tsc AND eslint, not just tsc --
+  a real eslint error sat in this codebase across several change sets in
+  this same effort because only tsc was being checked.
+
+No code changes in this commit -- documentation accuracy only, so what
+Antigravity reads matches what actually got built.
+---
+ .agents/skills.md                      | 13 ++++---
+ docs/api-contracts.md                  | 47 +++++++++++++++-----------
+ docs/state-contracts.md                | 10 ++++--
+ docs/ui-specs/taxonomy-graph-skills.md |  7 +++-
+ 4 files changed, 50 insertions(+), 27 deletions(-)
+
+diff --git a/.agents/skills.md b/.agents/skills.md
+index 2d4492e..896f5f1 100644
+--- a/.agents/skills.md
++++ b/.agents/skills.md
+@@ -6,13 +6,15 @@ Welcome, AI Agent. This is the master index for navigating the project's documen
+ > Before modifying any component logic, state, or schema, you **MUST** consult the relevant specification links below to prevent architectural drift.
+ 
+ ## 1. Core Architectural & System Guidelines
+-- **[AGENTS.md](../AGENTS.md)**: The ultimate source-of-truth for strict project rules, learnings, 400-line limits, error bounds, zero `any` tolerance, and test compliance.
++- **[AGENTS.md](../AGENTS.md)**: The ultimate source-of-truth for strict project rules, learnings, 400-line limits, error bounds, zero `any` tolerance, and test compliance. See especially §13.6/§13.6a/§13.6b for entity-data ownership rules.
++- **[Data Ownership Hierarchy](../docs/architecture/data-ownership.md)**: **Read this before touching any entity data (catalog, vendors, solutions, ucids).** Explains why `coreStore` is the single source of truth, the `server.ts` vs. MSW distinction, and the git-forensic history of how this drifted before.
++- **[Data Architecture Plan](../docs/architecture/data-architecture-plan.md)**: Full audit findings + 7-phase fix plan (0–6, all complete as of this writing) + the explicitly scoped, not-yet-done follow-up work (Phase 3b: MSW/server.ts route collisions; Phase 6 follow-up: remaining `parseResponse` call sites).
+ - **[PRD](../specification/PRD.md)**: Product specifications, Cosmic Slate UI themes, and system vision.
+ - **[Component Tree Map](../docs/component-tree.md)**: Detailed mapping of every component domain and sub-component dependency.
+ 
+ ## 2. API, State, & Testing Contracts
+ - **[State Contracts](../docs/state-contracts.md)**: Zustand global state structure (`coreStore`), storage keys, and E2E injection methods.
+-- **[API Contracts](../docs/api-contracts.md)**: Mock Service Worker (MSW) endpoint mappings, SSE handlers, and graph actions.
++- **[API Contracts](../docs/api-contracts.md)**: `apiClient` boundary rules, MSW endpoint mappings, and the taxonomy graph's client-side derivation (no longer a network API — see Section 5 for what changed and why).
+ - **[UI States & Errors](../docs/ui-states.md)**: Zero-state render logic, skeleton fallbacks, and ErrorBoundary definitions.
+ 
+ ## 3. UI Component Registry & Action Skills
+@@ -34,8 +36,11 @@ Never duplicate these schemas. Import them directly or view them for structural
+ - `src/types/schemas/schemaDTO.ts`: API request/response boundaries.
+ 
+ ## 5. Development Reminders
+-1. `npm run lint` must pass with 0 errors.
+-2. `npm run test:vitest` must pass (311 tests active).
++1. `npm run lint` (`tsc --noEmit --skipLibCheck && eslint src`) must pass with 0 errors. **Run the real `npm run lint`, not just `tsc --noEmit`** — a real `react-hooks/refs` error sat undetected through several change sets in this codebase's history because only `tsc` was being checked, not `eslint`.
++2. `npm run test:vitest` must pass (401 tests active as of the Phase 0–6 data-ownership cleanup; this number will drift, don't treat it as load-bearing — the point is 0 failures, not a specific count).
+ 3. IDs must be generated via `crypto.randomUUID()`.
+ 4. Never simulate delays with `setTimeout` in UI components. Delegated to `msw` handlers.
+ 5. All file changes must be perfectly typed (No `any`).
++6. Never `import` an entity mock array (catalog, vendors, solutions, ucids) directly into a component or hook — always `useCoreStore(s => s.X)`. Enforced by convention, not yet by lint; see AGENTS.md §13.6.
++7. Never call `fetch()` directly in `src/components/**` or `src/hooks/**` — use `apiClient`. This one IS enforced by ESLint (`eslint.config.mjs`).
++8. MSW route handlers and `server.ts` must never hold an independent copy of entity data `coreStore` already owns. See AGENTS.md §13.6a for why, with the specific incident this rule exists because of.
+diff --git a/docs/api-contracts.md b/docs/api-contracts.md
+index 47363e2..0266dc4 100644
+--- a/docs/api-contracts.md
++++ b/docs/api-contracts.md
+@@ -56,8 +56,8 @@ export interface PaginatedData<T> {
+ ## 3. Optimistic Updates Guidelines
+ 
+ When performing mutating actions (e.g., "Auto-Align" in Forensic View, Status Updates):
+-1. **Immediate Local Update**: Dispatch the state change to the Context/Store immediately (e.g., change issue status to 'resolved' and update the UI).
+-2. **Background Network Request**: Fire the asynchronous API call (`fetch` or `axios`).
++1. **Immediate Local Update**: Dispatch the state change to `coreStore` immediately (e.g., change issue status to 'resolved' and update the UI).
++2. **Background Network Request**: Fire the asynchronous API call via `apiClient` (`src/services/apiClient.ts`) — never a direct `fetch()` call. This is enforced by an ESLint rule in `src/components/**`/`src/hooks/**`; see `docs/architecture/data-ownership.md`.
+ 3. **Rollback on Failure**: If the API responds with an error, revert the local state back to its previous state and trigger an error Toast.
+    *Do NOT lock the UI with a full-screen spinner for localized row updates.*
+ 
+@@ -71,37 +71,46 @@ When performing mutating actions (e.g., "Auto-Align" in Forensic View, Status Up
+ - **Payload**: `{ issueId: string, ruleId: string, action: 'override' | 'apply_fix' }`
+ - **Behavior (Phase 3 Forensic Auto-Heal)**: Front-end eagerly performs the underlying data mutation (e.g. replacing an EOL part with an active one in the `ucid` configuration, or correcting a price). A global `useEffect` (the Forensic Auto-Heal hook) constantly monitors the payload structure and automatically marks the `forensicIssue` as `resolved` globally, guaranteeing cross-view alignment without requiring manual status updates.
+ 
+-## 5. Taxonomy & Knowledge Graph API
++## 5. Taxonomy & Knowledge Graph — client-side derivation, not a network API
+ 
+-### 5.1 GET /api/taxonomy/graph/:configId
+-- **Response**: `ApiResponse<GraphAPIResponse>` using definitions mapped in `src/types/taxonomy.ts` (`GraphMetadata`, `GraphNode`, `GraphEdge`).
+-- **Behavior**: Lazily retrieves the mapping definitions and classification heuristics for a specific parsed configuration. Nodes represent hierarchy, edges describe their constraint relationship (`requires`, `mutually exclusive`, `hierarchy`).
+-- **Orphan Diagnostics**: Incorporates telemetry for unmapped string literals representing unknown supplier components (`unmappedIds`).
++**This section previously documented `GET /api/taxonomy/graph/:configId`, `POST /api/taxonomy/map`, `DELETE /api/taxonomy/map/:nodeId` — none of these routes ever actually existed in the codebase** (the real, now-removed route was `GET /api/graph/solution/:ucid`, which ignored its own `:ucid` parameter and always returned the same 5 hardcoded nodes regardless of selection). This was a specification/reality mismatch that predates the Phase 4 data-ownership cleanup, not something that changed as a result of it — flagging here so nobody tries to "restore" a network contract that was never real.
+ 
+-### 5.2 POST /api/taxonomy/map
+-- **Payload**: `{ childId: string, targetParentId: string, properties: unknown }`
+-- **Behavior**: Manually associates a disjointed node (orphan) to the graph structure using a Human-in-the-Loop override action (`Auto-Fix` or Drag & Drop). Also supports dragging existing mapped SKU nodes to structurally reassign their parent relationships within the hierarchy.
++**Current architecture** (see `docs/architecture/data-ownership.md`, Phase 4, and `src/hooks/useCatalogGraphData.ts`):
++- The graph is built by `deriveGraphFromConfig(config, catalogSkus)`, a pure client-side function — one node per real BOM item (`catalog_part` if it resolves against `catalogSkus` by partNumber, `scraped_orphan` + into `unmappedIds` otherwise), one `category_hub` per distinct BOM item `type`. No network round-trip for reads.
++- **Known gap**: `TaxonomyGraphView.tsx` has `selectedConfigId` state but no UI control wired to change it yet — it always defaults to `activeConfigs[0]?.id`. If a UCID ever has multiple vendor configs that need manual switching in this view, that dropdown still needs building; this doc previously implied it already existed ("Config Context Dropdown" in `docs/ui-specs/taxonomy-graph-skills.md`) and it doesn't.
++- Mapping an orphan (`mapNode`/`healOrphanMapping`) writes the classification directly onto the matching real `CatalogSKU` via `setCatalogSkus` (matched by partNumber), or creates a new `CatalogSKU` if none exists yet. This is a real `coreStore` write — the fix is visible on Dashboard/Catalog Manager/Cleansing immediately, not just in this view.
++- Generic node/edge CRUD (add/update/delete, for edits that don't map onto a real catalog field) lives in a local `GraphOverlay` that layers on top of the derived baseline without being wiped when `catalogSkus` changes.
++- `/api/graph/algorithms/alternative-paths` and `/api/graph/path-selection` remain genuinely network-backed (via MSW today) — these are algorithmic (pathfinding), not entity data, and are the correct exception to "graph reads are client-side."
+ 
+-### 5.3 DELETE /api/taxonomy/map/:nodeId
+-- **Behavior**: Tears down relations attached to the node, degrading it to an orphaned state.
++## 6. Catalog CRUD — stateless pass-through, `coreStore` is the source of truth
+ 
+-### 5.4 POST /api/taxonomy/rules
++`POST/PUT/DELETE /api/catalog` (via `CatalogManager.tsx`) are intentionally stateless pass-throughs (`MockCatalogApi` in `src/lib/api-mock.ts`) — they echo the payload back and hold no independent array. `GET /api/catalog` always returns `[]`; nothing in the UI reads it, since the real catalog list always comes from `useCoreStore(s => s.catalogSkus)`. This used to hold its own competing 2-SKU stub catalog with ids that never matched the real one, which is why `CatalogManager` price edits used to silently roll back — see `docs/architecture/data-ownership.md` for the full incident writeup.
++
++## 7. Job progress — real polling, not SSE
++
++`apiClient.streamJob()`'s interface (`onMessage`/`onError`/`close`) is transport-agnostic by design, but the implementation behind it is genuine interval-based polling of `GET /api/jobs/:id` until a terminal status — not Server-Sent Events, despite an earlier docstring claiming otherwise (it never was; that was aspirational comment text, not a real implementation). `server.ts`'s real job endpoint independently converged on the same increment-progress-per-poll pattern, which is why polling — not push — is the deliberate current architecture, not a legacy fallback. If a future workflow genuinely needs server-push (e.g. one user's job progress needs to be visible live to other users, not just the person who triggered it), swap `streamJob()`'s internals for real SSE/WebSocket — no caller needs to change.
++
++## 8. Sourcing Rules (still real — unrelated to the taxonomy graph's local `addRule` in Section 5)
++
++### POST /api/taxonomy/rules
+ - **Payload**: `{ sourceId: string, ruleType: "requires" | "exclusive", explanation: string }`
+-- **Behavior**: Computes and stores custom enforcement constraints inside the Graph rules engine to detect validation anomalies in future scans.
++- **Behavior**: Computes and stores custom sourcing/compatibility constraints. Live callers: `CleansingView.tsx`, `SourcingRulesVault.tsx`, `NLPParser.tsx`. Despite the similar name, this is a genuine network endpoint, unlike the taxonomy graph's per-node `addRule` (Section 5), which is a local `GraphOverlay` annotation with no network call.
++
++## 9. Snapshot & Version Control API
+ 
+-## 6. Snapshot & Version Control API
++**Known unresolved collision (Phase 3b, deferred, see `docs/architecture/data-architecture-plan.md`)**: `snapshotHandlers.ts`'s `GET/POST /api/ucids/:ucid/snapshots` collides with an equivalent route in `server.ts`, following the same MSW-shadows-`server.ts` pattern already fixed for `/api/catalog`. Not yet audited or fixed — do the same caller-payload-vs-schema verification done for the other 10 collision routes before touching this one.
+ 
+-### 6.1 GET /api/ucids/:ucid/snapshots
++### 9.1 GET /api/ucids/:ucid/snapshots
+ - **Response**: `ApiResponse<Snapshot[]>` where `Snapshot` matches the data schemas containing `version`, `timestamp`, `locked`, and `bomSnapshot`.
+ 
+-### 6.2 POST /api/ucids/:ucid/snapshots
++### 9.2 POST /api/ucids/:ucid/snapshots
+ - **Payload**: `{ label: string, winnerSolution: string, notes: string, bomSnapshot: any[] }`
+ - **Behavior**: Compiles the current active BOM assembly layout, increments the version number relative to this specific UCID, logs the accurate server-side timestamp, and returns the newly instantiated `locked: true` snapshot payload.
+ 
+-### 6.3 PATCH /api/ucids/:ucid/snapshots/:snapshotId/lock
++### 9.3 PATCH /api/ucids/:ucid/snapshots/:snapshotId/lock
+ - **Payload**: `{ locked: boolean }`
+ - **Behavior**: Updates the immutability flag of the designated contract snapshot. Allows manual overrides / toggles.
+ 
+-### 6.4 DELETE /api/ucids/:ucid/snapshots/:snapshotId
++### 9.4 DELETE /api/ucids/:ucid/snapshots/:snapshotId
+ - **Behavior**: Attempts deletion. Rejects with an error HTTP 403 response if the target snapshot's `locked` attribute remains `true`.
+ 
+diff --git a/docs/state-contracts.md b/docs/state-contracts.md
+index 4ff85bd..9e36b91 100644
+--- a/docs/state-contracts.md
++++ b/docs/state-contracts.md
+@@ -1,5 +1,9 @@
+ # State Contracts
+ 
+-- Global State: React Context for ephemeral shared state (Toast, Auth, Theme).
+-- Config: useWorkflowManager handles multi-step UCID workflows.
+-- Server State: Transiently queried and tracked via `data.ts` typed components.
++**Read `docs/architecture/data-ownership.md` first — this file is a quick index, that one is the actual explanation.**
++
++- **Entity data** (catalogSkus, vendors, ucids, solutions, forensicIssues, sourcingRules): owned exclusively by `coreStore.ts` (Zustand, persisted to `localStorage` under `vsip-core-storage`). All reads/writes go through `useCoreStore(s => s.X)` selectors. Components must never import an entity mock array directly from `src/lib/mockData/*`.
++- **Session/UI state**: three additional Zustand stores, each independently persisted — `ingestionStore.ts` (`vsip-ingestion-storage`), `workflowStore.ts` (`vsip-workflow-storage`), `auditStore.ts` (`vsip-audit-logs`). All four stores share the same `version` + `migrate` guard pattern (drop stale persisted state on a shape mismatch rather than risk rehydrating an incompatible one).
++- **React Context**: reserved for genuinely ephemeral, non-persisted UI concerns only — Toast notifications, theme. Not used for entity or session data; if you're tempted to put domain data in a Context, it belongs in `coreStore` instead.
++- **Server state**: `apiClient.ts` is the sole network boundary (enforced by an ESLint rule banning direct `fetch()` in `src/components/**`/`src/hooks/**`). Responses are validated against Zod schemas via `apiClient.parseResponse(schema, data)` — currently applied at a handful of verified call sites, with the rest tracked as a scoped follow-up (`docs/architecture/data-architecture-plan.md`, Phase 6). MSW and `server.ts` are transport-layer mocks only; neither should ever hold an independent copy of entity data `coreStore` already owns.
++- **Reset**: `src/lib/resetSeedData.ts` clears all 4 persisted store keys — use this (or the "Reset to Seed Data" button in System Telemetry) to get back to pristine mock data instead of manually clearing browser storage.
+diff --git a/docs/ui-specs/taxonomy-graph-skills.md b/docs/ui-specs/taxonomy-graph-skills.md
+index 94631a2..d5681b8 100644
+--- a/docs/ui-specs/taxonomy-graph-skills.md
++++ b/docs/ui-specs/taxonomy-graph-skills.md
+@@ -1,10 +1,15 @@
+ # Taxonomy Graph — Component Skills
+ 
+ ## Visual Layout & Constraints
+-- **Header Section:** Houses the Solution Dropdown, Config Context Dropdown, and Filter/Refresh buttons.
++- **Header Section:** Houses the Solution Dropdown, Filter/Refresh buttons.
++- **Known gap**: no Config Context Dropdown currently exists, despite earlier docs implying one did. `TaxonomyGraphView.tsx` has `selectedConfigId` state ready for it but nothing wired up yet — it always defaults to the first config. Needed if a UCID ever has multiple vendor configs a user needs to switch between manually. See `docs/api-contracts.md` Section 5.
+ - **Canvas Viewport:** A fixed-height container (`min-h-[560px]`) enclosing the Graph structure.
+ - **Zero State (Critical):** If no context configuration is selected, it forcibly unmounts the graph array and displays a `<GitFork>` icon placeholder warning the user to select context.
+ 
++## Data Source (as of Phase 4 data-ownership cleanup)
++- The graph is derived client-side from real BOM items + `catalogSkus` via `deriveGraphFromConfig()` — no network call for reads. See `docs/architecture/data-ownership.md`.
++- Mapping an orphan writes to the real catalog (`setCatalogSkus`), visible on every other screen immediately, not just this view.
++
+ ## State Connections (Zustand Store)
+ - **Store Hook:** Connects to `solutions` and `ucids` to derive context loops.
+ - **Dependency Map:** `availableUcids` dynamically derives only the UCIDs matching `selectedSolution?.ucidIds`.
+-- 
+2.43.0
+

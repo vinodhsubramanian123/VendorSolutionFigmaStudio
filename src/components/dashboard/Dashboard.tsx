@@ -32,11 +32,14 @@ export function Dashboard({
   const ucids = useCoreStore((s) => s.ucids);
   const vendors = useCoreStore((s) => s.vendors);
   const forensicIssues = useCoreStore((s) => s.forensicIssues);
+  const solutions = useCoreStore((s) => s.solutions);
+  const setActiveSolution = useCoreStore((s) => s.setActiveSolution);
   
   const [hovered, setHovered] = useState<string | null>(null);
   const areaChart = useChartDimensions();
   const pieChart = useChartDimensions();
   const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
+  const activeSolutions = useMemo(() => solutions.filter((s) => s.status !== "completed"), [solutions]);
   const criticalIssues = useMemo(() => forensicIssues.filter(
     (f) => f.severity === "critical" && f.status !== "resolved",
   ).length, [forensicIssues]);
@@ -132,14 +135,14 @@ export function Dashboard({
       up: false,
     },
     {
-      id: "kpi-mission-control-pipeline",
-      view: "mission-control",
-      label: "Active Pipeline",
-      value: `${averagePipeline}%`,
-      sub: `${recentMission} processing`,
+      id: "kpi-solutions",
+      view: "solutions",
+      label: "Active Solutions",
+      value: `${activeSolutions.length}`,
+      sub: `${solutions.length} total portfolio`,
       icon: Zap,
-      color: tokens.colors.accent.violet, 
-      delta: "Live",
+      color: tokens.colors.accent.violet,
+      delta: "",
       up: true,
     },
     {
@@ -153,7 +156,7 @@ export function Dashboard({
       delta: syncStatusInfo.delta,
       up: syncStatusInfo.value !== "Error",
     },
-  ], [connectedVendors, vendors.length, totalCatalog, activeUCIDs.length, ucids.length, forensicIssues, criticalIssues, averagePipeline, recentMission, syncStatusInfo]);
+  ], [connectedVendors, vendors.length, totalCatalog, activeUCIDs.length, ucids.length, forensicIssues, criticalIssues, activeSolutions.length, solutions.length, syncStatusInfo]);
   return (
     <ErrorBoundary>
       <motion.div 
@@ -191,7 +194,7 @@ export function Dashboard({
             Procurement Intelligence Hub
           </p>
           <p className="text-sm mt-0.5" style={{ color: tokens.colors.text.muted }}> 
-            {activeUCIDs.length} active UCIDs in pipeline · {connectedVendors}{" "}
+            {activeSolutions.length} active solution(s) · {activeUCIDs.length} UCIDs in pipeline · {connectedVendors}{" "}
             vendors live · {criticalIssues} critical issues awaiting review
           </p>
         </div>
@@ -209,6 +212,19 @@ export function Dashboard({
               Resolve {criticalIssues} Critical
             </motion.button>
           )}
+          <motion.button type="button"
+            onClick={() => {
+              setActiveSolution(null);
+              onNavigate("solutions");
+            }}
+            aria-label="View Solutions Portfolio"
+            className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:opacity-90 transition-all cursor-pointer border"
+            style={{ borderColor: "rgba(74,133,253,0.3)", color: tokens.colors.accent.indigo }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            View Solutions
+          </motion.button>
           <motion.button type="button"
             onClick={() => onNavigate("mission-control")}
             aria-label="Open Live Mission Control"

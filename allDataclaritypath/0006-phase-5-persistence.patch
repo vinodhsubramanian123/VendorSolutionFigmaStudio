@@ -1,0 +1,344 @@
+From f5ac6f155131522a9098b72b2d9ba6f7ba67dad5 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Fri, 3 Jul 2026 10:30:45 +0000
+Subject: [PATCH] feat(persistence): add version guards to all stores,
+ reset-to-seed action (Phase 5)
+
+- ingestionStore.ts, workflowStore.ts, auditStore.ts: added version: 1
+  + migrate guards matching coreStore.ts's existing pattern -- these
+  three were the only ones missing it, meaning a future shape change
+  to any of them would have silently rehydrated an incompatible
+  persisted state instead of cleanly resetting.
+- src/lib/resetSeedData.ts: resetToSeedData() clears all 4
+  localStorage keys and reloads; clearPersistedStores() is the same
+  without the reload, for use before the app has rendered.
+- SystemTelemetry.tsx: added a 'Reset to Seed Data' button with an
+  explicit confirm step (destructive -- wipes real session edits).
+  Chose this page since it's already the closest thing to a system
+  diagnostics view; there's no dedicated settings page yet.
+- main.tsx: added optional VITE_RESET_ON_LOAD env flag, off by
+  default, for CI/demo runs that need to always start from pristine
+  mock data rather than whatever localStorage has from a previous run.
+
+Verified: tsc --noEmit clean, full vitest suite green (85 files /
+401 tests, 0 regressions).
+---
+ docs/architecture/data-architecture-plan.md   | 12 +++--
+ src/components/telemetry/SystemTelemetry.tsx  | 33 ++++++++++++-
+ .../__tests__/SystemTelemetry.test.tsx        | 33 +++++++++++++
+ src/lib/__tests__/resetSeedData.test.ts       | 49 +++++++++++++++++++
+ src/lib/resetSeedData.ts                      | 28 +++++++++++
+ src/main.tsx                                  | 12 +++++
+ src/store/auditStore.ts                       |  7 +++
+ src/store/ingestionStore.ts                   | 11 +++++
+ src/store/workflowStore.ts                    |  7 +++
+ 9 files changed, 187 insertions(+), 5 deletions(-)
+ create mode 100644 src/lib/__tests__/resetSeedData.test.ts
+ create mode 100644 src/lib/resetSeedData.ts
+
+diff --git a/docs/architecture/data-architecture-plan.md b/docs/architecture/data-architecture-plan.md
+index 92fbb1c..609c57c 100644
+--- a/docs/architecture/data-architecture-plan.md
++++ b/docs/architecture/data-architecture-plan.md
+@@ -112,10 +112,14 @@ Leave `/api/agents/run`'s "Simulator" framing as-is either way — it's honest a
+ 
+ Verified: `tsc --noEmit` clean, full vitest suite green (84 files / 397 tests, 0 regressions).
+ 
+-### Phase 5 — Persistence & session integrity (issues #16–17)
+-- [ ] Add `version` + `migrate` guards to `ingestionStore.ts`, `workflowStore.ts`, `auditStore.ts`, matching the pattern already in `coreStore.ts`.
+-- [ ] Add a "Reset to seed data" dev action that clears all four `localStorage` keys (`vsip-core-storage`, `vsip-ingestion-storage`, `vsip-workflow-storage`, `vsip-audit-logs`) and reloads — gives a reproducible clean-slate on demand instead of manually clearing browser storage.
+-- [ ] Optionally: a `VITE_RESET_ON_LOAD` env flag your test setup (Vitest/Playwright) can use to force fresh mock data every run, avoiding state-leak flakiness between test runs.
++### Phase 5 — Persistence & session integrity (issues #16–17) — **DONE, verified**
++- [x] Added `version: 1` + `migrate` guards to `ingestionStore.ts`, `workflowStore.ts`, `auditStore.ts`, matching `coreStore.ts`'s existing pattern exactly (drop stale persisted state on a version mismatch rather than risk rehydrating an incompatible shape).
++- [x] Added `src/lib/resetSeedData.ts`: `resetToSeedData()` clears all 4 `localStorage` keys and reloads; `clearPersistedStores()` is the same without the reload, for use before the app has rendered.
++- [x] Wired a "Reset to Seed Data" button into `SystemTelemetry.tsx`'s header, with an explicit inline confirm step (it's destructive — wipes real session edits) — chose this page since it's already the closest thing to a system/diagnostics view; there's no dedicated settings page yet.
++- [x] Added the optional `VITE_RESET_ON_LOAD` env flag in `main.tsx`: when set, clears persisted state before the app boots, so CI/demo runs always start from pristine mock data instead of whatever a previous run left behind. Off by default — normal dev/prod behavior (persisting real edits across reloads) is unchanged.
++- [x] Tests: `resetSeedData.test.ts` (3 tests covering both functions + the key list itself), `SystemTelemetry.test.tsx` gained a 3rd test proving the confirm-before-destructive-action flow (click once → confirm step appears, nothing happens yet; Cancel backs out; Confirm actually triggers it).
++
++Verified: `tsc --noEmit` clean, full vitest suite green (85 files / 401 tests, 0 regressions).
+ 
+ ### Phase 6 — Backend-readiness guardrails (issue #18, forward-looking)
+ - [ ] Confirm every write from UI already goes through `apiClient` (no direct `fetch()` in components) — enforce as a lint rule if not already.
+diff --git a/src/components/telemetry/SystemTelemetry.tsx b/src/components/telemetry/SystemTelemetry.tsx
+index a1be885..348b49d 100644
+--- a/src/components/telemetry/SystemTelemetry.tsx
++++ b/src/components/telemetry/SystemTelemetry.tsx
+@@ -1,10 +1,11 @@
+ import React, { useState, useEffect } from "react";
+ import { motion, AnimatePresence } from "motion/react";
+-import { Radio, Webhook, Upload, Terminal } from "lucide-react";
++import { Radio, Webhook, Upload, Terminal, RotateCcw } from "lucide-react";
+ import { apiClient } from "../../services/apiClient";
+ import { DocumentPipelinePanel } from "./DocumentPipelinePanel";
+ import { ApiLogsTable } from "./ApiLogsTable";
+ import { WebhookMonitor } from "./WebhookMonitor";
++import { resetToSeedData } from "../../lib/resetSeedData";
+ import type { ApiLogEntry, WebhookEvent } from "./types";
+ 
+ // ─── Component ────────────────────────────────────────────────────────────────
+@@ -19,6 +20,7 @@ export function SystemTelemetry() {
+   const [activeTab, setActiveTab] = useState<"pipeline" | "api-logs" | "webhooks">("pipeline");
+   const [apiLogs, setApiLogs] = useState<ApiLogEntry[]>([]);
+   const [webhooks, setWebhooks] = useState<WebhookEvent[]>([]);
++  const [confirmingReset, setConfirmingReset] = useState(false);
+ 
+   useEffect(() => {
+     apiClient.get<ApiLogEntry[]>("/api/telemetry/logs")
+@@ -62,6 +64,35 @@ export function SystemTelemetry() {
+               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+               TELEMETRY LIVE
+             </span>
++            {confirmingReset ? (
++              <div className="flex items-center gap-1.5">
++                <span className="text-[9px] font-mono text-amber-400">Wipe all local session data?</span>
++                <button
++                  type="button"
++                  onClick={resetToSeedData}
++                  className="text-[9px] font-bold font-mono px-2.5 py-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 cursor-pointer transition"
++                >
++                  Confirm Reset
++                </button>
++                <button
++                  type="button"
++                  onClick={() => setConfirmingReset(false)}
++                  className="text-[9px] font-mono px-2.5 py-1.5 rounded-full border border-white/10 text-gray-400 hover:text-white cursor-pointer transition"
++                >
++                  Cancel
++                </button>
++              </div>
++            ) : (
++              <button
++                type="button"
++                onClick={() => setConfirmingReset(true)}
++                title="Clear all persisted session data and reload from pristine seed data"
++                className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-gray-400 border border-white/10 px-2.5 py-1.5 rounded-full hover:text-white hover:border-white/20 cursor-pointer transition"
++              >
++                <RotateCcw className="w-3 h-3" />
++                Reset to Seed Data
++              </button>
++            )}
+           </div>
+         </div>
+ 
+diff --git a/src/components/telemetry/__tests__/SystemTelemetry.test.tsx b/src/components/telemetry/__tests__/SystemTelemetry.test.tsx
+index ee4deb3..eac7def 100644
+--- a/src/components/telemetry/__tests__/SystemTelemetry.test.tsx
++++ b/src/components/telemetry/__tests__/SystemTelemetry.test.tsx
+@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
+ import { SystemTelemetry } from '../SystemTelemetry';
+ import { ToastProvider } from '../../shared/ToastContext';
+ import { apiClient } from '../../../services/apiClient';
++import * as resetSeedDataModule from '../../../lib/resetSeedData';
+ 
+ vi.mock('../../../services/apiClient', () => ({
+   apiClient: {
+@@ -45,4 +46,36 @@ describe('SystemTelemetry Component', () => {
+         expect(screen.getByText(/API Request Log/i)).toBeInTheDocument();
+     });
+   });
++
++  it('requires an explicit confirmation before wiping persisted session data', async () => {
++    (apiClient.get as any).mockResolvedValue({ data: [] });
++    const resetSpy = vi.spyOn(resetSeedDataModule, 'resetToSeedData').mockImplementation(() => {});
++
++    render(
++      <ToastProvider>
++        <SystemTelemetry />
++      </ToastProvider>
++    );
++    // Let the initial telemetry-log/webhook fetch effects settle before
++    // interacting, so their state updates don't interleave with the clicks
++    // below (matches the pattern the other tests in this file already use).
++    await screen.findByText(/Drop files or click to upload/i);
++
++    // Clicking Reset once only reveals a confirm step, doesn't reset yet.
++    fireEvent.click(screen.getByRole('button', { name: /Reset to Seed Data/i }));
++    expect(resetSpy).not.toHaveBeenCalled();
++    expect(screen.getByText(/Wipe all local session data/i)).toBeInTheDocument();
++
++    // Cancel backs out without resetting.
++    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
++    expect(resetSpy).not.toHaveBeenCalled();
++    expect(screen.queryByText(/Wipe all local session data/i)).not.toBeInTheDocument();
++
++    // Confirm actually triggers it.
++    fireEvent.click(screen.getByRole('button', { name: /Reset to Seed Data/i }));
++    fireEvent.click(screen.getByRole('button', { name: /Confirm Reset/i }));
++    expect(resetSpy).toHaveBeenCalledTimes(1);
++
++    resetSpy.mockRestore();
++  });
+ });
+diff --git a/src/lib/__tests__/resetSeedData.test.ts b/src/lib/__tests__/resetSeedData.test.ts
+new file mode 100644
+index 0000000..28b2c36
+--- /dev/null
++++ b/src/lib/__tests__/resetSeedData.test.ts
+@@ -0,0 +1,49 @@
++import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
++import { resetToSeedData, clearPersistedStores, PERSISTED_STORE_KEYS } from '../resetSeedData';
++
++describe('resetSeedData', () => {
++  let reloadSpy: ReturnType<typeof vi.fn>;
++
++  beforeEach(() => {
++    for (const key of PERSISTED_STORE_KEYS) {
++      window.localStorage.setItem(key, JSON.stringify({ state: { dummy: true }, version: 1 }));
++    }
++    reloadSpy = vi.fn();
++    Object.defineProperty(window, 'location', {
++      value: { ...window.location, reload: reloadSpy },
++      writable: true,
++      configurable: true,
++    });
++  });
++
++  afterEach(() => {
++    vi.restoreAllMocks();
++  });
++
++  it('clearPersistedStores removes every persisted store key without reloading', () => {
++    clearPersistedStores();
++
++    for (const key of PERSISTED_STORE_KEYS) {
++      expect(window.localStorage.getItem(key)).toBeNull();
++    }
++    expect(reloadSpy).not.toHaveBeenCalled();
++  });
++
++  it('resetToSeedData clears every persisted store key AND reloads', () => {
++    resetToSeedData();
++
++    for (const key of PERSISTED_STORE_KEYS) {
++      expect(window.localStorage.getItem(key)).toBeNull();
++    }
++    expect(reloadSpy).toHaveBeenCalledTimes(1);
++  });
++
++  it('covers all four known persisted store keys (coreStore, ingestionStore, workflowStore, auditStore)', () => {
++    expect(PERSISTED_STORE_KEYS).toEqual([
++      'vsip-core-storage',
++      'vsip-ingestion-storage',
++      'vsip-workflow-storage',
++      'vsip-audit-logs',
++    ]);
++  });
++});
+diff --git a/src/lib/resetSeedData.ts b/src/lib/resetSeedData.ts
+new file mode 100644
+index 0000000..fcd3e50
+--- /dev/null
++++ b/src/lib/resetSeedData.ts
+@@ -0,0 +1,28 @@
++// Clears all persisted VSIP store state from localStorage and reloads, so
++// the app starts fresh from the pristine mock seed data in src/lib/mockData/
++// instead of whatever was last saved from a previous session.
++//
++// Without this, there was no way to get back to a known-good starting point
++// short of manually clearing browser storage — every reload silently
++// rehydrates from localStorage if a previous session wrote anything there
++// (see docs/architecture/data-ownership.md, Phase 5).
++export const PERSISTED_STORE_KEYS = [
++  "vsip-core-storage",
++  "vsip-ingestion-storage",
++  "vsip-workflow-storage",
++  "vsip-audit-logs",
++] as const;
++
++export function resetToSeedData(): void {
++  clearPersistedStores();
++  window.location.reload();
++}
++
++// Same as resetToSeedData but without the reload — for use before the app
++// has rendered at all (e.g. driven by VITE_RESET_ON_LOAD in main.tsx), where
++// reloading again would just loop.
++export function clearPersistedStores(): void {
++  for (const key of PERSISTED_STORE_KEYS) {
++    window.localStorage.removeItem(key);
++  }
++}
+diff --git a/src/main.tsx b/src/main.tsx
+index 46f3734..414a7e4 100644
+--- a/src/main.tsx
++++ b/src/main.tsx
+@@ -5,6 +5,18 @@ import { BrowserRouter } from "react-router-dom";
+ import App from "./App.tsx";
+ import "./index.css";
+ import { ToastProvider } from "./components/shared/ToastContext.tsx";
++import { clearPersistedStores } from "./lib/resetSeedData.ts";
++
++// When set, forces every load to start from pristine mock seed data instead
++// of rehydrating from whatever a previous session left in localStorage.
++// Intended for CI/demo runs where "same test, different result depending on
++// what's in localStorage" would otherwise be a flake source (see
++// docs/architecture/data-ownership.md, Phase 5). Not used by the default
++// dev/prod flow, where persisting real session edits across reloads is the
++// intended, correct behavior.
++if (import.meta.env.VITE_RESET_ON_LOAD === 'true') {
++  clearPersistedStores();
++}
+ 
+ // Gently suppress benign sandbox development environment websocket/Vite connection alerts
+ if (typeof window !== "undefined") {
+diff --git a/src/store/auditStore.ts b/src/store/auditStore.ts
+index b51ca7b..398650d 100644
+--- a/src/store/auditStore.ts
++++ b/src/store/auditStore.ts
+@@ -15,6 +15,13 @@ export const useAuditStore = create<AuditStoreState>()(
+     }),
+     {
+       name: 'vsip-audit-logs',
++      version: 1,
++      migrate: (_persistedState, version) => {
++        if (version < 1) {
++          return {};
++        }
++        return _persistedState;
++      },
+     }
+   )
+ );
+diff --git a/src/store/ingestionStore.ts b/src/store/ingestionStore.ts
+index 5e5adf9..8c3df07 100644
+--- a/src/store/ingestionStore.ts
++++ b/src/store/ingestionStore.ts
+@@ -55,6 +55,17 @@ export const useIngestionStore = create<IngestionState>()(
+     }),
+     {
+       name: 'vsip-ingestion-storage',
++      version: 1,
++      migrate: (_persistedState, version) => {
++        if (version < 1) {
++          // No version was ever set before this — treat any pre-existing
++          // persisted state as stale rather than risk rehydrating a shape
++          // that doesn't match the current store (see coreStore.ts, which
++          // already had this guard; the other three stores didn't).
++          return {};
++        }
++        return _persistedState;
++      },
+     }
+   )
+ );
+diff --git a/src/store/workflowStore.ts b/src/store/workflowStore.ts
+index 2337212..4490239 100644
+--- a/src/store/workflowStore.ts
++++ b/src/store/workflowStore.ts
+@@ -35,6 +35,13 @@ export const useWorkflowStore = create<WorkflowStoreState>()(
+     }),
+     {
+       name: 'vsip-workflow-storage',
++      version: 1,
++      migrate: (_persistedState, version) => {
++        if (version < 1) {
++          return {};
++        }
++        return _persistedState;
++      },
+     }
+   )
+ );
+-- 
+2.43.0
+

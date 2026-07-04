@@ -187,7 +187,7 @@ export function useBoqIntake(
     });
 
     toast(
-      `BOQ intake completed! Allocated ${generatedUcids.length} UCID tracking slots successfully.`,
+      `Solution ${solutionDisplayId} created with ${generatedUcids.length} configuration(s) — proceed to BOM Ingestion.`,
       "success",
       "Proceed to BOM Ingestion",
       () => {

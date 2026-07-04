@@ -1,0 +1,349 @@
+From a3367cfc2e04550e1ef08d501d2578b1ea6b6337 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Thu, 2 Jul 2026 06:28:17 +0000
+Subject: [PATCH] fix(mockdata): correct pricing math, type labels, and schema
+ (Phase 1)
+
+Data fixes:
+- ucidsComputeStorage.ts: fix u1 HPE/Dell and u2 Dell totalPrice/
+  originalPrice/savings to equal sum(items.unitPrice * quantity).
+  Previous totals were understated by $27.9K-$181.9K against their
+  own line items.
+- ucidsComputeStorage.ts: resolve bi-9 (400-BPSB) unitPrice duplicate
+  ($1,195 -> canonical $1,190), which was accidentally adjacent to
+  the deliberate $1,590-vs-$1,190 forensic pricing-mismatch fixture.
+- catalogPart2.ts: standardize 3 mislabeled standalone switches/
+  gateway (sku-13, sku-15, sku-17) from 'Network Adapter' to
+  'Chassis', matching the self-referencing chassisRef pattern already
+  used by the two correctly-typed switches (sku-16, aruba-10000).
+- catalogPart1.ts: fix NVIDIA H100 GPU mislabeled as 'Processor' ->
+  new 'GPU' category.
+- catalogPart1.ts/catalogPart2.ts: seed complianceFlags on one SKU
+  per vendor (HPE/Dell/Cisco/Juniper) so the CLIC-warning UI path has
+  real test coverage instead of zero.
+
+Schema hardening:
+- schemaCatalog.ts: extract shared CatalogItemTypeSchema enum (adds
+  'GPU'), used by both BOMItemSchema and CatalogSKUSchema.type
+  (previously an unconstrained z.string() that couldn't catch the
+  switch/GPU mislabeling above). Exported CatalogItemType TS alias.
+- CatalogAddForm.tsx: reuse the shared enum for the add-SKU form
+  schema instead of its own looser z.string(); added GPU as a
+  selectable category.
+- TaxonomyGraphSidebar.tsx: fix 'Chassis Option' typo (not a valid
+  category) surfaced by the tightened enum; typed the local variable
+  against CatalogItemType so this class of typo fails to compile
+  going forward.
+- MappingPanel.test.tsx: narrow a test fixture's type field to
+  satisfy the tightened enum.
+
+Verified: tsc --noEmit clean, full vitest suite green (84 files /
+387 tests, 0 regressions).
+---
+ src/components/catalog/CatalogAddForm.tsx     |  4 +-
+ .../cleansing/__tests__/MappingPanel.test.tsx |  2 +-
+ .../taxonomy/TaxonomyGraphSidebar.tsx         |  5 ++-
+ src/lib/mockData/catalogPart1.ts              |  7 +++-
+ src/lib/mockData/catalogPart2.ts              | 21 ++++++++--
+ src/lib/mockData/ucidsComputeStorage.ts       | 38 +++++++++----------
+ src/types/schemas/schemaCatalog.ts            | 27 ++++++++++++-
+ 7 files changed, 75 insertions(+), 29 deletions(-)
+
+diff --git a/src/components/catalog/CatalogAddForm.tsx b/src/components/catalog/CatalogAddForm.tsx
+index 29486ea..8f28840 100644
+--- a/src/components/catalog/CatalogAddForm.tsx
++++ b/src/components/catalog/CatalogAddForm.tsx
+@@ -7,6 +7,7 @@ import { useForm, Controller } from "react-hook-form";
+ import { zodResolver } from "@hookform/resolvers/zod";
+ import * as z from "zod";
+ import { CatalogSKU } from "../../types";
++import { CatalogItemTypeSchema } from "../../types/schemas/schemaCatalog";
+ import { motion, AnimatePresence } from "motion/react";
+ 
+ interface CatalogAddFormProps {
+@@ -16,7 +17,7 @@ interface CatalogAddFormProps {
+ 
+ const formSchema = z.object({
+   vendor: z.string().min(1, "Vendor is required"),
+-  type: z.string().min(1, "Category is required"),
++  type: CatalogItemTypeSchema,
+   partNumber: z.string().min(1, "Part Number is required"),
+   name: z.string().min(1, "Description is required"),
+   price: z.number().min(0, "Price must be positive"),
+@@ -110,6 +111,7 @@ export function CatalogAddForm({
+                 render={({ field }) => (
+                   <Select id="type" value={field.value} onChange={field.onChange}>
+                     <option value="Processor">Processor</option>
++                    <option value="GPU">GPU</option>
+                     <option value="Memory">Memory</option>
+                     <option value="Drive">Drive</option>
+                     <option value="Chassis">Chassis</option>
+diff --git a/src/components/cleansing/__tests__/MappingPanel.test.tsx b/src/components/cleansing/__tests__/MappingPanel.test.tsx
+index 7d735aa..e8461a1 100644
+--- a/src/components/cleansing/__tests__/MappingPanel.test.tsx
++++ b/src/components/cleansing/__tests__/MappingPanel.test.tsx
+@@ -29,7 +29,7 @@ describe('MappingPanel Component', () => {
+     const handleQuarantineFn = vi.fn();
+     const handleManualMapFn = vi.fn();
+     const mockCatalog = [
+-      { id: 'sku-1', partNumber: 'NEW-SKU-456', name: 'New Sku', vendor: 'HPE', type: 'Chassis', price: 100, leadTimeDays: 1, status: 'active' as const }
++      { id: 'sku-1', partNumber: 'NEW-SKU-456', name: 'New Sku', vendor: 'HPE', type: 'Chassis' as const, price: 100, leadTimeDays: 1, status: 'active' as const }
+     ];
+     render(
+       <MappingPanel
+diff --git a/src/components/taxonomy/TaxonomyGraphSidebar.tsx b/src/components/taxonomy/TaxonomyGraphSidebar.tsx
+index 253ca6e..a6775c5 100644
+--- a/src/components/taxonomy/TaxonomyGraphSidebar.tsx
++++ b/src/components/taxonomy/TaxonomyGraphSidebar.tsx
+@@ -1,5 +1,6 @@
+ import React, { useState } from 'react';
+ import type { CatalogSKU, ConstraintCheckResponse } from "../../types";
++import type { CatalogItemType } from "../../types/schemas/schemaCatalog";
+ import { useToast } from "../shared/ToastContext";
+ import { apiClient } from "../../services/apiClient";
+ import { NodeEditorPanel } from "./NodeEditorPanel";
+@@ -99,7 +100,7 @@ export function TaxonomyGraphSidebar({
+   const handleMapOrphanNode = async (orphanId: string, categoryId: string) => {
+     const orphanNodeName = catalogSkus.find(s => s.partNumber === orphanId || s.id === orphanId)?.name || "Mapped Item";
+     
+-    let type = "Unknown";
++    let type: CatalogItemType = "Unknown";
+     if (categoryId.includes("Processor")) type = "Processor";
+     else if (categoryId.includes("Memory")) type = "Memory";
+     else if (categoryId.includes("Storage")) type = "Storage";
+@@ -107,7 +108,7 @@ export function TaxonomyGraphSidebar({
+     else if (categoryId.includes("Network")) type = "Network";
+     else if (categoryId.includes("Power")) type = "Power";
+     else if (categoryId.includes("Cooling")) type = "Cooling";
+-    else if (categoryId.includes("Chassis")) type = "Chassis Option";
++    else if (categoryId.includes("Chassis")) type = "Chassis";
+     try {
+       await mapNode(orphanId, categoryId, { partNumber: orphanId, name: orphanNodeName, type });
+       
+diff --git a/src/lib/mockData/catalogPart1.ts b/src/lib/mockData/catalogPart1.ts
+index e711e05..3237536 100644
+--- a/src/lib/mockData/catalogPart1.ts
++++ b/src/lib/mockData/catalogPart1.ts
+@@ -14,6 +14,11 @@ export const catalogSkusPart1: CatalogSKU[] = [
+     productFamily: "DL380",
+     generation: "Gen11",
+     chassisRef: "sku-4",
++    complianceFlags: {
++      taaCompliant: true,
++      clicWarning: false,
++      regionRestricted: false,
++    },
+   },
+   {
+     id: "sku-2",
+@@ -190,7 +195,7 @@ export const catalogSkusPart1: CatalogSKU[] = [
+     vendor: "HPE",
+     partNumber: "P58425-B21",
+     name: "NVIDIA H100 NVL 80GB GPU PCIe Accelerator Card (DL380a)",
+-    type: "Processor",
++    type: "GPU",
+     price: 32500,
+     leadTimeDays: 45,
+     status: "active",
+diff --git a/src/lib/mockData/catalogPart2.ts b/src/lib/mockData/catalogPart2.ts
+index 9aaacad..57574c0 100644
+--- a/src/lib/mockData/catalogPart2.ts
++++ b/src/lib/mockData/catalogPart2.ts
+@@ -106,6 +106,11 @@ export const catalogSkusPart2: CatalogSKU[] = [
+     solution: "Server",
+     productFamily: "R760",
+     chassisRef: "sku-9",
++    complianceFlags: {
++      taaCompliant: true,
++      clicWarning: true,
++      regionRestricted: false,
++    },
+   },
+   {
+     id: "sku-9",
+@@ -172,6 +177,11 @@ export const catalogSkusPart2: CatalogSKU[] = [
+     solution: "Server",
+     productFamily: "UCS",
+     chassisRef: "sku-14",
++    complianceFlags: {
++      taaCompliant: true,
++      clicWarning: false,
++      regionRestricted: false,
++    },
+   },
+   {
+     id: "sku-12",
+@@ -191,7 +201,7 @@ export const catalogSkusPart2: CatalogSKU[] = [
+     vendor: "Cisco",
+     partNumber: "N20-W6502",
+     name: "Cisco Nexus 93180YC-FX3 48-Port Switch Unit",
+-    type: "Network Adapter",
++    type: "Chassis",
+     price: 14500,
+     leadTimeDays: 20,
+     status: "active",
+@@ -218,7 +228,7 @@ export const catalogSkusPart2: CatalogSKU[] = [
+     vendor: "Juniper",
+     partNumber: "EX3400-48T",
+     name: "EX3400 48-port 10/100/1000BaseT Ethernet Switch",
+-    type: "Network Adapter",
++    type: "Chassis",
+     price: 3800,
+     leadTimeDays: 14,
+     status: "active",
+@@ -244,12 +254,17 @@ export const catalogSkusPart2: CatalogSKU[] = [
+     vendor: "Juniper",
+     partNumber: "SRX300-SYS-JB",
+     name: "SRX300 Services Gateway with JB Care",
+-    type: "Network Adapter",
++    type: "Chassis",
+     price: 950,
+     leadTimeDays: 10,
+     status: "active",
+     solution: "Networking",
+     productFamily: "SRX",
+     chassisRef: "sku-17",
++    complianceFlags: {
++      taaCompliant: false,
++      clicWarning: false,
++      regionRestricted: true,
++    },
+   },
+ ];
+\ No newline at end of file
+diff --git a/src/lib/mockData/ucidsComputeStorage.ts b/src/lib/mockData/ucidsComputeStorage.ts
+index 5feaf84..88a5e97 100644
+--- a/src/lib/mockData/ucidsComputeStorage.ts
++++ b/src/lib/mockData/ucidsComputeStorage.ts
+@@ -34,17 +34,17 @@ export const mockUcidsComputeStorage: UCID[] = [
+             id: "vs-u1-hpe",
+             vendor: "HPE",
+             label: "HPE ProLiant DL380 Gen11 Alternative",
+-            totalPrice: 244800,
+-            originalPrice: 261000,
+-            savings: 16200,
++            totalPrice: 423120,
++            originalPrice: 451120,
++            savings: 28000,
+             complianceScore: 98,
+             configs: [
+               {
+                 id: "cfg-u1-hpe-1",
+                 name: "HPE Server Config",
+-                totalPrice: 244800,
+-                originalPrice: 261000,
+-                savings: 16200,
++                totalPrice: 423120,
++                originalPrice: 451120,
++                savings: 28000,
+                 items: [
+                   {
+                     id: "bi-1",
+@@ -94,17 +94,17 @@ export const mockUcidsComputeStorage: UCID[] = [
+             id: "vs-u1-dell",
+             vendor: "Dell",
+             label: "Dell PowerEdge R760 Alternative",
+-            totalPrice: 239630,
+-            originalPrice: 255200,
+-            savings: 15570,
++            totalPrice: 421080,
++            originalPrice: 448160,
++            savings: 27080,
+             complianceScore: 96,
+             configs: [
+               {
+                 id: "cfg-u1-dell-1",
+                 name: "Dell Server Config",
+-                totalPrice: 239630,
+-                originalPrice: 255200,
+-                savings: 15570,
++                totalPrice: 421080,
++                originalPrice: 448160,
++                savings: 27080,
+                 items: [
+                   {
+                     id: "bi-6",
+@@ -136,7 +136,7 @@ export const mockUcidsComputeStorage: UCID[] = [
+                     name: "Dell 3.84TB NVMe SSD SFF",
+                     type: "Drive",
+                     quantity: 96,
+-                    unitPrice: 1195,
++                    unitPrice: 1190,
+                   },
+                   {
+                     id: "bi-10",
+@@ -217,17 +217,17 @@ export const mockUcidsComputeStorage: UCID[] = [
+             id: "vs-u2-dell",
+             vendor: "Dell",
+             label: "Dell Storage Deployment Node Config",
+-            totalPrice: 65110,
+-            originalPrice: 74700,
+-            savings: 9590,
++            totalPrice: 67560,
++            originalPrice: 77520,
++            savings: 9960,
+             complianceScore: 92,
+             configs: [
+               {
+                 id: "cfg-u2-dell-1",
+                 name: "Dell Storage Config",
+-                totalPrice: 65110,
+-                originalPrice: 74700,
+-                savings: 9590,
++                totalPrice: 67560,
++                originalPrice: 77520,
++                savings: 9960,
+                 items: [
+                   {
+                     id: "bi-11",
+diff --git a/src/types/schemas/schemaCatalog.ts b/src/types/schemas/schemaCatalog.ts
+index 0c43b65..c58ff87 100644
+--- a/src/types/schemas/schemaCatalog.ts
++++ b/src/types/schemas/schemaCatalog.ts
+@@ -1,10 +1,33 @@
+ import { z } from "zod";
+ 
++// Shared across BOMItemSchema and CatalogSKUSchema so a hardware item's `type`
++// means the same thing everywhere in the app, and mismatches (e.g. a standalone
++// switch mislabeled "Network Adapter") fail validation instead of shipping silently.
++// See docs/architecture/data-ownership.md.
++export const CatalogItemTypeSchema = z.enum([
++  "Chassis",
++  "Processor",
++  "GPU",
++  "Memory",
++  "Drive",
++  "Network Adapter",
++  "Network",
++  "Power Supply",
++  "Riser Card",
++  "Controller",
++  "Power",
++  "Cooling",
++  "Storage",
++  "Unknown",
++]);
++
++export type CatalogItemType = z.infer<typeof CatalogItemTypeSchema>;
++
+ export const BOMItemSchema = z.object({
+   id: z.string().uuid("BOMItem ID must be a valid UUID").or(z.string().regex(/^[a-zA-Z0-9_-]+$/)),
+   partNumber: z.string().min(1, "Manufacturer SKU part number cannot be empty"),
+   name: z.string().min(1, "Standard English representation name cannot be empty"),
+-  type: z.enum(["Chassis", "Processor", "Memory", "Drive", "Network Adapter", "Power Supply", "Riser Card", "Controller", "Network", "Power", "Cooling", "Storage", "Unknown"]),
++  type: CatalogItemTypeSchema,
+   quantity: z.number().int().positive("Quantity must be a positive integer"),
+   unitPrice: z.number().nonnegative("Unit price must be non-negative (denominated in USD)"),
+ });
+@@ -36,7 +59,7 @@ export const CatalogSKUSchema = z.object({
+   vendorPortalId: z.string().optional(),
+   partNumber: z.string(),
+   name: z.string(),
+-  type: z.string(),
++  type: CatalogItemTypeSchema,
+   catalogTier: z.string().optional(),
+   price: z.number().nonnegative(),
+   currency: z.enum(['USD', 'AED', 'INR']).optional(),
+-- 
+2.43.0
+

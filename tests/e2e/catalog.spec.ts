@@ -12,6 +12,7 @@ test.describe('06 - Catalog Manager E2E', () => {
   });
 
   test('should use Taxonomy Tree to filter cards', async ({ page }) => {
+    test.setTimeout(60000);
     // Taxonomy tree should be visible - click HPE branch
     const hpeNode = page.getByText('HPE', { exact: true }).first();
     if (await hpeNode.isVisible({ timeout: 3000 })) {

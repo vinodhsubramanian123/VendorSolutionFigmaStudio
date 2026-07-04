@@ -17,6 +17,8 @@ export interface CoreState {
 
   addSolution: (sol: SolutionProject) => void;
   updateSolutionStatus: (id: string, status: SolutionStatus) => void;
+  updateSolutionFields: (id: string, fields: Partial<Pick<SolutionProject, 'name' | 'customerName' | 'projectRef' | 'status'>>) => void;
+  deleteSolution: (id: string) => void;
   addUcidToSolution: (solutionId: string, ucidId: string) => void;
   setActiveSolution: (id: string | null) => void;
   setActiveUcidInSolution: (solutionId: string, ucidId: string | null) => void;
@@ -65,6 +67,20 @@ export const useCoreStore = create<CoreState>()(
           solutions: state.solutions.map((s) =>
             s.id === id ? { ...s, status } : s
           ),
+        })),
+
+      updateSolutionFields: (id, fields) =>
+        set((state) => ({
+          solutions: state.solutions.map((s) =>
+            s.id === id ? { ...s, ...fields } : s
+          ),
+        })),
+
+      deleteSolution: (id) =>
+        set((state) => ({
+          solutions: state.solutions.filter((s) => s.id !== id),
+          // Clear activeSolutionId if the deleted solution was active
+          activeSolutionId: state.activeSolutionId === id ? null : state.activeSolutionId,
         })),
 
       addUcidToSolution: (solutionId, ucidId) =>

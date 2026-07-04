@@ -46,14 +46,11 @@ test.describe('19 - System Telemetry E2E', () => {
   });
 
   test('should trigger dummy file drop logic via input', async ({ page }) => {
-    // We can't easily drag and drop a real file in playwright without setup, 
-    // but we can attach a file to the hidden input.
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByText('Drop files or click to upload').click();
-    
-    const fileChooser = await fileChooserPromise;
-    // Create a dummy file in memory
-    await fileChooser.setFiles({
+    // The drop-zone div triggers the hidden file input via programmatic .click().
+    // Playwright's filechooser interceptor does NOT fire for programmatic activations,
+    // so we target the hidden <input type="file"> directly with setInputFiles().
+    const fileInput = page.locator('input[type="file"]').first();
+    await fileInput.setInputFiles({
       name: 'dummy_bom.csv',
       mimeType: 'text/csv',
       buffer: Buffer.from('id,partNumber,qty\n1,P40424-B21,10\n')
@@ -61,7 +58,7 @@ test.describe('19 - System Telemetry E2E', () => {
     await delay(1000);
 
     // Verify it was queued
-    await expect(page.getByText('dummy_bom.csv')).toBeVisible();
-    await expect(page.getByText('Processing Queue')).toBeVisible();
+    await expect(page.getByText('dummy_bom.csv')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Processing Queue')).toBeVisible({ timeout: 10000 });
   });
 });

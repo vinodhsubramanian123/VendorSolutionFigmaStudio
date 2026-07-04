@@ -1,0 +1,292 @@
+From 24397c9d764b2a10f0fb30f5f704ab249cac16ab Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Thu, 2 Jul 2026 06:38:10 +0000
+Subject: [PATCH] fix(store-bypass): close VendorIngestionDesk and
+ CleansingView bypasses (Phase 2)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+VendorIngestionDesk.tsx:
+- Was importing VENDORS directly from lib/mockData/misc, bypassing
+  coreStore entirely. A heal action updating a vendor's credentials/
+  status via setVendors would never be reflected here, even though
+  VendorPortal.tsx (the parent) already reads vendors from the store
+  for VendorGateways — it just never threaded the prop down.
+- Added vendors to VendorIngestionDeskProps; resolvePortalConfig now
+  takes vendors as a parameter instead of reading the module-level
+  import. VendorPortal.tsx now passes vendors={vendors}, matching how
+  every other store value already flows to this component.
+- Added a regression test proving default credentials are driven by
+  the vendors prop, not a static import.
+
+CleansingView.tsx:
+- entries was seeded via a one-shot useState(() => generateMockEntries
+  (catalogSkus)) initializer, so it never re-derived if catalogSkus
+  changed after mount (e.g. a heal action correcting a SKU that a
+  cleansing entry should now match).
+- A naive useMemo swap would have been worse: entries also holds
+  in-progress user work (manual mapping, quarantine, auto-map
+  promotions), which a pure recompute would silently discard.
+- Fix: baselineEntries is now a useMemo keyed on catalogSkus; a sync
+  useEffect merges the fresh baseline in per-entry, but preserves any
+  entry the user has already touched (mapped, quarantined, or
+  auto-map-promoted — all three now stamp reviewedAt as the signal).
+- Added a regression test proving both halves: a catalog change flips
+  a previously-unmatched entry once the matching SKU exists, while a
+  separately-quarantined entry survives the same resync untouched.
+
+Verified: tsc --noEmit clean, full vitest suite green (84 files /
+389 tests, 0 regressions).
+---
+ src/components/cleansing/CleansingView.tsx    | 29 +++++++++--
+ .../__tests__/CleansingView.test.tsx          | 52 ++++++++++++++++++-
+ .../vendor-portal/VendorIngestionDesk.tsx     | 11 ++--
+ src/components/vendor-portal/VendorPortal.tsx |  1 +
+ .../__tests__/VendorIngestionDesk.test.tsx    | 20 ++++++-
+ 5 files changed, 101 insertions(+), 12 deletions(-)
+
+diff --git a/src/components/cleansing/CleansingView.tsx b/src/components/cleansing/CleansingView.tsx
+index c777ff1..af1d45b 100644
+--- a/src/components/cleansing/CleansingView.tsx
++++ b/src/components/cleansing/CleansingView.tsx
+@@ -1,4 +1,4 @@
+-import React, { useState, useMemo, useCallback } from "react";
++import React, { useState, useMemo, useCallback, useEffect } from "react";
+ import { motion, AnimatePresence } from "framer-motion";
+ import {
+   Search,
+@@ -24,9 +24,27 @@ import { DeepCleansingEditor } from "./DeepCleansingEditor";
+ export function CleansingView() {
+   const catalogSkus = useCoreStore((s) => s.catalogSkus);
+   const { toast } = useToast();
+-  const [entries, setEntries] = useState<CleansingEntry[]>(() =>
+-    generateMockEntries(catalogSkus)
+-  );
++
++  // Re-derives match status/confidence for the fixed set of ingested BOQ lines
++  // whenever the catalog changes (e.g. a heal action corrects a SKU that one of
++  // these lines should now match). Previously this only ran once on mount via a
++  // useState initializer, so entries never picked up later catalog fixes.
++  const baselineEntries = useMemo(() => generateMockEntries(catalogSkus), [catalogSkus]);
++
++  const [entries, setEntries] = useState<CleansingEntry[]>(() => baselineEntries);
++
++  useEffect(() => {
++    // Merge the fresh catalog-derived baseline in, but never clobber an entry
++    // the user has already reviewed (mapped, quarantined, or auto-map-promoted)
++    // — reviewedAt is the signal that this entry has diverged from the pristine
++    // auto-detected state and should be preserved rather than regenerated.
++    setEntries((prev) =>
++      baselineEntries.map((fresh) => {
++        const existing = prev.find((e) => e.id === fresh.id);
++        return existing?.reviewedAt ? existing : fresh;
++      })
++    );
++  }, [baselineEntries]);
+   
+   // Toggles between standard auto-mapping and the deep BOQ editor
+   const [viewMode, setViewMode] = useState<"auto-map" | "deep-editor">("auto-map");
+@@ -103,6 +121,7 @@ export function CleansingView() {
+               matchedPartNumber: skuMatch.partNumber,
+               normalizedName: skuMatch.name,
+               confidence: 74,
++              reviewedAt: new Date().toISOString(),
+             };
+           }
+         }
+@@ -138,7 +157,7 @@ export function CleansingView() {
+     setEntries((prev) =>
+       prev.map((e) =>
+         e.id === entryId
+-          ? { ...e, matchStatus: "quarantined", flagReason: "Manually quarantined for review" }
++          ? { ...e, matchStatus: "quarantined", flagReason: "Manually quarantined for review", reviewedAt: new Date().toISOString() }
+           : e
+       )
+     );
+diff --git a/src/components/cleansing/__tests__/CleansingView.test.tsx b/src/components/cleansing/__tests__/CleansingView.test.tsx
+index eb2254b..c8e3669 100644
+--- a/src/components/cleansing/__tests__/CleansingView.test.tsx
++++ b/src/components/cleansing/__tests__/CleansingView.test.tsx
+@@ -1,9 +1,10 @@
+ import React from 'react';
+-import { render, screen} from '@testing-library/react';
++import { render, screen, act, fireEvent } from '@testing-library/react';
+ import { describe, it, expect, vi } from 'vitest';
+ import { CleansingView } from '../CleansingView';
+ import { ToastProvider } from '../../shared/ToastContext';
+ import { apiClient } from '../../../services/apiClient';
++import { useCoreStore } from '../../../store/coreStore';
+ vi.mock('../../../services/apiClient', () => ({
+   apiClient: {
+     get: vi.fn(),
+@@ -33,4 +34,53 @@ describe('CleansingView Component', () => {
+     // Check if the "All (12)" filter button is rendered, proving data generated
+     expect(await screen.findByText(/All/i)).toBeInTheDocument();
+   });
++
++  it('re-syncs entries when catalogSkus changes, without discarding a quarantined entry', async () => {
++    const originalSkus = useCoreStore.getState().catalogSkus;
++    // Remove the SKU that one baseline entry ("Intel Xeon 6130 16-core legacy
++    // proc" / 815100-B21 / HPE) would otherwise fuzzy-match, so it starts unmatched.
++    act(() => {
++      useCoreStore.setState({ catalogSkus: originalSkus.filter((s) => s.partNumber !== '815100-B21') });
++    });
++
++    render(
++      <ToastProvider>
++        <CleansingView />
++      </ToastProvider>
++    );
++    const getCount = (label: RegExp) => {
++      const match = screen.getByText(label).textContent!.match(/\((\d+)\)/);
++      return parseInt(match![1], 10);
++    };
++    const unmatchedBefore = getCount(/Unmatched \(\d+\)/i);
++
++    // Quarantine a different, already-unmatched entry so it becomes user-reviewed.
++    const entries = await screen.findAllByTestId('cleansing-entry');
++    fireEvent.click(entries[4]); // "8x2.5 HDD SAS drive cage" — part: undefined, always unmatched
++    const quarantineBtn = screen.getByTitle('Quarantine');
++    fireEvent.click(quarantineBtn);
++
++    // Quarantining moves that one entry out of the unmatched bucket immediately.
++    // (generateMockEntries already pre-quarantines one baseline entry with no
++    // detected part number, so the count is 2 here, not 1.)
++    expect(getCount(/Unmatched \(\d+\)/i)).toBe(unmatchedBefore - 1);
++    expect(getCount(/Quarantined \(\d+\)/i)).toBe(2);
++
++    // Now restore the catalog SKU — the sync effect should pick this up and
++    // flip the legacy-CPU entry out of "unmatched" too (proving entries are
++    // no longer frozen at mount), while leaving the just-quarantined entry
++    // exactly as the user left it (proving the resync doesn't clobber
++    // user-reviewed entries).
++    act(() => {
++      useCoreStore.setState({ catalogSkus: originalSkus });
++    });
++
++    expect(await screen.findByText(/Unmatched \(\d+\)/i)).toHaveTextContent(`(${unmatchedBefore - 2})`);
++    expect(screen.getByText(/Quarantined \(\d+\)/i)).toHaveTextContent('(2)');
++
++    // Restore global store state for subsequent tests.
++    act(() => {
++      useCoreStore.setState({ catalogSkus: originalSkus });
++    });
++  });
+ });
+\ No newline at end of file
+diff --git a/src/components/vendor-portal/VendorIngestionDesk.tsx b/src/components/vendor-portal/VendorIngestionDesk.tsx
+index 39ef602..c75caf1 100644
+--- a/src/components/vendor-portal/VendorIngestionDesk.tsx
++++ b/src/components/vendor-portal/VendorIngestionDesk.tsx
+@@ -1,8 +1,7 @@
+ import React, { useState } from "react";
+-import type { UCID, PlaywrightRunResponse, CatalogSKU,  SourcingRule, LearningEvent, AdviceResolution } from "../../types";
++import type { UCID, PlaywrightRunResponse, CatalogSKU, SourcingRule, LearningEvent, AdviceResolution, Vendor } from "../../types";
+ import { motion, AnimatePresence } from "motion/react";
+ import { apiClient } from "../../services/apiClient";
+-import { VENDORS } from "../../lib/mockData/misc";
+ import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
+ import { VendorCredentialsCard, VendorConsoleLogs } from "./VendorComponents";
+ interface VendorIngestionDeskProps {
+@@ -14,6 +13,7 @@ interface VendorIngestionDeskProps {
+   setSourcingRules: React.Dispatch<React.SetStateAction<SourcingRule[]>>;
+   learningEvents: LearningEvent[];
+   setLearningEvents: React.Dispatch<React.SetStateAction<LearningEvent[]>>;
++  vendors: Vendor[];
+ }
+ export function VendorIngestionDesk({
+   ucids,
+@@ -24,6 +24,7 @@ export function VendorIngestionDesk({
+   setSourcingRules,
+   learningEvents,
+   setLearningEvents,
++  vendors,
+ }: VendorIngestionDeskProps) {
+   const [selectedPortal, setSelectedPortal] = useState<"HPE" | "Dell" | "Cisco">("HPE");
+   const [showPassword, setShowPassword] = useState(false);
+@@ -38,7 +39,7 @@ export function VendorIngestionDesk({
+   ]);
+   // Advice sheet resolution state
+   const [adviceResolutions, setAdviceResolutions] = useState<AdviceResolution[]>([]);
+-  const portalConfig = resolvePortalConfig(selectedPortal);
++  const portalConfig = resolvePortalConfig(selectedPortal, vendors);
+   
+   // User overrideable credential fields — initialized from portalConfig defaults
+   const [username, setUsername] = useState(portalConfig.username);
+@@ -246,8 +247,8 @@ export function VendorIngestionDesk({
+     </motion.div>
+   );
+ }
+-function resolvePortalConfig(selectedPortal: string) {
+-  const vendorData = VENDORS.find(v => v.shortName === selectedPortal) || VENDORS[0];
++function resolvePortalConfig(selectedPortal: string, vendors: Vendor[]) {
++  const vendorData = vendors.find(v => v.shortName === selectedPortal) || vendors[0] || ({} as Partial<Vendor>);
+   if (selectedPortal === "HPE") {
+     return {
+       username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",
+diff --git a/src/components/vendor-portal/VendorPortal.tsx b/src/components/vendor-portal/VendorPortal.tsx
+index 6296278..43a8a03 100644
+--- a/src/components/vendor-portal/VendorPortal.tsx
++++ b/src/components/vendor-portal/VendorPortal.tsx
+@@ -173,6 +173,7 @@ export const VendorPortal = React.memo(function VendorPortal() {
+             setSourcingRules={setSourcingRules}
+             learningEvents={learningEvents}
+             setLearningEvents={setLearningEvents}
++            vendors={vendors}
+           />
+         </div>
+       </div>
+diff --git a/src/components/vendor-portal/__tests__/VendorIngestionDesk.test.tsx b/src/components/vendor-portal/__tests__/VendorIngestionDesk.test.tsx
+index 651812d..f72bbd2 100644
+--- a/src/components/vendor-portal/__tests__/VendorIngestionDesk.test.tsx
++++ b/src/components/vendor-portal/__tests__/VendorIngestionDesk.test.tsx
+@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll }
+ import { VendorIngestionDesk } from '../VendorIngestionDesk';
+ import { setupServer } from 'msw/node';
+ import { http, HttpResponse } from 'msw';
+-import type { UCID } from '../../../types';
++import type { UCID, Vendor } from '../../../types';
+ 
+ const server = setupServer(
+   http.post('*/api/agents/run', () => {
+@@ -24,6 +24,12 @@ afterEach(() => server.resetHandlers());
+ afterAll(() => server.close());
+ 
+ describe('VendorIngestionDesk', () => {
++  const mockVendors: Vendor[] = [
++    { id: 'v1', name: 'HPE', shortName: 'HPE', status: 'connected', color: '#01A982', catalogItems: 10, apiHealth: 99, apiEndpoint: 'https://partner.hpe.com/api', syncInterval: '15m', lastSync: new Date().toISOString() },
++    { id: 'v2', name: 'Dell', shortName: 'Dell', status: 'connected', color: '#007DB8', catalogItems: 8, apiHealth: 97, apiEndpoint: 'https://premier.dell.com/api', syncInterval: '15m', lastSync: new Date().toISOString() },
++    { id: 'v3', name: 'Cisco', shortName: 'Cisco', status: 'connected', color: '#1BA0D7', catalogItems: 5, apiHealth: 95, apiEndpoint: 'https://commerce.cisco.com/api', syncInterval: '15m', lastSync: new Date().toISOString() },
++  ];
++
+   const defaultProps = {
+     ucids: [{ id: 'u1', displayId: 'UCID-1', name: 'Test UCID', events: [], solutions: [], snapshots: [], currentStep: 'boq-intake', completedSteps: [], rawBOM: '', priority: 'high', projectRef: 'P1', createdAt: new Date().toISOString(), solutionId: '1', solutionDisplayId: 'SOL-1', configIndex: 1, configLabel: 'L1', parallelGroup: null } as unknown as UCID],
+     setUcids: vi.fn(),
+@@ -33,6 +39,7 @@ describe('VendorIngestionDesk', () => {
+     setSourcingRules: vi.fn(),
+     learningEvents: [],
+     setLearningEvents: vi.fn(),
++    vendors: mockVendors,
+   };
+ 
+   beforeEach(() => {
+@@ -75,4 +82,15 @@ describe('VendorIngestionDesk', () => {
+       throw e;
+     }
+   });
++
++  it('derives default credentials from the vendors prop, not a static import', () => {
++    const customVendors: Vendor[] = [
++      { ...mockVendors[0], credentials: { username: 'healed_hpe_account', apiToken: 'healed-token' } },
++      mockVendors[1],
++      mockVendors[2],
++    ];
++    render(<VendorIngestionDesk {...defaultProps} vendors={customVendors} />);
++    const usernameInput = screen.getByLabelText(/Partner Username/i) as HTMLInputElement;
++    expect(usernameInput.value).toBe('healed_hpe_account');
++  });
+ });
+-- 
+2.43.0
+

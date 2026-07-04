@@ -14,6 +14,7 @@ interface UcidPipelineCardProps {
 export function UcidPipelineCard({ onNavigate }: UcidPipelineCardProps) {
   const ucids = useCoreStore(s => s.ucids);
   const solutions = useCoreStore(s => s.solutions);
+  const setActiveSolution = useCoreStore(s => s.setActiveSolution);
   
   const renderedSolutions = useMemo(() => {
     if (solutions.length === 0) {
@@ -64,7 +65,10 @@ export function UcidPipelineCard({ onNavigate }: UcidPipelineCardProps) {
                 transition={{ duration: 0.2 }}
                 type="button"
                 key={sol.id}
-                onClick={() => onNavigate("solutions")}
+                onClick={() => {
+                  setActiveSolution(sol.id);
+                  onNavigate("solutions");
+                }}
                 className="w-full text-left px-4 py-3 hover:bg-white/[0.01] transition-colors cursor-pointer block"
               >
                 <div className="flex items-center justify-between mb-1.5">
@@ -150,7 +154,7 @@ export function UcidPipelineCard({ onNavigate }: UcidPipelineCardProps) {
         style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
       >
         <p className="text-sm font-semibold" style={{ color: tokens.colors.text.primary }}> 
-          UCID Mission Pipeline
+          Solution Portfolio
         </p>
         <button type="button"
           onClick={() => onNavigate("solutions")}

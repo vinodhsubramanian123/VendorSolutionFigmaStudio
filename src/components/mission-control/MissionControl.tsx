@@ -1,4 +1,5 @@
-import React, { useState} from "react";
+import React, { useState, useEffect } from "react";
+
 import { motion } from "motion/react";
 import {
   Activity,
@@ -51,6 +52,7 @@ export const MissionControl = React.memo(function MissionControl({
   const ucids = useCoreStore((s) => s.ucids);
   const setUcids = useCoreStore((s) => s.setUcids);
   const solutions = useCoreStore((s) => s.solutions);
+  const setActiveSolution = useCoreStore((s) => s.setActiveSolution);
 
   const { toast } = useToast();
   const [viewStep, setViewStep] = useState<UCIDStep | null>(null);
@@ -100,6 +102,15 @@ export const MissionControl = React.memo(function MissionControl({
   // Default to first UCID if none selected or if selected is not found
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
+
+  // Auto-sync activeSolutionId whenever the selected UCID changes — keeps Taxonomy Graph
+  // and Solutions screen defaulting to the correct parent without prop drilling.
+  useEffect(() => {
+    if (selected?.solutionId) {
+      setActiveSolution(selected.solutionId);
+    }
+  }, [selected?.solutionId, setActiveSolution]);
+
   const completeCount = ucids.filter(
     (u) => u.currentStep === "snapshot",
   ).length;

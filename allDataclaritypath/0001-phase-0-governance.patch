@@ -1,0 +1,239 @@
+From 38158e66bfc3f179ea07671d57c2c4706770eff6 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Thu, 2 Jul 2026 01:30:08 +0000
+Subject: [PATCH] docs(architecture): codify entity-data ownership hierarchy
+ (Phase 0)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- AGENTS.md: extend 13.6 with no-direct-mock-import corollary; add
+  13.6a (single ownership for simulated-backend layers, server.ts vs
+  MSW seam decision) and 13.6b (async job progress via streamJob()).
+- docs/architecture/data-ownership.md: durable explainer of the
+  coreStore-as-single-source-of-truth hierarchy, with the git-forensic
+  history of how the api-mock.ts / coreStore divergence happened.
+- docs/architecture/data-architecture-plan.md: full 20-item issue
+  table + 7-phase fix plan for the mockdata/architecture audit.
+
+No runtime code changes in this phase — governance only, per plan
+Phase 0.
+---
+ AGENTS.md                                   |  10 ++
+ docs/architecture/data-architecture-plan.md | 123 ++++++++++++++++++++
+ docs/architecture/data-ownership.md         |  52 +++++++++
+ 3 files changed, 185 insertions(+)
+ create mode 100644 docs/architecture/data-architecture-plan.md
+ create mode 100644 docs/architecture/data-ownership.md
+
+diff --git a/AGENTS.md b/AGENTS.md
+index a3c47ff..7d0ed1d 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -258,6 +258,16 @@ As of Phase 7 (Refactoring & Perfection), the following structural rules are com
+ ### 13.6 Zero-Prop Drilling for Global State (Zustand)
+ *   **Rule**: Global data domains (e.g., `ucids`, `vendors`, `sourcingRules`, `forensicIssues`) MUST NOT be passed down through React `props` to deeply nested components.
+ *   **Action**: Any component that requires access to global platform data must consume it directly via `useCoreStore((s) => s.propertyName)`. Top-level layouts (like `App.tsx` or `MissionControl.tsx`) are forbidden from declaring these objects in their children's `interface Props` to prevent massive cascading re-renders and state desyncs.
++*   **Corollary — no direct mock-array imports**: Components and hooks MUST NOT `import` an entity seed array (catalog, vendors, solutions, ucids, forensic issues, sourcing rules) directly from `src/lib/mockData/*`. Those files exist solely to seed `coreStore.ts` once, at init. The one exception is genuinely static, never-mutated config/reference constants (e.g. `STEP_ORDER`, `UCID_STEPS`, `CATALOG_TREND`) — those are configuration, not entity data, and are fine to import directly.
++
++### 13.6a Single Ownership for Simulated-Backend Layers
++*   **Rule**: `api-mock.ts`, MSW route handlers, and `server.ts` MUST NOT maintain an independent copy of any entity array already owned by `coreStore.ts`. There is exactly one source of truth for entity data; the simulated-backend layer either seeds from it, defers to it, or acts as a stateless pass-through — it never forks its own competing copy (this is precisely how the `api-mock.ts` catalog/solutions divergence and the `CatalogManager` price-rollback bug happened: a pre-Zustand mock catalog was never retired when `coreStore` became the source of truth).
++*   **Action**: Entity-CRUD MSW/`server.ts` handlers accept the payload and echo it back (`wrapSuccess(payload)`), or read from data explicitly passed in by the caller. They must not `find()`/`filter()` against a hand-seeded local array using ids that may not match `coreStore`'s.
++*   **`server.ts` vs. MSW**: `server.ts` is the designated seam for future real-backend logic (it is a real Node process and can eventually perform real work; MSW is browser-sandboxed and structurally cannot). MSW route handlers must not duplicate a route `server.ts` already implements — MSW's `onUnhandledRequest: 'bypass'` means a duplicate MSW handler permanently shadows the real one during development.
++
++### 13.6b Async Job Progress
++*   **Rule**: Long-running or multi-step operations (BOQ/PDF ingestion, multi-vendor solution generation, CLIC/compatibility checks, Playwright automation runs) MUST be modeled as jobs (`POST → job_id → progress updates`), never as a single synchronous request/response — even while mocked as near-instant. This keeps a future real-backend integration a timing change, not a structural rewrite.
++*   **Action**: All job progress must flow through `apiClient.streamJob()`'s existing `onMessage`/`onError` interface. Components (e.g. `JobStreamer.tsx`) must only depend on that interface, never on `setInterval` or a one-shot `fetch` written locally. The *implementation* behind `streamJob()` may change (single GET today, real `EventSource`/WebSocket/polling loop later) without requiring any component changes.
+ 
+ ### 13.7 Static / Dynamic Loading & Bundle Chunking Guardrails
+ *   **Rule**: Heavy third-party utility modules (like `xlsx` or `exceljs`) that are only used in user interaction handlers (e.g., file intake, download/exports) MUST NOT be statically imported directly.
+diff --git a/docs/architecture/data-architecture-plan.md b/docs/architecture/data-architecture-plan.md
+new file mode 100644
+index 0000000..523db27
+--- /dev/null
++++ b/docs/architecture/data-architecture-plan.md
+@@ -0,0 +1,123 @@
++# VendorSolutionFigmaStudio — Data Architecture Consolidation Plan
++
++**Purpose of this doc:** a single, durable record of what's wrong, why, and the exact fix sequence — so this survives across agent sessions and doesn't need to be re-discovered by git archaeology again.
++
++---
++
++## 0. The governing principle (read this first, every session)
++
++> **`coreStore.ts` (Zustand) is the ONLY owner of entity data.**
++> Everything else — mock seed files, MSW handlers, `server.ts`, the taxonomy graph's own state — either feeds the store once, or reads from it. Nothing maintains a second independent copy of catalog, vendor, solution, or UCID data.
++
++```
++src/lib/mockData/*.ts   →  seeds coreStore ONCE, on init         [entity data]
++src/lib/constants/*.ts  →  imported directly anywhere            [config, not entity data]
++coreStore.ts (Zustand)  →  single source of truth at runtime
++  ↓ useCoreStore(s => s.X) selectors — ALL reads/writes go through here
++Components / hooks       →  never import entity mock arrays directly
++MSW / server.ts          →  latency + async-job simulation ONLY, never a second data owner
++```
++
++**Rule of thumb for every future session:** if you're about to write `const X = [...]` with hand-seeded data that overlaps something `coreStore` already holds, stop — that's how we got four disconnected universes.
++
++---
++
++## 1. Everything wrong, in one table
++
++| # | Issue | File(s) | Severity |
++|---|---|---|---|
++| 1 | u1/u2 vendor submission totals don't match sum of line items (off by up to $181,930) | `src/lib/mockData/ucidsComputeStorage.ts` | 🔴 |
++| 2 | Same SKU (`400-BPSB`) priced $1,195 in one BOM, $1,190 elsewhere — accidental, not the intentional forensic scenario | `ucidsComputeStorage.ts` | 🔴 |
++| 3 | Standalone switches inconsistently typed `Network Adapter` vs `Chassis`; GPU typed `Processor` | `catalogPart1.ts`, `catalogPart2.ts` | 🟠 |
++| 4 | `CatalogSKUSchema.type` is unconstrained `z.string()` while `BOMItemSchema` has a real enum — nothing catches #3 | `src/types/schemas/schemaCatalog.ts` | 🟠 |
++| 5 | No SKU has `complianceFlags`/`catalogTier`/`vendorPortalId`/`evidenceLinks` populated, despite UI reading them | `catalogPart1/2.ts` vs `VendorIngestionDesk.tsx`, `AdviceFileIngestion.tsx` | 🟡 |
++| 6 | `VendorIngestionDesk.tsx` imports raw `VENDORS` array, bypassing the store entirely — invisible to heal actions | `src/components/vendor-portal/VendorIngestionDesk.tsx` | 🔴 |
++| 7 | `CleansingView.tsx` derives entries via one-shot `useState` initializer — won't re-derive if `catalogSkus` changes later | `src/components/cleansing/CleansingView.tsx` | 🟠 |
++| 8 | `api-mock.ts` holds its own 2-SKU `serverState.catalog` with different ids than the real 38-SKU catalog | `src/lib/api-mock.ts` | 🔴 |
++| 9 | **Live bug:** `CatalogManager` price edits get silently rolled back — real SKU ids never match Universe 2's stub catalog, `PUT` throws "SKU not found" | `src/components/catalog/CatalogManager.tsx` + `MockCatalogApi.updateCatalogSku` | 🔴 |
++| 10 | `GET /api/solutions` always returns `[]`, disconnected from the 3 real seeded solutions | `src/mocks/routes/workflowHandlers.ts` | 🔴 |
++| 11 | `server.ts` (real Express backend, started by `npm run dev`) has genuine routes for `/api/agents/run`, `/api/boq/ingest`, `/api/jobs`, etc. — but MSW's `onUnhandledRequest: 'bypass'` still intercepts first because MSW defines handlers for the *same* routes, so `server.ts` is fully shadowed in dev | `server.ts` vs `src/mocks/handlers.ts` / `workflowHandlers.ts` | 🔴 |
++| 12 | `/api/agents/run` in `server.ts` is explicitly a "Simulator" (canned log lines) — not connected to any real Playwright automation | `server.ts` | 🟡 (expected today, flag for later) |
++| 13 | Taxonomy graph: `GET /api/graph/solution/:ucid` ignores the `:ucid` param entirely, always returns the same 5 hardcoded nodes | `src/mocks/routes/graphHandlers.ts`, `src/mocks/routes/sharedState.ts` | 🔴 |
++| 14 | Taxonomy graph orphan queue shows "Orphan Work Queue (1)" but renders zero rows — the one fake orphan's id doesn't match any real catalog SKU | `TaxonomyOrphanBox.tsx` + `sharedState.ts` | 🔴 |
++| 15 | Every graph edit (`mapNode`, `healOrphanMapping`, `addGraphNode`, etc.) writes only to local component state + the disconnected mock island — never calls `setCatalogSkus` | `src/hooks/useCatalogGraphData.ts` | 🔴 |
++| 16 | Only `coreStore` has a `version`/`migrate` guard on its `persist` config; `ingestionStore`, `workflowStore`, `auditStore` don't | `src/store/*.ts` | 🟡 |
++| 17 | No "reset to seed data" mechanism — persisted `localStorage` state silently wins over fresh mock data on every reload | all 4 stores | 🟡 |
++| 18 | `apiClient.streamJob()` claims to "replace legacy HTTP polling" and "simulate SSE" but only ever fires 2 messages (1 fake + 1 real GET) — can't represent real multi-stage progress | `src/services/apiClient.ts` | 🟡 (fine for now, gap for later) |
++| 19 | `catalog.spec.ts` e2e test already exercises the live price-rollback bug (#9) but its assertion is too weak to catch it — false green in CI | `tests/e2e/catalog.spec.ts` | 🟠 |
++| 20 | 30 architecture/skill docs were deleted in the Phase 12 refactor (2026-06-27) with no replacement — decisions like this one keep needing re-discovery | `.agents/skills/`, `docs/skills/` (deleted) | 🟡 |
++
++---
++
++## 2. Phased plan
++
++### Phase 0 — Lock the rule in writing *(do this first, before touching code)*
++- [ ] Extend `AGENTS.md` §13.6 with the explicit sentence: *"MSW/`api-mock.ts`/`server.ts` handlers must not maintain independent copies of entity arrays owned by `coreStore`. Entity-CRUD handlers are pass-through only."*
++- [ ] Add the async-job rule: *"Async job progress must go through `apiClient.streamJob()`'s interface, never a component-level `setInterval` or one-shot fetch."*
++- [ ] Write one lightweight `docs/architecture/data-ownership.md` covering: the hierarchy diagram (§0 above), the three principles worth reviving from the deleted skill docs:
++  - *Schema Enforcer*: all incoming data (portal scrape, Excel ingestion, user input) MUST be validated against Zod before processing.
++  - *SKU Enricher*: a SKU missing from the catalog gets flagged `[MISSING-METADATA]`, never crashes the pipeline.
++  - *Mandatory Part Sync*: vendor-injected parts the customer didn't request get synced back into local intelligence, not silently dropped.
++- [ ] Decide and document: is `server.ts` the intended future real-backend seam? (Recommendation: yes — it's a real Node process, MSW isn't.)
++
++### Phase 1 — Mockdata correctness (issues #1–5)
++- [ ] Recompute and fix `totalPrice`/`originalPrice`/`savings` for u1 and u2 in `ucidsComputeStorage.ts` so they equal `sum(items.unitPrice × items.quantity)`. Model this on `boqMocks.ts`'s `dell-overcharge` fixture, which already does this correctly.
++- [ ] Resolve the `400-BPSB` $1,195 vs $1,190 duplicate — pick the canonical catalog price ($1,190) unless a mismatch is deliberate, in which case label it the same way `dell-overcharge` labels its intentional variance.
++- [ ] Fix `type` on the mislabeled switches (`sku-13`, `sku-15`, `sku-17`) and the GPU (`H100`) to a consistent, real category.
++- [ ] Promote `CatalogSKUSchema.type` from `z.string()` to the same enum `BOMItemSchema` already uses, so this class of bug fails schema validation going forward.
++- [ ] Seed `complianceFlags` on at least one SKU per vendor so the CLIC-flagged UI path has real test coverage.
++
++### Phase 2 — Close store-bypass violations (issues #6–7)
++- [ ] `VendorIngestionDesk.tsx`: replace `import { VENDORS } from "../../lib/mockData/misc"` with `useCoreStore(s => s.vendors)`.
++- [ ] `CleansingView.tsx`: replace the one-shot `useState(() => generateMockEntries(catalogSkus))` with a `useMemo` keyed on `catalogSkus` (or move generation into the store) so entries re-derive when the catalog changes.
++- [ ] Grep the codebase once more after these two fixes for any remaining `from ".../mockData"` entity-data imports outside `coreStore.ts` itself, and migrate anything found the same way.
++
++### Phase 3 — Consolidate the backend-simulation layer (issues #8–12)
++- [ ] Delete `serverState.catalog` from `api-mock.ts`. Make `/api/catalog` (`GET`/`POST`/`PUT`/`DELETE`) pass-through handlers: accept the payload, echo it back wrapped in `wrapSuccess(...)`, hold no independent array.
++- [ ] Fix `GET /api/solutions` to actually return something derived from real data (or, once Phase 4's approach is applied elsewhere, simply retire this route in favor of direct store reads — no network round-trip needed for data the store already has).
++- [ ] Resolve the MSW-vs-`server.ts` shadow collision: since `server.ts` is the better long-term home for real backend logic (Node process, can eventually shell out to real work), remove the MSW handlers that duplicate routes `server.ts` already implements (`/api/boq/ingest`, `/api/reconciliation/compare`, `/api/agents/run`, `/api/jobs*`, `/api/portfolio/orchestrate`, `/api/taxonomy/check-constraints`, `/api/integrations/dispatch`). Keep MSW only for routes with no `server.ts` counterpart (catalog/solutions pass-through, graph, telemetry) until those are migrated too.
++- [ ] Leave `/api/agents/run`'s "Simulator" framing as-is for now — it's honest about what it is — but note in the architecture doc that it is not connected to any real Playwright automation, so nobody mistakes it for one later.
++
++### Phase 4 — Rewire Taxonomy Graph to real data (issues #13–15)
++- [ ] Replace the `GET /api/graph/solution/:ucid` network round-trip with a client-side derivation: build `nodes` from the selected config's real BOM `items`, cross-referenced against `catalogSkus`; build `edges` from `chassisRef`/category relationships; build `unmappedIds` from BOM items whose `partNumber` has no catalog match. Pure function, no backend needed, and removes the simulated 600ms `delay()` — directly addresses wanting this "smooth and fast."
++- [ ] Rewire `mapNode`, `healOrphanMapping`, `addGraphNode`, `updateGraphNode`, `addRule` (in `useCatalogGraphData.ts`) to call `setCatalogSkus` (updating the matched SKU's `category`/`chassisRef`/classification fields), in addition to their local graph-view state. This is what makes a visual drag-and-drop fix actually show up in Dashboard, Catalog Manager, and Cleansing simultaneously.
++- [ ] Once read + write both derive from/write to `coreStore`, retire `memoryGraphNodes`/`memoryGraphEdges` in `sharedState.ts` for this feature — they become dead weight.
++
++### Phase 5 — Persistence & session integrity (issues #16–17)
++- [ ] Add `version` + `migrate` guards to `ingestionStore.ts`, `workflowStore.ts`, `auditStore.ts`, matching the pattern already in `coreStore.ts`.
++- [ ] Add a "Reset to seed data" dev action that clears all four `localStorage` keys (`vsip-core-storage`, `vsip-ingestion-storage`, `vsip-workflow-storage`, `vsip-audit-logs`) and reloads — gives a reproducible clean-slate on demand instead of manually clearing browser storage.
++- [ ] Optionally: a `VITE_RESET_ON_LOAD` env flag your test setup (Vitest/Playwright) can use to force fresh mock data every run, avoiding state-leak flakiness between test runs.
++
++### Phase 6 — Backend-readiness guardrails (issue #18, forward-looking)
++- [ ] Confirm every write from UI already goes through `apiClient` (no direct `fetch()` in components) — enforce as a lint rule if not already.
++- [ ] Confirm every `apiClient` response for entity data is parsed via `parseResponse<T>(schema, data)` — no exceptions.
++- [ ] Implement a real `streamJob()` body (genuine `EventSource`, WebSocket, or real interval polling) behind the *same* method signature `JobStreamer.tsx` already consumes — no component changes required when this lands.
++- [ ] Treat anything that will be genuinely slow on a real backend (PDF ingestion, multi-vendor solution generation, CLIC/compatibility checks) as job-based (`POST → job_id → stream progress`) even while mocked as near-instant, so the eventual backend integration is a timing change, not a structural one.
++
++### Phase 7 — Test/CI hardening (issues #19–20)
++- [ ] Strengthen `catalog.spec.ts`'s price-edit assertion to actually check the displayed price equals the edited value and that no "Price sync failed" toast appears — this becomes a real regression guard once Phase 3 fixes the underlying bug.
++- [ ] Extend `src/tests/integration/MockDataContracts.test.ts` with:
++  - `sum(items.unitPrice × items.quantity) === totalPrice` for every vendor submission
++  - `originalPrice - savings === totalPrice`
++  - every BOM `partNumber` exists in the catalog with matching `unitPrice` (or is explicitly labeled as an intentional variance)
++  - every `chassisRef` resolves to a real SKU id (already clean — lock it in)
++  - `type` values conform to the shared enum from Phase 1
++
++---
++
++## 3. Open decisions still needed from you
++
++All major open questions from this investigation have now been resolved through our discussion — captured here for the record:
++- **Taxonomy graph intent** → resolved: it should be a real, editable reflection of the catalog (Phase 4).
++- **`server.ts` vs. MSW** → resolved: `server.ts` is the intended future backend seam; MSW should stop duplicating its routes (Phase 3).
++- **Relationship to the HPE OCA Playwright certification suite** → resolved: separate codebase, not currently integrated; `server.ts`'s `/api/agents/run` is an honest simulator, not a real bridge.
++
++Nothing is currently blocked on you — Phases 0–7 above are ready to execute in order.
++
++---
++
++## 4. Suggested execution order
++
++Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 7 (tests) → Phase 5 → Phase 6
++
++Rationale: lock the rule in writing first so nothing drifts again while fixing it; fix data correctness before architecture (cheap, isolated, no regression risk per the earlier test audit); close the two live bypasses next (small, contained); then the two bigger consolidations (backend layer, taxonomy graph) which are the highest-value, highest-effort items; harden tests immediately after so the fixes are locked in by CI; persistence and backend-readiness are lower-urgency polish that can trail.
+diff --git a/docs/architecture/data-ownership.md b/docs/architecture/data-ownership.md
+new file mode 100644
+index 0000000..a71c9b7
+--- /dev/null
++++ b/docs/architecture/data-ownership.md
+@@ -0,0 +1,52 @@
++# Data Ownership Hierarchy
++
++**Read this before adding, editing, or seeding any entity data (catalog, vendors, solutions, ucids, forensic issues, sourcing rules) anywhere in this codebase.**
++
++This doc exists because that rule was violated silently across several agent sessions — a pre-Zustand mock catalog in `api-mock.ts` was never retired when `coreStore.ts` became the source of truth, producing real bugs (e.g. Catalog Manager price edits silently rolling back). See `AGENTS.md` §13.6, §13.6a, §13.6b for the enforceable rules; this doc is the "why," kept short on purpose so it stays maintained.
++
++## The hierarchy
++
++```
++src/lib/mockData/*.ts   →  seeds coreStore ONCE, on init          [entity data]
++src/lib/constants/*.ts  →  imported directly anywhere              [config, not entity data]
++                              (STEP_ORDER, UCID_STEPS, CATALOG_TREND)
++
++coreStore.ts (Zustand)  →  the ONLY owner of entity data at runtime
++  ↓ useCoreStore(s => s.X) selectors
++
++Components / hooks       →  read/write ONLY via store selectors
++                              never import an entity mock array directly
++
++MSW / server.ts          →  latency + async-job simulation ONLY
++                              never a second independent copy of entity data
++```
++
++## Two categories of data — know which one you're touching
++
++| Type | Examples | Rule |
++|---|---|---|
++| **Entity data** — mutable, healable, shown across multiple screens | `catalogSkus`, `vendors`, `ucids`, `solutions`, `forensicIssues`, `sourcingRules` | Must go through `coreStore`. Never import the raw seed file in a component. |
++| **Reference/config constants** — fixed, never mutated at runtime | `STEP_ORDER`, `UCID_STEPS`, `CATALOG_TREND` | Fine to import directly — this is config, not state. |
++
++If you're about to write `const X = [...]` with hand-seeded data that overlaps something `coreStore` already holds — stop. That's the exact pattern that produced four disconnected data universes (see "History" below).
++
++## `server.ts` vs. MSW
++
++`server.ts` (real Express server, started by `npm run dev` via `tsx server.ts`) is the designated seam for future real-backend logic — it's a real Node process and can eventually do real work (spawn a Playwright run, hit a real DB, etc). MSW is browser-sandboxed and structurally cannot.
++
++**MSW must not duplicate a route `server.ts` already implements.** MSW is configured with `onUnhandledRequest: 'bypass'` — it only intercepts requests it has a handler for and lets everything else fall through to the network. If MSW defines a handler for a route `server.ts` also defines, MSW wins every time in dev mode, and `server.ts`'s implementation becomes permanently unreachable dead code. This already happened for `/api/agents/run`, `/api/boq/ingest`, `/api/jobs`, `/api/portfolio/orchestrate`, `/api/reconciliation/compare`, `/api/taxonomy/check-constraints`, and `/api/integrations/dispatch` — MSW currently shadows all of them.
++
++`/api/agents/run` in `server.ts` is an honest "Simulator" — canned log lines, no real Playwright execution. It is **not** connected to any real portal-automation codebase. Don't mistake it for one.
++
++## Async jobs
++
++Anything genuinely slow on a real backend (PDF ingestion, multi-vendor solution generation, CLIC checks) is modeled as a job — `POST → job_id → progress` — even while mocked as near-instant. This flows through `apiClient.streamJob()`'s `onMessage`/`onError` interface. Components only depend on that interface; the implementation behind it (currently a single fake message + one real GET) can be swapped for genuine `EventSource`/WebSocket/polling later with zero component changes.
++
++## History (why this doc exists)
++
++- **2026-06-09 → 06-21**: App built entirely on `api-mock.ts` + MSW as the only "backend." No centralized client state yet.
++- **2026-06-21**: `catalogPart1.ts` / `catalogPart2.ts` (the real 38-SKU catalog) created.
++- **2026-06-27** ("Phase 12"): `coreStore.ts` introduced — first-ever Zustand usage in the repo. This is the correct, current architecture. The same commit deleted ~30 `.agents/skills/*.md` / `docs/skills/**/*.md` files that documented planned backend services (`PartRegistryService`, `ExperienceSynthesizer`, canonical SKU normalization) for a *different*, more backend-heavy system — those docs were never reconciled with what actually got built here.
++- **api-mock.ts's competing 2-SKU catalog was never retired** after the Phase 12 pivot, and was still being edited afterward (2026-06-29) without ever being reconciled with the real 38-SKU catalog. This is the root cause of the Catalog Manager price-rollback bug.
++
++Full investigation trail, issue table, and phased fix plan: `docs/architecture/data-architecture-plan.md`.
+-- 
+2.43.0
+

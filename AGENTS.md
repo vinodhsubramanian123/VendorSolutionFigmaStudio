@@ -310,3 +310,20 @@ To prevent data corruption during human-in-the-loop BOQ adjustments (like removi
 ### 14.2 1-to-N Config Forking (Split Wizard)
 *   **Behavior**: Users can utilize the "Deep Cleanse Editor" and the "Split Config Wizard" to diverge a base multi-server BOQ (e.g., Qty 22) into sub-configurations (e.g., 5 and 17).
 *   **Constraint**: The `SplitConfigEvent` enforces mathematically sound division. The sum of the `moveQuantities` and the remaining quantities in the base configuration MUST never exceed the original parent component limit. Front-end range sliders automatically cap maximum values to the parent limit, but the validation schema strictly asserts this at runtime before network dispatch.
+
+---
+
+## 15. Schema Drift & State Mismatch Mitigation (Solution-First Architecture)
+
+To resolve data integrity issues and UI layout drifts uncovered during the Schema Drift Audit, strictly observe the following data contract and mutability rules:
+
+### 15.1 Solution-First Relational Architecture
+*   **Behavior**: Historically, components iterated directly over `ucids` to render pipelines, leading to orphaned elements and layout stuttering.
+*   **Rule**: The primary organizational unit is the **Solution** (`SolutionProject`). UCIDs belong to Solutions. High-level dashboard layouts, project pipelines, and status reporting MUST iterate through `solutions`, rendering associated `ucids` only as nested members.
+
+### 15.2 Immutable State Actions (ucidActions.ts)
+*   **Behavior**: In early iterations, 15+ different files performed raw array mutations like `setUcids(prev => [...])`, leading to "Session Data Corrupted" schema drifts and missed status syncs.
+*   **Rule**: Component files are strictly forbidden from writing direct array mapping functions for global stores (e.g., `useCoreStore`). All mutations to UCIDs must be dispatched through the unified action layer in `src/store/ucidActions.ts` (e.g., `advanceUcidStep`, `updateUcidField`, `commitUcidSnapshot`, `deleteUcid`).
+
+### 15.3 Locked Snapshots (The Section 12 Guard)
+*   **Rule**: Certified configurations (UCIDs with a snapshot containing `locked: true`) must NEVER be deleted, regressed, or structurally mutated. The action layer (`ucidActions.ts`) and the UI (`SolutionDetail.tsx` confirmation panel) must strictly block deletion/regression attempts if a locked snapshot exists, ensuring compliance with Supply Chain Audit Integrity.

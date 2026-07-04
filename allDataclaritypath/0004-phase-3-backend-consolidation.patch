@@ -1,0 +1,306 @@
+From 774d31c44d4e7c803766926a2a916a1e084f79d6 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Thu, 2 Jul 2026 12:03:38 +0000
+Subject: [PATCH] fix(backend-sim): retire competing catalog stub; scope
+ MSW/server.ts collision (Phase 3a, 3b deferred)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Phase 3a — catalog/solutions consolidation (done, verified):
+- api-mock.ts: deleted serverState.catalog (the disconnected 2-SKU
+  stub with ids like sku-seed-1/sku-seed-2 that never matched the
+  real 38-SKU catalog). MockCatalogApi's get/add/update/delete are
+  now stateless pass-throughs -- confirmed via grep that nothing in
+  the UI reads GET /api/catalog's response, so there is nothing to
+  keep in sync. This is the direct fix for the CatalogManager
+  price-rollback bug: updateCatalogSku() can no longer throw SKU
+---
+ docs/architecture/data-architecture-plan.md | 39 +++++++++++----
+ src/lib/api-mock.ts                         | 53 ++++++---------------
+ src/mocks/routes/workflowHandlers.ts        |  6 ++-
+ src/services/__tests__/apiClient.test.ts    | 39 +++++++++------
+ tests/e2e/catalog.spec.ts                   | 34 ++++++++-----
+ tests/unit/contracts.test.ts                |  8 +---
+ 6 files changed, 96 insertions(+), 83 deletions(-)
+
+diff --git a/docs/architecture/data-architecture-plan.md b/docs/architecture/data-architecture-plan.md
+index 523db27..9fbec84 100644
+--- a/docs/architecture/data-architecture-plan.md
++++ b/docs/architecture/data-architecture-plan.md
+@@ -33,11 +33,11 @@ MSW / server.ts          →  latency + async-job simulation ONLY, never a secon
+ | 5 | No SKU has `complianceFlags`/`catalogTier`/`vendorPortalId`/`evidenceLinks` populated, despite UI reading them | `catalogPart1/2.ts` vs `VendorIngestionDesk.tsx`, `AdviceFileIngestion.tsx` | 🟡 |
+ | 6 | `VendorIngestionDesk.tsx` imports raw `VENDORS` array, bypassing the store entirely — invisible to heal actions | `src/components/vendor-portal/VendorIngestionDesk.tsx` | 🔴 |
+ | 7 | `CleansingView.tsx` derives entries via one-shot `useState` initializer — won't re-derive if `catalogSkus` changes later | `src/components/cleansing/CleansingView.tsx` | 🟠 |
+-| 8 | `api-mock.ts` holds its own 2-SKU `serverState.catalog` with different ids than the real 38-SKU catalog | `src/lib/api-mock.ts` | 🔴 |
+-| 9 | **Live bug:** `CatalogManager` price edits get silently rolled back — real SKU ids never match Universe 2's stub catalog, `PUT` throws "SKU not found" | `src/components/catalog/CatalogManager.tsx` + `MockCatalogApi.updateCatalogSku` | 🔴 |
+-| 10 | `GET /api/solutions` always returns `[]`, disconnected from the 3 real seeded solutions | `src/mocks/routes/workflowHandlers.ts` | 🔴 |
+-| 11 | `server.ts` (real Express backend, started by `npm run dev`) has genuine routes for `/api/agents/run`, `/api/boq/ingest`, `/api/jobs`, etc. — but MSW's `onUnhandledRequest: 'bypass'` still intercepts first because MSW defines handlers for the *same* routes, so `server.ts` is fully shadowed in dev | `server.ts` vs `src/mocks/handlers.ts` / `workflowHandlers.ts` | 🔴 |
+-| 12 | `/api/agents/run` in `server.ts` is explicitly a "Simulator" (canned log lines) — not connected to any real Playwright automation | `server.ts` | 🟡 (expected today, flag for later) |
++| 8 | ~~`api-mock.ts` holds its own 2-SKU `serverState.catalog` with different ids than the real 38-SKU catalog~~ — **FIXED (3a)**: stateless pass-through now | `src/lib/api-mock.ts` | 🔴→✅ |
++| 9 | ~~**Live bug:** `CatalogManager` price edits get silently rolled back~~ — **FIXED (3a)**, e2e assertion strengthened to guard it | `src/components/catalog/CatalogManager.tsx` + `MockCatalogApi.updateCatalogSku` | 🔴→✅ |
++| 10 | ~~`GET /api/solutions` always returns `[]`~~ — confirmed zero real callers; documented as intentionally empty (3a) | `src/mocks/routes/workflowHandlers.ts` | 🔴→✅ |
++| 11 | `server.ts` has real routes for `/api/agents/run`, `/api/boq/ingest`, `/api/jobs`, etc. — but MSW shadows all of them. **10 true collisions found** (1 more than originally estimated: `snapshotHandlers.ts`). 2 spot-checked and confirmed unsafe to blanket-fix (`NLPParser.tsx`, `useBoqIntake.ts` send payloads that would fail `server.ts`'s strict schemas). **DEFERRED to Phase 3b**, scoped in detail there — not silently skipped. | `server.ts` vs `src/mocks/handlers.ts` / `workflowHandlers.ts` / `snapshotHandlers.ts` | 🔴 open |
++| 12 | `/api/agents/run` in `server.ts` is explicitly a "Simulator" — not connected to any real Playwright automation | `server.ts` | 🟡 (expected, documented) |
+ | 13 | Taxonomy graph: `GET /api/graph/solution/:ucid` ignores the `:ucid` param entirely, always returns the same 5 hardcoded nodes | `src/mocks/routes/graphHandlers.ts`, `src/mocks/routes/sharedState.ts` | 🔴 |
+ | 14 | Taxonomy graph orphan queue shows "Orphan Work Queue (1)" but renders zero rows — the one fake orphan's id doesn't match any real catalog SKU | `TaxonomyOrphanBox.tsx` + `sharedState.ts` | 🔴 |
+ | 15 | Every graph edit (`mapNode`, `healOrphanMapping`, `addGraphNode`, etc.) writes only to local component state + the disconnected mock island — never calls `setCatalogSkus` | `src/hooks/useCatalogGraphData.ts` | 🔴 |
+@@ -73,10 +73,31 @@ MSW / server.ts          →  latency + async-job simulation ONLY, never a secon
+ - [ ] Grep the codebase once more after these two fixes for any remaining `from ".../mockData"` entity-data imports outside `coreStore.ts` itself, and migrate anything found the same way.
+ 
+ ### Phase 3 — Consolidate the backend-simulation layer (issues #8–12)
+-- [ ] Delete `serverState.catalog` from `api-mock.ts`. Make `/api/catalog` (`GET`/`POST`/`PUT`/`DELETE`) pass-through handlers: accept the payload, echo it back wrapped in `wrapSuccess(...)`, hold no independent array.
+-- [ ] Fix `GET /api/solutions` to actually return something derived from real data (or, once Phase 4's approach is applied elsewhere, simply retire this route in favor of direct store reads — no network round-trip needed for data the store already has).
+-- [ ] Resolve the MSW-vs-`server.ts` shadow collision: since `server.ts` is the better long-term home for real backend logic (Node process, can eventually shell out to real work), remove the MSW handlers that duplicate routes `server.ts` already implements (`/api/boq/ingest`, `/api/reconciliation/compare`, `/api/agents/run`, `/api/jobs*`, `/api/portfolio/orchestrate`, `/api/taxonomy/check-constraints`, `/api/integrations/dispatch`). Keep MSW only for routes with no `server.ts` counterpart (catalog/solutions pass-through, graph, telemetry) until those are migrated too.
+-- [ ] Leave `/api/agents/run`'s "Simulator" framing as-is for now — it's honest about what it is — but note in the architecture doc that it is not connected to any real Playwright automation, so nobody mistakes it for one later.
++
++**Status: split into 3a (done) and 3b (deferred — scoped and documented below, not silently skipped).**
++
++**3a — Catalog/solutions consolidation (DONE):**
++- [x] Deleted `serverState.catalog` from `api-mock.ts`. `/api/catalog` (`GET`/`POST`/`PUT`/`DELETE`) are now stateless pass-throughs — confirmed via grep that nothing in the UI reads `GET /api/catalog`'s response (the catalog always comes from `useCoreStore(s => s.catalogSkus)`), so there's nothing to keep in sync.
++- [x] `GET /api/solutions` — confirmed zero callers read its response either; left as a documented empty stub rather than inventing fake data nobody consumes.
++- [x] Rewrote the two test suites that were asserting the *old buggy* behavior as correct (`src/services/__tests__/apiClient.test.ts`'s `MockCatalogApi` block literally expected `updateCatalogSku('non-existing', ...)` to throw — that's the exact bug). Now they assert the corrected contract, including an explicit regression guard: `updateCatalogSku('sku-4', ...)` (a real id the old stub never had) must succeed, not throw.
++- [x] Strengthened `tests/e2e/catalog.spec.ts`'s price-edit assertion to check the displayed price actually equals the edited value and no rollback toast appears — previously it only checked the SKU text was "still visible," which passed whether or not the edit stuck. **Not executed in this sandbox** (Playwright's Chromium download requires `cdn.playwright.dev`, which isn't reachable here) — logically verified against the actual price-rendering source (`${sku.price.toLocaleString()}`), but should be run in CI to confirm.
++
++**3b — MSW-vs-`server.ts` route collision (DEFERRED, correctly scoped, not executed):**
++
++Investigation found 9 routes where MSW's handler and `server.ts`'s handler both exist for the exact same path (`/api/boq/ingest`, `/api/reconciliation/compare`, `/api/taxonomy/check-constraints`, `/api/integrations/dispatch`, `/api/agents/run`, `/api/portfolio/orchestrate`, `/api/portfolio/upload-manual`, `POST /api/jobs`, `GET /api/jobs/:id`), plus a 10th collision discovered in `snapshotHandlers.ts` (`/api/ucids/:ucid/snapshots` vs `server.ts`'s `POST /api/ucids/:unit/snapshots`) not in the original audit.
++
++**Why this wasn't blindly fixed:** `server.ts` enforces strict Zod validation (`validateBody(...)`) on these routes; MSW's versions don't validate at all. Spot-checking real caller payloads against `server.ts`'s schemas found two confirmed cases where removing MSW's handler would introduce a live regression, not fix one:
++- `NLPParser.tsx` posts `{ message: userText }` to `/api/agents/run` — nothing like `PlaywrightRunRequestSchema`'s required shape (`agentName` enum, `ucidRef`, `targetPortalUrl` as a valid URL, `bypassCaptchas`). MSW tolerates it; `server.ts` would hard-reject with a 400. (This looks like `NLPParser.tsx` should actually be calling `/api/agents/semantic-map` instead — a separate, pre-existing bug outside this phase's scope.)
++- `useBoqIntake.ts` sends `presetType: (context).solution_id` — an arbitrary job-context value, not guaranteed to be one of `IngestRequestSchema`'s three enum values (`hpe-legacy`/`dell-overcharge`/`cisco-asymmetry`). MSW falls back gracefully; `server.ts` would 400 on anything else.
++
++Given 2-for-2 on real landmines from a partial spot-check, the responsible call was to **not** blanket-delete these 9 (now 10) MSW handlers this session. Properly finishing 3b requires, per route: (1) diffing the actual caller payload against `server.ts`'s Zod schema, (2) fixing the caller or relaxing the schema wherever they don't already agree, (3) only then removing the duplicate MSW handler. This is a correctly-scoped follow-up, not a skipped step — tracked here so it isn't lost.
++- [ ] Per-route caller-vs-schema audit for all 10 colliding routes (2 already found broken: `/api/agents/run` via `NLPParser.tsx`, `/api/boq/ingest` via `useBoqIntake.ts`).
++- [ ] Fix `NLPParser.tsx` to call `/api/agents/semantic-map` (its actual intended endpoint) instead of `/api/agents/run`, or update `PlaywrightRunRequestSchema`/`server.ts` if `/api/agents/run` is genuinely meant to handle both shapes.
++- [ ] Fix `useBoqIntake.ts` to send a value that's guaranteed to satisfy `IngestRequestSchema.presetType`'s enum, or relax the schema if arbitrary preset ids are legitimate.
++- [ ] Once each route's payload is verified compatible, remove the matching MSW handler so `server.ts` is reachable in dev mode (the actual point of this phase).
++- [ ] Extend `MockSnapshotApi`'s `serverState.snapshots` — same competing-array pattern as the catalog fix in 3a, discovered but not fixed this session (each `UCID.snapshots` in `coreStore` is the real data; `MockSnapshotApi` is a second, disconnected flat array).
++
++Leave `/api/agents/run`'s "Simulator" framing as-is either way — it's honest about what it is; the fix here is about which layer answers the request, not about making it a real Playwright bridge.
+ 
+ ### Phase 4 — Rewire Taxonomy Graph to real data (issues #13–15)
+ - [ ] Replace the `GET /api/graph/solution/:ucid` network round-trip with a client-side derivation: build `nodes` from the selected config's real BOM `items`, cross-referenced against `catalogSkus`; build `edges` from `chassisRef`/category relationships; build `unmappedIds` from BOM items whose `partNumber` has no catalog match. Pure function, no backend needed, and removes the simulated 600ms `delay()` — directly addresses wanting this "smooth and fast."
+diff --git a/src/lib/api-mock.ts b/src/lib/api-mock.ts
+index 091b0fc..5b61ad1 100644
+--- a/src/lib/api-mock.ts
++++ b/src/lib/api-mock.ts
+@@ -5,55 +5,30 @@ import { GraphNode, GraphEdge, GraphAPIResponse } from "../types/data";
+ const serverState = {
+   customRules: {} as Record<string, {type: "requires"|"exclusive", note: string}[]>,
+   manualLinks: [] as {childId: string, parentId: string, childInfo: { partNumber: string; name: string }}[],
+-  catalog: [] as CatalogSKU[],
+   snapshots: [] as Snapshot[]
+ };
+ 
+-// Seed catalog
+-serverState.catalog = [
+-  {
+-    id: "sku-seed-1",
+-    vendor: "HPE",
+-    partNumber: "P40411-B21",
+-    name: "HPE ProLiant DL380 Gen11 8SFF Chassis",
+-    type: "Chassis",
+-    price: 3400,
+-    leadTimeDays: 14,
+-    status: "active"
+-  },
+-  {
+-    id: "sku-seed-2",
+-    vendor: "HPE",
+-    partNumber: "P40424-B21",
+-    name: "Intel Xeon Gold 6430 32-Core CPU",
+-    type: "Processor",
+-    price: 2150,
+-    leadTimeDays: 7,
+-    status: "active"
+-  }
+-];
+-
++// NOTE: catalog data is intentionally NOT held here. coreStore.ts is the
++// single source of truth for the catalog (see docs/architecture/data-ownership.md).
++// This used to have its own 2-SKU serverState.catalog with ids that never
++// matched the real 38-SKU catalog seeded into coreStore — every real edit
++// made through CatalogManager.tsx silently rolled back because
++// updateCatalogSku() could never find the id it was looking for. These
++// handlers are now stateless pass-throughs: nothing in the UI reads
++// GET /api/catalog's response (the catalog list always comes from
++// useCoreStore(s => s.catalogSkus)), so there is nothing to keep in sync.
+ export const MockCatalogApi = {
+   getCatalog: async (): Promise<CatalogSKU[]> => {
+-    return [...serverState.catalog];
++    return [];
+   },
+   addCatalogSku: async (sku: CatalogSKU): Promise<CatalogSKU> => {
+-    serverState.catalog.push(sku);
+     return sku;
+   },
+-  updateCatalogSku: async (id: string, updates: Partial<CatalogSKU>): Promise<CatalogSKU> => {
+-    const idx = serverState.catalog.findIndex(c => c.id === id);
+-    if (idx !== -1) {
+-      serverState.catalog[idx] = { ...serverState.catalog[idx], ...updates };
+-      return serverState.catalog[idx];
+-    }
+-    throw new Error("SKU not found");
++  updateCatalogSku: async (id: string, updates: Partial<CatalogSKU>): Promise<Partial<CatalogSKU> & { id: string }> => {
++    return { id, ...updates };
+   },
+-  deleteCatalogSku: async (id: string): Promise<void> => {
+-    const idx = serverState.catalog.findIndex(c => c.id === id);
+-    if (idx !== -1) {
+-      serverState.catalog.splice(idx, 1);
+-    }
++  deleteCatalogSku: async (_id: string): Promise<void> => {
++    return;
+   }
+ };
+ 
+diff --git a/src/mocks/routes/workflowHandlers.ts b/src/mocks/routes/workflowHandlers.ts
+index b46aad3..85cf9fa 100644
+--- a/src/mocks/routes/workflowHandlers.ts
++++ b/src/mocks/routes/workflowHandlers.ts
+@@ -337,8 +337,10 @@ export const workflowHandlers = [
+     await MockTaxonomyApi.addRule(b.sourceId as string, b.ruleType as "requires" | "exclusive", b.explanation as string);
+     return HttpResponse.json(wrapSuccess({}));
+   }),
+-  // Phase 11 Missing Endpoints
+-
++  // NOTE: coreStore.ts (useCoreStore(s => s.solutions)) is the single source
++  // of truth for solutions — nothing in the UI currently reads this
++  // endpoint's response, so it intentionally has no independent state to
++  // keep in sync (see docs/architecture/data-ownership.md).
+   // Solutions
+   http.get('/api/solutions', async () => {
+     if (process.env.NODE_ENV !== 'test') await delay(300);
+diff --git a/src/services/__tests__/apiClient.test.ts b/src/services/__tests__/apiClient.test.ts
+index 5593545..503baa4 100644
+--- a/src/services/__tests__/apiClient.test.ts
++++ b/src/services/__tests__/apiClient.test.ts
+@@ -214,10 +214,20 @@ describe('ApiClient & ApiMock Services', () => {
+   });
+ 
+   describe('MockCatalogApi', () => {
+-    it('manages catalog SKUs: get, add, update, and delete', async () => {
++    // coreStore.ts is now the single source of truth for the catalog (see
++    // docs/architecture/data-ownership.md). MockCatalogApi used to hold its
++    // own 2-SKU serverState.catalog with ids that never matched the real
++    // 38-SKU catalog, so updateCatalogSku() on any real SKU id threw "SKU
++    // not found" — which is exactly what caused CatalogManager's price
++    // edits to silently roll back. These handlers are now stateless
++    // pass-throughs: they must succeed for ANY id, since there is no
++    // longer a competing local array to look the id up against.
++    it('is a stateless pass-through: getCatalog always returns empty (UI reads the store, not this endpoint)', async () => {
+       const skus = await MockCatalogApi.getCatalog();
+-      expect(skus.length).toBeGreaterThan(0);
++      expect(skus).toEqual([]);
++    });
+ 
++    it('addCatalogSku echoes the SKU back without persisting local state', async () => {
+       const newSku: CatalogSKU = {
+         id: 'sku-test-999',
+         vendor: 'Cisco',
+@@ -228,20 +238,21 @@ describe('ApiClient & ApiMock Services', () => {
+         leadTimeDays: 5,
+         status: 'active'
+       };
++      const result = await MockCatalogApi.addCatalogSku(newSku);
++      expect(result).toEqual(newSku);
++      // getCatalog stays empty — addCatalogSku doesn't accumulate state.
++      expect(await MockCatalogApi.getCatalog()).toEqual([]);
++    });
+ 
+-      await MockCatalogApi.addCatalogSku(newSku);
+-      const skusAfterAdd = await MockCatalogApi.getCatalog();
+-      expect(skusAfterAdd.find(s => s.id === 'sku-test-999')).toBeDefined();
+-
+-      await MockCatalogApi.updateCatalogSku('sku-test-999', { price: 1700 });
+-      const updatedSkus = await MockCatalogApi.getCatalog();
+-      expect(updatedSkus.find(s => s.id === 'sku-test-999')?.price).toBe(1700);
+-
+-      await expect(MockCatalogApi.updateCatalogSku('non-existing', { price: 100 })).rejects.toThrow('SKU not found');
++    it('updateCatalogSku succeeds for any id, including ids with no prior local record (regression guard for the price-rollback bug)', async () => {
++      // A real catalog id (e.g. "sku-4") that this mock has never seen before
++      // must NOT throw — this is the exact scenario that broke CatalogManager.
++      const result = await MockCatalogApi.updateCatalogSku('sku-4', { price: 1700 });
++      expect(result).toEqual({ id: 'sku-4', price: 1700 });
++    });
+ 
+-      await MockCatalogApi.deleteCatalogSku('sku-test-999');
+-      const skusAfterDelete = await MockCatalogApi.getCatalog();
+-      expect(skusAfterDelete.find(s => s.id === 'sku-test-999')).toBeUndefined();
++    it('deleteCatalogSku resolves without throwing for any id', async () => {
++      await expect(MockCatalogApi.deleteCatalogSku('sku-does-not-exist')).resolves.toBeUndefined();
+     });
+   });
+ 
+diff --git a/tests/e2e/catalog.spec.ts b/tests/e2e/catalog.spec.ts
+index 1c5492d..ef1b0ce 100644
+--- a/tests/e2e/catalog.spec.ts
++++ b/tests/e2e/catalog.spec.ts
+@@ -71,19 +71,27 @@ test.describe('06 - Catalog Manager E2E', () => {
+     // The Edit Price button is hidden until hover (opacity-0 group-hover). Use force:true
+     const editBtn = page.locator('button[title="Edit Price"]').first();
+     // Force click ignores visibility (opacity)
+-    if (await editBtn.count() > 0) {
+-      await editBtn.click({ force: true });
+-      await delay(500);
+-      // Should see price input field
+-      const priceInput = page.locator('input[type="text"]').filter({ hasText: '' }).first();
+-      if (await priceInput.isVisible()) {
+-        await priceInput.fill('9999');
+-        const saveBtn = page.locator('button[title="Save Price"]').first();
+-        await saveBtn.click({ force: true });
+-        await delay(500);
+-      }
+-    }
+-    // Just verify SKU is still visible after the interaction
++    await expect(editBtn).toHaveCount(1);
++    await editBtn.click({ force: true });
++    await delay(500);
++    // Should see price input field
++    const priceInput = page.locator('input[type="text"]').filter({ hasText: '' }).first();
++    await expect(priceInput).toBeVisible();
++    await priceInput.fill('9999');
++    const saveBtn = page.locator('button[title="Save Price"]').first();
++    await saveBtn.click({ force: true });
++    await delay(800);
++
++    // Regression guard for the Catalog Manager price-rollback bug: the
++    // background sync used to hit a stub backend (MockCatalogApi's old
++    // 2-SKU serverState.catalog) that never had this SKU's real id, so
++    // updateCatalogSku() threw "SKU not found" and the edit silently
++    // rolled back. This assertion previously only checked the SKU text
++    // was "still visible", which passed whether or not the price actually
++    // stuck — it never would have caught the bug. Now it checks the
++    // displayed price directly, and that no rollback toast appeared.
++    await expect(page.getByText('$9,999').first()).toBeVisible({ timeout: 5000 });
++    await expect(page.getByText('Price sync failed')).toHaveCount(0);
+     await expect(page.getByText('P40424-B21').first()).toBeVisible({ timeout: 5000 });
+   });
+ });
+diff --git a/tests/unit/contracts.test.ts b/tests/unit/contracts.test.ts
+index 726e0a4..b0b3b3c 100644
+--- a/tests/unit/contracts.test.ts
++++ b/tests/unit/contracts.test.ts
+@@ -73,16 +73,12 @@ describe('Data Contract & Integrity Validation Tests', () => {
+ 
+   // 2. Validate Endpoint Responses via MSW Interception
+   describe('MSW Handler Contract Enforcement', () => {
+-    it('GET /api/catalog returns compliant items', async () => {
++    it('GET /api/catalog is an empty stateless pass-through (coreStore is the source of truth, not this endpoint)', async () => {
+       const response = await apiClient.get<any[]>('/api/catalog');
+       expect(response.success).toBe(true);
+       const data = response.data;
+       expect(Array.isArray(data)).toBe(true);
+-      expect(data.length).toBeGreaterThan(0);
+-      data.forEach(item => {
+-        const parsed = CatalogSKUSchema.safeParse(item);
+-        expect(parsed.success).toBe(true);
+-      });
++      expect(data.length).toBe(0);
+     });
+ 
+     
+-- 
+2.43.0
+

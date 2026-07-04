@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MissionControl } from '../MissionControl';
 import { ToastProvider } from '../../shared/ToastContext';
+import { useCoreStore } from '../../../store/coreStore';
 import type { UCID } from '../../../types';
 import { axe } from 'vitest-axe';
 
@@ -79,5 +80,29 @@ describe('MissionControl', () => {
     );
     const results = await axe(container);
     (expect(results) as any).toHaveNoViolations();
+  });
+
+  it('auto-syncs activeSolutionId when a UCID with solutionId is rendered as selected', () => {
+    // This validates the useEffect added in audit fix §9.1:
+    // selecting a UCID in Mission Control should update activeSolutionId in the store
+    // so Taxonomy Graph and Solutions screens default to the correct parent.
+    const mockSetActiveSolution = vi.fn();
+    useCoreStore.setState({
+      ucids: mockUcids,
+      solutions: [{ id: '11111111-1111-1111-8111-111111111111', ucidIds: ['ucid-1'] } as any],
+      setActiveSolution: mockSetActiveSolution,
+    });
+
+    render(
+      <ToastProvider>
+        <MissionControl
+          selectedId="ucid-1"
+          onSelectId={defaultProps.onSelectId}
+          onNavigate={defaultProps.onNavigate}
+        />
+      </ToastProvider>
+    );
+
+    expect(mockSetActiveSolution).toHaveBeenCalledWith('11111111-1111-1111-8111-111111111111');
   });
 });

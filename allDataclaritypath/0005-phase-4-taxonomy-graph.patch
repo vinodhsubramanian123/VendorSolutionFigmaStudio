@@ -1,0 +1,941 @@
+From 83d0261a5eafe14ffd4187c0c97a02d8798afca3 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Fri, 3 Jul 2026 05:36:13 +0000
+Subject: [PATCH] fix(taxonomy-graph): derive from real catalog data, write
+ orphan fixes back to coreStore (Phase 4)
+
+Root cause found while wiring this up: TaxonomyGraphView.tsx passed
+activeUcid?.id as the graph hook's configId, but allConfigs holds
+Config objects with unrelated cfg-* ids -- the internal id lookup
+could never match for any real UCID. That's *why* the graph always
+silently showed the same stale content regardless of selection: the
+one successful fetch (using the DEFAULT_CONFIGS placeholder before a
+UCID resolved) never got replaced, because every subsequent lookup
+failed and returned early without touching state.
+
+- useCatalogGraphData.ts: replaced the network round-trip + broken id
+  lookup with deriveGraphFromConfig(), a pure function building nodes/
+  edges directly from the selected config's real BOM items crossed
+  against catalogSkus. No 600ms simulated delay either.
+- mapNode/healOrphanMapping now write the classification onto the
+  matching real catalog SKU via setCatalogSkus (by partNumber), or
+  create a new SKU if none exists yet. The next catalogSkus-triggered
+  re-derivation shows the fix automatically -- and because it's a
+  real coreStore write, the fix is now visible on Dashboard, Catalog
+  Manager, and Cleansing too, not just the graph view.
+- TaxonomyGraphSidebar.tsx: removed the now-redundant duplicate
+  setCatalogSkus call in handleMapOrphanNode -- mapNode owns this
+  write now, avoiding two slightly-different copies of the same logic.
+- Generic node/edge CRUD (add/update/delete) now operates on a local
+  GraphOverlay that layers on top of the derived baseline, so a
+  manual edit survives a catalogSkus-triggered re-derivation instead
+  of being silently wiped -- same non-destructive-merge principle
+  used for CleansingView in Phase 2.
+- Fixed an id-scheme bug caught mid-implementation: orphan node ids
+  must be the real partNumber, since the pre-existing
+  OrphanWorkshopPanel/handleMapOrphanNode code already assumes an
+  orphan's id IS its partNumber.
+- Retired memoryGraphNodes/memoryGraphEdges and the 5 dead MSW graph
+  CRUD routes that served them, after confirming zero remaining
+  callers. Left alternative-paths/path-selection alone (genuinely
+  algorithmic, still network-backed on purpose).
+- Rewrote taxonomy-graph-sync.test.tsx (6 tests: pure derivation,
+  catalog write-back, live orphan resolution on catalogSkus change,
+  no-duplicate-on-remap) and MSWContracts.test.ts's dead-route schema
+  check (now validates deriveGraphFromConfig's output instead).
+
+Noted, not fixed: TaxonomyOrphanBox.tsx (a second, fully unused
+component with the 'Orphan Work Queue (1) renders empty' bug found
+earlier) is dead code with zero imports -- left in place since file
+deletion is higher-risk than route cleanup and it was never reachable
+in the running app anyway.
+
+Verified: tsc --noEmit clean, full vitest suite green (84 files /
+397 tests, 0 regressions).
+---
+ docs/architecture/data-architecture-plan.md   |  16 +-
+ .../taxonomy/TaxonomyGraphSidebar.tsx         |  19 +-
+ src/components/taxonomy/TaxonomyGraphView.tsx |  20 +-
+ src/hooks/useCatalogGraphData.ts              | 375 +++++++++++-------
+ src/mocks/routes/graphHandlers.ts             |  70 +---
+ src/mocks/routes/sharedState.ts               |  19 +-
+ src/tests/integration/MSWContracts.test.ts    |  21 +-
+ .../integration/taxonomy-graph-sync.test.tsx  | 145 +++++--
+ 8 files changed, 397 insertions(+), 288 deletions(-)
+
+diff --git a/docs/architecture/data-architecture-plan.md b/docs/architecture/data-architecture-plan.md
+index 9fbec84..92fbb1c 100644
+--- a/docs/architecture/data-architecture-plan.md
++++ b/docs/architecture/data-architecture-plan.md
+@@ -99,10 +99,18 @@ Given 2-for-2 on real landmines from a partial spot-check, the responsible call
+ 
+ Leave `/api/agents/run`'s "Simulator" framing as-is either way — it's honest about what it is; the fix here is about which layer answers the request, not about making it a real Playwright bridge.
+ 
+-### Phase 4 — Rewire Taxonomy Graph to real data (issues #13–15)
+-- [ ] Replace the `GET /api/graph/solution/:ucid` network round-trip with a client-side derivation: build `nodes` from the selected config's real BOM `items`, cross-referenced against `catalogSkus`; build `edges` from `chassisRef`/category relationships; build `unmappedIds` from BOM items whose `partNumber` has no catalog match. Pure function, no backend needed, and removes the simulated 600ms `delay()` — directly addresses wanting this "smooth and fast."
+-- [ ] Rewire `mapNode`, `healOrphanMapping`, `addGraphNode`, `updateGraphNode`, `addRule` (in `useCatalogGraphData.ts`) to call `setCatalogSkus` (updating the matched SKU's `category`/`chassisRef`/classification fields), in addition to their local graph-view state. This is what makes a visual drag-and-drop fix actually show up in Dashboard, Catalog Manager, and Cleansing simultaneously.
+-- [ ] Once read + write both derive from/write to `coreStore`, retire `memoryGraphNodes`/`memoryGraphEdges` in `sharedState.ts` for this feature — they become dead weight.
++### Phase 4 — Rewire Taxonomy Graph to real data (issues #13–15) — **DONE, verified**
++- [x] Replaced `GET /api/graph/solution/:ucid` with `deriveGraphFromConfig()`, a pure client-side function: one node per real BOM item (`catalog_part` if it resolves against `catalogSkus` by partNumber, `scraped_orphan` + into `unmappedIds` otherwise), one `category_hub` per distinct BOM item `type`, root `product` node for the config itself. No network round-trip, no 600ms simulated delay.
++- [x] **Found and fixed a second bug while wiring this in**: `TaxonomyGraphView.tsx` was passing `activeUcid?.id` as the hook's `configId`, but `allConfigs` holds `Config` objects with unrelated `cfg-*` ids — the internal lookup could never match for any real UCID, which is *why* the graph always silently showed the same stale content (the one-time successful fetch using the `DEFAULT_CONFIGS` placeholder) no matter what was selected. Now defaults to `activeConfigs[0]?.id`, a real config id.
++- [x] `mapNode`/`healOrphanMapping` now write the classification onto the matching real catalog SKU via `setCatalogSkus` (matched by partNumber) — or, if no catalog SKU exists for that part yet, creates a new one. Either way, the next re-derivation of the graph (triggered automatically by the `catalogSkus` change) shows the fix — no manual local-state patch needed for BOM-backed items, which also means the fix is now visible on every other screen that reads `catalogSkus` (Dashboard, Catalog Manager, Cleansing), not just the graph view.
++- [x] Removed the now-redundant duplicate `setCatalogSkus` call in `TaxonomyGraphSidebar.tsx`'s `handleMapOrphanNode` — it was doing the same write a second, slightly different way; `mapNode` is now the single place this logic lives.
++- [x] Generic node/edge CRUD (`addGraphNode`/`updateGraphNode`/`deleteGraphNode`/`addGraphEdge`/`deleteGraphEdge`) — these don't map cleanly onto catalog fields, so they now operate on a local overlay (`GraphOverlay` in the hook) that layers on top of the derived baseline via `applyOverlay()`. This avoids the same "wipe user work on re-derivation" risk identified and fixed for `CleansingView` in Phase 2 — a manual edit survives a `catalogSkus` change instead of being silently discarded.
++- [x] Fixed an id-scheme bug caught while wiring this up: orphan nodes must use the real `partNumber` as their id (not a synthetic one), because the pre-existing `OrphanWorkshopPanel`/`handleMapOrphanNode` code already assumes an orphan's id *is* its partNumber (both for display-name lookup and as the payload sent to `mapNode`).
++- [x] Retired `memoryGraphNodes`/`memoryGraphEdges` in `sharedState.ts` and the 5 dead MSW routes that served them (`GET /api/graph/solution/:ucid`, `POST/PUT/DELETE /api/graph/nodes`, `POST/DELETE /api/graph/edges`) — confirmed zero remaining callers first. Left `/api/graph/algorithms/alternative-paths` and `/api/graph/path-selection` alone; those are genuinely algorithmic (pathfinding) and still network-backed on purpose.
++- [x] Rewrote `tests/integration/taxonomy-graph-sync.test.tsx` (was asserting the old network-mocked behavior) with 6 tests covering the pure derivation, the catalog-write-back, live re-resolution of an orphan once `catalogSkus` updates, and no-duplicate-on-remap. Also updated `src/tests/integration/MSWContracts.test.ts`'s dead-route schema check to validate `deriveGraphFromConfig`'s output instead.
++- **Not done, noted for later, not urgent**: `TaxonomyOrphanBox.tsx` (a second, unused component with the "Orphan Work Queue (1) renders empty" bug identified earlier) is confirmed fully dead code — zero imports anywhere. Left in place rather than deleted (file deletion is higher-risk/harder-to-review than route cleanup, and it was never actually reachable in the running app, so it isn't a live bug). Worth deleting in a future pass.
++
++Verified: `tsc --noEmit` clean, full vitest suite green (84 files / 397 tests, 0 regressions).
+ 
+ ### Phase 5 — Persistence & session integrity (issues #16–17)
+ - [ ] Add `version` + `migrate` guards to `ingestionStore.ts`, `workflowStore.ts`, `auditStore.ts`, matching the pattern already in `coreStore.ts`.
+diff --git a/src/components/taxonomy/TaxonomyGraphSidebar.tsx b/src/components/taxonomy/TaxonomyGraphSidebar.tsx
+index a6775c5..3e09656 100644
+--- a/src/components/taxonomy/TaxonomyGraphSidebar.tsx
++++ b/src/components/taxonomy/TaxonomyGraphSidebar.tsx
+@@ -12,7 +12,6 @@ import {
+ } from "./TaxonomyGraphPanels";
+ interface TaxonomyGraphSidebarProps {
+   catalogSkus: CatalogSKU[];
+-  setCatalogSkus: React.Dispatch<React.SetStateAction<CatalogSKU[]>>;
+   data: { nodes: import('../../types').GraphNode[], edges: import('../../types').GraphEdge[], unmappedIds?: string[] };
+   categories: import('../../types').GraphNode[];
+   mapNode: (nodeId: string, parentId: string, metadata: import('../../hooks/useCatalogGraphData').MapNodeRequest) => Promise<void>;
+@@ -38,7 +37,6 @@ interface TaxonomyGraphSidebarProps {
+ }
+ export function TaxonomyGraphSidebar({
+   catalogSkus,
+-  setCatalogSkus,
+   data,
+   categories,
+   mapNode,
+@@ -110,18 +108,13 @@ export function TaxonomyGraphSidebar({
+     else if (categoryId.includes("Cooling")) type = "Cooling";
+     else if (categoryId.includes("Chassis")) type = "Chassis";
+     try {
++      // mapNode now writes the classification onto the matching catalog SKU
++      // itself (see useCatalogGraphData.ts) — the graph re-derives from
++      // catalogSkus automatically, so there's no separate setCatalogSkus
++      // call needed here anymore. Keeping both was two places doing the
++      // same write differently, which is exactly the drift this whole
++      // effort is meant to eliminate.
+       await mapNode(orphanId, categoryId, { partNumber: orphanId, name: orphanNodeName, type });
+-      
+-      setCatalogSkus(prev => prev.map(s => {
+-        if (s.partNumber === orphanId) {
+-          return {
+-            ...s,
+-            type: type,
+-            status: "active" as const
+-          };
+-        }
+-        return s;
+-      }));
+       setSelectedOrphanToMap(null);
+       toast(`Successfully mapped ${orphanId} to ${type} Category node.`, "success");
+     } catch (e) {
+diff --git a/src/components/taxonomy/TaxonomyGraphView.tsx b/src/components/taxonomy/TaxonomyGraphView.tsx
+index ec861ca..1e4ff3e 100644
+--- a/src/components/taxonomy/TaxonomyGraphView.tsx
++++ b/src/components/taxonomy/TaxonomyGraphView.tsx
+@@ -46,6 +46,14 @@ export function TaxonomyGraphView() {
+     return configs && configs.length > 0 ? configs : DEFAULT_CONFIGS;
+   }, [activeUcid]);
+ 
++  const [selectedConfigIdState, setSelectedConfigIdState] = useState<string>("");
++  const selectedConfigId = useMemo(() => {
++    if (activeConfigs.some(c => c.id === selectedConfigIdState)) {
++      return selectedConfigIdState;
++    }
++    return activeConfigs[0]?.id || "";
++  }, [activeConfigs, selectedConfigIdState]);
++
+   const { 
+     data, 
+     isLoading, 
+@@ -60,9 +68,16 @@ export function TaxonomyGraphView() {
+     addGraphEdge,
+     deleteGraphEdge
+   } = useCatalogGraphData(
+-    activeUcid?.id || "cfg-base", 
++    // BUG FIX: this used to pass activeUcid?.id, which is a UCID id and
++    // never matches any Config.id in activeConfigs — the internal lookup
++    // always failed, so the graph silently kept showing whatever it last
++    // successfully loaded (the same 5 hardcoded mock nodes) no matter which
++    // solution/UCID was actually selected. Now it derives from the real
++    // selected config's own id.
++    selectedConfigId || "cfg-base",
+     activeConfigs, 
+-    catalogSkus
++    catalogSkus,
++    setCatalogSkus
+   );
+   // States
+   const [, setExpandedNode] = useState<string | null>(null);
+@@ -182,7 +197,6 @@ export function TaxonomyGraphView() {
+       {/* RIGHT: Mechanical Validation & Orphan Repair Workshop */}
+       <TaxonomyGraphSidebar
+         catalogSkus={catalogSkus}
+-        setCatalogSkus={setCatalogSkus}
+         data={data}
+         categories={categories}
+         mapNode={mapNode}
+diff --git a/src/hooks/useCatalogGraphData.ts b/src/hooks/useCatalogGraphData.ts
+index 727d860..cb46f36 100644
+--- a/src/hooks/useCatalogGraphData.ts
++++ b/src/hooks/useCatalogGraphData.ts
+@@ -1,6 +1,7 @@
+-import { useState, useEffect, useCallback } from "react";
++import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+ import { GraphNode, GraphEdge, GraphAPIResponse, GraphPath } from "../types/data";
+-import { Config, CatalogSKU } from "../types";
++import { Config, CatalogSKU, BOMItem } from "../types";
++import type { CatalogItemType } from "../types/schemas/schemaCatalog";
+ import { apiClient } from "../services/apiClient";
+ 
+ export class TaxonomyGraphError extends Error {
+@@ -16,101 +17,205 @@ export interface MapNodeRequest {
+   type?: string;
+ }
+ 
+-export function useCatalogGraphData(configId: string | null, allConfigs: Config[], catalogSkus: CatalogSKU[]) {
+-  const [data, setData] = useState<GraphAPIResponse>({ nodes: [], edges: [], unmappedIds: [] });
+-  const [alternativePaths, setAlternativePaths] = useState<GraphPath[]>([]);
+-  const [isLoading, setIsLoading] = useState(false);
+-  const [error, setError] = useState<string | null>(null);
++/**
++ * Builds the taxonomy graph directly from the selected config's real BOM
++ * items, cross-referenced against the real catalog — instead of a network
++ * round-trip to a mock endpoint that ignored which config was selected and
++ * always returned the same 5 hardcoded nodes (see
++ * docs/architecture/data-ownership.md, Phase 4).
++ *
++ * One category_hub node per distinct BOM item `type`; one node per BOM line
++ * (catalog_part if it resolves against catalogSkus by partNumber,
++ * scraped_orphan otherwise, landing in unmappedIds).
++ */
++export function deriveGraphFromConfig(config: Config | undefined, catalogSkus: CatalogSKU[]): GraphAPIResponse {
++  if (!config || config.items.length === 0) {
++    return { nodes: [], edges: [], unmappedIds: [] };
++  }
+ 
+-  const fetchGraph = useCallback(async (isCancelled?: () => boolean) => {
+-    if (!configId) {
+-      setData({ nodes: [], edges: [], unmappedIds: [] });
+-      return;
+-    }
++  const nodes: GraphNode[] = [
++    {
++      id: config.id,
++      label: config.name,
++      sublabel: config.vendor ? `${config.vendor} Configuration` : "Configuration",
++      type: "product",
++    },
++  ];
++  const edges: GraphEdge[] = [];
++  const unmappedIds: string[] = [];
++  const seenCategoryHubs = new Set<string>();
+ 
+-    const config = allConfigs.find((c) => c.id === configId);
+-    if (!config) return;
++  const findCatalogMatch = (item: BOMItem): CatalogSKU | undefined =>
++    catalogSkus.find((s) => s.partNumber.toLowerCase() === item.partNumber.toLowerCase());
+ 
+-    setIsLoading(true);
+-    setError(null);
++  for (const item of config.items) {
++    const categoryHubId = `category-${item.type}`;
++    if (!seenCategoryHubs.has(categoryHubId)) {
++      seenCategoryHubs.add(categoryHubId);
++      nodes.push({ id: categoryHubId, label: item.type, type: "category_hub" });
++      edges.push({ id: `e-${config.id}-${categoryHubId}`, source: config.id, target: categoryHubId, relationship: "contains" });
++    }
+ 
+-    try {
+-      const res = await apiClient.getGraphSolution(configId);
+-      if (isCancelled && isCancelled()) return;
+-      if (res.success && res.data) {
+-        setData(res.data);
+-        setAlternativePaths([]);
+-      } else {
+-        throw new TaxonomyGraphError("Failed to fetch topology");
+-      }
+-    } catch (err) {
+-      console.error(err);
+-      if (isCancelled && isCancelled()) return;
+-      setError("Failed to fetch topology for the selected configuration.");
+-      setData({ nodes: [], edges: [], unmappedIds: [] });
+-      setAlternativePaths([]);
+-    } finally {
+-      if (!isCancelled || !isCancelled()) {
+-        setIsLoading(false);
+-      }
++    const match = findCatalogMatch(item);
++    // Orphan node ids are the real partNumber, not a synthetic id — the
++    // existing OrphanWorkshopPanel/handleMapOrphanNode flow looks orphans up
++    // by partNumber and sends the id straight back as the partNumber to map,
++    // so this has to be the genuine value for that round-trip to work.
++    const nodeId = match ? `bom-${item.id}` : (item.partNumber || `bom-${item.id}`);
++    if (match) {
++      nodes.push({
++        id: nodeId,
++        label: item.partNumber,
++        sublabel: item.name,
++        type: "catalog_part",
++        status: "healthy",
++        data: { partNumber: item.partNumber, price: item.unitPrice },
++      });
++    } else {
++      nodes.push({
++        id: nodeId,
++        label: item.partNumber || item.name,
++        sublabel: item.name,
++        type: "scraped_orphan",
++        status: "warning",
++        data: { partNumber: item.partNumber, price: item.unitPrice },
++      });
++      unmappedIds.push(nodeId);
+     }
+-  }, [configId, allConfigs]);
++    edges.push({ id: `e-${categoryHubId}-${nodeId}`, source: categoryHubId, target: nodeId, relationship: "requires" });
++  }
++
++  return { nodes, edges, unmappedIds };
++}
++
++// Local overlay for manual graph edits (added/updated/deleted nodes and
++// edges) that layers on top of the derived baseline without being wiped
++// out every time catalogSkus changes and the baseline re-derives — same
++// non-destructive-merge principle used for CleansingView's entries.
++interface GraphOverlay {
++  addedNodes: Map<string, GraphNode>;
++  updatedNodes: Map<string, Partial<GraphNode>>;
++  deletedNodeIds: Set<string>;
++  addedEdges: Map<string, GraphEdge>;
++  deletedEdgeIds: Set<string>;
++}
+ 
++function emptyOverlay(): GraphOverlay {
++  return {
++    addedNodes: new Map(),
++    updatedNodes: new Map(),
++    deletedNodeIds: new Set(),
++    addedEdges: new Map(),
++    deletedEdgeIds: new Set(),
++  };
++}
++
++function applyOverlay(baseline: GraphAPIResponse, overlay: GraphOverlay): GraphAPIResponse {
++  const nodes = baseline.nodes
++    .filter((n) => !overlay.deletedNodeIds.has(n.id))
++    .map((n) => (overlay.updatedNodes.has(n.id) ? { ...n, ...overlay.updatedNodes.get(n.id) } : n));
++  for (const n of overlay.addedNodes.values()) {
++    if (!overlay.deletedNodeIds.has(n.id)) nodes.push(n);
++  }
++  const edges = baseline.edges
++    .filter((e) => !overlay.deletedEdgeIds.has(e.id) && !overlay.deletedNodeIds.has(e.source) && !overlay.deletedNodeIds.has(e.target));
++  for (const e of overlay.addedEdges.values()) {
++    if (!overlay.deletedEdgeIds.has(e.id)) edges.push(e);
++  }
++  const unmappedIds = baseline.unmappedIds.filter((id) => !overlay.deletedNodeIds.has(id));
++  return { nodes, edges, unmappedIds };
++}
++
++export function useCatalogGraphData(
++  configId: string | null,
++  allConfigs: Config[],
++  catalogSkus: CatalogSKU[],
++  setCatalogSkus?: (updater: (prev: CatalogSKU[]) => CatalogSKU[]) => void
++) {
++  const config = useMemo(() => allConfigs.find((c) => c.id === configId), [allConfigs, configId]);
++  const baseline = useMemo(() => deriveGraphFromConfig(config, catalogSkus), [config, catalogSkus]);
++
++  const overlayRef = useRef<GraphOverlay>(emptyOverlay());
++  // Reset the overlay when the selected config changes (switching configs
++  // shouldn't carry another config's manual edits with it), but NOT when
++  // catalogSkus changes (that's exactly the case the overlay exists to
++  // survive).
+   useEffect(() => {
+-    let cancel = false;
+-    fetchGraph(() => cancel);
+-    return () => {
+-      cancel = true;
+-    };
+-  }, [fetchGraph]);
+-
+-  const mapNode = async (childId: string, parentId: string, childInfo: MapNodeRequest) => {
+-    await apiClient.post("/api/taxonomy/map", { childId, targetParentId: parentId, properties: childInfo });
+-    // Optimistic Update
+-    setData(prev => {
+-      const newNodes = [...prev.nodes];
+-      if (!newNodes.find(n => n.id === childId)) {
+-        newNodes.push({
+-          id: childId,
+-          type: "sku",
+-          label: childInfo.partNumber || childId,
+-          sublabel: "Mapped via Intelligence GUI",
+-          constraints: ["Manually Assigned Overrides"],
+-          dependencies: ["Graph Integrity Verified"]
+-        });
++    overlayRef.current = emptyOverlay();
++  }, [configId]);
++
++  const [renderTick, forceRender] = useState(0);
++  const bump = () => forceRender((n) => n + 1);
++
++  const data = useMemo(() => applyOverlay(baseline, overlayRef.current), [baseline, renderTick]);
++
++  const [alternativePaths, setAlternativePaths] = useState<GraphPath[]>([]);
++  const isLoading = false;
++  const error: string | null = null;
++
++  const mapNode = useCallback(async (childId: string, parentId: string, childInfo: MapNodeRequest) => {
++    // The real fix: write the classification onto the catalog. Once
++    // catalogSkus updates, the baseline re-derivation naturally shows this
++    // item as matched — no optimistic local node patch needed for BOM-backed
++    // items. We still track it in the overlay as a safety net for the rare
++    // case the item can't be resolved back onto a real catalog SKU at all.
++    const inferredType = parentId.replace(/^category-/, "") as CatalogItemType;
++    let matchedByPartNumber = false;
++    if (setCatalogSkus && childInfo.partNumber) {
++      setCatalogSkus((prev) => {
++        const idx = prev.findIndex((s) => s.partNumber.toLowerCase() === childInfo.partNumber!.toLowerCase());
++        if (idx === -1) return prev;
++        matchedByPartNumber = true;
++        const next = [...prev];
++        next[idx] = { ...next[idx], type: inferredType, status: "active" };
++        return next;
++      });
++    }
++    if (!matchedByPartNumber) {
++      // No catalog SKU exists for this part yet — record the mapping as a
++      // local overlay node so the graph reflects the fix immediately, and
++      // (if we have write access) add it as a genuinely new catalog SKU so
++      // it isn't lost the moment this view is closed.
++      overlayRef.current.updatedNodes.set(childId, { type: "catalog_part", status: "healthy" });
++      overlayRef.current.deletedNodeIds.delete(childId);
++      if (setCatalogSkus && childInfo.partNumber) {
++        setCatalogSkus((prev) => [
++          ...prev,
++          {
++            id: `sku-graph-${childId}`,
++            vendor: "Unknown",
++            partNumber: childInfo.partNumber!,
++            name: childInfo.name,
++            type: inferredType,
++            price: 0,
++            leadTimeDays: 0,
++            status: "active",
++          },
++        ]);
+       }
+-      const newEdges: GraphEdge[] = [...prev.edges.filter(e => e.target !== childId), { id: `e-${parentId}-${childId}`, source: parentId, target: childId, relationship: "contains" }];
+-      const newUnmapped = prev.unmappedIds.filter(id => id !== childId);
+-      return { nodes: newNodes, edges: newEdges, unmappedIds: newUnmapped };
+-    });
+-  };
++      const edgeId = `e-${parentId}-${childId}`;
++      overlayRef.current.addedEdges.set(edgeId, { id: edgeId, source: parentId, target: childId, relationship: "contains" });
++    }
++    bump();
++  }, [setCatalogSkus]);
+ 
+   const healOrphanMapping = async (orphanId: string, orphanName: string, targetNodeId: string) => {
+-    // Re-uses mapNode which optimally updates state by moving orphan to mapped node and drawing edge
+     await mapNode(orphanId, targetNodeId, { name: orphanName });
+   };
+ 
+   const unmapNode = async (nodeId: string) => {
+-     await apiClient.delete(`/api/taxonomy/map/${nodeId}`);
+-     setData(prev => ({
+-       ...prev,
+-       edges: prev.edges.filter(e => e.target !== nodeId),
+-       nodes: prev.nodes.filter(n => n.id !== nodeId),
+-       unmappedIds: [...prev.unmappedIds, nodeId]
+-     }));
++    overlayRef.current.deletedNodeIds.add(nodeId);
++    bump();
+   };
+ 
+-  const addRule = async (nodeId: string, type: "requires"|"exclusive", note: string) => {
+-     await apiClient.post("/api/taxonomy/rules", { sourceId: nodeId, ruleType: type, explanation: note });
+-     setData(prev => {
+-        const newNodes = prev.nodes.map(n => {
+-          if (n.id === nodeId) {
+-            return { ...n, constraints: [...(n.constraints || []), note] };
+-          }
+-          return n;
+-        });
+-        return { ...prev, nodes: newNodes };
+-     });
++  const addRule = async (nodeId: string, _type: "requires" | "exclusive", note: string) => {
++    const current = data.nodes.find((n) => n.id === nodeId);
++    if (current) {
++      overlayRef.current.updatedNodes.set(nodeId, {
++        constraints: [...(current.constraints || []), note],
++      });
++      bump();
++    }
+   };
+ 
+   const fetchAlternativePaths = async (targetNodeId: string) => {
+@@ -127,7 +232,7 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
+   };
+ 
+   const commitPathSelection = async (jobId: string, selectedPathId: string) => {
+-    const rejectedIds = alternativePaths.map(p => p.pathId).filter(id => id !== selectedPathId);
++    const rejectedIds = alternativePaths.map((p) => p.pathId).filter((id) => id !== selectedPathId);
+     try {
+       const res = await apiClient.commitGraphPathSelection(jobId, selectedPathId, rejectedIds);
+       if (res.success) {
+@@ -141,89 +246,57 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
+   };
+ 
+   const addGraphNode = async (node: Partial<GraphNode>) => {
+-    try {
+-      const res = await apiClient.createGraphNode(node);
+-      if (res.success && res.data) {
+-        setData(prev => ({ ...prev, nodes: [...prev.nodes, res.data!] }));
+-      }
+-      return res.success;
+-    } catch (e) {
+-      console.error(e);
+-      return false;
+-    }
++    const id = node.id || `node-manual-${Date.now()}`;
++    overlayRef.current.addedNodes.set(id, { id, label: node.label || id, type: node.type || "sku", ...node });
++    bump();
++    return true;
+   };
+ 
+   const updateGraphNode = async (nodeId: string, updates: Partial<GraphNode>) => {
+-    try {
+-      const res = await apiClient.updateGraphNode(nodeId, updates);
+-      if (res.success && res.data) {
+-        setData(prev => ({
+-          ...prev,
+-          nodes: prev.nodes.map(n => n.id === nodeId ? res.data! : n)
+-        }));
+-      }
+-      return res.success;
+-    } catch (e) {
+-      console.error(e);
+-      return false;
+-    }
++    overlayRef.current.updatedNodes.set(nodeId, { ...(overlayRef.current.updatedNodes.get(nodeId) || {}), ...updates });
++    bump();
++    return true;
+   };
+ 
+   const deleteGraphNode = async (nodeId: string) => {
+-    try {
+-      const res = await apiClient.deleteGraphNode(nodeId);
+-      if (res.success) {
+-        setData(prev => ({
+-          ...prev,
+-          nodes: prev.nodes.filter(n => n.id !== nodeId),
+-          edges: prev.edges.filter(e => e.source !== nodeId && e.target !== nodeId)
+-        }));
+-      }
+-      return res.success;
+-    } catch (e) {
+-      console.error(e);
+-      return false;
+-    }
++    overlayRef.current.deletedNodeIds.add(nodeId);
++    bump();
++    return true;
+   };
+ 
+   const addGraphEdge = async (edge: Partial<GraphEdge>) => {
+-    try {
+-      const res = await apiClient.createGraphEdge(edge);
+-      if (res.success && res.data) {
+-        setData(prev => ({ ...prev, edges: [...prev.edges, res.data!] }));
+-      }
+-      return res.success;
+-    } catch (e) {
+-      console.error(e);
+-      return false;
+-    }
++    const id = edge.id || `edge-manual-${Date.now()}`;
++    overlayRef.current.addedEdges.set(id, {
++      id,
++      source: edge.source || "",
++      target: edge.target || "",
++      relationship: edge.relationship || "compatible",
++      ...edge,
++    });
++    bump();
++    return true;
+   };
+ 
+   const deleteGraphEdge = async (edgeId: string) => {
+-    try {
+-      const res = await apiClient.deleteGraphEdge(edgeId);
+-      if (res.success) {
+-        setData(prev => ({
+-          ...prev,
+-          edges: prev.edges.filter(e => e.id !== edgeId)
+-        }));
+-      }
+-      return res.success;
+-    } catch (e) {
+-      console.error(e);
+-      return false;
+-    }
++    overlayRef.current.deletedEdgeIds.add(edgeId);
++    bump();
++    return true;
++  };
++
++  const refresh = () => {
++    overlayRef.current = emptyOverlay();
++    bump();
+   };
+ 
+-  return { 
+-    data, 
+-    isLoading, 
+-    error, 
+-    mapNode, 
+-    unmapNode, 
++  return {
++    data,
++    isLoading,
++    error,
++    mapNode,
++    unmapNode,
+     healOrphanMapping,
+-    addRule, 
+-    refresh: fetchGraph,
++    addRule,
++    refresh,
+     alternativePaths,
+     fetchAlternativePaths,
+     commitPathSelection,
+@@ -231,6 +304,6 @@ export function useCatalogGraphData(configId: string | null, allConfigs: Config[
+     updateGraphNode,
+     deleteGraphNode,
+     addGraphEdge,
+-    deleteGraphEdge
++    deleteGraphEdge,
+   };
+ }
+diff --git a/src/mocks/routes/graphHandlers.ts b/src/mocks/routes/graphHandlers.ts
+index ef44d67..bcb0bbf 100644
+--- a/src/mocks/routes/graphHandlers.ts
++++ b/src/mocks/routes/graphHandlers.ts
+@@ -1,8 +1,8 @@
+ import { http, HttpResponse, delay } from 'msw';
+-import { CatalogSKU, Config,  GraphNode, GraphEdge, Solution, VendorSubmission, BOMItem, SourcingRule, LearningEvent, UCID } from '../../types';
++import { CatalogSKU, Config, Solution, VendorSubmission, BOMItem, SourcingRule, LearningEvent, UCID } from '../../types';
+ import { CleansingEntry } from '../../components/cleansing/types';
+ import { makeMockApiLogs, makeMockWebhooks } from '../../components/telemetry/telemetryUtils';
+-import { wrapSuccess, memoryGraphNodes, memoryGraphEdges } from './sharedState';
++import { wrapSuccess } from './sharedState';
+ export const graphHandlers = [
+   http.post('/api/forensics/align', async ({ request }) => {
+     if (process.env.NODE_ENV !== 'test') await delay(1200);
+@@ -168,60 +168,20 @@ export const graphHandlers = [
+     return HttpResponse.json(wrapSuccess({ simulated: true }));
+   }),
+   // ======================================================================
+-  // KNOWLEDGE GRAPH ENDPOINTS (Phase 2)
++  // KNOWLEDGE GRAPH ENDPOINTS
+   // ======================================================================
+-  // GET /api/graph/solution/:ucid
+-  http.get('/api/graph/solution/:ucid', async ({ params }) => {
+-    if (process.env.NODE_ENV !== 'test') await delay(600);
+-    return HttpResponse.json(wrapSuccess({
+-      metadata: { id: params.ucid as string, version: "v2" },
+-      nodes: memoryGraphNodes,
+-      edges: memoryGraphEdges,
+-      unmappedIds: memoryGraphNodes.filter(n => n.type === 'scraped_orphan').map(n => n.id)
+-    }));
+-  }),
+-  // POST /api/graph/nodes
+-  http.post('/api/graph/nodes', async ({ request }) => {
+-    if (process.env.NODE_ENV !== 'test') await delay(300);
+-    const body = (await request.json()) as Omit<GraphNode, 'id'>;
+-    const newNode: GraphNode = { ...body, id: `node-${crypto.randomUUID()}` };
+-    memoryGraphNodes.push(newNode);
+-    return HttpResponse.json(wrapSuccess(newNode));
+-  }),
+-  // PUT /api/graph/nodes/:id
+-  http.put('/api/graph/nodes/:id', async ({ request, params }) => {
+-    if (process.env.NODE_ENV !== 'test') await delay(300);
+-    const body = (await request.json()) as Partial<GraphNode>;
+-    const idx = memoryGraphNodes.findIndex(n => n.id === params.id);
+-    if (idx !== -1) {
+-      memoryGraphNodes[idx] = { ...memoryGraphNodes[idx], ...body };
+-      return HttpResponse.json(wrapSuccess(memoryGraphNodes[idx]));
+-    }
+-    return HttpResponse.json({ success: false, error: { message: "Node not found" } }, { status: 404 });
+-  }),
+-  // DELETE /api/graph/nodes/:id
+-  http.delete('/api/graph/nodes/:id', async ({ params }) => {
+-    if (process.env.NODE_ENV !== 'test') await delay(300);
+-    const nodeId = params.id as string;
+-    memoryGraphNodes.splice(0, memoryGraphNodes.length, ...memoryGraphNodes.filter(n => n.id !== nodeId));
+-    // Also remove any edges connected to it
+-    memoryGraphEdges.splice(0, memoryGraphEdges.length, ...memoryGraphEdges.filter(e => e.source !== nodeId && e.target !== nodeId));
+-    return HttpResponse.json(wrapSuccess({ success: true }));
+-  }),
+-  // POST /api/graph/edges
+-  http.post('/api/graph/edges', async ({ request }) => {
+-    if (process.env.NODE_ENV !== 'test') await delay(300);
+-    const body = (await request.json()) as Omit<GraphEdge, 'id'>;
+-    const newEdge: GraphEdge = { ...body, id: `edge-${crypto.randomUUID()}` };
+-    memoryGraphEdges.push(newEdge);
+-    return HttpResponse.json(wrapSuccess(newEdge));
+-  }),
+-  // DELETE /api/graph/edges/:id
+-  http.delete('/api/graph/edges/:id', async ({ params }) => {
+-    if (process.env.NODE_ENV !== 'test') await delay(300);
+-    memoryGraphEdges.splice(0, memoryGraphEdges.length, ...memoryGraphEdges.filter(e => e.id !== params.id));
+-    return HttpResponse.json(wrapSuccess({ success: true }));
+-  }),
++  // NOTE: GET /api/graph/solution/:ucid and the node/edge CRUD routes that
++  // used to live here were removed in Phase 4 of the data-ownership cleanup
++  // (see docs/architecture/data-ownership.md). The taxonomy graph now
++  // derives client-side from the selected config's real BOM items
++  // cross-referenced against coreStore.catalogSkus (see
++  // deriveGraphFromConfig in src/hooks/useCatalogGraphData.ts), with a
++  // local overlay for manual node/edge edits. The old version always
++  // returned the same 5 hardcoded nodes regardless of which UCID/config was
++  // selected (the :ucid param was never read), and orphan-mapping only
++  // patched a disconnected in-memory array that never touched the real
++  // catalog. What's left below (alternative-paths / path-selection) is
++  // genuinely algorithmic and stays network-backed.
+   // POST /api/graph/algorithms/alternative-paths
+   http.post('/api/graph/algorithms/alternative-paths', async ({ request }) => {
+     if (process.env.NODE_ENV !== 'test') await delay(1200);
+diff --git a/src/mocks/routes/sharedState.ts b/src/mocks/routes/sharedState.ts
+index dc9081d..700f535 100644
+--- a/src/mocks/routes/sharedState.ts
++++ b/src/mocks/routes/sharedState.ts
+@@ -12,16 +12,9 @@ export function wrapSuccess<T>(data: T) {
+   };
+ }
+ 
+-export const memoryGraphNodes: GraphNode[] = [
+-  { id: "node-1", label: "HPE ProLiant DL380", type: "catalog_part", status: "healthy", data: { partNumber: "P52532-B21", price: 2100 } },
+-  { id: "node-2", label: "Intel Xeon Silver", type: "catalog_part", status: "healthy", data: { partNumber: "P49610-B21", price: 800 } },
+-  { id: "node-3", label: "Orphaned Memory Module", type: "scraped_orphan", status: "warning", data: { partNumber: "Unknown-MEM", confidenceScore: 40 } },
+-  { id: "node-4", label: "HPE 32GB DDR5", type: "catalog_part", status: "healthy", data: { partNumber: "P43328-B21", price: 350 } },
+-  { id: "node-subsystem-1", label: "Memory Subsystem", type: "category_hub", status: "healthy" },
+-];
+-
+-export const memoryGraphEdges: GraphEdge[] = [
+-  { id: "edge-1", source: "node-1", target: "node-2", relationship: "requires", weight: 1.0, isAnimated: false },
+-  { id: "edge-2", source: "node-1", target: "node-3", relationship: "requires", weight: 0.8, isAnimated: true },
+-  { id: "edge-3", source: "node-3", target: "node-4", relationship: "substitutes", weight: 0.95, isAnimated: false },
+-];
++// NOTE: the fictional memoryGraphNodes/memoryGraphEdges that used to live
++// here (5 hardcoded nodes with SKUs that appeared nowhere in the real
++// catalog) were removed in Phase 4 of the data-ownership cleanup — see
++// docs/architecture/data-ownership.md. The taxonomy graph is now derived
++// client-side from real BOM items + coreStore.catalogSkus instead.
++export type { GraphNode, GraphEdge };
+diff --git a/src/tests/integration/MSWContracts.test.ts b/src/tests/integration/MSWContracts.test.ts
+index eb0c475..6cada1f 100644
+--- a/src/tests/integration/MSWContracts.test.ts
++++ b/src/tests/integration/MSWContracts.test.ts
+@@ -162,11 +162,22 @@ describe("MSW Endpoint Response Schema Verification (Category 8)", () => {
+     expect(parsed.success).toBe(true);
+   });
+ 
+-  it("GET /api/graph/solution/:ucid matches GraphAPIResponseSchema structure", async () => {
+-    const response = await apiClient.get<unknown>("/api/graph/solution/u1");
+-    expect(response.success).toBe(true);
+-
+-    const parsed = GraphAPIResponseSchema.safeParse(response.data);
++  it("deriveGraphFromConfig output matches GraphAPIResponseSchema structure (replaces the removed GET /api/graph/solution/:ucid mock — see docs/architecture/data-ownership.md Phase 4)", async () => {
++    const { deriveGraphFromConfig } = await import("../../hooks/useCatalogGraphData");
++    const graph = deriveGraphFromConfig(
++      {
++        id: "cfg-contract-test",
++        name: "Contract Test Config",
++        vendor: "HPE",
++        totalPrice: 100,
++        originalPrice: 100,
++        items: [
++          { id: "i1", partNumber: "P40424-B21", name: "Test CPU", type: "Processor", quantity: 1, unitPrice: 100 },
++        ],
++      },
++      []
++    );
++    const parsed = GraphAPIResponseSchema.safeParse(graph);
+     if (!parsed.success) {
+       console.error("GraphAPIResponseSchema mismatch:", parsed.error.issues);
+     }
+diff --git a/tests/integration/taxonomy-graph-sync.test.tsx b/tests/integration/taxonomy-graph-sync.test.tsx
+index 3f34a36..8146d6c 100644
+--- a/tests/integration/taxonomy-graph-sync.test.tsx
++++ b/tests/integration/taxonomy-graph-sync.test.tsx
+@@ -1,59 +1,116 @@
+-import { renderHook, act, waitFor } from '@testing-library/react';
+-import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest';
+-import { useCatalogGraphData } from '../../src/hooks/useCatalogGraphData';
+-import type { Config } from '../../src/types';
+-import { apiClient } from '../../src/services/apiClient';
+-
+-vi.mock('../../src/services/apiClient', () => ({
+-  apiClient: {
+-    getGraphSolution: vi.fn(),
+-    postMapOrphanNode: vi.fn(),
+-    post: vi.fn(),
+-    get: vi.fn()
+-  }
+-}));
++import { renderHook, act } from '@testing-library/react';
++import { describe, it, expect, vi } from 'vitest';
++import { useCatalogGraphData, deriveGraphFromConfig } from '../../src/hooks/useCatalogGraphData';
++import type { Config, CatalogSKU } from '../../src/types';
++
++// The graph is now derived client-side from the real config's BOM items
++// cross-referenced against catalogSkus, instead of a network round-trip to
++// a mock endpoint that ignored which config/UCID was selected and always
++// returned the same 5 hardcoded nodes (see docs/architecture/data-ownership.md,
++// Phase 4). No apiClient mocking needed for the read path anymore.
++
++const mockConfigs: Config[] = [
++  {
++    id: 'cfg-1',
++    name: 'Test Config',
++    vendor: 'HPE',
++    totalPrice: 150,
++    originalPrice: 150,
++    items: [
++      { id: 'i1', partNumber: 'MATCHED-1', name: 'Matched Processor', type: 'Processor', quantity: 1, unitPrice: 100 },
++      { id: 'i2', partNumber: 'ORPHAN-1', name: 'Orphan Memory Module', type: 'Memory', quantity: 1, unitPrice: 50 },
++    ],
++  },
++];
++
++const catalogWithOneMatch: CatalogSKU[] = [
++  { id: 'sku-1', vendor: 'HPE', partNumber: 'MATCHED-1', name: 'Matched Processor', type: 'Processor', price: 100, leadTimeDays: 1, status: 'active' },
++];
+ 
+ describe('07 - Taxonomy Graph Sync Hook Integration', () => {
+-  const mockConfigs: Config[] = [
+-    {
+-      id: 'cfg-1',
+-      name: 'Test Config',
+-      totalPrice: 1000,
+-      originalPrice: 1200,
+-      items: []
+-    }
+-  ];
+-
+-  it('should fetch graph data and successfully map an orphan node', async () => {
+-    (apiClient.getGraphSolution as any).mockResolvedValue({
+-      success: true,
+-      data: {
+-        nodes: [{ id: 'parent-1', type: 'category', label: 'Compute' }],
+-        edges: [],
+-        unmappedIds: ['child-1']
+-      }
++  describe('deriveGraphFromConfig (pure derivation)', () => {
++    it('builds category hubs, matched catalog_part nodes, and orphan nodes from real BOM items', () => {
++      const graph = deriveGraphFromConfig(mockConfigs[0], catalogWithOneMatch);
++      expect(graph.nodes.find((n) => n.id === 'cfg-1')).toBeDefined();
++      expect(graph.nodes.find((n) => n.id === 'category-Processor')).toBeDefined();
++      expect(graph.nodes.find((n) => n.id === 'category-Memory')).toBeDefined();
++
++      const matchedNode = graph.nodes.find((n) => n.label === 'MATCHED-1');
++      expect(matchedNode?.type).toBe('catalog_part');
++      expect(matchedNode?.status).toBe('healthy');
++
++      const orphanNode = graph.nodes.find((n) => n.id === 'ORPHAN-1');
++      expect(orphanNode?.type).toBe('scraped_orphan');
++      expect(graph.unmappedIds).toContain('ORPHAN-1');
+     });
+ 
+-    const { result } = renderHook(() => useCatalogGraphData('cfg-1', mockConfigs, []));
++    it('returns an empty graph when there is no config or no items', () => {
++      expect(deriveGraphFromConfig(undefined, catalogWithOneMatch)).toEqual({ nodes: [], edges: [], unmappedIds: [] });
++      expect(deriveGraphFromConfig({ ...mockConfigs[0], items: [] }, catalogWithOneMatch)).toEqual({ nodes: [], edges: [], unmappedIds: [] });
++    });
++  });
+ 
+-    // Wait for initial fetch
+-    await waitFor(() => {
++  describe('useCatalogGraphData hook', () => {
++    it('derives data synchronously (isLoading is always false — no network round-trip)', () => {
++      const { result } = renderHook(() => useCatalogGraphData('cfg-1', mockConfigs, catalogWithOneMatch));
+       expect(result.current.isLoading).toBe(false);
+       expect(result.current.data.nodes.length).toBeGreaterThan(0);
++      expect(result.current.data.unmappedIds).toContain('ORPHAN-1');
+     });
+ 
+-    expect(result.current.data.unmappedIds).toContain('child-1');
++    it('mapNode writes the classification onto the matching catalog SKU via setCatalogSkus (regression guard for Phase 4: visual fixes must update the real catalog)', async () => {
++      const setCatalogSkus = vi.fn();
++      const { result } = renderHook(() =>
++        useCatalogGraphData('cfg-1', mockConfigs, catalogWithOneMatch, setCatalogSkus)
++      );
+ 
+-    // mock map orphan node
+-    (apiClient.post as any).mockResolvedValue({ success: true });
++      await act(async () => {
++        await result.current.mapNode('ORPHAN-1', 'category-Memory', { partNumber: 'ORPHAN-1', name: 'Orphan Memory Module', type: 'Memory' });
++      });
+ 
+-    await act(async () => {
+-      await result.current.mapNode('child-1', 'parent-1', { name: 'New Component' });
++      // No existing catalog SKU has partNumber ORPHAN-1, so mapNode should
++      // add a brand new one (not just patch local graph state) — this is
++      // the literal "fix it visually, updates the catalog" requirement.
++      expect(setCatalogSkus).toHaveBeenCalled();
++      const updaterFn = setCatalogSkus.mock.calls[setCatalogSkus.mock.calls.length - 1][0];
++      const resultingSkus = updaterFn(catalogWithOneMatch);
++      const added = resultingSkus.find((s: CatalogSKU) => s.partNumber === 'ORPHAN-1');
++      expect(added).toBeDefined();
++      expect(added.type).toBe('Memory');
+     });
+ 
+-    // Verify optimistic update
+-    expect(result.current.data.unmappedIds).not.toContain('child-1');
+-    expect(result.current.data.nodes.some((n: any) => n.id === 'child-1')).toBe(true);
+-    expect(result.current.data.edges.some((e: any) => e.source === 'parent-1' && e.target === 'child-1')).toBe(true);
++    it('resolves an orphan into a matched node once catalogSkus is updated, without a page reload (proves the read path re-derives live)', () => {
++      const { result, rerender } = renderHook(
++        (props: { catalogSkus: CatalogSKU[] }) => useCatalogGraphData('cfg-1', mockConfigs, props.catalogSkus),
++        { initialProps: { catalogSkus: catalogWithOneMatch } }
++      );
++      expect(result.current.data.unmappedIds).toContain('ORPHAN-1');
++
++      const healedCatalog: CatalogSKU[] = [
++        ...catalogWithOneMatch,
++        { id: 'sku-2', vendor: 'Unknown', partNumber: 'ORPHAN-1', name: 'Orphan Memory Module', type: 'Memory', price: 50, leadTimeDays: 0, status: 'active' },
++      ];
++      rerender({ catalogSkus: healedCatalog });
++
++      expect(result.current.data.unmappedIds).not.toContain('ORPHAN-1');
++      const nowMatched = result.current.data.nodes.find((n) => n.label === 'ORPHAN-1');
++      expect(nowMatched?.type).toBe('catalog_part');
++    });
++
++    it('mapNode updates an EXISTING catalog SKU in place when the partNumber already exists (does not create a duplicate)', async () => {
++      const setCatalogSkus = vi.fn();
++      const { result } = renderHook(() =>
++        useCatalogGraphData('cfg-1', mockConfigs, catalogWithOneMatch, setCatalogSkus)
++      );
++
++      await act(async () => {
++        await result.current.mapNode('MATCHED-1', 'category-Processor', { partNumber: 'MATCHED-1', name: 'Matched Processor', type: 'Processor' });
++      });
++
++      const updaterFn = setCatalogSkus.mock.calls[0][0];
++      const resultingSkus = updaterFn(catalogWithOneMatch);
++      expect(resultingSkus.length).toBe(catalogWithOneMatch.length); // no duplicate added
++      expect(resultingSkus.find((s: CatalogSKU) => s.partNumber === 'MATCHED-1').status).toBe('active');
++    });
+   });
+ });
+-- 
+2.43.0
+

@@ -9,22 +9,17 @@ import {
   Database,
   Globe,
   ShieldAlert,
-  
   Menu,
   ChevronLeft,
-  
   Network,
-  
   Atom,
-  
   Cable,
   FolderSync,
   UploadCloud,
-  
-  
   Search,
   Scissors,
   Radio,
+  Briefcase,
 } from "lucide-react";
 import { UCID, Vendor, ForensicIssue } from "../../types";
 interface SidebarProps {
@@ -42,36 +37,34 @@ export function Sidebar({
   const ucids = useCoreStore((s) => s.ucids);
   const vendors = useCoreStore((s) => s.vendors);
   const forensicIssues = useCoreStore((s) => s.forensicIssues);
-  
+  const solutions = useCoreStore((s) => s.solutions);
+
   const navigate = useNavigate();
   const location = useLocation();
   const activePath = location.pathname;
   const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
+  const activeSolutions = useMemo(() => solutions.filter((s) => s.status !== "completed"), [solutions]);
   const openIssues = useMemo(() => forensicIssues.filter(
     (f) => f.status !== "resolved",
   ).length, [forensicIssues]);
   const connectedVendors = useMemo(() => vendors.filter(
     (v) => v.status === "connected" || v.status === "syncing",
   ).length, [vendors]);
-  const navItems = [
+  // Pipeline items — strict process order: Ingest → Cleanse → Build → Taxonomy → Portfolio → Mission → Forensic → Reconcile
+  const pipelineItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/ingestion-hub", label: "BOQ & BOM Ingest Hub", icon: UploadCloud, iconColor: tokens.colors.accent.sky },
+    { path: "/cleansing", label: "Cleansing Workshop", icon: Scissors, iconColor: tokens.colors.accent.emerald },
+    { path: "/solution-builder", label: "Solution Configurator", icon: Atom },
+    { path: "/taxonomy-graph", label: "Taxonomy Graph Editor", icon: Network, iconColor: tokens.colors.accent.indigo },
     {
-      path: "/ingestion-hub",
-      label: "BOQ & BOM Ingest Hub",
-      icon: UploadCloud,
-      iconColor: tokens.colors.accent.sky, 
-    },
-    {
-      path: "/reconciliation",
-      label: "BOM Reconciliation Diff",
-      icon: FolderSync,
-      iconColor: tokens.colors.accent.violet, 
-    },
-    {
-      path: "/search",
-      label: "Semantic NLP Search",
-      icon: Search,
-      iconColor: tokens.colors.accent.emerald, 
+      path: "/solutions",
+      label: "Solutions Portfolio",
+      icon: Briefcase,
+      iconColor: tokens.colors.accent.violet,
+      badge: activeSolutions.length > 0 ? activeSolutions.length : undefined,
+      badgeColor: "rgba(74, 133, 253,0.15)",
+      badgeTextColor: tokens.colors.accent.indigo,
     },
     {
       path: "/mission-control",
@@ -79,20 +72,7 @@ export function Sidebar({
       icon: Target,
       badge: activeUCIDs.length > 0 ? activeUCIDs.length : undefined,
       badgeColor: "rgba(255,155,54,0.15)",
-      badgeTextColor: tokens.colors.status.warning, 
-    },
-    {
-      path: "/catalog",
-      label: "Catalog SKU Manager",
-      icon: Database,
-    },
-    {
-      path: "/vendor-portal",
-      label: "Vendor Portal & APIs",
-      icon: Globe,
-      badge: connectedVendors > 0 ? `${connectedVendors} Live` : undefined,
-      badgeColor: "rgba(0,212,160,0.1)",
-      badgeTextColor: tokens.colors.status.success, 
+      badgeTextColor: tokens.colors.status.warning,
     },
     {
       path: "/forensic",
@@ -100,31 +80,24 @@ export function Sidebar({
       icon: ShieldAlert,
       badge: openIssues > 0 ? openIssues : undefined,
       badgeColor: "rgba(255,61,90,0.1)",
-      badgeTextColor: tokens.colors.status.error, 
+      badgeTextColor: tokens.colors.status.error,
     },
+    { path: "/reconciliation", label: "BOM Reconciliation Diff", icon: FolderSync, iconColor: tokens.colors.accent.violet },
+  ];
+
+  // Tool items — utilities not tied to a pipeline stage
+  const toolItems = [
+    { path: "/catalog", label: "Catalog SKU Manager", icon: Database },
     {
-      path: "/solution-builder",
-      label: "Solution Configurator",
-      icon: Atom,
+      path: "/vendor-portal",
+      label: "Vendor Portal & APIs",
+      icon: Globe,
+      badge: connectedVendors > 0 ? `${connectedVendors} Live` : undefined,
+      badgeColor: "rgba(0,212,160,0.1)",
+      badgeTextColor: tokens.colors.status.success,
     },
-    {
-      path: "/taxonomy-graph",
-      label: "Taxonomy Graph Editor",
-      icon: Network,
-      iconColor: tokens.colors.accent.indigo,
-    },
-    {
-      path: "/cleansing",
-      label: "Cleansing Workshop",
-      icon: Scissors,
-      iconColor: tokens.colors.accent.emerald,
-    },
-    {
-      path: "/telemetry",
-      label: "System Telemetry",
-      icon: Radio,
-      iconColor: tokens.colors.accent.violet,
-    },
+    { path: "/search", label: "Semantic NLP Search", icon: Search, iconColor: tokens.colors.accent.emerald },
+    { path: "/telemetry", label: "System Telemetry", icon: Radio, iconColor: tokens.colors.accent.violet },
   ];
   return (
     <nav
@@ -172,12 +145,18 @@ export function Sidebar({
       </div>
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        {navItems.map((item) => {
+        {/* Pipeline group label */}
+        {!collapsed && (
+          <p className="hidden lg:block text-[9px] uppercase tracking-widest text-gray-400 font-bold px-2 pt-1 pb-0.5">
+            Pipeline
+          </p>
+        )}
+        {pipelineItems.map((item) => {
           const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
           const IconComponent = item.icon;
           return (
             <button type="button"
-              id={`nav-${item.path.replace('/', '') || 'dashboard'}`}
+              id={`nav-${item.path.replace(/\//g, '') || 'dashboard'}`}
               key={item.path}
               onClick={(e) => {
                 e.stopPropagation();
@@ -186,13 +165,10 @@ export function Sidebar({
               }}
               className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
               style={{
-                backgroundColor: isActive
-                  ? "rgba(74, 133, 253,0.08)"
-                  : "transparent",
-                color: isActive ? tokens.colors.text.primary : tokens.colors.text.secondary, 
+                backgroundColor: isActive ? "rgba(74, 133, 253,0.08)" : "transparent",
+                color: isActive ? tokens.colors.text.primary : tokens.colors.text.secondary,
               }}
             >
-              {/* Left active line indicator */}
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active-indicator"
@@ -201,32 +177,75 @@ export function Sidebar({
                 />
               )}
               <IconComponent
-                className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110`}
-                style={{
-                  color: isActive
-                    ? tokens.colors.accent.indigo 
-                    : item.iconColor
-                      ? item.iconColor
-                      : tokens.colors.text.muted, 
-                }}
+                className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                style={{ color: isActive ? tokens.colors.accent.indigo : item.iconColor ?? tokens.colors.text.muted }}
               />
-              {!collapsed && (
-                <span className="flex-1 truncate hidden lg:inline">{item.label}</span>
-              )}
+              {!collapsed && <span className="flex-1 truncate hidden lg:inline">{item.label}</span>}
               {item.badge && !collapsed && (
                 <span
                   className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 hidden lg:inline-block"
-                  style={{
-                    backgroundColor: item.badgeColor,
-                    color: item.badgeTextColor,
-                  }}
+                  style={{ backgroundColor: item.badgeColor, color: item.badgeTextColor }}
                 >
                   {item.badge}
                 </span>
               )}
-              {/* Hover tooltip when sidebar is collapsed */}
               {collapsed && (
-                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-white text-[10px] rounded border border-indigo-500/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl"> 
+                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-white text-[10px] rounded border border-indigo-500/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
+                  {item.label}
+                </div>
+              )}
+            </button>
+          );
+        })}
+        {/* Tools group divider + label */}
+        <div className="pt-2 pb-0.5">
+          <div className="border-t" style={{ borderColor: "rgba(74,133,253,0.08)" }} />
+          {!collapsed && (
+            <p className="hidden lg:block text-[9px] uppercase tracking-widest text-gray-400 font-bold px-2 pt-2 pb-0.5">
+              Tools
+            </p>
+          )}
+        </div>
+        {toolItems.map((item) => {
+          const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
+          const IconComponent = item.icon;
+          return (
+            <button type="button"
+              id={`nav-${item.path.replace(/\//g, '') || 'dashboard'}`}
+              key={item.path}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(item.path);
+                if (collapsed) onToggle();
+              }}
+              className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
+              style={{
+                backgroundColor: isActive ? "rgba(74, 133, 253,0.08)" : "transparent",
+                color: isActive ? tokens.colors.text.primary : tokens.colors.text.secondary,
+              }}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="sidebar-active-indicator-tools"
+                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-indigo-400"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+              <IconComponent
+                className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                style={{ color: isActive ? tokens.colors.accent.indigo : item.iconColor ?? tokens.colors.text.muted }}
+              />
+              {!collapsed && <span className="flex-1 truncate hidden lg:inline">{item.label}</span>}
+              {item.badge && !collapsed && (
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 hidden lg:inline-block"
+                  style={{ backgroundColor: item.badgeColor, color: item.badgeTextColor }}
+                >
+                  {item.badge}
+                </span>
+              )}
+              {collapsed && (
+                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-white text-[10px] rounded border border-indigo-500/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
                   {item.label}
                 </div>
               )}
@@ -234,6 +253,9 @@ export function Sidebar({
           );
         })}
       </div>
+
+
+
       {/* Parallel UCID Live Monitors (only when expanded) */}
       {!collapsed && activeUCIDs.length > 0 && (
         <div

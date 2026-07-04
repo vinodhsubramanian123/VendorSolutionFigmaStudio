@@ -23,7 +23,7 @@ test.describe('26 - Taxonomy Graph Sync E2E', () => {
     const activeOrphansList = page.getByText(/Active Orphans/i).first();
     await expect(activeOrphansList).toBeVisible();
 
-    const mapButton = page.getByRole('button', { name: /Map/i }).first();
+    const mapButton = page.locator('button:has-text("Map")').first();
     if (await mapButton.isVisible()) {
       await mapButton.click();
       await delay(500);
