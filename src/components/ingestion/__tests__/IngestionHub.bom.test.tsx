@@ -228,7 +228,13 @@ describe('IngestionHub Component BOM & Orchestration Tests', () => {
       fireEvent.click(screen.getByTestId('trigger-batch-recon-btn'));
     });
 
-    expect(apiClient.post).toHaveBeenCalledWith('/api/reconciliation/compare', expect.any(Object));
+    // Regression: payload must contain the resolved Solution objects for the
+    // selected UCID (matching ReconciliationRequestSchema), not the bare
+    // selectedBomsForBatch id strings that were being sent before the fix --
+    // those would 400 against server.ts's real schema validation.
+    expect(apiClient.post).toHaveBeenCalledWith('/api/reconciliation/compare', {
+      solutions: customUcid.solutions,
+    });
     expect(setUcidsSpy).toHaveBeenCalled();
 
     // Check that state updates correctly modified items to [RECONCILED]

@@ -150,8 +150,21 @@ export function useBomConversion(
       setIsPendingAPI(true);
       setPendingAPIMessage("Initiating Enterprise Multi-UCID Comparison Sweep...");
 
+      // selectedBomsForBatch is an array of UCID ids, not Solution objects --
+      // ReconciliationRequestSchema.solutions requires
+      // FlatComparisonSolutionSchema | SolutionSchema objects (each needs at
+      // minimum id/vendor/items). Sending the bare ids satisfied MSW (this
+      // handler ignores the request body and always returns a canned
+      // comparison matrix) but would 400 against server.ts's
+      // validateBody(ReconciliationRequestSchema) on every real request,
+      // silently failing the whole batch-reconciliation feature. Resolve to
+      // the actual solutions the same way triggerBOMParse does above.
+      const targetSolutions = ucids
+        .filter((u) => selectedBomsForBatch.includes(u.id))
+        .flatMap((u) => u.solutions);
+
       await apiClient.post("/api/reconciliation/compare", {
-        solutions: selectedBomsForBatch
+        solutions: targetSolutions
       });
 
       setUcids((prev) => {
