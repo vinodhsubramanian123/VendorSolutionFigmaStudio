@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { ApiResponse, ApiErrorResponse, GraphAPIResponse, GraphPath } from "../types";
-import type { GraphNode, GraphEdge } from "../types/data";
+import { ApiResponse, ApiErrorResponse, GraphPath } from "../types";
 
 /**
  * Global API Client Boundary
@@ -212,10 +211,24 @@ class ApiClient {
   // ==========================================
   // KNOWLEDGE GRAPH ENDPOINTS (Phase 2)
   // ==========================================
-
-  async getGraphSolution(ucid: string): Promise<ApiResponse<GraphAPIResponse>> {
-    return this.get<GraphAPIResponse>(`/api/graph/solution/${ucid}`);
-  }
+  // NOTE: getGraphSolution, createGraphNode, updateGraphNode,
+  // deleteGraphNode, createGraphEdge, deleteGraphEdge, and updateGraphEdge
+  // used to live here, wrapping routes (/api/graph/solution/:ucid,
+  // /api/taxonomy/nodes[/:id], /api/taxonomy/edges[/:id]) that were removed
+  // from MSW in the Phase 4 client-side graph migration (see
+  // docs/architecture/data-ownership.md) and never existed in server.ts.
+  // Six of the seven had zero remaining callers -- pure dead code. The
+  // seventh, updateGraphEdge, still had one live caller
+  // (EdgeEditorPanel.tsx) hitting a route that existed nowhere, which was
+  // broken in every environment including local dev; that caller was fixed
+  // to use useCatalogGraphData's local overlay instead (see
+  // docs/architecture/backend-route-inventory.md, Anomaly 2 and 3). Removed
+  // all seven rather than leave dead code pointing at routes a future
+  // session would have to re-investigate from scratch.
+  //
+  // getGraphAlternativePaths and commitGraphPathSelection remain below --
+  // graphHandlers.ts explicitly confirms these two are genuinely algorithmic
+  // and stay network-backed (still MSW-only; see the route inventory doc).
 
   async getGraphAlternativePaths(targetNodeId: string, limit: number = 3, optimizeFor: string = 'cost'): Promise<ApiResponse<{ paths: GraphPath[] }>> {
     return this.post<{ paths: GraphPath[] }>(`/api/graph/algorithms/alternative-paths`, {
@@ -225,38 +238,12 @@ class ApiClient {
     });
   }
 
-
-
   async commitGraphPathSelection(jobId: string, selectedPathId: string, rejectedPathIds: string[]): Promise<ApiResponse<{ success: boolean }>> {
     return this.post<{ success: boolean }>(`/api/graph/path-selection`, {
       jobId,
       selectedPathId,
       rejectedPathIds
     });
-  }
-
-  async createGraphNode(node: Partial<GraphNode>): Promise<ApiResponse<GraphNode>> {
-    return this.post<GraphNode>('/api/taxonomy/nodes', node);
-  }
-
-  async updateGraphNode(nodeId: string, updates: Partial<GraphNode>): Promise<ApiResponse<GraphNode>> {
-    return this.put<GraphNode>(`/api/taxonomy/nodes/${nodeId}`, updates);
-  }
-
-  async deleteGraphNode(nodeId: string): Promise<ApiResponse<null>> {
-    return this.delete<null>(`/api/taxonomy/nodes/${nodeId}`);
-  }
-
-  async createGraphEdge(edge: Partial<GraphEdge>): Promise<ApiResponse<GraphEdge>> {
-    return this.post<GraphEdge>('/api/taxonomy/edges', edge);
-  }
-
-  async updateGraphEdge(edgeId: string, updates: Partial<GraphEdge>): Promise<ApiResponse<GraphEdge>> {
-    return this.put<GraphEdge>(`/api/taxonomy/edges/${edgeId}`, updates);
-  }
-
-  async deleteGraphEdge(edgeId: string): Promise<ApiResponse<null>> {
-    return this.delete<null>(`/api/taxonomy/edges/${edgeId}`);
   }
 }
 

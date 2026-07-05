@@ -33,6 +33,7 @@ interface TaxonomyGraphSidebarProps {
   updateGraphNode?: (nodeId: string, updates: Partial<import('../../types/data').GraphNode>) => Promise<boolean>;
   deleteGraphNode?: (nodeId: string) => Promise<boolean>;
   addGraphEdge?: (edge: Partial<import('../../types/data').GraphEdge>) => Promise<boolean>;
+  updateGraphEdge?: (edgeId: string, updates: Partial<import('../../types/data').GraphEdge>) => Promise<boolean>;
   deleteGraphEdge?: (edgeId: string) => Promise<boolean>;
 }
 export function TaxonomyGraphSidebar({
@@ -58,6 +59,7 @@ export function TaxonomyGraphSidebar({
   updateGraphNode,
   deleteGraphNode,
   addGraphEdge,
+  updateGraphEdge,
   deleteGraphEdge
 }: TaxonomyGraphSidebarProps) {
   const { toast } = useToast();
@@ -208,6 +210,7 @@ export function TaxonomyGraphSidebar({
           setSelectedEdgeId={setSelectedEdgeId}
           deleteGraphEdge={deleteGraphEdge}
           addGraphEdge={addGraphEdge}
+          updateGraphEdge={updateGraphEdge}
         />
       )}
       {activeTab === "paths" && (

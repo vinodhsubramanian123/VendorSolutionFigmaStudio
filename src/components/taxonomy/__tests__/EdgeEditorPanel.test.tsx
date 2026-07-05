@@ -3,15 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest';
 import { EdgeEditorPanel } from '../EdgeEditorPanel';
 import { ToastProvider } from '../../shared/ToastContext';
-import { apiClient } from '../../../services/apiClient';
 import type { GraphNode, GraphEdge } from '../../../types/data';
-
-vi.mock('../../../services/apiClient', () => ({
-  apiClient: {
-    updateGraphEdge: vi.fn(),
-    parseResponse: vi.fn((schema: any, data: any) => data),
-  }
-}));
 
 describe('EdgeEditorPanel', () => {
   const mockNodes: GraphNode[] = [
@@ -40,21 +32,35 @@ describe('EdgeEditorPanel', () => {
     expect(screen.getByText('edge-1')).toBeInTheDocument();
   });
 
-  it('calls updateGraphEdge when weight is updated', async () => {
-    vi.mocked(apiClient.updateGraphEdge).mockResolvedValue({ success: true, data: {} as any, meta: {} as any });
-    renderComponent({ selectedEdgeId: 'edge-1' });
-    
+  it('calls the updateGraphEdge prop (local overlay) when weight is updated, not a network call', async () => {
+    // Regression: this previously called apiClient.updateGraphEdge(), which
+    // hit PUT /api/taxonomy/edges/:edgeId -- a route removed in the Phase 4
+    // client-side graph migration and never implemented in server.ts. Broken
+    // in every environment. Every sibling mutation (add/delete edge,
+    // add/update/delete node) already goes through a passed-in overlay
+    // function; this now does too. See
+    // docs/architecture/backend-route-inventory.md, Anomaly 2.
+    const updateGraphEdge = vi.fn().mockResolvedValue(true);
+    renderComponent({ selectedEdgeId: 'edge-1', updateGraphEdge });
+
     const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '0.5' } });
-    
+
     const updateBtn = screen.getByText('Update Edge Weight');
     await act(async () => {
       fireEvent.click(updateBtn);
     });
-    
+
     await waitFor(() => {
-      expect(apiClient.updateGraphEdge).toHaveBeenCalledWith('edge-1', { weight: 0.5 });
+      expect(updateGraphEdge).toHaveBeenCalledWith('edge-1', { weight: 0.5 });
     });
+    expect(screen.getByText(/weight updated to 0.5/i)).toBeInTheDocument();
+  });
+
+  it('disables the update button when no updateGraphEdge prop is provided', () => {
+    renderComponent({ selectedEdgeId: 'edge-1' });
+    const updateBtn = screen.getByText('Update Edge Weight');
+    expect(updateBtn).toBeDisabled();
   });
 
   it('toggles edit mode and creates a new edge', async () => {

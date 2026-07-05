@@ -2,20 +2,21 @@ import React, { useState} from 'react';
 import { Network, HelpCircle } from 'lucide-react';
 import type { GraphNode, GraphEdge } from '../../types/data';
 import { useToast } from '../shared/ToastContext';
-import { apiClient } from '../../services/apiClient';
 interface EdgeEditorPanelProps {
   data: { nodes: GraphNode[], edges: GraphEdge[] };
   selectedEdgeId?: string | null;
   setSelectedEdgeId?: (id: string | null) => void;
   deleteGraphEdge?: (edgeId: string) => Promise<boolean>;
   addGraphEdge?: (edge: Partial<GraphEdge>) => Promise<boolean>;
+  updateGraphEdge?: (edgeId: string, updates: Partial<GraphEdge>) => Promise<boolean>;
 }
 export function EdgeEditorPanel({
   data,
   selectedEdgeId,
   setSelectedEdgeId,
   deleteGraphEdge,
-  addGraphEdge
+  addGraphEdge,
+  updateGraphEdge
 }: EdgeEditorPanelProps) {
   const { toast } = useToast();
   const [isUpdatingEdge, setIsUpdatingEdge] = useState(false);
@@ -29,11 +30,18 @@ export function EdgeEditorPanel({
   // When selectedEdgeId changes, maybe update edgeWeight?
   // Not explicitly requested but it's good practice. For now keeping it simple as it was.
   const handleUpdateEdge = async () => {
-    if (!selectedEdgeId) return;
+    if (!selectedEdgeId || !updateGraphEdge) return;
     setIsUpdatingEdge(true);
     try {
-      const res = await apiClient.updateGraphEdge(selectedEdgeId, { weight: edgeWeight });
-      if (res.success) {
+      // Previously called apiClient.updateGraphEdge() -> PUT
+      // /api/taxonomy/edges/:edgeId, a route removed in the Phase 4
+      // client-side graph migration and never implemented in server.ts --
+      // broken in every environment. Every sibling mutation here (add/delete
+      // edge, add/update/delete node) already goes through the local overlay;
+      // this now does too. See
+      // docs/architecture/backend-route-inventory.md, Anomaly 2.
+      const success = await updateGraphEdge(selectedEdgeId, { weight: edgeWeight });
+      if (success) {
         toast(`Edge ${selectedEdgeId} weight updated to ${edgeWeight}.`, "success");
         if (setSelectedEdgeId) setSelectedEdgeId(null);
       } else {
@@ -80,7 +88,7 @@ export function EdgeEditorPanel({
             </div>
             <button type="button"
               onClick={handleUpdateEdge}
-              disabled={isUpdatingEdge}
+              disabled={isUpdatingEdge || !updateGraphEdge}
               className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-lg border border-indigo-400/20 transition cursor-pointer text-[10px] uppercase font-mono"
             >
               {isUpdatingEdge ? "Syncing..." : "Update Edge Weight"}

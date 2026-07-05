@@ -97,6 +97,7 @@ interface GraphOverlay {
   updatedNodes: Map<string, Partial<GraphNode>>;
   deletedNodeIds: Set<string>;
   addedEdges: Map<string, GraphEdge>;
+  updatedEdges: Map<string, Partial<GraphEdge>>;
   deletedEdgeIds: Set<string>;
 }
 
@@ -106,6 +107,7 @@ function emptyOverlay(): GraphOverlay {
     updatedNodes: new Map(),
     deletedNodeIds: new Set(),
     addedEdges: new Map(),
+    updatedEdges: new Map(),
     deletedEdgeIds: new Set(),
   };
 }
@@ -118,7 +120,8 @@ function applyOverlay(baseline: GraphAPIResponse, overlay: GraphOverlay): GraphA
     if (!overlay.deletedNodeIds.has(n.id)) nodes.push(n);
   }
   const edges = baseline.edges
-    .filter((e) => !overlay.deletedEdgeIds.has(e.id) && !overlay.deletedNodeIds.has(e.source) && !overlay.deletedNodeIds.has(e.target));
+    .filter((e) => !overlay.deletedEdgeIds.has(e.id) && !overlay.deletedNodeIds.has(e.source) && !overlay.deletedNodeIds.has(e.target))
+    .map((e) => (overlay.updatedEdges.has(e.id) ? { ...e, ...overlay.updatedEdges.get(e.id) } : e));
   for (const e of overlay.addedEdges.values()) {
     if (!overlay.deletedEdgeIds.has(e.id)) edges.push(e);
   }
@@ -154,6 +157,14 @@ function withAddedEdge(overlay: GraphOverlay, edge: GraphEdge): GraphOverlay {
   const addedEdges = new Map(overlay.addedEdges);
   addedEdges.set(edge.id, edge);
   return { ...overlay, addedEdges };
+}
+
+function withUpdatedEdge(overlay: GraphOverlay, id: string, patch: Partial<GraphEdge>): GraphOverlay {
+  const updatedEdges = new Map(overlay.updatedEdges);
+  updatedEdges.set(id, { ...(updatedEdges.get(id) || {}), ...patch });
+  const deletedEdgeIds = new Set(overlay.deletedEdgeIds);
+  deletedEdgeIds.delete(id);
+  return { ...overlay, updatedEdges, deletedEdgeIds };
 }
 
 function withDeletedEdge(overlay: GraphOverlay, id: string): GraphOverlay {
@@ -310,6 +321,18 @@ export function useCatalogGraphData(
     return true;
   };
 
+  const updateGraphEdge = async (edgeId: string, updates: Partial<GraphEdge>) => {
+    // Edge weight updates previously went through apiClient.updateGraphEdge(),
+    // which called PUT /api/taxonomy/edges/:edgeId -- a route removed in the
+    // Phase 4 client-side migration and never implemented in server.ts.
+    // Every sibling graph mutation (node add/update/delete, edge add/delete)
+    // was already migrated to this local overlay pattern; this was the one
+    // left calling a dead endpoint. See
+    // docs/architecture/backend-route-inventory.md, Anomaly 2.
+    setOverlay((prev) => withUpdatedEdge(prev, edgeId, updates));
+    return true;
+  };
+
   const deleteGraphEdge = async (edgeId: string) => {
     setOverlay((prev) => withDeletedEdge(prev, edgeId));
     return true;
@@ -335,6 +358,7 @@ export function useCatalogGraphData(
     updateGraphNode,
     deleteGraphNode,
     addGraphEdge,
+    updateGraphEdge,
     deleteGraphEdge,
   };
 }

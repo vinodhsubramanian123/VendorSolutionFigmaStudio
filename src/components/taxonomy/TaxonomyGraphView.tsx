@@ -66,6 +66,7 @@ export function TaxonomyGraphView() {
     updateGraphNode,
     deleteGraphNode,
     addGraphEdge,
+    updateGraphEdge,
     deleteGraphEdge
   } = useCatalogGraphData(
     // BUG FIX: this used to pass activeUcid?.id, which is a UCID id and
@@ -218,6 +219,7 @@ export function TaxonomyGraphView() {
         updateGraphNode={updateGraphNode}
         deleteGraphNode={deleteGraphNode}
         addGraphEdge={addGraphEdge}
+        updateGraphEdge={updateGraphEdge}
         deleteGraphEdge={deleteGraphEdge}
       />
     </div>
