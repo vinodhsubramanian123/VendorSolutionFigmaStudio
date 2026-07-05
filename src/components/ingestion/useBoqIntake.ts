@@ -151,8 +151,20 @@ export function useBoqIntake(
         presetType,
         rawText: `[Manual central upload: ${boqFile}] presetType=${presetType}`,
       });
+      // server.ts's real IngestResponse only nests solutions/sourceFile under
+      // `ucid` (a full UCID object) -- there is no top-level `solutions` or
+      // `sourceFile` field. MSW's mock additionally duplicates both at the
+      // top level as a convenience, which this code was written against.
+      // Against the real server, response.data.solutions was always
+      // undefined, so handleSplitAndProvision below silently produced zero
+      // UCIDs. Fall back to the real contract's nested shape.
       const data = response.data;
-      setBoqResponse(data);
+      const ucidObj = typeof data.ucid === "object" ? data.ucid : undefined;
+      const normalizedData: BoqResponsePayload = {
+        ...data,
+        solutions: data.solutions ?? ucidObj?.solutions,
+      };
+      setBoqResponse(normalizedData);
       setBoqProgress(100);
       setIsBOQIngesting(false);
       setBoqJobId(null);

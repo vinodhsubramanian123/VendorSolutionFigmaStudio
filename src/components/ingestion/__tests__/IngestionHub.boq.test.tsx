@@ -190,4 +190,92 @@ describe('IngestionHub Component Stateful Wrapper Tests', () => {
     useIngestionStore.setState({ selectedPreset: 'hpe-legacy' });
   });
 
+  it('extracts solutions from the nested ucid.solutions shape server.ts actually sends (regression: previously only read a top-level solutions field that only MSW provides)', async () => {
+    // server.ts's real /api/boq/ingest response nests solutions under a full
+    // ucid OBJECT (ucid.solutions) and never includes a top-level `solutions`
+    // field -- that field only exists as an MSW convenience duplicate. Before
+    // this fix, boqResponse.solutions was always undefined against the real
+    // server, so handleSplitAndProvision silently produced zero UCIDs despite
+    // the API call succeeding with 200.
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      success: true,
+      data: { job_id: 'job-boq-real-shape' }
+    });
+
+    const realServerShapedResult = {
+      success: true,
+      message: 'Sheet workbook parsed successfully.',
+      sourceFile: 'dell_spec.xlsx',
+      timestamp: new Date().toISOString(),
+      // No top-level `solutions` field -- matches server.ts exactly.
+      ucid: {
+        id: 'ucid-real-1',
+        displayId: 'UCID-2026-0001',
+        solutions: [
+          {
+            id: 'sol-real-1',
+            name: 'Dell Real Server Shape',
+            vendorSubmissions: [
+              {
+                vendor: 'Dell',
+                configs: [
+                  { items: [{ name: 'Dell PowerEdge CPU', quantity: 4, unitPrice: 1800 }] }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      parsedSummary: {
+        vendorBrand: 'Dell',
+        detectedChassis: 'PowerEdge R760',
+        initialConfidenceScore: 85
+      }
+    };
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      success: true,
+      data: realServerShapedResult
+    });
+
+    render(
+      <IngestionHubTestWrapper
+        onNavigate={onNavigate}
+        onSelectMission={onSelectMission}
+        setUcidsSpy={setUcidsSpy}
+      />,
+      { wrapper: Wrapper }
+    );
+
+    fireEvent.click(screen.getByTestId('trigger-parse-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('job-streamer')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('job-success-btn'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('boq-response')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('split-btn'));
+
+    // Regression assertion: a solution must actually have been extracted
+    // from ucid.solutions and provisioned -- the harness's setUcidsSpy only
+    // tracks call count (called with zero args by design), so verify via
+    // the same UI-visible toast the passing MSW-shaped test already uses.
+    // Before the fix, resolvedSolutions was undefined here, so this whole
+    // code path never ran and no such toast would appear.
+    expect(setUcidsSpy).toHaveBeenCalled();
+    expect(screen.getByTestId('bom-workspace')).toBeInTheDocument();
+    // [1-9]\d* deliberately excludes zero -- matching "created with 0
+    // configuration" would make this test pass even when resolvedSolutions
+    // is empty, which is exactly the broken state being tested for.
+    const toastMessage = screen.getByText(/Solution .* created with [1-9]\d* configuration/i);
+    expect(toastMessage).toBeInTheDocument();
+  });
+
 });

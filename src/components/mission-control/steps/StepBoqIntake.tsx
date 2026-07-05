@@ -37,15 +37,24 @@ export function StepBoqIntake({
       );
       const response = await apiClient.post<BoqResponsePayload>("/api/boq/ingest", { fileName, presetType, rawText });
 
-      if (response.success && response.data?.solutions) {
+      // server.ts's real IngestResponse only nests `solutions` under `ucid`
+      // (a full UCID object) -- MSW additionally duplicates it at the top
+      // level as a convenience, which this code was written against. Against
+      // the real server, response.data.solutions was always undefined, so
+      // this success branch never ran and the step silently did nothing
+      // despite the API call succeeding with 200.
+      const ucidObj = typeof response.data?.ucid === "object" ? response.data.ucid : undefined;
+      const resolvedSolutions = response.data?.solutions ?? ucidObj?.solutions;
+
+      if (response.success && resolvedSolutions) {
           onUpdateBOM(
             (response.data.rawText || "") +
               `\n\n[API METRIC SIGNED] Server verified with ${response.data.parsedSummary?.initialConfidenceScore}% initial confidence score.`,
           );
-          onUpdateSolutions(response.data.solutions);
+          onUpdateSolutions(resolvedSolutions);
           appendLogEvent(
             "ok",
-            `[API SECURE LINK] Server parsed "${fileName}" returning ${response.data.solutions.length} alternative configuration pipelines.`,
+            `[API SECURE LINK] Server parsed "${fileName}" returning ${resolvedSolutions.length} alternative configuration pipelines.`,
           );
           onShowToast(`Workbook parsed by live backend API!`, "success");
           return;
