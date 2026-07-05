@@ -37,7 +37,15 @@ export function useSnapshotManagerLogic(
     );
     toast.success(`Snapshot v${createdSnapshot.version} locked & archived in CRM register (optimistic).`);
     setIsCreateOpen(false);
-    apiClient.post(`/api/ucids/${activeUCID.id}/snapshots`, createdSnapshot)
+    // server.ts's real POST /api/ucids/:unit/snapshots destructures
+    // `const { snapshot } = req.body` and 400s with "Missing snapshot object
+    // in request body" if that key is absent. MSW's handler for this route
+    // takes the body raw as the snapshot (see snapshotHandlers.ts), which is
+    // the opposite convention -- so sending the bare object here only ever
+    // worked against MSW and would 400 on every real request.
+    // useMissionControlWorkflow.ts's snapshot POST already uses the correct
+    // { snapshot: ... } wrapper; matching that convention here.
+    apiClient.post(`/api/ucids/${activeUCID.id}/snapshots`, { snapshot: createdSnapshot })
       .then((data) => {
         if (process.env.NODE_ENV !== "production") { console.log("Sync complete"); }
       })
