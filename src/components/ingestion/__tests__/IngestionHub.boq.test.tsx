@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IngestionHubTestWrapper, Wrapper } from './IngestionHub.setup';
 import { apiClient } from '../../../services/apiClient';
 import { useIngestionStore } from '../../../store/ingestionStore';
-import type { UCID } from '../../../types';
 import type { Mock } from 'vitest';
 
 describe('IngestionHub Component Stateful Wrapper Tests', () => {
