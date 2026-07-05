@@ -78,11 +78,18 @@ export function TaxonomyGraphSidebar({
     setIsValidatingConstraints(true);
     setValidationResult(null);
     try {
+      // Landmine #8 (docs/architecture/backend-route-inventory.md): these
+      // field names previously didn't match ConstraintCheckRequestSchema at
+      // all (chassisSku/cpuSku/ramQty/psuWatts vs the schema's
+      // chassisSKU/cpuSKU/ramQuantity/psuWattsCount -- confirmed correct in
+      // useBomConversion.ts's call to this same route during Phase 3b, but
+      // this second caller was never checked there). Invisible under MSW,
+      // whose handler for this route doesn't read the request body at all.
       const res = await apiClient.post("/api/taxonomy/check-constraints", {
-        chassisSku: selectedChassis,
-        cpuSku: selectedCpu,
-        ramQty,
-        psuWatts
+        chassisSKU: selectedChassis,
+        cpuSKU: selectedCpu,
+        ramQuantity: ramQty,
+        psuWattsCount: psuWatts
       });
       if (res.success) {
         setValidationResult(res.data as ConstraintCheckResponse);
