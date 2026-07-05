@@ -233,19 +233,29 @@ export const workflowHandlers = [
       ]
     }));
   }),
-  // POST /api/vendors/sync
-  http.post('/api/vendors/sync', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({ syncedCount: 4, apiHealth: 99 }));
-  }),
-  // POST /api/vendors/toggle
-  http.post('/api/vendors/toggle', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(300);
-    const body = (await request.json()) as { connect?: boolean };
-    const isConnecting = body.connect === true;
-    return HttpResponse.json(wrapSuccess({ 
-      status: isConnecting ? "connected" : "disconnected", 
-      apiHealth: isConnecting ? 98 : 0 
+  // POST /api/vendor/portal
+  // Anomaly 1 fix (docs/architecture/backend-route-inventory.md): this
+  // replaces the old /api/vendors/sync and /api/vendors/toggle mock routes,
+  // which had no server.ts equivalent. server.ts's one real vendor route is
+  // this generic {vendor, action} dispatcher; this mock now matches that
+  // contract instead of diverging from it.
+  http.post('/api/vendor/portal', async ({ request }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(500);
+    const body = (await request.json()) as { vendor: string; action: "sync" | "toggle"; vendorId?: string; connect?: boolean };
+    const timestamp = new Date().toISOString();
+    if (body.action === "toggle") {
+      const nextStatus = body.connect ? "connected" : "disconnected";
+      return HttpResponse.json(wrapSuccess({
+        status: nextStatus,
+        apiHealth: body.connect ? 97 : 0,
+        message: `Toggled ${body.vendorId || body.vendor} to ${nextStatus}`,
+        timestamp,
+      }));
+    }
+    return HttpResponse.json(wrapSuccess({
+      apiHealth: 98,
+      message: `Synced contract pricing for ${body.vendor}`,
+      timestamp,
     }));
   }),
   // POST /api/agents/run

@@ -39,7 +39,16 @@ export const VendorPortal = React.memo(function VendorPortal() {
     const isConnected = targetVendor.status === "connected" || targetVendor.status === "syncing";
     
     try {
-      const res = await apiClient.post<{ status: Vendor["status"]; apiHealth: number }>("/api/vendors/toggle", { vendorId, connect: !isConnected });
+      // Anomaly 1 fix (docs/architecture/backend-route-inventory.md):
+      // /api/vendors/toggle never existed in server.ts -- only in MSW.
+      // server.ts's one real vendor route is the generic
+      // POST /api/vendor/portal dispatcher.
+      const res = await apiClient.post<{ status: Vendor["status"]; apiHealth: number }>("/api/vendor/portal", {
+        vendor: targetVendor.name,
+        action: "toggle",
+        vendorId,
+        connect: !isConnected,
+      });
       setVendors((prev) =>
         prev.map((v) => {
           if (v.id === vendorId) {
@@ -68,7 +77,11 @@ export const VendorPortal = React.memo(function VendorPortal() {
   async function handleSyncAll() {
     setSyncingAll(true);
     try {
-      const res = await apiClient.post<{ apiHealth: number }>("/api/vendors/sync", {});
+      // Anomaly 1 fix: same as handleToggleStatus above.
+      const res = await apiClient.post<{ apiHealth: number }>("/api/vendor/portal", {
+        vendor: "all",
+        action: "sync",
+      });
       setVendors((prev) =>
         prev.map((v) => {
           if (v.status !== "disconnected") {

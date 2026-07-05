@@ -302,3 +302,29 @@ export const CleansingEventSchema = z.union([
   RemoveItemEventSchema,
   SplitConfigEventSchema,
 ]);
+
+// Anomaly 1 fix (see docs/architecture/backend-route-inventory.md):
+// server.ts's POST /api/vendor/portal was a generic {vendor, action}
+// dispatcher with no request schema and a response shape
+// ({mockResponse, timestamp, message}) that didn't carry the
+// status/apiHealth fields VendorPortal.tsx actually needs. Client code
+// called two separate, nonexistent routes (/api/vendors/sync,
+// /api/vendors/toggle) instead of this one. Collapsing both onto the one
+// real endpoint, with a schema, rather than leaving three total routes
+// (one real+unused, two fake) for this single feature.
+export const VendorPortalRequestSchema = z.object({
+  vendor: z.string(),
+  action: z.enum(["sync", "toggle"]),
+  vendorId: z.string().optional(),
+  connect: z.boolean().optional(),
+});
+export const VendorPortalResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.object({
+    status: z.enum(["connected", "disconnected", "syncing"]).optional(),
+    apiHealth: z.number().min(0).max(100).optional(),
+    message: z.string(),
+    timestamp: z.string(),
+  }),
+  confidence: z.number().min(0).max(1),
+});

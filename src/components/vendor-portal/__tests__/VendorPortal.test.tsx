@@ -78,4 +78,66 @@ describe('VendorPortal Component', () => {
       expect(apiClient.post).toHaveBeenCalled();
     });
   });
+
+  it('calls the real /api/vendor/portal endpoint (not the nonexistent /api/vendors/sync) when syncing all', async () => {
+    // Anomaly 1 regression (docs/architecture/backend-route-inventory.md):
+    // /api/vendors/sync never existed in server.ts, only in MSW.
+    (apiClient.get as any).mockResolvedValueOnce(mockVendors);
+    useCoreStore.setState({ vendors: mockVendors });
+    (apiClient.post as any).mockResolvedValueOnce({ success: true, data: { apiHealth: 100 } });
+
+    render(
+      <ToastProvider>
+        <VendorPortal />
+      </ToastProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Hewlett Packard Enterprise')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('SYNC ALL ENDPOINTS'));
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/vendor/portal', {
+        vendor: 'all',
+        action: 'sync',
+      });
+    });
+  });
+
+  it('calls /api/vendor/portal with action: toggle and applies the returned status/apiHealth', async () => {
+    (apiClient.get as any).mockResolvedValueOnce(mockVendors);
+    useCoreStore.setState({ vendors: mockVendors });
+    (apiClient.post as any).mockResolvedValueOnce({
+      success: true,
+      data: { status: 'disconnected', apiHealth: 0 },
+    });
+
+    render(
+      <ToastProvider>
+        <VendorPortal />
+      </ToastProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Hewlett Packard Enterprise')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByLabelText('Disconnect System Gateway'));
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/vendor/portal', {
+        vendor: 'Hewlett Packard Enterprise',
+        action: 'toggle',
+        vendorId: 'v-1',
+        connect: false,
+      });
+    });
+
+    await waitFor(() => {
+      expect(useCoreStore.getState().vendors[0].status).toBe('disconnected');
+      expect(useCoreStore.getState().vendors[0].apiHealth).toBe(0);
+    });
+  });
 });

@@ -24,7 +24,9 @@ export function StepVendorProvisioning({
     setIsRefreshing(true);
     appendLogEvent("info", "Re-querying vendor API quote endpoints for latest contract pricing...");
     try {
-      await apiClient.post("/api/vendors/sync", {});
+      // Anomaly 1 fix (docs/architecture/backend-route-inventory.md):
+      // /api/vendors/sync never existed in server.ts -- only in MSW.
+      await apiClient.post("/api/vendor/portal", { vendor: "all", action: "sync" });
       appendLogEvent("ok", "Successfully synced direct custom discount rates from manufacturer databases.");
     } catch {
       appendLogEvent("err", "Failed to sync vendor API quote endpoints.");
