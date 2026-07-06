@@ -35,7 +35,7 @@ export function CatalogTypeFilters({
             }}
             className={`px-3 py-1.5 rounded-lg border text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               isActive
-                ? "bg-brand-indigo text-content-primary border-transparent shadow shadow-indigo-500/20"
+                ? "bg-brand-indigo text-surface-canvas border-transparent shadow shadow-indigo-500/20"
                 : "bg-surface-elevated border-white/5 text-content-secondary hover:text-content-primary hover:bg-surface-elevated"
             }`}
           >

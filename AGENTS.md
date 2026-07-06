@@ -143,6 +143,7 @@ Before a feature Phase is considered "done", a visual freeze gate must be passed
 *   **Checklist**:
     *   [ ] Do not modify any view that has an approved snapshot without explicit instruction.
     *   [ ] Any approved changes structure should have corresponding skills/specs updated in the [UI Component Registry](file:///Users/macbookaira1466/Documents/FigmaVendorBOMBOQSolution/VendorSolutionFigmaStudio/docs/ui-component-registry.md).
+*   **LEARNING (Accessibility Fixes & Snapshot Staleness)**: Playwright's `toHaveScreenshot` is a strict pixel-perfect gate configured with a zero-tolerance `maxDiffPixels` limit. It will intentionally **fail** the build (and will NOT automatically ignore changes) if you alter colors, padding, or typography to meet WCAG accessibility contrast constraints (such as changing foreground text to pass the 4.5:1 ratio). When making deliberate stylistic or accessibility repairs, you MUST proactively execute `npx playwright test tests/e2e/visual.spec.ts --update-snapshots` to re-certify the new visuals as the approved baseline, otherwise the visual gate will permanently block the pipeline.
 
 ---
 

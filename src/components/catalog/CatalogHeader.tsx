@@ -50,7 +50,7 @@ export function CatalogHeader({
         </button>
         <button type="button"
           onClick={onAddClick}
-          className="flex items-center gap-1 text-[11px] px-3.5 py-1.5 rounded-lg bg-brand-indigo hover:bg-brand-indigo font-bold text-content-primary transition-all cursor-pointer shadow-lg shadow-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+          className="flex items-center gap-1 text-[11px] px-3.5 py-1.5 rounded-lg bg-brand-indigo hover:bg-brand-indigo font-bold text-surface-canvas transition-all cursor-pointer shadow-lg shadow-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         >
           <Plus className="w-3.5 h-3.5" /> Add Sourced SKU
         </button>
