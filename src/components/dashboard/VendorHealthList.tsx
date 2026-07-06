@@ -1,7 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React, { useMemo } from 'react';
 import { ChevronRight, Users } from 'lucide-react';
-import type { Vendor, AppView } from '../../types';
+import type { AppView } from '../../types';
 import { motion, AnimatePresence } from "motion/react";
 
 import { useCoreStore } from "../../store/coreStore";

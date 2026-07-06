@@ -1,7 +1,7 @@
 import { tokens } from "../../styles/tokens";
 import React from 'react';
 import { ChevronRight, CheckCircle } from 'lucide-react';
-import type { ForensicIssue, AppView } from '../../types';
+import type { AppView } from '../../types';
 import { motion, AnimatePresence } from "motion/react";
 
 import { useCoreStore } from "../../store/coreStore";

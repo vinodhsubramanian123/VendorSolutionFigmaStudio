@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Edit3, Trash2, Save, X, Activity, Loader2 } from "lucide-react";
 import type { SourcingRule } from "../../types";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { useCoreStore } from "../../store/coreStore";
 
 import { RuleTableRow } from "./RulesTableRow";

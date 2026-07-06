@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "motion/react";
 import { ShieldCheck, Search } from "lucide-react";
-import type { ForensicIssue, Vendor, CatalogSKU, UCID, SourcingRule, LearningEvent, AppView } from "../../types";
+import type { AppView } from "../../types";
 import { ForensicHeader } from "./ForensicHeader";
 import { ScannerOutput } from "./ScannerOutput";
 import { ForensicIssueCard } from "./ForensicIssueCard";

@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Target, ChevronRight } from "lucide-react";
 import { tokens } from "../../styles/tokens";
 import { UCID_STEPS } from "../../lib/mockData";
-import type { UCID, AppView } from "../../types";
+import type { AppView } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 
 import { useCoreStore } from "../../store/coreStore";

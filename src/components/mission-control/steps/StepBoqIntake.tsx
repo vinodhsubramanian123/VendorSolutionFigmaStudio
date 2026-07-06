@@ -1,8 +1,6 @@
 import React from "react";
 import { UploadCloud, Sparkles, ArrowRight } from "lucide-react";
 import type { UCID, Solution } from "../../../types";
-import { apiClient } from "../../../services/apiClient";
-import type { BoqResponsePayload } from "../../ingestion/useIngestionLogic";
 import { useBoqSimulator } from "./useBoqSimulator";
 
 interface StepBoqIntakeProps {

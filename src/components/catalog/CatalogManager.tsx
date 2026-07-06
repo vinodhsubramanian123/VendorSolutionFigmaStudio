@@ -2,7 +2,7 @@ import React, { useState, useMemo,  useReducer, useCallback } from "react";
 import { apiClient } from "../../services/apiClient";
 import { motion } from "motion/react";
 import { Info } from "lucide-react";
-import type { CatalogSKU, Vendor, TaxonomyPath } from "../../types";
+import type { CatalogSKU, TaxonomyPath } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useToast } from "../shared/ToastContext";
 import { useCoreStore } from "../../store/coreStore";

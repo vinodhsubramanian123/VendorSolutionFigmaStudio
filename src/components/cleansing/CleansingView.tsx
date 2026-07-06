@@ -5,12 +5,8 @@ import {
   ArrowRight,
   X,
   Filter,
-  Layers,
-  Save,
-  Plus,
-  SplitSquareHorizontal
 } from "lucide-react";
-import type { CatalogSKU, BOMItem, Config } from "../../types";
+import type { CatalogSKU } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
 import { MappingPanel } from "./MappingPanel";

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "motion/react";
 import { Upload, Check, Clock, Play } from "lucide-react";
-import type { UCID, AppView } from "../../types";
+import type { AppView } from "../../types";
 import { IngestionMode } from "../../types/data";
 import { BoqIngestWorkbook } from "./BoqIngestWorkbook";
 import { TechnicalBomWorkspace } from "./TechnicalBomWorkspace";

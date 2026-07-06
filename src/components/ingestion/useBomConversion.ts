@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useIngestionStore } from "../../store/ingestionStore";
-import { useCoreStore } from "../../store/coreStore";
 import { repairBomItem } from "../../utils/bomRepairUtils";
 import { apiClient } from "../../services/apiClient";
 import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";

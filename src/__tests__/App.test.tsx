@@ -6,7 +6,6 @@ import App from '../App';
 import { useCoreStore } from '../store/coreStore';
 import type { CoreState } from '../store/coreStore';
 import { ToastProvider } from '../components/shared/ToastContext';
-import { createMockCoreState } from '../tests/shared/mockFactories';
 
 // Mock the components to speed up the test
 vi.mock('../components/layout/Sidebar', () => ({

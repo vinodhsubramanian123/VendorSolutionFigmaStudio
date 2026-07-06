@@ -1,13 +1,8 @@
 import React from "react";
 import {
-  
   Layers,
-  
-  
-  
-  
 } from "lucide-react";
-import type { UCID, Snapshot, VendorSubmission } from "../../types";
+import type { UCID } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { SourcingStrategyPanel, CampaignReconciliationMatrix, CampaignCertificationPanel } from "./CampaignPanels";

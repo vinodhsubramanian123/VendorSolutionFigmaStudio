@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { UCID_STEPS } from "../../lib/mockData";
 import { useChartDimensions } from "../../hooks/useChartDimensions";
-import type { AppView, UCID, Vendor, ForensicIssue } from "../../types";
+import type { AppView } from "../../types";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { useCoreStore } from "../../store/coreStore";
 import { KpiCard } from "./KpiCard";

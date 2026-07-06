@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence, animate } from 'motion/react';
-import type { ForensicIssue } from '../../types';
 import { useCoreStore } from '../../store/coreStore';
 
 interface ForensicSidebarProps {
