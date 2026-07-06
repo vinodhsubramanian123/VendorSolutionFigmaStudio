@@ -38,20 +38,13 @@ export default function App() {
   const activeMissionId = useCoreStore(s => s.activeMissionId);
   const setActiveMissionId = useCoreStore(s => s.setActiveMissionId);
 
-  // Shared Global Reactive State Hub (Persisted)
-  const solutions = useCoreStore(s => s.solutions);
-  const ucids = useCoreStore(s => s.ucids);
+  // Snapshot migration below only needs the setter — the individual
+  // domain slices (solutions, vendors, catalogSkus, forensicIssues,
+  // sourcingRules, learningEvents) used to be threaded down as props to
+  // routed views here; since the Phase 12 decomposition, every routed
+  // view pulls its own slice directly from coreStore, so this component
+  // no longer needs to subscribe to them itself.
   const setUcids = useCoreStore(s => s.setUcids);
-  const vendors = useCoreStore(s => s.vendors);
-  const setVendors = useCoreStore(s => s.setVendors);
-  const catalogSkus = useCoreStore(s => s.catalogSkus);
-  const setCatalogSkus = useCoreStore(s => s.setCatalogSkus);
-  const forensicIssues = useCoreStore(s => s.forensicIssues);
-  const setForensicIssues = useCoreStore(s => s.setForensicIssues);
-  const sourcingRules = useCoreStore(s => s.sourcingRules);
-  const setSourcingRules = useCoreStore(s => s.setSourcingRules);
-  const learningEvents = useCoreStore(s => s.learningEvents);
-  const setLearningEvents = useCoreStore(s => s.setLearningEvents);
 
   // Graceful Migration of Snapshot objects inside ucids
   const hasMigratedSnapshots = useRef(false);

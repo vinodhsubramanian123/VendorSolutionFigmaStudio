@@ -20,14 +20,12 @@ interface ForensicViewProps {
 
 export function ForensicView(props: ForensicViewProps) {
   const ucids = useCoreStore((s) => s.ucids);
-  const forensicIssues = useCoreStore((s) => s.forensicIssues);
   const setActiveMissionId = useCoreStore((s) => s.setActiveMissionId);
   const {
     scanning,
     scanStdout,
     lastScanCount,
     sourcingRules,
-    setSourcingRules,
     prefillRule,
     setPrefillRule,
     learningEvents,
