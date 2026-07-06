@@ -187,29 +187,14 @@ export function useBoqIntake(
       (sol: Solution, idx: number) => buildGeneratedUcid(sol, idx, boqResponse.sourceFile || 'Unknown Source', solutionId, solutionDisplayId)
     );
 
-    const newSolutionProject: SolutionProject = {
-      id: solutionId,
-      displayId: solutionDisplayId,
-      name: generateSolutionName(boqResponse.sourceFile || boqFile || "Uploaded BOQ", "BOQ Upload", existingSolutions.map(s => s.name)),
-      customerName: "Acme Corp", // Standard mock for now
-      boqSourceFile: boqResponse.sourceFile || boqFile || "unknown.xlsx",
-      vendor: boqResponse.solutions?.[0]?.vendorSubmissions?.[0]?.vendor || "Mixed Sourcing",
-      vendorAssignments: [],
-      projectRef: "PRJ-RECON-HUB",
-      status: "in-progress",
-      configCount: generatedUcids.length,
-      ucidIds: generatedUcids.map((u) => u.id),
-      activeUcidId: generatedUcids[0]?.id || null,
-      crossVendorEnabled: false,
-      createdAt: new Date().toISOString(),
-      events: [
-        {
-          timestamp: new Date().toISOString(),
-          level: "info",
-          msg: `Solution project created from BOQ intake with ${generatedUcids.length} configurations.`,
-        }
-      ],
-    };
+    const newSolutionProject = createNewSolutionProject(
+      solutionId,
+      solutionDisplayId,
+      boqResponse,
+      boqFile,
+      existingSolutions,
+      generatedUcids
+    );
 
     useCoreStore.getState().addSolution(newSolutionProject);
 
@@ -247,5 +232,42 @@ export function useBoqIntake(
     onJobSuccess,
     onJobError,
     handleSplitAndProvision,
+  };
+}
+
+function createNewSolutionProject(
+  solutionId: string,
+  solutionDisplayId: string,
+  boqResponse: BoqResponsePayload,
+  boqFile: string,
+  existingSolutions: SolutionProject[],
+  generatedUcids: UCID[]
+): SolutionProject {
+  const sourceName = boqResponse.sourceFile || boqFile || "Uploaded BOQ";
+  const sourceFileStr = boqResponse.sourceFile || boqFile || "unknown.xlsx";
+  const solutionVendor = boqResponse.solutions?.[0]?.vendorSubmissions?.[0]?.vendor || "Mixed Sourcing";
+
+  return {
+    id: solutionId,
+    displayId: solutionDisplayId,
+    name: generateSolutionName(sourceName, "BOQ Upload", existingSolutions.map(s => s.name)),
+    customerName: "Acme Corp", // Standard mock for now
+    boqSourceFile: sourceFileStr,
+    vendor: solutionVendor,
+    vendorAssignments: [],
+    projectRef: "PRJ-RECON-HUB",
+    status: "in-progress",
+    configCount: generatedUcids.length,
+    ucidIds: generatedUcids.map((u) => u.id),
+    activeUcidId: generatedUcids[0]?.id || null,
+    crossVendorEnabled: false,
+    createdAt: new Date().toISOString(),
+    events: [
+      {
+        timestamp: new Date().toISOString(),
+        level: "info",
+        msg: `Solution project created from BOQ intake with ${generatedUcids.length} configurations.`,
+      }
+    ],
   };
 }

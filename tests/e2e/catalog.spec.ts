@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('06 - Catalog Manager E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -17,7 +16,6 @@ test.describe('06 - Catalog Manager E2E', () => {
     const hpeNode = page.getByText('HPE', { exact: true }).first();
     if (await hpeNode.isVisible({ timeout: 3000 })) {
       await hpeNode.click();
-      await delay(800);
     }
     // Cards grid should still be visible
     await expect(page.locator('.group\\/card').first()).toBeVisible({ timeout: 5000 });
@@ -31,7 +29,6 @@ test.describe('06 - Catalog Manager E2E', () => {
     const searchInput = page.locator('input[placeholder="Search Active Part Number or Name..."]');
     await expect(searchInput).toBeVisible({ timeout: 5000 });
     await searchInput.fill('P40424-B21');
-    await delay(600);
     const skuCard = page.getByText('P40424-B21').first();
     await expect(skuCard).toBeVisible({ timeout: 5000 });
   });
@@ -54,39 +51,28 @@ test.describe('06 - Catalog Manager E2E', () => {
     // Submit
     const saveBtn = page.getByRole('button', { name: 'Add Part' });
     await saveBtn.click();
-    await delay(800);
-
     // Verify by searching for it
     const searchInput = page.locator('input[placeholder="Search Active Part Number or Name..."]');
     await searchInput.fill('E2E-TEST-SKU-999');
-    await delay(600);
     await expect(page.getByText('E2E-TEST-SKU-999').first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('should execute SKU Price Edit via force click on hidden button', async ({ page }) => {
+  test('should execute SKU Price Edit via hover on hidden button', async ({ page }) => {
     // Search for a specific SKU first
     const searchInput = page.locator('input[placeholder="Search Active Part Number or Name..."]');
     await searchInput.fill('P40424-B21');
-    await delay(600);
-
     // The Edit Price button is hidden until hover (opacity-0 group-hover). Let's simulate a user hover!
     const card = page.locator('.group\\/card').first();
     await card.hover();
-    await delay(500);
-
     const editBtn = page.locator('button[title="Edit Price"]').first();
-    // Force click ignores visibility (opacity)
     await expect(editBtn).toHaveCount(1);
     await editBtn.click();
-    await delay(500);
     // Should see price input field
     const priceInput = page.locator('input.w-16').first();
     await expect(priceInput).toBeVisible();
     await priceInput.fill('9999');
     const saveBtn = page.locator('button[title="Save Price"]').first();
     await saveBtn.click();
-    await delay(800);
-
     // Regression guard for the Catalog Manager price-rollback bug: the
     // background sync used to hit a stub backend (MockCatalogApi's old
     // 2-SKU serverState.catalog) that never had this SKU's real id, so

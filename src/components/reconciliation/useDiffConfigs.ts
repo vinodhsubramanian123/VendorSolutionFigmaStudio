@@ -84,21 +84,7 @@ function resolveSnapshots(
   if (compareAgainstCurrent) {
     const targetId = selectedForCompare[0];
     snapA = snapshotsList.find((s) => s.id === targetId) || null;
-    const liveSubmission = activeUCID.solutions?.[0]?.vendorSubmissions?.[0];
-    const liveBomConfigs = liveSubmission?.configs || [];
-    snapB = {
-      id: "current-live",
-      label: "Current Reconciled State",
-      committedAt: new Date().toISOString().split("T")[0],
-      winnerSolution: liveSubmission?.label || "Consolidated Sourcing",
-      totalValue: liveSubmission?.totalPrice || 0,
-      notes: "Real-time unsaved edits.",
-      payload: JSON.parse(JSON.stringify(activeUCID.solutions || [])),
-      version: (activeUCID.snapshots?.length || 0) + 1,
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      locked: false,
-      bomSnapshot: JSON.parse(JSON.stringify(liveBomConfigs))
-    };
+    snapB = createLiveSnapshot(activeUCID);
   } else if (selectedForCompare.length === 2) {
     const first = snapshotsList.find((s) => s.id === selectedForCompare[0]);
     const second = snapshotsList.find((s) => s.id === selectedForCompare[1]);
@@ -113,6 +99,24 @@ function resolveSnapshots(
     }
   }
   return { snapA, snapB };
+}
+
+function createLiveSnapshot(activeUCID: UCID): Snapshot {
+  const liveSubmission = activeUCID.solutions?.[0]?.vendorSubmissions?.[0];
+  const liveBomConfigs = liveSubmission?.configs || [];
+  return {
+    id: "current-live",
+    label: "Current Reconciled State",
+    committedAt: new Date().toISOString().split("T")[0],
+    winnerSolution: liveSubmission?.label || "Consolidated Sourcing",
+    totalValue: liveSubmission?.totalPrice || 0,
+    notes: "Real-time unsaved edits.",
+    payload: JSON.parse(JSON.stringify(activeUCID.solutions || [])),
+    version: (activeUCID.snapshots?.length || 0) + 1,
+    timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+    locked: false,
+    bomSnapshot: JSON.parse(JSON.stringify(liveBomConfigs))
+  };
 }
 
 function computeDiffSheets(snapA: Snapshot, snapB: Snapshot): DiffSheetSummary[] {
@@ -151,68 +155,7 @@ function computeDiffSheets(snapA: Snapshot, snapB: Snapshot): DiffSheetSummary[]
     partsRegistry.forEach((pNum) => {
       const itA = itemsA.find((it: BOMItem) => it.partNumber === pNum);
       const itB = itemsB.find((it: BOMItem) => it.partNumber === pNum);
-
-      if (itA && !itB) {
-        itemDiffs.push({
-          partNumber: pNum,
-          name: itA.name,
-          type: itA.type || "Misc",
-          changeType: "removed",
-          aQty: itA.quantity,
-          bQty: 0,
-          aPrice: itA.unitPrice,
-          bPrice: 0,
-          unitDrift: -itA.unitPrice,
-          totalDrift: -(itA.unitPrice * itA.quantity)
-        });
-      } else if (!itA && itB) {
-        itemDiffs.push({
-          partNumber: pNum,
-          name: itB.name,
-          type: itB.type || "Misc",
-          changeType: "added",
-          aQty: 0,
-          bQty: itB.quantity,
-          aPrice: 0,
-          bPrice: itB.unitPrice,
-          unitDrift: itB.unitPrice,
-          totalDrift: itB.unitPrice * itB.quantity
-        });
-      } else if (itA && itB) {
-        const qtyDiff = itB.quantity !== itA.quantity;
-        const priceDiff = itB.unitPrice !== itA.unitPrice;
-        const labelDiff = itB.name !== itA.name;
-
-        if (qtyDiff || priceDiff || labelDiff) {
-          itemDiffs.push({
-            partNumber: pNum,
-            name: itB.name,
-            type: itB.type || "Misc",
-            changeType: "modified",
-            aQty: itA.quantity,
-            bQty: itB.quantity,
-            aPrice: itA.unitPrice,
-            bPrice: itB.unitPrice,
-            unitDrift: itB.unitPrice - itA.unitPrice,
-            totalDrift: (itB.unitPrice * itB.quantity) - (itA.unitPrice * itA.quantity),
-            qtyDrift: itB.quantity - itA.quantity,
-            labelChanged: labelDiff ? { from: itA.name, to: itB.name } : null
-          });
-        } else {
-          itemDiffs.push({
-            partNumber: pNum,
-            name: itB.name,
-            type: itB.type || "Misc",
-            changeType: "none",
-            aQty: itA.quantity,
-            bQty: itB.quantity,
-            aPrice: itA.unitPrice,
-            bPrice: itB.unitPrice,
-            unitDrift: 0,
-            totalDrift: 0
-          });
-        }
-      }
+      itemDiffs.push(computeItemDiff(pNum, itA, itB));
     });
 
     const sheetValA = val.a?.totalPrice || 0;
@@ -230,4 +173,70 @@ function computeDiffSheets(snapA: Snapshot, snapB: Snapshot): DiffSheetSummary[]
   });
 
   return comparisonList;
+}
+
+function computeItemDiff(pNum: string, itA: BOMItem | undefined, itB: BOMItem | undefined): DiffItem {
+  if (itA && !itB) {
+    return {
+      partNumber: pNum,
+      name: itA.name,
+      type: itA.type || "Misc",
+      changeType: "removed",
+      aQty: itA.quantity,
+      bQty: 0,
+      aPrice: itA.unitPrice,
+      bPrice: 0,
+      unitDrift: -itA.unitPrice,
+      totalDrift: -(itA.unitPrice * itA.quantity)
+    };
+  } else if (!itA && itB) {
+    return {
+      partNumber: pNum,
+      name: itB.name,
+      type: itB.type || "Misc",
+      changeType: "added",
+      aQty: 0,
+      bQty: itB.quantity,
+      aPrice: 0,
+      bPrice: itB.unitPrice,
+      unitDrift: itB.unitPrice,
+      totalDrift: itB.unitPrice * itB.quantity
+    };
+  } else if (itA && itB) {
+    const qtyDiff = itB.quantity !== itA.quantity;
+    const priceDiff = itB.unitPrice !== itA.unitPrice;
+    const labelDiff = itB.name !== itA.name;
+
+    if (qtyDiff || priceDiff || labelDiff) {
+      return {
+        partNumber: pNum,
+        name: itB.name,
+        type: itB.type || "Misc",
+        changeType: "modified",
+        aQty: itA.quantity,
+        bQty: itB.quantity,
+        aPrice: itA.unitPrice,
+        bPrice: itB.unitPrice,
+        unitDrift: itB.unitPrice - itA.unitPrice,
+        totalDrift: (itB.unitPrice * itB.quantity) - (itA.unitPrice * itA.quantity),
+        qtyDrift: itB.quantity - itA.quantity,
+        labelChanged: labelDiff ? { from: itA.name, to: itB.name } : null
+      };
+    } else {
+      return {
+        partNumber: pNum,
+        name: itB.name,
+        type: itB.type || "Misc",
+        changeType: "none",
+        aQty: itA.quantity,
+        bQty: itB.quantity,
+        aPrice: itA.unitPrice,
+        bPrice: itB.unitPrice,
+        unitDrift: 0,
+        totalDrift: 0
+      };
+    }
+  }
+  
+  throw new Error("Invalid diff state");
 }

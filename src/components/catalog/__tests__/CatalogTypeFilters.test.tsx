@@ -50,8 +50,8 @@ describe('CatalogTypeFilters Component', () => {
     const allBtn = screen.getByText('All').closest('button');
     const procBtn = screen.getByText('Processor').closest('button');
 
-    expect(allBtn).not.toHaveClass('bg-indigo-500');
-    expect(procBtn).toHaveClass('bg-indigo-500');
+    expect(allBtn).not.toHaveClass('bg-brand-indigo');
+    expect(procBtn).toHaveClass('bg-brand-indigo');
   });
 
   it('calls setTypeFilter when a button is clicked', () => {

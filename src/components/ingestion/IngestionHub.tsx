@@ -53,25 +53,25 @@ export function IngestionHub({
         transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
       >
         {/* Visual Title Header */}
-        <div className="flex flex-col gap-4 bg-surface-header border border-indigo-500/10 p-5 rounded-xl">
+        <div className="flex flex-col gap-4 bg-surface-header border border-brand-indigo/10 p-5 rounded-xl">
           {/* Unified Pipeline Active Banner */}
-          <div className="p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center justify-between text-left gap-4">
+          <div className="p-3 bg-brand-indigo/5 border border-brand-indigo/20 rounded-xl flex items-center justify-between text-left gap-4">
             <div>
-              <span className="text-[9px] font-bold text-indigo-400 font-mono tracking-wider uppercase bg-indigo-500/10 px-2 py-0.5 rounded">
+              <span className="text-[9px] font-bold text-brand-indigo font-mono tracking-wider uppercase bg-brand-indigo/10 px-2 py-0.5 rounded">
                 ● Unified State Sync Connected
               </span>
-              <p className="text-[11px] text-white font-semibold mt-1">
+              <p className="text-[11px] text-content-primary font-semibold mt-1">
                 Centralized Sourcing Ingestion & Worksheets
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5 leading-snug">
-                This hub is the single source of truth for all external spreadsheets. Uploads parsed here automatically propagate to parallel <span className="text-gray-300 font-medium">Live Mission Tracks</span> and <span className="text-gray-300 font-medium">BOM Reconciliation Diff</span> dashboards.
+              <p className="text-[10px] text-content-secondary mt-0.5 leading-snug">
+                This hub is the single source of truth for all external spreadsheets. Uploads parsed here automatically propagate to parallel <span className="text-content-secondary font-medium">Live Mission Tracks</span> and <span className="text-content-secondary font-medium">BOM Reconciliation Diff</span> dashboards.
               </p>
             </div>
             <div className="text-right shrink-0">
-              <span className="text-[10px] font-mono text-emerald-400 font-bold block">
+              <span className="text-[10px] font-mono text-status-success font-bold block">
                 Status: Synchronized
               </span>
-              <span className="text-[9px] text-gray-500 font-sans block mt-0.5 animate-fadeIn">
+              <span className="text-[9px] text-content-primary0 font-sans block mt-0.5 animate-fadeIn">
                 Active opportunities: {ucids.length}
               </span>
             </div>
@@ -82,28 +82,28 @@ export function IngestionHub({
                 <Upload className="w-5 h-5 text-sky-400" />
               </div>
               <div className="flex-1 text-left">
-                <h1 className="text-sm font-semibold text-white">
+                <h1 className="text-sm font-semibold text-content-primary">
                   Centralized BOQ & BOM Ingestion Hub
                 </h1>
-                <p className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">
+                <p className="text-[10px] text-content-secondary mt-0.5 leading-relaxed">
                   Upload raw Bills of Quantities or Technical Bills of Materials and get real-time contract audits.
                 </p>
               </div>
               {logic.auditLogs.length > 0 && logic.currentStepIndex > 0 && (
-                <div className="hidden lg:flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg shrink-0 text-left">
-                  <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="hidden lg:flex items-center gap-2 bg-brand-indigo/10 border border-brand-indigo/20 px-3 py-1.5 rounded-lg shrink-0 text-left">
+                  <Clock className="w-3.5 h-3.5 text-brand-indigo" />
                   <div className="text-right">
-                    <p className="text-[9px] text-gray-400 font-mono uppercase">
+                    <p className="text-[9px] text-content-secondary font-mono uppercase">
                       Last Active Checkpoint
                     </p>
-                    <p className="text-[10px] font-bold text-white capitalize">
+                    <p className="text-[10px] font-bold text-content-primary capitalize">
                       {logic.currentStepId}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => logic.resetWorkflow()}
-                    className="ml-2 px-2 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded text-[9px] font-bold transition uppercase cursor-pointer"
+                    className="ml-2 px-2 py-1 bg-status-error/10 hover:bg-status-error/20 text-status-error rounded text-[9px] font-bold transition uppercase cursor-pointer"
                   >
                     Restart
                   </button>
@@ -112,7 +112,7 @@ export function IngestionHub({
             </div>
             {/* Lifecycle Workflow Stepper */}
             <div className="flex mt-5 bg-surface-elevated rounded-lg border border-white/5 shrink-0 overflow-hidden relative">
-              <div className="absolute inset-0 bg-indigo-500/5" />
+              <div className="absolute inset-0 bg-brand-indigo/5" />
               <div className="relative flex w-full">
                 {stepperSteps.map((step, idx) => {
                   const isActive = logic.currentStepId === step.id;
@@ -126,10 +126,10 @@ export function IngestionHub({
                       onClick={() => logic.jumpToStep(step.id)}
                       className={`flex-1 min-w-[120px] justify-center flex items-center px-4 py-2 border-r border-white/5 last:border-r-0 font-bold tracking-tight text-[10px] uppercase transition cursor-pointer gap-1.5 relative ${
                         isActive
-                          ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20 font-black"
+                          ? "bg-sky-500 text-content-primary shadow-lg shadow-sky-500/20 font-black"
                           : isPast
-                            ? "bg-emerald-500/10 text-emerald-400 hover:text-emerald-300"
-                            : "text-gray-400 hover:bg-white/5 hover:text-white"
+                            ? "bg-status-success/10 text-status-success hover:text-emerald-300"
+                            : "text-content-secondary hover:bg-white/5 hover:text-content-primary"
                       }`}
                     >
                       {isPast && !isActive && (
@@ -137,7 +137,7 @@ export function IngestionHub({
                       )}
                       {step.icon && (
                         <step.icon
-                          className={`w-3.5 h-3.5 ${isActive ? "text-white" : ""} shrink-0`}
+                          className={`w-3.5 h-3.5 ${isActive ? "text-content-primary" : ""} shrink-0`}
                         />
                       )}
                       <span className="truncate">{step.label}</span>

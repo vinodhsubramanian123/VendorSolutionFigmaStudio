@@ -88,7 +88,7 @@ export function CatalogCardsList({
               >
                 <div className="flex gap-3 items-start">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center border shrink-0 bg-surface-elevated border-white/5">
-                    <IconComponent className="w-5 h-5 text-indigo-400" />
+                    <IconComponent className="w-5 h-5 text-brand-indigo" />
                   </div>
                   <div className="flex-1 min-w-0 pr-1">
                     <div className="flex items-center justify-between gap-1">
@@ -100,17 +100,17 @@ export function CatalogCardsList({
                       </span>
                       <StatusBadge status={sku.type} variant="default" size="sm" />
                     </div>
-                    <h3 className="font-bold text-white text-xs mt-1 truncate" title={sku.name}>
+                    <h3 className="font-bold text-content-primary text-xs mt-1 truncate" title={sku.name}>
                       {sku.name}
                     </h3>
-                    <p className="font-mono text-[9px] text-indigo-400 font-bold mt-1 tracking-wider">
+                    <p className="font-mono text-[9px] text-brand-indigo font-bold mt-1 tracking-wider">
                       {sku.partNumber}
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 p-2 bg-black/15 border border-white/2 rounded flex items-center justify-between text-[9px] text-gray-400 leading-none">
+                <div className="mt-4 p-2 bg-surface-canvas/15 border border-white/2 rounded flex items-center justify-between text-[9px] text-content-secondary leading-none">
                   <span className="font-mono">SPEC: COMMON {sku.type.toUpperCase()}</span>
-                  <span className="font-mono text-gray-400">{sku.leadTimeDays}D Lead</span>
+                  <span className="font-mono text-content-secondary">{sku.leadTimeDays}D Lead</span>
                 </div>
                 <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between relative z-10">
                   <div className={`relative ${isEol ? 'animate-pulse' : ''}`}>
@@ -119,7 +119,7 @@ export function CatalogCardsList({
                   <div className="text-right">
                     {isEditing ? (
                       <div className="flex items-center gap-1 justify-end">
-                        <span className="text-gray-400 font-mono font-bold">$</span>
+                        <span className="text-content-secondary font-mono font-bold">$</span>
                         <input
                           type="text"
                           value={editedPrice}
@@ -127,10 +127,10 @@ export function CatalogCardsList({
                           className="w-16 p-1 h-6 text-right bg-surface-header text-status-success font-mono border rounded border-status-success/35 text-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                           autoFocus
                         />
-                        <button type="button" onClick={() => savePrice(sku.id)} aria-label="Save Price" className="p-0.5 rounded hover:bg-emerald-500/20 text-status-success cursor-pointer" title="Save Price">
+                        <button type="button" onClick={() => savePrice(sku.id)} aria-label="Save Price" className="p-0.5 rounded hover:bg-status-success/20 text-status-success cursor-pointer" title="Save Price">
                           <Check className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => setEditingSkuId(null)} aria-label="Cancel" className="p-0.5 rounded hover:bg-red-500/20 text-red-400 cursor-pointer" title="Cancel">
+                        <button type="button" onClick={() => setEditingSkuId(null)} aria-label="Cancel" className="p-0.5 rounded hover:bg-status-error/20 text-status-error cursor-pointer" title="Cancel">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -139,10 +139,10 @@ export function CatalogCardsList({
                         <span className="font-mono text-xs font-black text-status-success">
                           ${sku.price.toLocaleString()}
                         </span>
-                        <button type="button" onClick={() => startEditing(sku)} aria-label="Edit Price" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-white/5 rounded text-gray-400 hover:text-indigo-400 transition cursor-pointer shrink-0" title="Edit Price">
+                        <button type="button" onClick={() => startEditing(sku)} aria-label="Edit Price" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-white/5 rounded text-content-secondary hover:text-brand-indigo transition cursor-pointer shrink-0" title="Edit Price">
                           <Edit2 className="w-3 h-3" />
                         </button>
-                        <button type="button" onClick={() => deleteSku(sku.id)} aria-label="Delete SKU" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-red-500/10 rounded text-gray-400 hover:text-red-400 transition cursor-pointer shrink-0" title="Delete SKU">
+                        <button type="button" onClick={() => deleteSku(sku.id)} aria-label="Delete SKU" className="opacity-0 group-hover/card:opacity-100 p-1 hover:bg-status-error/10 rounded text-content-secondary hover:text-status-error transition cursor-pointer shrink-0" title="Delete SKU">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -155,14 +155,14 @@ export function CatalogCardsList({
           className="scrollbar-hide"
         />
       ) : (
-        <div className="col-span-12 p-8 text-center text-gray-400 bg-surface-elevated border border-white/5 rounded-xl border-dashed">
-          <AlertTriangle className="w-7 h-7 text-amber-500 m-auto opacity-50 mb-2" />
+        <div className="col-span-12 p-8 text-center text-content-secondary bg-surface-elevated border border-white/5 rounded-xl border-dashed">
+          <AlertTriangle className="w-7 h-7 text-status-warning m-auto opacity-50 mb-2" />
           <p className="italic text-xs">
             No project SKUs discovered matching current taxonomy filter parameters.
           </p>
           <button type="button"
             onClick={onClearFilters}
-            className="mt-3 text-[10.5px] text-indigo-400 hover:text-white font-bold cursor-pointer underline decoration-dotted"
+            className="mt-3 text-[10.5px] text-brand-indigo hover:text-content-primary font-bold cursor-pointer underline decoration-dotted"
           >
             Clear Sourcing Filters
           </button>

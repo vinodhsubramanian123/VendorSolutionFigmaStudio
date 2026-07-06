@@ -110,17 +110,17 @@ export function SourcingRulesVault({
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-            <BrainCircuit className="w-4.5 h-4.5 text-indigo-400" />
+          <div className="w-8 h-8 rounded-lg bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20">
+            <BrainCircuit className="w-4.5 h-4.5 text-brand-indigo" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-content-primary flex items-center gap-2">
               Centralized Sourcing Intelligence & Override Registry
-              <span className="text-[10px] bg-indigo-500/15 text-indigo-300 font-mono font-normal px-2 py-0.5 rounded border border-indigo-500/20">
+              <span className="text-[10px] bg-brand-indigo/15 text-indigo-300 font-mono font-normal px-2 py-0.5 rounded border border-brand-indigo/20">
                 Learning Loop Database
               </span>
             </h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">
+            <p className="text-[11px] text-content-secondary mt-0.5">
               Manage automated mapping policies, partner contractual cap targets, and hardware physical symmetry rules.
             </p>
           </div>
@@ -131,7 +131,7 @@ export function SourcingRulesVault({
               setIsAddingRule(false);
               setIsInjectingIntel(!isInjectingIntel);
             }}
-            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 transition cursor-pointer select-none"
+            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg bg-brand-indigo/10 border border-brand-indigo/20 text-indigo-300 hover:bg-brand-indigo/20 transition cursor-pointer select-none"
           >
             <Sparkles className="w-3.5 h-3.5" /> {isInjectingIntel ? "Close Learning Loop" : "Feed Intelligence"}
           </button>
@@ -140,7 +140,7 @@ export function SourcingRulesVault({
               setIsInjectingIntel(false);
               setIsAddingRule(!isAddingRule);
             }}
-            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition cursor-pointer select-none border-0"
+            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg bg-brand-indigo hover:bg-brand-indigo text-content-primary font-bold transition cursor-pointer select-none border-0"
           >
             {isAddingRule ? (
               <>
@@ -154,11 +154,11 @@ export function SourcingRulesVault({
           </button>
         </div>
       </div>
-      <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-[11px] text-indigo-200 flex gap-2.5 leading-normal">
-        <Info className="w-4.5 h-4.5 text-indigo-400 shrink-0 mt-0.5" />
+      <div className="p-3 rounded-lg bg-brand-indigo/5 border border-brand-indigo/10 text-[11px] text-indigo-200 flex gap-2.5 leading-normal">
+        <Info className="w-4.5 h-4.5 text-brand-indigo shrink-0 mt-0.5" />
         <p>
           <strong>Core Engineering Mechanics:</strong> Sourcing Intel acts as an automated override shield. Every time you trigger 
-          <strong className="text-white"> "Auto-Align Component" </strong> in the compliance anomalies above, the system corrects the active opportunity Bill of Materials 
+          <strong className="text-content-primary"> "Auto-Align Component" </strong> in the compliance anomalies above, the system corrects the active opportunity Bill of Materials 
           <em> and promotes the resolution mappings safely to this database in real-time</em>. You can also manually CRUD override directives below to preempt future configuration errors.
         </p>
       </div>

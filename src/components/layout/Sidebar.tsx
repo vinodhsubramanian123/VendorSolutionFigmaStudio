@@ -21,7 +21,6 @@ import {
   Radio,
   Briefcase,
 } from "lucide-react";
-import { UCID, Vendor, ForensicIssue } from "../../types";
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -115,14 +114,14 @@ export function Sidebar({
       >
         {!collapsed && (
           <div className="hidden lg:flex items-center gap-2 overflow-hidden">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-              <Cable className="w-5 h-5 text-indigo-400" />
+            <div className="p-1.5 rounded-lg bg-brand-indigo/10 border border-brand-indigo/20">
+              <Cable className="w-5 h-5 text-brand-indigo" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs tracking-wider font-bold text-gray-400 uppercase leading-none">
+              <p className="text-xs tracking-wider font-bold text-content-secondary uppercase leading-none">
                 Vendor Intel
               </p>
-              <p className="text-sm font-extrabold text-white mt-0.5 tracking-tight truncate">
+              <p className="text-sm font-extrabold text-content-primary mt-0.5 tracking-tight truncate">
                 VSIP Platform
               </p>
             </div>
@@ -134,10 +133,10 @@ export function Sidebar({
             onToggle();
           }}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center hidden lg:flex"
+          className="p-1.5 rounded-lg hover:bg-white/5 text-content-secondary hover:text-content-primary transition-colors cursor-pointer flex items-center justify-center hidden lg:flex"
         >
           {collapsed ? (
-            <Menu className="w-5 h-5 text-indigo-400" />
+            <Menu className="w-5 h-5 text-brand-indigo" />
           ) : (
             <ChevronLeft className="w-5 h-5" />
           )}
@@ -147,7 +146,7 @@ export function Sidebar({
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
         {/* Pipeline group label */}
         {!collapsed && (
-          <p className="hidden lg:block text-[9px] uppercase tracking-widest text-gray-400 font-bold px-2 pt-1 pb-0.5">
+          <p className="hidden lg:block text-[9px] uppercase tracking-widest text-content-secondary font-bold px-2 pt-1 pb-0.5">
             Pipeline
           </p>
         )}
@@ -172,7 +171,7 @@ export function Sidebar({
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active-indicator"
-                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-indigo-400"
+                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-brand-indigo"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
@@ -190,7 +189,7 @@ export function Sidebar({
                 </span>
               )}
               {collapsed && (
-                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-white text-[10px] rounded border border-indigo-500/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
+                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-content-primary text-[10px] rounded border border-brand-indigo/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
                   {item.label}
                 </div>
               )}
@@ -201,7 +200,7 @@ export function Sidebar({
         <div className="pt-2 pb-0.5">
           <div className="border-t" style={{ borderColor: "rgba(74,133,253,0.08)" }} />
           {!collapsed && (
-            <p className="hidden lg:block text-[9px] uppercase tracking-widest text-gray-400 font-bold px-2 pt-2 pb-0.5">
+            <p className="hidden lg:block text-[9px] uppercase tracking-widest text-content-secondary font-bold px-2 pt-2 pb-0.5">
               Tools
             </p>
           )}
@@ -227,7 +226,7 @@ export function Sidebar({
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active-indicator-tools"
-                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-indigo-400"
+                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-brand-indigo"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
@@ -245,7 +244,7 @@ export function Sidebar({
                 </span>
               )}
               {collapsed && (
-                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-white text-[10px] rounded border border-indigo-500/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
+                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-content-primary text-[10px] rounded border border-brand-indigo/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
                   {item.label}
                 </div>
               )}
@@ -263,8 +262,8 @@ export function Sidebar({
           style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
         >
           <div className="flex items-center gap-1.5 px-1 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
-            <span className="text-[10px] tracking-wider text-gray-400 font-bold uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-status-warning shrink-0" />
+            <span className="text-[10px] tracking-wider text-content-secondary font-bold uppercase">
               Live Tracks ({activeUCIDs.length})
             </span>
           </div>
@@ -286,7 +285,7 @@ export function Sidebar({
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-medium text-indigo-400">
+                    <span className="text-[10px] font-medium text-brand-indigo">
                       {ucid.displayId}
                     </span>
                     <span className="text-[9px] text-status-warning font-medium">
@@ -297,7 +296,7 @@ export function Sidebar({
                           : "Configuring"}
                     </span>
                   </div>
-                  <span className="text-[10px] text-gray-400 truncate mt-0.5 font-normal group-hover:text-white transition-colors">
+                  <span className="text-[10px] text-content-secondary truncate mt-0.5 font-normal group-hover:text-content-primary transition-colors">
                     {ucid.name.split("—")[1]?.trim() ?? ucid.name}
                   </span>
                 </button>

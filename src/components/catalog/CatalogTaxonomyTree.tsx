@@ -104,7 +104,7 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ sel
     return (
       <div key={node.id} className="select-none flex flex-col mt-0.5">
         <div 
-          className={`flex items-center py-1 px-1 rounded transition-colors ${isSelected ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5 text-gray-300'}`}
+          className={`flex items-center py-1 px-1 rounded transition-colors ${isSelected ? 'bg-brand-indigo/20 text-indigo-300' : 'hover:bg-white/5 text-content-secondary'}`}
           style={{ paddingLeft: `${depth * 12 + 4}px` }}
         >
           {hasChildren ? (
@@ -112,7 +112,7 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ sel
               type="button"
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${node.label}`}
               tabIndex={0}
-              className="mr-1 p-1 rounded hover:bg-white/10 text-gray-400 cursor-pointer border-0 bg-transparent flex items-center justify-center"
+              className="mr-1 p-1 rounded hover:bg-white/10 text-content-secondary cursor-pointer border-0 bg-transparent flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleNode(node.id);
@@ -158,11 +158,11 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ sel
         type="button"
         tabIndex={0}
         aria-label="Select Global Catalog path"
-        className={`w-full flex items-center py-1.5 px-2 rounded cursor-pointer transition-colors mb-2 border-0 bg-transparent text-left ${selectedPath.vendor === 'all' ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5 text-gray-300'}`}
+        className={`w-full flex items-center py-1.5 px-2 rounded cursor-pointer transition-colors mb-2 border-0 bg-transparent text-left ${selectedPath.vendor === 'all' ? 'bg-brand-indigo/20 text-indigo-300' : 'hover:bg-white/5 text-content-secondary'}`}
         onClick={() => selectPathFn({ vendor: "all", solution: "all", product: "all", generation: "all", chassis: "all" })}
         onKeyDown={(e) => handleKeyDown(e, () => selectPathFn({ vendor: "all", solution: "all", product: "all", generation: "all", chassis: "all" }))}
       >
-        <Network className="w-3.5 h-3.5 mr-2 text-indigo-500/70" />
+        <Network className="w-3.5 h-3.5 mr-2 text-brand-indigo/70" />
         <span className="text-[11px] font-bold tracking-wide uppercase font-mono">Global Catalog</span>
       </button>
       

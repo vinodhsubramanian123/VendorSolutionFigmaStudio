@@ -32,12 +32,12 @@ export function ReconciliationHeader({
     <>
       <div className="lg:col-span-4 bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"> 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400">
+          <div className="w-10 h-10 rounded-xl bg-brand-indigo/10 border border-brand-indigo/25 flex items-center justify-center text-brand-indigo">
             <Database className="w-5 h-5 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-black text-white font-mono uppercase tracking-wider">
+              <h2 className="text-sm font-black text-content-primary font-mono uppercase tracking-wider">
                 {activeUCID?.displayId || "No Active UCID"}
               </h2>
               {missingItems > 0 && (
@@ -46,7 +46,7 @@ export function ReconciliationHeader({
               </span>
               )}
             </div>
-            <p className="text-[10.5px] text-gray-400 font-medium mt-0.5">
+            <p className="text-[10.5px] text-content-secondary font-medium mt-0.5">
               {activeUCID?.name || "DCX Corp — Enterprise Server Refresh Ph.1"}
             </p>
           </div>
@@ -58,7 +58,7 @@ export function ReconciliationHeader({
             <span className="text-[9px] text-content-secondary uppercase font-black tracking-widest font-mono"> 
               Configs
             </span>
-            <span className="text-base font-bold text-white mt-0.5">
+            <span className="text-base font-bold text-content-primary mt-0.5">
               {totalConfigs} Configs
             </span>
           </div>
@@ -67,34 +67,34 @@ export function ReconciliationHeader({
             <span className="text-[9px] text-content-secondary uppercase font-black tracking-widest font-mono"> 
               Total Items
             </span>
-            <span className="text-base font-bold text-white mt-0.5">
+            <span className="text-base font-bold text-content-primary mt-0.5">
               {totalItems} Total
             </span>
           </div>
           <div className="w-px h-8 bg-white/5 hidden sm:block" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-emerald-400 uppercase font-black tracking-widest font-mono">
+            <span className="text-[9px] text-status-success uppercase font-black tracking-widest font-mono">
               BOM Match
             </span>
-            <span className="text-base font-bold text-emerald-400 mt-0.5">
+            <span className="text-base font-bold text-status-success mt-0.5">
               {matchPercentage}% Match
             </span>
           </div>
           <div className="w-px h-8 bg-white/5 hidden sm:block" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-red-400 uppercase font-black tracking-widest font-mono">
+            <span className="text-[9px] text-status-error uppercase font-black tracking-widest font-mono">
               Missing Items
             </span>
-            <span className="text-base font-bold text-red-400 mt-0.5">
+            <span className="text-base font-bold text-status-error mt-0.5">
               {missingItems} Missing
             </span>
           </div>
           <div className="w-px h-8 bg-white/5 hidden sm:block" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-emerald-400 uppercase font-black tracking-widest font-mono">
+            <span className="text-[9px] text-status-success uppercase font-black tracking-widest font-mono">
               Est Value
             </span>
-            <span className="text-base font-mono font-extrabold text-emerald-400 mt-0.5">
+            <span className="text-base font-mono font-extrabold text-status-success mt-0.5">
               ${estValue.toLocaleString()}
             </span>
           </div>
@@ -103,7 +103,7 @@ export function ReconciliationHeader({
         <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0 pt-2 md:pt-0 border-t md:border-transparent border-white/5">
           <button type="button"
             onClick={triggerReconJob}
-            className="w-full md:w-auto px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-750 text-white font-extrabold uppercase text-[10px] tracking-wider cursor-pointer shadow-lg shadow-purple-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 flex items-center justify-center gap-1.5"
+            className="w-full md:w-auto px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-750 text-content-primary font-extrabold uppercase text-[10px] tracking-wider cursor-pointer shadow-lg shadow-purple-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 flex items-center justify-center gap-1.5"
           >
             <RefreshCw
               className="w-3.5 h-3.5 animate-spin"

@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('10 - Data Persistence Gate E2E', () => {
   test('should boot successfully without throwing Session Corrupted error', async ({ page }) => {
@@ -8,8 +7,6 @@ test.describe('10 - Data Persistence Gate E2E', () => {
     await page.goto('/');
     
     // Wait for the app to settle
-    await delay(1000);
-
     // Assert that the DataPersistenceGate error screen is NOT visible
     const corruptedHeading = page.getByText('Session Data Corrupted');
     await expect(corruptedHeading).not.toBeVisible();

@@ -4,7 +4,7 @@ import {
   Globe,
   RefreshCw,
 } from "lucide-react";
-import type { Vendor, UCID, CatalogSKU } from "../../types";
+import type { Vendor } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { VendorIngestionDesk } from "./VendorIngestionDesk";
 import { VendorGateways } from "./VendorGateways";
@@ -110,9 +110,9 @@ export const VendorPortal = React.memo(function VendorPortal() {
     return (
       <ErrorBoundary>
         <div className="flex flex-col items-center justify-center p-12 text-center bg-surface-card border border-white/5 rounded-xl min-h-[400px]">
-          <Globe className="w-12 h-12 text-indigo-500/30 mb-4" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">No Vendor Gateways</h3>
-          <p className="text-xs text-gray-400 mt-2 max-w-md leading-relaxed">
+          <Globe className="w-12 h-12 text-brand-indigo/30 mb-4" />
+          <h3 className="text-sm font-bold text-content-primary uppercase tracking-wider">No Vendor Gateways</h3>
+          <p className="text-xs text-content-secondary mt-2 max-w-md leading-relaxed">
             No authorized manufacturer endpoints have been configured. 
             Please set up supplier API credentials to establish sourcing channels.
           </p>
@@ -138,14 +138,14 @@ export const VendorPortal = React.memo(function VendorPortal() {
         }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-            <Globe className="w-5 h-5 text-indigo-400" />
+          <div className="w-9 h-9 rounded-lg bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20">
+            <Globe className="w-5 h-5 text-brand-indigo" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-white">
+            <h2 className="text-sm font-semibold text-content-primary">
               Authorized Manufacturer Inventory Endpoints
             </h2>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-content-secondary">
               Configure connected Web services, toggle transaction channels, and
               adjust continuous inventory sync configurations.
             </p>
@@ -157,7 +157,7 @@ export const VendorPortal = React.memo(function VendorPortal() {
             aria-label="Synchronize all supplier endpoints"
             onClick={handleSyncAll}
             disabled={syncingAll}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-[10px] transition-all cursor-pointer shadow-lg active:scale-95 ${syncingAll ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300' : 'bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/20 text-indigo-400'}`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-[10px] transition-all cursor-pointer shadow-lg active:scale-95 ${syncingAll ? 'bg-brand-indigo/20 border-brand-indigo/30 text-indigo-300' : 'bg-brand-indigo/10 hover:bg-brand-indigo/20 border-brand-indigo/20 text-brand-indigo'}`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncingAll ? 'animate-spin' : ''}`} />
             <span className="font-bold tracking-wider">{syncingAll ? 'SYNCING CATALOGS...' : 'SYNC ALL ENDPOINTS'}</span>

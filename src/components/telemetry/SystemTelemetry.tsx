@@ -49,24 +49,24 @@ export function SystemTelemetry() {
               <Radio className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white">
+              <h1 className="text-sm font-bold text-content-primary">
                 System Telemetry &amp; Intelligence Pipeline
               </h1>
-              <p className="text-[11px] text-gray-500 mt-0.5">
+              <p className="text-[11px] text-content-primary0 mt-0.5">
                 Document upload queue · API logs · Webhook monitor · HMAC validation
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span
-              className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-emerald-400 border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-1.5 rounded-full animate-pulse"
+              className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-status-success border border-status-success/20 bg-status-success/8 px-2.5 py-1.5 rounded-full animate-pulse"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success" />
               TELEMETRY LIVE
             </span>
             {confirmingReset ? (
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-mono text-amber-400">Wipe all local session data?</span>
+                <span className="text-[9px] font-mono text-status-warning">Wipe all local session data?</span>
                 <button
                   type="button"
                   onClick={resetToSeedData}
@@ -77,7 +77,7 @@ export function SystemTelemetry() {
                 <button
                   type="button"
                   onClick={() => setConfirmingReset(false)}
-                  className="text-[9px] font-mono px-2.5 py-1.5 rounded-full border border-white/10 text-gray-400 hover:text-white cursor-pointer transition"
+                  className="text-[9px] font-mono px-2.5 py-1.5 rounded-full border border-white/10 text-content-secondary hover:text-content-primary cursor-pointer transition"
                 >
                   Cancel
                 </button>
@@ -87,7 +87,7 @@ export function SystemTelemetry() {
                 type="button"
                 onClick={() => setConfirmingReset(true)}
                 title="Clear all persisted session data and reload from pristine seed data"
-                className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-gray-400 border border-white/10 px-2.5 py-1.5 rounded-full hover:text-white hover:border-white/20 cursor-pointer transition"
+                className="flex items-center gap-1.5 text-[9px] font-bold font-mono text-content-secondary border border-white/10 px-2.5 py-1.5 rounded-full hover:text-content-primary hover:border-white/20 cursor-pointer transition"
               >
                 <RotateCcw className="w-3 h-3" />
                 Reset to Seed Data
@@ -97,15 +97,15 @@ export function SystemTelemetry() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mt-4 p-1 rounded-lg bg-black/25 border border-white/5 w-fit">
+        <div className="flex gap-1 mt-4 p-1 rounded-lg bg-surface-canvas/25 border border-white/5 w-fit">
           {TELEMETRY_TABS.map((tab) => (
             <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-[11px] font-bold transition cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                  : "text-gray-500 hover:text-gray-300"
+                  ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20"
+                  : "text-content-primary0 hover:text-content-secondary"
               }`}
             >
               <tab.icon className="w-3.5 h-3.5" />

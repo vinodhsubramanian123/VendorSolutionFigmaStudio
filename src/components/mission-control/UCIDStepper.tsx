@@ -98,6 +98,18 @@ function StepItem({
   setViewStep: (step: UCIDStep) => void;
 }) {
   const IconComponent = STEP_ICONS[step.id as UCIDStep] || HelpCircle;
+  const bgStyle = state === "complete" && !isCurrentViewing
+    ? "rgba(0,212,160,0.1)"
+    : !isCurrentViewing
+      ? "rgba(74, 133, 253,0.03)"
+      : "transparent";
+
+  const borderStyle = state === "complete" && !isCurrentViewing
+    ? `1.5px solid ${tokens.colors.status.success}`
+    : !isCurrentViewing
+      ? "1.5px solid rgba(74, 133, 253,0.12)"
+      : "none";
+
   return (
     <div key={step.id} className="flex items-center flex-1 min-w-[70px]">
       <button
@@ -106,7 +118,7 @@ function StepItem({
         className="flex flex-col items-center gap-1 cursor-pointer w-full group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
       >
         {state === "complete" && (
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-surface-header border border-indigo-500/20 text-white text-[9px] px-2 py-1 rounded shadow-lg z-30 font-mono whitespace-nowrap">
+          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-surface-header border border-brand-indigo/20 text-content-primary text-[9px] px-2 py-1 rounded shadow-lg z-30 font-mono whitespace-nowrap">
             Completed at {completionTime || "Verified"}
           </div>
         )}
@@ -129,18 +141,8 @@ function StepItem({
           <div
             className="absolute inset-0 rounded-full transition-all duration-300"
             style={{
-              backgroundColor:
-                state === "complete" && !isCurrentViewing
-                  ? "rgba(0,212,160,0.1)"
-                  : !isCurrentViewing
-                    ? "rgba(74, 133, 253,0.03)"
-                    : "transparent",
-              border:
-                state === "complete" && !isCurrentViewing
-                  ? `1.5px solid ${tokens.colors.status.success}`
-                  : !isCurrentViewing
-                    ? "1.5px solid rgba(74, 133, 253,0.12)"
-                    : "none",
+              backgroundColor: bgStyle,
+              border: borderStyle,
             }}
           />
 
@@ -156,7 +158,7 @@ function StepItem({
           </div>
         </div>
         <span
-          className="text-[9px] font-bold text-center group-hover:text-white transition-colors"
+          className="text-[9px] font-bold text-center group-hover:text-content-primary transition-colors"
           style={{
             color: isCurrentViewing ? tokens.colors.accent.indigo : state === "complete" ? tokens.colors.status.success : tokens.colors.text.muted,
           }}
@@ -214,12 +216,12 @@ export function UCIDStepper({ ucid, activeStep, setViewStep, getStepState }: UCI
         })}
       </div>
 
-      <div className="p-3 rounded-lg border text-xs text-left bg-surface-card border-indigo-500/10">
-        <p className="font-semibold text-indigo-400 capitalize">
+      <div className="p-3 rounded-lg border text-xs text-left bg-surface-card border-brand-indigo/10">
+        <p className="font-semibold text-brand-indigo capitalize">
           Step {STEP_ORDER.indexOf(activeStep) + 1}:{" "}
           {STEPS_DATA.find((s) => s.id === activeStep)?.label}
         </p>
-        <p className="text-gray-500 mt-0.5">
+        <p className="text-content-primary0 mt-0.5">
           {STEPS_DATA.find((s) => s.id === activeStep)?.desc}
         </p>
       </div>

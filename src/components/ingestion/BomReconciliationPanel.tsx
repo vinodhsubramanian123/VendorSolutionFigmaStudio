@@ -59,10 +59,10 @@ export function BomReconciliationPanel({
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-6">
         <div>
         <StatusBadge status="Step 2: Technical Matching" variant="info" />
-          <h3 className="text-sm font-semibold text-white mt-1.5">
+          <h3 className="text-sm font-semibold text-content-primary mt-1.5">
             Validate Manufacturer Signed BOM Sheet
           </h3>
-          <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">
+          <p className="text-[11px] text-content-secondary mt-0.5 leading-relaxed">
             Upload individual supplier BOM lists to cross-reference against
             central pricing contracts and check hardware sockets or memory
             limits.
@@ -80,7 +80,7 @@ export function BomReconciliationPanel({
           onDragOver={handleDragOver}
           onDrop={handleBOMDrop}
           onClick={() => document.getElementById('hub-bom-picker')?.click()}
-          className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 relative overflow-hidden bg-black/10 hover:bg-black/20 hover:border-sky-500/40 ${
+          className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 relative overflow-hidden bg-surface-canvas/10 hover:bg-surface-canvas/20 hover:border-sky-500/40 ${
             isBOMIngesting ? "border-sky-500" : "border-white/10"
           }`}
         >
@@ -94,7 +94,7 @@ export function BomReconciliationPanel({
           {isBOMIngesting ? (
             <div className="space-y-3 flex flex-col items-center">
               <RefreshCw className="w-8 h-8 text-sky-400 animate-spin" />
-              <p className="text-xs font-bold text-white">
+              <p className="text-xs font-bold text-content-primary">
                 Interrogating taxonomy constraints and contract catalogs...
               </p>
               <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden text-left">
@@ -109,26 +109,26 @@ export function BomReconciliationPanel({
             </div>
           ) : bomReconResult ? (
             <div className="space-y-2 flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-full bg-status-success/15 border border-status-success/30 flex items-center justify-center text-status-success">
                 <CheckCircle className="w-5 h-5 animate-bounce" />
               </div>
               <div>
                 <p className="text-xs font-black text-emerald-300">
                   {activeBOMFile || "supplier-bom.xlsx"}
                 </p>
-                <p className="text-[9px] text-gray-500 font-mono mt-0.5 uppercase">
+                <p className="text-[9px] text-content-primary0 font-mono mt-0.5 uppercase">
                   Reconciliation audit successfully synthesized
                 </p>
               </div>
             </div>
           ) : (
-            <div className="space-y-2 flex flex-col items-center text-gray-400 hover:text-white">
-              <Upload className="w-9 h-9 text-gray-500 hover:text-sky-400 transition-colors" />
+            <div className="space-y-2 flex flex-col items-center text-content-secondary hover:text-content-primary">
+              <Upload className="w-9 h-9 text-content-primary0 hover:text-sky-400 transition-colors" />
               <div>
-                <p className="text-xs font-bold text-gray-300">
+                <p className="text-xs font-bold text-content-secondary">
                   Drag & Drop BOM spreadsheet here, or click to browse
                 </p>
-                <p className="text-[9px] text-gray-500 mt-0.5 uppercase">
+                <p className="text-[9px] text-content-primary0 mt-0.5 uppercase">
                   Runs compliance verification and vendor cost variance
                   matrix checks
                 </p>
@@ -166,14 +166,14 @@ export function BomReconciliationPanel({
             {/* Synthesis Overview info */}
             <BomReconstructionMatrix bomReconResult={bomReconResult} />
             <div className="flex justify-between items-center pt-2">
-              <span className="text-[10px] text-emerald-400 font-mono block">
+              <span className="text-[10px] text-status-success font-mono block">
                 ✔ Sourcing database instance is completely synced & active.
               </span>
               <button
                 id="track-mission-btn"
                 type="button"
                 onClick={() => onSelectMission(selectedUcidId)}
-                className="px-5 py-2 rounded bg-surface-elevated hover:bg-black/40 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white font-bold cursor-pointer transition flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px]"
+                className="px-5 py-2 rounded bg-surface-elevated hover:bg-surface-canvas/40 border border-white/10 hover:border-white/20 text-content-secondary hover:text-content-primary font-bold cursor-pointer transition flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px]"
               >
                 <span>Track progress in Live Mission</span>
                 <ChevronRight className="w-4 h-4" />
@@ -182,7 +182,7 @@ export function BomReconciliationPanel({
           </div>
         )}
         {bomError && (
-          <div className="p-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+          <div className="p-3 rounded bg-status-error/10 border border-status-error/20 text-status-error text-xs flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             <span>{bomError}</span>
           </div>

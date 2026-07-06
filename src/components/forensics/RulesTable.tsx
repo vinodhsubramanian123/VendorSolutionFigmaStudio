@@ -74,10 +74,10 @@ export function RulesTable({
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/15">
+    <div className="overflow-x-auto rounded-lg border border-white/5 bg-surface-canvas/15">
       <table className="w-full text-left border-collapse text-xs">
         <thead>
-          <tr className="bg-black/40 border-b border-white/5 text-gray-400 font-semibold font-mono text-[10px] uppercase select-none tracking-wider">
+          <tr className="bg-surface-canvas/40 border-b border-white/5 text-content-secondary font-semibold font-mono text-[10px] uppercase select-none tracking-wider">
             <th className="p-3">Target Reference Parameter</th>
             <th className="p-3">Category Class</th>
             <th className="p-3">Alignment Override</th>
@@ -123,7 +123,7 @@ export function RulesTable({
           </AnimatePresence>
           {sourcingRules.length === 0 && (
             <tr>
-              <td colSpan={8} className="p-8 text-center text-[11px] text-gray-500 font-mono">
+              <td colSpan={8} className="p-8 text-center text-[11px] text-content-primary0 font-mono">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <span className="text-xl">📭</span>
                   <p>No custom sourcing rules configured yet.</p>

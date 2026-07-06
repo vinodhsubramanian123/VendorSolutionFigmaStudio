@@ -20,7 +20,7 @@ export const TableHead: React.FC<React.HTMLAttributes<HTMLTableSectionElement>> 
   ...props
 }) => {
   return (
-    <thead className={`bg-black/40 border-b border-white/5 ${className}`} {...props}>
+    <thead className={`bg-surface-canvas/40 border-b border-white/5 ${className}`} {...props}>
       {children}
     </thead>
   );
@@ -57,7 +57,7 @@ export const TableHeader: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>>
 }) => {
   return (
     <th
-      className={`px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest ${className}`}
+      className={`px-4 py-3 text-xs font-bold text-content-primary0 uppercase tracking-widest ${className}`}
       {...props}
     >
       {children}
@@ -71,7 +71,7 @@ export const TableCell: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> =
   ...props
 }) => {
   return (
-    <td className={`px-4 py-3 text-sm text-gray-300 font-sans ${className}`} {...props}>
+    <td className={`px-4 py-3 text-sm text-content-secondary font-sans ${className}`} {...props}>
       {children}
     </td>
   );

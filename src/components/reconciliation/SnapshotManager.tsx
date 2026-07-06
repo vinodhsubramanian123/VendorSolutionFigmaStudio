@@ -54,12 +54,12 @@ export function SnapshotManager({
   return (
     <div className="space-y-4">
       {/* Action Header bar */}
-      <div className="flex justify-between items-center bg-black/10 border border-white/5 p-3 rounded-xl">
+      <div className="flex justify-between items-center bg-surface-canvas/10 border border-white/5 p-3 rounded-xl">
         <div className="flex flex-col text-left">
-          <span className="text-[10.5px] font-mono text-gray-400 tracking-wider font-bold uppercase">
+          <span className="text-[10.5px] font-mono text-content-secondary tracking-wider font-bold uppercase">
             Versioning Audit Log ({snapshotsList.length})
           </span>
-          <span className="text-[9.5px] text-gray-500 font-mono">
+          <span className="text-[9.5px] text-content-primary0 font-mono">
             {activeUCID?.displayId || "No UCID"} • Baseline Ledger
           </span>
         </div>
@@ -78,7 +78,7 @@ export function SnapshotManager({
             }
             setIsCreateOpen(!isCreateOpen);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded font-bold shadow-md cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 uppercase tracking-wider text-[10px]"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-indigo hover:bg-brand-indigo text-content-primary rounded font-bold shadow-md cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 uppercase tracking-wider text-[10px]"
         >
           <Camera className="w-4 h-4" />
           <span>Capture Snapshot</span>
@@ -103,10 +103,10 @@ export function SnapshotManager({
       {/* SNAPSHOT LIST VIEW */}
       <div className="space-y-2.5">
         {snapshotsList.length === 0 ? (
-          <div className="h-48 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-black/10 text-center p-6 select-none">
-            <Layers className="w-8 h-8 text-gray-500/30 mb-2 animate-pulse" />
-            <span className="text-gray-400 font-bold text-xs">No Snapshots Captured</span>
-            <p className="text-[10px] text-gray-500 mt-1 leading-normal max-w-[240px]">
+          <div className="h-48 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-surface-canvas/10 text-center p-6 select-none">
+            <Layers className="w-8 h-8 text-content-primary0/30 mb-2 animate-pulse" />
+            <span className="text-content-secondary font-bold text-xs">No Snapshots Captured</span>
+            <p className="text-[10px] text-content-primary0 mt-1 leading-normal max-w-[240px]">
               Lock post-reconciliation quote structures or tap "Capture Snapshot" above to register baseline files in CRM.
             </p>
           </div>

@@ -1,18 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // Navigate to reconciliation
     await page.locator('#nav-reconciliation').click();
-    await delay(300);
     // Open Version Snapshots side panel
     const snapshotsBtn = page.locator('button', { hasText: 'Version Snapshots' }).first();
     await expect(snapshotsBtn).toBeVisible({ timeout: 5000 });
     await snapshotsBtn.click();
-    await delay(500);
   });
 
   test('should open snapshot panel and see Capture Snapshot button', async ({ page }) => {
@@ -29,8 +26,6 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
     // Click Capture Snapshot
     const captureBtn = page.locator('button', { hasText: 'Capture Snapshot' }).first();
     await captureBtn.click();
-    await delay(500);
-
     // The embedded form should appear
     await expect(page.getByText('Record Live Snapshot Version', { exact: false })).toBeVisible({ timeout: 5000 });
 
@@ -42,8 +37,6 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
     // Submit form
     const submitBtn = page.locator('form button[type="submit"]').last();
     await submitBtn.click();
-    await delay(1000);
-
     // Verify snapshot appears in the list
     await expect(page.getByText('E2E-Test-Snapshot-AutoValidate').first()).toBeVisible({ timeout: 8000 });
   });
@@ -54,7 +47,6 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
     const lockBtn = page.locator('button[title="Unlock Snapshot"], button[title="Lock Snapshot"], button[title="Immutability Locked. Click to unlock"], button[title="Unsecured Draft. Click to lock baseline"]').first();
     if (await lockBtn.isVisible({ timeout: 3000 })) {
       await lockBtn.click();
-      await delay(500);
     }
   });
 });

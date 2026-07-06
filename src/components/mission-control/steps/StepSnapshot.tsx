@@ -47,9 +47,9 @@ export function StepSnapshot({
               );
             }
           }}
-          className="flex items-center gap-1 text-xs px-3 py-2 bg-surface-card text-gray-300 hover:text-white rounded border border-white/5 cursor-pointer font-bold"
+          className="flex items-center gap-1 text-xs px-3 py-2 bg-surface-card text-content-secondary hover:text-content-primary rounded border border-white/5 cursor-pointer font-bold"
         >
-          <FileSpreadsheet className="w-3.5 h-3.5 text-green-400" /> Export Excel
+          <FileSpreadsheet className="w-3.5 h-3.5 text-status-success" /> Export Excel
           BOM
         </button>
         <button
@@ -78,7 +78,7 @@ export function StepSnapshot({
               );
             }
           }}
-          className="flex items-center gap-1 text-xs px-3 py-2 bg-surface-card text-gray-300 hover:text-white rounded border border-white/5 cursor-pointer font-bold"
+          className="flex items-center gap-1 text-xs px-3 py-2 bg-surface-card text-content-secondary hover:text-content-primary rounded border border-white/5 cursor-pointer font-bold"
         >
           <Download className="w-3.5 h-3.5 text-brand-indigo" /> Download Proposal (TXT)
         </button>

@@ -20,10 +20,10 @@ export function LaunchStep({ onNavigate }: LaunchStepProps) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-        className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]"
+        className="w-20 h-20 rounded-full bg-status-success/10 flex items-center justify-center border border-status-success/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]"
       >
         <CheckCircle
-          className="w-10 h-10 text-emerald-400"
+          className="w-10 h-10 text-status-success"
           id="launch-success-icon"
         />
       </motion.div>
@@ -33,10 +33,10 @@ export function LaunchStep({ onNavigate }: LaunchStepProps) {
         transition={{ delay: 0.4 }}
         className="space-y-2 max-w-lg"
       >
-        <h2 className="text-2xl font-bold text-white tracking-tight">
+        <h2 className="text-2xl font-bold text-content-primary tracking-tight">
           Ready for Deployment
         </h2>
-        <p className="text-sm text-gray-400 leading-relaxed text-gray-400"> 
+        <p className="text-sm text-content-secondary leading-relaxed text-content-secondary"> 
           The full procurement ingestion lifecycle is complete. All
           configurations have been aligned, vendors synced, costs optimized, and
           compliance validated across the hybrid portfolio.
@@ -52,7 +52,7 @@ export function LaunchStep({ onNavigate }: LaunchStepProps) {
         id="launch-solution-builder-btn"
         type="button"
         onClick={() => onNavigate("solution-builder")}
-        className="px-8 py-3 bg-brand-indigo hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg shadow-sky-500/20 transition-colors flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50" 
+        className="px-8 py-3 bg-brand-indigo hover:bg-brand-indigo text-content-primary rounded-lg font-bold shadow-lg shadow-sky-500/20 transition-colors flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50" 
       >
         <Play className="w-5 h-5 shrink-0" />
         <span>Launch Solution Builder</span>

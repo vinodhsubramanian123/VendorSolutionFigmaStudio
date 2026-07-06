@@ -38,7 +38,7 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-surface-canvas/80 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div 
@@ -51,27 +51,27 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
             {/* Header */}
         <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-surface/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/20 rounded-lg">
-              <LayoutTemplate className="w-5 h-5 text-indigo-400" />
+            <div className="p-2 bg-brand-indigo/20 rounded-lg">
+              <LayoutTemplate className="w-5 h-5 text-brand-indigo" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Split Configuration Wizard (1-to-N)</h2>
-              <p className="text-xs text-gray-400">Diverge {sourceConfig.name} into two separate workflows.</p>
+              <h2 className="text-lg font-semibold text-content-primary">Split Configuration Wizard (1-to-N)</h2>
+              <p className="text-xs text-content-secondary">Diverge {sourceConfig.name} into two separate workflows.</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="p-2 rounded hover:bg-white/5 text-content-secondary hover:text-content-primary transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Name Input */}
-        <div className="px-6 py-4 border-b border-white/5 bg-black/20 flex items-center gap-4">
-          <label className="text-sm text-gray-400">New Destination Config Name:</label>
+        <div className="px-6 py-4 border-b border-white/5 bg-surface-canvas/20 flex items-center gap-4">
+          <label className="text-sm text-content-secondary">New Destination Config Name:</label>
           <input
             type="text"
             value={destName}
             onChange={e => setDestName(e.target.value)}
-            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500/50"
+            className="flex-1 bg-surface-canvas/40 border border-white/10 rounded-lg px-3 py-1.5 text-content-primary focus:outline-none focus:border-brand-indigo/50"
           />
         </div>
 
@@ -79,26 +79,26 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-8">
           {/* Source Side */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-medium text-gray-300 mb-2 border-b border-white/5 pb-2">Source: {sourceConfig.name}</h3>
+            <h3 className="text-sm font-medium text-content-secondary mb-2 border-b border-white/5 pb-2">Source: {sourceConfig.name}</h3>
             {sourceConfig.items.map(item => {
               const moved = moveQuantities[item.partNumber] || 0;
               const remaining = item.quantity - moved;
               return (
-                <div key={item.id} className="p-3 bg-black/40 border border-white/5 rounded-lg flex flex-col gap-3">
+                <div key={item.id} className="p-3 bg-surface-canvas/40 border border-white/5 rounded-lg flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="font-mono text-xs text-indigo-300">{item.partNumber}</div>
-                      <div className="text-sm text-gray-300 truncate max-w-[200px]" title={item.name}>{item.name}</div>
+                      <div className="text-sm text-content-secondary truncate max-w-[200px]" title={item.name}>{item.name}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-gray-500">Remaining</div>
-                      <div className="text-lg font-mono font-bold text-white">{remaining}</div>
+                      <div className="text-xs text-content-primary0">Remaining</div>
+                      <div className="text-lg font-mono font-bold text-content-primary">{remaining}</div>
                     </div>
                   </div>
                   
                   {/* Slider */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500">0</span>
+                    <span className="text-xs text-content-primary0">0</span>
                     <input 
                       type="range"
                       min="0"
@@ -107,7 +107,7 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
                       onChange={e => handleSliderChange(item.partNumber, parseInt(e.target.value, 10))}
                       className="flex-1 accent-indigo-500"
                     />
-                    <span className="text-xs text-gray-500">{item.quantity}</span>
+                    <span className="text-xs text-content-primary0">{item.quantity}</span>
                   </div>
                 </div>
               );
@@ -117,22 +117,22 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
           {/* Destination Side */}
           <div className="flex flex-col gap-3 border-l border-white/5 pl-8 relative">
             <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-elevated border border-white/10 flex items-center justify-center">
-              <ArrowRight className="w-4 h-4 text-indigo-400" />
+              <ArrowRight className="w-4 h-4 text-brand-indigo" />
             </div>
 
-            <h3 className="text-sm font-medium text-emerald-400 mb-2 border-b border-white/5 pb-2">Destination: {destName}</h3>
+            <h3 className="text-sm font-medium text-status-success mb-2 border-b border-white/5 pb-2">Destination: {destName}</h3>
             {sourceConfig.items.map(item => {
               const moved = moveQuantities[item.partNumber] || 0;
               if (moved === 0) return null;
               return (
-                <div key={`dest-${item.id}`} className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex justify-between items-center">
+                <div key={`dest-${item.id}`} className="p-3 bg-brand-indigo/10 border border-brand-indigo/20 rounded-lg flex justify-between items-center">
                   <div>
                     <div className="font-mono text-xs text-indigo-300">{item.partNumber}</div>
-                    <div className="text-sm text-gray-200 truncate max-w-[200px]">{item.name}</div>
+                    <div className="text-sm text-content-primary truncate max-w-[200px]">{item.name}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-indigo-300/70">Moving</div>
-                    <div className="text-lg font-mono font-bold text-emerald-400">+{moved}</div>
+                    <div className="text-lg font-mono font-bold text-status-success">+{moved}</div>
                   </div>
                 </div>
               );
@@ -140,7 +140,7 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
             
             {!isAnythingMoved && (
               <div className="flex-1 flex items-center justify-center border-2 border-dashed border-white/5 rounded-lg">
-                <span className="text-gray-500 text-sm">Use the sliders to move quantities here</span>
+                <span className="text-content-primary0 text-sm">Use the sliders to move quantities here</span>
               </div>
             )}
           </div>
@@ -148,13 +148,13 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-white/5 bg-surface/50 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-content-secondary hover:text-content-primary transition-colors">
             Cancel
           </button>
           <button 
             onClick={handleConfirm}
             disabled={!isAnythingMoved}
-            className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+            className="px-6 py-2 bg-brand-indigo hover:bg-brand-indigo disabled:opacity-50 disabled:cursor-not-allowed text-content-primary font-medium rounded-lg transition-colors flex items-center gap-2"
           >
             <Save className="w-4 h-4" /> Confirm Split
           </button>

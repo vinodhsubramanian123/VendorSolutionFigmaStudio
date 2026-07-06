@@ -1,5 +1,4 @@
 import React from "react";
-import type { UCID } from "../../types";
 import type { ConfigItem, UcidContainer } from "../../types/data";
 import { checkHardwareConstraints } from "../../utils/taxonomyConstraints";
 

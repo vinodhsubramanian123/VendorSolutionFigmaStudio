@@ -88,7 +88,7 @@ export function SnapshotDiffModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/80 backdrop-blur-xs"
+        className="absolute inset-0 bg-surface-canvas/80 backdrop-blur-xs"
         onClick={onClose}
       />
 
@@ -100,14 +100,14 @@ export function SnapshotDiffModal({
       >
         <div className="p-4 bg-surface-header border-b border-white/5 flex justify-between items-center">
           <div className="flex items-center gap-2.5">
-            <div className="p-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+            <div className="p-1 rounded bg-brand-indigo/10 text-brand-indigo border border-brand-indigo/30 flex items-center justify-center">
               <GitCompare className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-sm font-extrabold text-white uppercase font-mono tracking-wider">
+              <h2 className="text-sm font-extrabold text-content-primary uppercase font-mono tracking-wider">
                 Visual Sourcing Discrepancy Diff
               </h2>
-              <p className="text-[10px] text-gray-400 mt-0.5">
+              <p className="text-[10px] text-content-secondary mt-0.5">
                 Comparing quote baselines chronologically to trace cost creep and modifications
               </p>
             </div>
@@ -116,7 +116,7 @@ export function SnapshotDiffModal({
           <div className="flex items-center gap-2">
             <button type="button"
               onClick={handleExportDiffReport}
-              className="p-1.5 px-3 rounded-lg border border-white/5 bg-zinc-900 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-zinc-800 transition flex items-center gap-1 shadow-sm"
+              className="p-1.5 px-3 rounded-lg border border-white/5 bg-surface-card text-[10px] font-bold text-content-secondary hover:text-content-primary hover:bg-surface-elevated transition flex items-center gap-1 shadow-sm"
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>Download Diff CSV</span>
@@ -124,29 +124,29 @@ export function SnapshotDiffModal({
             <button type="button"
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white transition cursor-pointer"
+              className="p-1.5 rounded hover:bg-white/5 text-content-secondary hover:text-content-primary transition cursor-pointer"
             >
               <X className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
 
-        <div className="p-4 bg-zinc-950/45 border-b border-white/5 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="p-4 bg-surface-canvas/45 border-b border-white/5 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-[#070a13] border border-white/5 p-3 rounded-xl flex flex-col justify-between">
             <div>
-              <span className="text-[8.5px] uppercase font-mono font-bold text-gray-500 tracking-wider block">
+              <span className="text-[8.5px] uppercase font-mono font-bold text-content-primary0 tracking-wider block">
                 Version Baseline A
               </span>
-              <span className="text-xs font-bold text-white block mt-1 font-mono text-indigo-300 truncate">
+              <span className="text-xs font-bold text-content-primary block mt-1 font-mono text-indigo-300 truncate">
                 {diffConfigs.snapA.label}
               </span>
-              <span className="text-[9px] text-gray-500 mt-0.5 block">
+              <span className="text-[9px] text-content-primary0 mt-0.5 block">
                 Committed: {diffConfigs.snapA.committedAt}
               </span>
             </div>
             <div className="mt-2.5 border-t border-white/2 pt-2 flex justify-between items-center">
-              <span className="text-[9.5px] font-mono text-gray-500 uppercase">Baseline total:</span>
-              <span className="text-xs font-bold font-mono text-white">
+              <span className="text-[9.5px] font-mono text-content-primary0 uppercase">Baseline total:</span>
+              <span className="text-xs font-bold font-mono text-content-primary">
                 ${(diffConfigs.snapA.totalValue || 0).toLocaleString()}
               </span>
             </div>
@@ -154,43 +154,43 @@ export function SnapshotDiffModal({
 
           <div className="bg-[#070a13] border border-white/5 p-3 rounded-xl flex flex-col justify-between">
             <div>
-              <span className="text-[8.5px] uppercase font-mono font-bold text-gray-500 tracking-wider block">
+              <span className="text-[8.5px] uppercase font-mono font-bold text-content-primary0 tracking-wider block">
                 Version Sourced B
               </span>
-              <span className="text-xs font-bold text-white block mt-1 font-mono text-indigo-400 truncate">
+              <span className="text-xs font-bold text-content-primary block mt-1 font-mono text-brand-indigo truncate">
                 {diffConfigs.snapB.label}
               </span>
-              <span className="text-[9px] text-gray-500 mt-0.5 block">
+              <span className="text-[9px] text-content-primary0 mt-0.5 block">
                 Committed: {diffConfigs.snapB.committedAt}
               </span>
             </div>
             <div className="mt-2.5 border-t border-white/2 pt-2 flex justify-between items-center">
-              <span className="text-[9.5px] font-mono text-gray-500 uppercase">Sourced total:</span>
-              <span className="text-xs font-bold font-mono text-white">
+              <span className="text-[9.5px] font-mono text-content-primary0 uppercase">Sourced total:</span>
+              <span className="text-xs font-bold font-mono text-content-primary">
                 ${(diffConfigs.snapB.totalValue || 0).toLocaleString()}
               </span>
             </div>
           </div>
 
-          <div className="bg-[#070a13] border border-indigo-500/20 p-3 rounded-xl flex flex-col justify-between">
+          <div className="bg-[#070a13] border border-brand-indigo/20 p-3 rounded-xl flex flex-col justify-between">
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-[8.5px] uppercase font-mono font-bold text-purple-400 tracking-wider block">
+                <span className="text-[8.5px] uppercase font-mono font-bold text-brand-violet tracking-wider block">
                   Net Sourcing Variance Price Call
                 </span>
                 <p className={`text-sm font-extrabold font-mono mt-1 ${
                   diffSummary.totalDrift > 0
                     ? "text-rose-500"
                     : diffSummary.totalDrift < 0
-                    ? "text-emerald-400"
-                    : "text-gray-400"
+                    ? "text-status-success"
+                    : "text-content-secondary"
                 }`}>
                   {diffSummary.totalDrift > 0 ? "+" : ""}
                   ${diffSummary.totalDrift.toLocaleString()}
                 </p>
               </div>
 
-              <div className="p-1 px-1.5 rounded text-[8px] font-mono uppercase bg-black/35 font-bold flex items-center gap-1">
+              <div className="p-1 px-1.5 rounded text-[8px] font-mono uppercase bg-surface-canvas/35 font-bold flex items-center gap-1">
                 {diffSummary.totalDrift > 0 ? (
                   <>
                     <TrendingUp className="w-3.5 h-3.5 text-rose-500" />
@@ -198,8 +198,8 @@ export function SnapshotDiffModal({
                   </>
                 ) : diffSummary.totalDrift < 0 ? (
                   <>
-                    <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Drift Down</span>
+                    <TrendingDown className="w-3.5 h-3.5 text-status-success" />
+                    <span className="text-status-success">Drift Down</span>
                   </>
                 ) : (
                   <span>Matched</span>
@@ -207,9 +207,9 @@ export function SnapshotDiffModal({
               </div>
             </div>
 
-            <div className="mt-2 border-t border-white/2 pt-2 flex justify-between items-center text-[9.5px] font-mono text-gray-500">
+            <div className="mt-2 border-t border-white/2 pt-2 flex justify-between items-center text-[9.5px] font-mono text-content-primary0">
               <span>
-                <strong className="text-emerald-400">{diffSummary.additions}</strong> Added
+                <strong className="text-status-success">{diffSummary.additions}</strong> Added
               </span>
               <span>•</span>
               <span>
@@ -217,7 +217,7 @@ export function SnapshotDiffModal({
               </span>
               <span>•</span>
               <span>
-                <strong className="text-amber-400">{diffSummary.drifts}</strong> Modified
+                <strong className="text-status-warning">{diffSummary.drifts}</strong> Modified
               </span>
             </div>
           </div>
@@ -243,19 +243,19 @@ export function SnapshotDiffModal({
                       toggleDiffSheet(sheet.sheetName);
                     }
                   }}
-                  className="p-3 bg-black/30 border-b border-white/5 flex justify-between items-center cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500"
+                  className="p-3 bg-surface-canvas/30 border-b border-white/5 flex justify-between items-center cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500"
                 >
                   <div className="flex items-center gap-2">
                     {isCollapsed ? (
-                      <ChevronRight className="w-4 h-4 text-gray-500" />
+                      <ChevronRight className="w-4 h-4 text-content-primary0" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-indigo-400" />
+                      <ChevronDown className="w-4 h-4 text-brand-indigo" />
                     )}
-                    <span className="text-xs font-black text-white font-mono uppercase tracking-tight">
+                    <span className="text-xs font-black text-content-primary font-mono uppercase tracking-tight">
                       {sheet.sheetName}
                     </span>
                     {changesCount > 0 && (
-                      <span className="text-[8.5px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.2 rounded font-mono font-bold uppercase animate-pulse">
+                      <span className="text-[8.5px] bg-status-warning/10 text-status-warning border border-status-warning/20 px-1.5 py-0.2 rounded font-mono font-bold uppercase animate-pulse">
                         {changesCount} Revision{changesCount > 1 ? "s" : ""}
                       </span>
                     )}
@@ -263,21 +263,21 @@ export function SnapshotDiffModal({
 
                   <div className="flex items-center gap-4 text-left">
                     <div className="text-right text-[10px] font-mono">
-                      <span className="text-gray-500 block">Baseline sheets total:</span>
-                      <span className="text-white">${sheet.valA.toLocaleString()}</span>
+                      <span className="text-content-primary0 block">Baseline sheets total:</span>
+                      <span className="text-content-primary">${sheet.valA.toLocaleString()}</span>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-gray-500" />
+                    <ArrowRight className="w-3.5 h-3.5 text-content-primary0" />
                     <div className="text-right text-[10px] font-mono">
-                      <span className="text-gray-500 block">Sourced sheets total:</span>
-                      <span className="text-white">${sheet.valB.toLocaleString()}</span>
+                      <span className="text-content-primary0 block">Sourced sheets total:</span>
+                      <span className="text-content-primary">${sheet.valB.toLocaleString()}</span>
                     </div>
 
                     <span className={`min-w-20 font-bold font-mono text-[11px] text-right ${
                       sheet.driftValue > 0
                         ? "text-rose-500"
                         : sheet.driftValue < 0
-                        ? "text-emerald-400"
-                        : "text-gray-500"
+                        ? "text-status-success"
+                        : "text-content-primary0"
                     }`}>
                       {sheet.driftValue > 0 ? "+" : ""}
                       ${sheet.driftValue.toLocaleString()}
@@ -289,7 +289,7 @@ export function SnapshotDiffModal({
                   <div className="overflow-x-auto">
                     <table className="w-full text-[10.5px] text-left border-collapse min-w-[700px]">
                       <thead>
-                        <tr className="bg-black/15 border-b border-white/2 text-[9px] font-mono uppercase text-gray-500 tracking-wider select-none">
+                        <tr className="bg-surface-canvas/15 border-b border-white/2 text-[9px] font-mono uppercase text-content-primary0 tracking-wider select-none">
                           <th className="py-2.5 px-4 text-left">Item Sourced Description</th>
                           <th className="py-2.5 px-2 text-left">Part Number</th>
                           <th className="py-2.5 px-2 text-center">Change</th>
@@ -300,7 +300,7 @@ export function SnapshotDiffModal({
                           <th className="py-2.5 px-4 text-right">Sourcing Drift USD</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5 border-t border-white/5 bg-black/20">
+                      <tbody className="divide-y divide-white/5 border-t border-white/5 bg-surface-canvas/20">
                         {sheet.items.map((it: DiffItem, itemIdx: number) => (
                           <SnapshotDiffTableRow key={it.partNumber + itemIdx} it={it} />
                         ))}
@@ -313,14 +313,14 @@ export function SnapshotDiffModal({
           })}
         </div>
 
-        <div className="p-4 bg-zinc-950 border-t border-white/5 flex justify-between items-center shrink-0">
-          <div className="flex gap-2 text-[10px] text-gray-500">
-            <Info className="w-4 h-4 text-indigo-400 shrink-0" />
+        <div className="p-4 bg-surface-canvas border-t border-white/5 flex justify-between items-center shrink-0">
+          <div className="flex gap-2 text-[10px] text-content-primary0">
+            <Info className="w-4 h-4 text-brand-indigo shrink-0" />
             <span>Variance computed as standard chronolocations (Sourced Total - Baseline Total).</span>
           </div>
           <button type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold uppercase text-[10px] tracking-wider transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+            className="px-5 py-2 rounded-lg bg-brand-indigo hover:bg-brand-indigo text-content-primary font-extrabold uppercase text-[10px] tracking-wider transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             Close Diff Analyzer
           </button>

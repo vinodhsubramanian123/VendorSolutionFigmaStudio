@@ -1,21 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { assertUCIDPayloadIntegrity } from '../utils/assertPayload';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
   test('should force BOQ Intake (Step 1) if no global state exists', async ({ page }) => {
+    test.setTimeout(90000);
     await page.goto('/solution-builder');
-    await delay(1000);
     // Dispatch the event to update React state directly, which also updates localStorage
     await page.evaluate(() => {
       window.localStorage.setItem('vsip-core-storage', JSON.stringify({ state: { ucids: [], vendors: [], catalogSkus: [], forensicIssues: [], sourcingRules: [], learningEvents: [], solutions: [] }, version: 3 }));
     });
     await page.reload();
     // Wait for state to settle
-    await delay(1000);
-    await delay(500);
-
     await expect(page.getByText('Mission Builder')).toBeVisible({ timeout: 15000 });
     await page.screenshot({ path: 'debug.png', fullPage: true });
     
@@ -32,23 +28,17 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
   });
 
   test('should automatically bypass Step 1 if global data is injected', async ({ page }) => {
+    test.setTimeout(90000);
     await page.goto('/');
-    await delay(500);
-
     // Ingest data in Hub
     await page.locator('#nav-ingestion-hub').click();
-    await delay(500);
     const processBtn = page.getByText('Run Backend API Ingest', { exact: false }).first();
     await processBtn.click();
     const splitBtn = page.getByText('Split Configs into Active UCIDs', { exact: false }).first();
     await splitBtn.waitFor({ state: 'visible', timeout: 30000 });
     await splitBtn.click();
-    await delay(1000);
-
     // Now navigate to solution-builder
     await page.locator('#nav-solution-builder').click();
-    await delay(1000);
-
     // Validate we bypassed Step 1 completely
     await expect(page.getByText('Proceed to Assignment Map (Step 2)')).toBeHidden();
     

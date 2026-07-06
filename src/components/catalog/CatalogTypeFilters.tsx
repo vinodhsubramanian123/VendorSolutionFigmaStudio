@@ -35,14 +35,14 @@ export function CatalogTypeFilters({
             }}
             className={`px-3 py-1.5 rounded-lg border text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               isActive
-                ? "bg-indigo-500 text-white border-transparent shadow shadow-indigo-500/20"
-                : "bg-surface-elevated border-white/5 text-gray-400 hover:text-white hover:bg-surface-elevated"
+                ? "bg-brand-indigo text-content-primary border-transparent shadow shadow-indigo-500/20"
+                : "bg-surface-elevated border-white/5 text-content-secondary hover:text-content-primary hover:bg-surface-elevated"
             }`}
           >
             <span>{type === "all" ? "All" : type}</span>
             <span
               className={`font-mono text-[9px] px-1.5 py-0.2 rounded font-black ${
-                isActive ? "bg-black/30 text-white" : "bg-black/40 text-gray-400"
+                isActive ? "bg-surface-canvas/30 text-content-primary" : "bg-surface-canvas/40 text-content-secondary"
               }`}
             >
               {matchesCount}

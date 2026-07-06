@@ -15,12 +15,12 @@ export function StepIntakeGuide({
     <div className="space-y-4">
       {/* Pre-Condition Check */}
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-3.5">
-        <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">
+        <h4 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
           Pre-Condition Verification
         </h4>
         <div className="space-y-3">
           <div className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 pb-2">
-            <span className="text-gray-400 font-sans font-medium">
+            <span className="text-content-secondary font-sans font-medium">
               BOQ Document Ingested
             </span>
             <StatusBadge 
@@ -30,7 +30,7 @@ export function StepIntakeGuide({
             />
           </div>
           <div className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 pb-2">
-            <span className="text-gray-400 font-sans font-medium">
+            <span className="text-content-secondary font-sans font-medium">
               Active UCID Context
             </span>
             <StatusBadge 
@@ -40,7 +40,7 @@ export function StepIntakeGuide({
             />
           </div>
           <div className="flex items-center justify-between text-[11px] py-1">
-            <span className="text-gray-400 font-sans font-medium">
+            <span className="text-content-secondary font-sans font-medium">
               Vendor Handshakes
             </span>
             <StatusBadge status="CONNECTED" variant="success" size="sm" />
@@ -50,10 +50,10 @@ export function StepIntakeGuide({
 
       {/* Context Explainer */}
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4">
-        <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">
+        <h4 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
           What is Solution Sourcing?
         </h4>
-        <p className="text-gray-500 leading-relaxed text-[11px]">
+        <p className="text-content-primary0 leading-relaxed text-[11px]">
           Instead of working with independent fragment spreadsheets, the
           platform compiles multi-vendor contracts under a single{" "}
           <strong>Unified Solution Context (UCID)</strong>.
@@ -61,28 +61,28 @@ export function StepIntakeGuide({
 
         <div className="space-y-3 pt-2">
           <div className="flex items-start gap-2.5">
-            <div className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-5 h-5 rounded-full bg-status-success/10 text-status-success flex items-center justify-center shrink-0">
               <Check className="w-3.5 h-3.5" />
             </div>
             <div>
-              <p className="font-semibold text-white">
+              <p className="font-semibold text-content-primary">
                 Integrated Pricing Engines
               </p>
-              <p className="text-gray-500 text-[10px] mt-0.5">
+              <p className="text-content-primary0 text-[10px] mt-0.5">
                 Live direct partner price validation instantly against EOL
                 and grey market margins.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
-            <div className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-5 h-5 rounded-full bg-status-success/10 text-status-success flex items-center justify-center shrink-0">
               <Check className="w-3.5 h-3.5" />
             </div>
             <div>
-              <p className="font-semibold text-white">
+              <p className="font-semibold text-content-primary">
                 Symmetry Verification
               </p>
-              <p className="text-gray-500 text-[10px] mt-0.5">
+              <p className="text-content-primary0 text-[10px] mt-0.5">
                 Automatic technical validation check for dual-socket
                 limits, power envelopes, and CPU lines.
               </p>

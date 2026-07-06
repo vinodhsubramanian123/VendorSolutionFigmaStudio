@@ -50,16 +50,16 @@ export function ForensicView(props: ForensicViewProps) {
           <ShieldCheck className="w-8 h-8" />
         </div>
         <div className="space-y-1">
-          <h2 className="text-sm font-semibold text-white">
+          <h2 className="text-sm font-semibold text-content-primary">
             No Anomalies Detected
           </h2>
-          <p className="text-xs text-gray-400 max-w-sm leading-normal">
+          <p className="text-xs text-content-secondary max-w-sm leading-normal">
             The current workspace cache is empty or all constraints have passed.
           </p>
         </div>
         <button type="button"
           onClick={() => props.onNavigate?.("ingestion-hub")}
-          className="px-5 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold cursor-pointer transition text-xs border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shadow-lg shadow-indigo-500/15"
+          className="px-5 py-2.5 rounded-lg bg-brand-indigo hover:bg-brand-indigo text-content-primary font-bold cursor-pointer transition text-xs border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shadow-lg shadow-indigo-500/15"
         >
           Return to Ingestion Hub
         </button>
@@ -90,11 +90,11 @@ export function ForensicView(props: ForensicViewProps) {
         {/* Main List */}
         <div className="lg:col-span-2 flex flex-col gap-3">
           <div className="flex items-center justify-between px-1 shrink-0">
-            <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+            <span className="text-xs text-content-secondary font-semibold uppercase tracking-wider">
               Discovered Sourcing Anomalies ({openIssues.length})
             </span>
             {lastScanCount !== null && (
-              <span className="text-[10px] text-gray-500 font-mono">
+              <span className="text-[10px] text-content-primary0 font-mono">
                 Last diagnosis sweep scan matching: {lastScanCount} rules
               </span>
             )}
@@ -111,7 +111,7 @@ export function ForensicView(props: ForensicViewProps) {
                 />
               ))
             ) : (
-              <div className="p-12 rounded-xl border border-dashed border-gray-800 bg-black/20 flex flex-col items-center justify-center gap-2 text-center h-full">
+              <div className="p-12 rounded-xl border border-dashed border-surface-elevated bg-surface-canvas/20 flex flex-col items-center justify-center gap-2 text-center h-full">
                 <div className="w-16 h-16 rounded-full bg-status-success/10 flex items-center justify-center mb-2 border border-status-success/20">
                   <Search className="w-8 h-8 text-status-success" />
                 </div>

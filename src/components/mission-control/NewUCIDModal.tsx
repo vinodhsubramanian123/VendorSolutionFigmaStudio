@@ -84,25 +84,25 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+        className="absolute inset-0 bg-surface-canvas/65 backdrop-blur-sm"
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="w-full max-w-lg rounded-xl border p-5 space-y-4 bg-surface-header border-indigo-500/20 shadow-2xl shadow-black/50 relative z-10"
+        className="w-full max-w-lg rounded-xl border p-5 space-y-4 bg-surface-header border-brand-indigo/20 shadow-2xl shadow-black/50 relative z-10"
       >
-        <div className="flex items-center justify-between pb-2 border-b border-indigo-500/10">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-            <Radio className="w-4 h-4 text-indigo-400 animate-pulse" /> Register
+        <div className="flex items-center justify-between pb-2 border-b border-brand-indigo/10">
+          <h3 className="text-sm font-bold text-content-primary uppercase tracking-wider flex items-center gap-1.5">
+            <Radio className="w-4 h-4 text-brand-indigo animate-pulse" /> Register
             New UCID Parallel Flow
           </h3>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="text-gray-500 hover:text-white cursor-pointer"
+            className="text-content-primary0 hover:text-content-primary cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -110,7 +110,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 text-xs">
           <div className="space-y-1 text-left">
-            <label htmlFor="ucidName" className="text-gray-400 font-semibold uppercase">
+            <label htmlFor="ucidName" className="text-content-secondary font-semibold uppercase">
               Workspace Title / Brief Target
             </label>
             <input
@@ -118,7 +118,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               type="text"
               {...register("ucidName")}
               placeholder="e.g. HPC Core Virtualization — 24 Node Cluster Gen11"
-              className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
+              className={`w-full p-2.5 rounded bg-surface-canvas/30 border text-content-primary transition-colors duration-200 ${
                 errors.ucidName ? "border-[#ff3d5a]" : "border-white/10"
               }`}
             />
@@ -138,14 +138,14 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1 text-left">
-              <label htmlFor="ucidRef" className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="ucidRef" className="text-content-secondary font-semibold uppercase">
                 Project Code Ref
               </label>
               <input
                 id="ucidRef"
                 type="text"
                 {...register("ucidRef")}
-                className={`w-full p-2.5 rounded bg-black/30 border text-white transition-colors duration-200 ${
+                className={`w-full p-2.5 rounded bg-surface-canvas/30 border text-content-primary transition-colors duration-200 ${
                   errors.ucidRef ? "border-[#ff3d5a]" : "border-white/10"
                 }`}
               />
@@ -163,7 +163,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
               </AnimatePresence>
             </div>
             <div className="space-y-1 text-left">
-              <label htmlFor="priority" className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="priority" className="text-content-secondary font-semibold uppercase">
                 Workflow Priority
               </label>
               <Controller
@@ -182,18 +182,18 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
           </div>
 
           <div className="space-y-1 text-left">
-            <label htmlFor="rawBOMText" className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+            <label htmlFor="rawBOMText" className="text-content-secondary text-[10px] font-bold uppercase tracking-wider">
               BOQ Input Quantities / Raw Specification Text
             </label>
             <textarea
               id="rawBOMText"
               {...register("rawBOMText")}
               placeholder="Paste Bills of Materials, part lists, line requests..."
-              className="w-full h-24 p-2.5 rounded bg-black/30 border border-white/10 text-white text-xs font-mono"
+              className="w-full h-24 p-2.5 rounded bg-surface-canvas/30 border border-white/10 text-content-primary text-xs font-mono"
             />
           </div>
 
-          <div className="pt-2 border-t flex justify-end gap-2 border-indigo-500/10">
+          <div className="pt-2 border-t flex justify-end gap-2 border-brand-indigo/10">
             <Button
               type="button"
               variant="ghost"

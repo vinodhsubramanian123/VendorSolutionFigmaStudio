@@ -41,7 +41,7 @@ export function GroupedUcidList({
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: groupIdx * 0.05, staggerChildren: 0.05 }}
-            className="space-y-2 border border-white/5 p-2 rounded-xl bg-black/10"
+            className="space-y-2 border border-white/5 p-2 rounded-xl bg-surface-canvas/10"
           >
             {/* Parent Solution/Group Section Header */}
             <div
@@ -64,11 +64,11 @@ export function GroupedUcidList({
                   setViewStep(null);
                 }
               }}
-              className="flex items-center justify-between px-2 py-1 bg-surface-elevated hover:bg-surface-card rounded-lg border border-indigo-500/10 text-[9.5px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none cursor-pointer transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500"
+              className="flex items-center justify-between px-2 py-1 bg-surface-elevated hover:bg-surface-card rounded-lg border border-brand-indigo/10 text-[9.5px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none cursor-pointer transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:ring-1 focus:ring-indigo-500"
               title="Click to open Campaign Consolidation Hub for this group"
             >
               <span className="flex items-center gap-1.5 truncate">
-                <Layers className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <Layers className="w-3.5 h-3.5 text-brand-indigo shrink-0" />
                 <span
                   className="truncate max-w-[130px]"
                   title={solutionGroup}
@@ -76,9 +76,9 @@ export function GroupedUcidList({
                   {solutionGroup}
                 </span>
               </span>
-              <span className="text-[8.5px] bg-indigo-500/10 px-1.5 py-0.5 rounded border border-white/5 text-gray-400 shrink-0 font-bold flex items-center gap-1">
+              <span className="text-[8.5px] bg-brand-indigo/10 px-1.5 py-0.5 rounded border border-white/5 text-content-secondary shrink-0 font-bold flex items-center gap-1">
                 <span>{groupItems.length} P</span>
-                <span className="text-[7.5px] text-indigo-400 font-extrabold uppercase flex items-center gap-0.5">
+                <span className="text-[7.5px] text-brand-indigo font-extrabold uppercase flex items-center gap-0.5">
                   <BarChart2 className="w-2.5 h-2.5" /> Hub
                 </span>
               </span>
@@ -155,7 +155,7 @@ export function GroupedUcidList({
                               background: PRIORITY_COLOR[u.priority],
                             }}
                           />
-                          <span className="text-[10px] font-mono text-indigo-400 font-bold">
+                          <span className="text-[10px] font-mono text-brand-indigo font-bold">
                             {u.displayId}
                           </span>
                           <StatusBadge
@@ -167,7 +167,7 @@ export function GroupedUcidList({
                         {isDone ? (
                           <StatusBadge status="Locked" variant="success" size="sm" />
                         ) : (
-                          <span className="text-[9.5px] text-gray-500 font-semibold">
+                          <span className="text-[9.5px] text-content-primary0 font-semibold">
                             {pct}% Complete
                           </span>
                         )}
@@ -181,7 +181,7 @@ export function GroupedUcidList({
                             e.stopPropagation();
                             setActiveMenuUcidId(activeMenuUcidId === u.id ? null : u.id);
                           }}
-                          className="nested-action absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-white hover:bg-white/10 rounded cursor-pointer transition z-20"
+                          className="nested-action absolute right-0 top-1/2 -translate-y-1/2 p-1 text-content-primary0 hover:text-content-primary hover:bg-white/10 rounded cursor-pointer transition z-20"
                           title="Actions"
                         >
                           <MoreVertical className="w-3.5 h-3.5" />
@@ -190,7 +190,7 @@ export function GroupedUcidList({
                         {activeMenuUcidId === u.id && (
                           <div 
                             role="presentation"
-                            className="nested-action absolute right-0 top-6 w-28 bg-surface-header border border-indigo-500/20 rounded-lg shadow-2xl py-1 z-30 font-sans"
+                            className="nested-action absolute right-0 top-6 w-28 bg-surface-header border border-brand-indigo/20 rounded-lg shadow-2xl py-1 z-30 font-sans"
                             onClick={(e) => e.stopPropagation()}
                             onKeyDown={(e) => e.stopPropagation()}
                           >
@@ -200,9 +200,9 @@ export function GroupedUcidList({
                                 setEditingUcid(u);
                                 setActiveMenuUcidId(null);
                               }}
-                              className="w-full text-left px-2.5 py-1.5 hover:bg-white/5 text-[10px] text-gray-300 hover:text-white flex items-center gap-1.5 cursor-pointer font-bold"
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-white/5 text-[10px] text-content-secondary hover:text-content-primary flex items-center gap-1.5 cursor-pointer font-bold"
                             >
-                              <Edit2 className="w-3 h-3 text-indigo-400" />
+                              <Edit2 className="w-3 h-3 text-brand-indigo" />
                               Edit
                             </button>
                             <button
@@ -211,9 +211,9 @@ export function GroupedUcidList({
                                 handleDuplicate(u);
                                 setActiveMenuUcidId(null);
                               }}
-                              className="w-full text-left px-2.5 py-1.5 hover:bg-white/5 text-[10px] text-gray-300 hover:text-white flex items-center gap-1.5 cursor-pointer font-bold"
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-white/5 text-[10px] text-content-secondary hover:text-content-primary flex items-center gap-1.5 cursor-pointer font-bold"
                             >
-                              <Copy className="w-3 h-3 text-emerald-400" />
+                              <Copy className="w-3 h-3 text-status-success" />
                               Duplicate
                             </button>
                             <button
@@ -222,7 +222,7 @@ export function GroupedUcidList({
                                 setConfirmDeleteUcid(u);
                                 setActiveMenuUcidId(null);
                               }}
-                              className="w-full text-left px-2.5 py-1.5 hover:bg-red-500/10 text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1.5 cursor-pointer font-bold"
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-status-error/10 text-[10px] text-status-error hover:text-red-300 flex items-center gap-1.5 cursor-pointer font-bold"
                             >
                               <Trash2 className="w-3 h-3" />
                               Delete
@@ -231,7 +231,7 @@ export function GroupedUcidList({
                         )}
                       </div>
 
-                      <p className="text-[11px] text-white line-clamp-2 leading-tight pr-1 font-semibold text-left">
+                      <p className="text-[11px] text-content-primary line-clamp-2 leading-tight pr-1 font-semibold text-left">
                         {displayNameCleaned}
                       </p>
 
@@ -252,9 +252,9 @@ export function GroupedUcidList({
 
                       {u.solutions && u.solutions.length > 0 && (
                         <div className="mt-3 pt-2 border-t border-white/5 space-y-1.5 select-none text-left">
-                          <div className="flex items-center justify-between text-[8px] text-gray-500 font-mono">
+                          <div className="flex items-center justify-between text-[8px] text-content-primary0 font-mono">
                             <span>CONFIG SEQUENCE</span>
-                            <span className="text-gray-400 font-bold uppercase">
+                            <span className="text-content-secondary font-bold uppercase">
                               {(() => {
                                 const splitConfigs = u.solutions.flatMap(sol => sol.vendorSubmissions?.[0]?.configs || []);
                                 return splitConfigs.length > 0 ? splitConfigs.length : u.solutions.length;
@@ -274,11 +274,11 @@ export function GroupedUcidList({
                                     <div
                                       key={sol.id}
                                       className={`flex-1 h-1.5 rounded transition-all duration-300 relative ${
-                                        isActive ? "bg-indigo-500 shadow-[0_0_8px_rgba(74, 133, 253,0.6)] animate-pulse" : isCompleted ? "bg-status-success" : "bg-gray-800"
+                                        isActive ? "bg-brand-indigo shadow-[0_0_8px_rgba(74, 133, 253,0.6)] animate-pulse" : isCompleted ? "bg-status-success" : "bg-surface-elevated"
                                       }`}
                                       title={`${sol.name} (Value: $${sol.vendorSubmissions?.[0]?.totalPrice?.toLocaleString()})`}
                                     >
-                                      {isActive && <span className="absolute -inset-0.5 rounded bg-indigo-400/50 animate-ping opacity-75" />}
+                                      {isActive && <span className="absolute -inset-0.5 rounded bg-brand-indigo/50 animate-ping opacity-75" />}
                                     </div>
                                   );
                                 });
@@ -296,12 +296,12 @@ export function GroupedUcidList({
                                   <div
                                     key={cfg.id || `cfg-${index}`}
                                     className={`flex-1 h-1.5 rounded transition-all duration-300 relative ${
-                                      isClean ? "bg-emerald-500 shadow-[0_0_8px_rgba(0,212,160,0.4)]" : "bg-red-500 shadow-[0_0_8px_rgba(255,61,90,0.6)]"
+                                      isClean ? "bg-status-success shadow-[0_0_8px_rgba(0,212,160,0.4)]" : "bg-status-error shadow-[0_0_8px_rgba(255,61,90,0.6)]"
                                     }`}
                                     title={`${cfg.name} - ${isClean ? "Clean" : "Unbuildable / Markup Issue"}`}
                                   >
                                     {!isClean && (
-                                      <span className="absolute -inset-0.5 rounded bg-red-400/50 animate-ping opacity-75" />
+                                      <span className="absolute -inset-0.5 rounded bg-status-error/50 animate-ping opacity-75" />
                                     )}
                                   </div>
                                 );
@@ -317,8 +317,8 @@ export function GroupedUcidList({
                                 variant="success"
                               />
                             )}
-                            <span className="font-mono text-[8px] text-amber-400 font-semibold flex items-center gap-0.5">
-                              <span className="w-1 h-1 rounded-full bg-amber-400 animate-ping" />
+                            <span className="font-mono text-[8px] text-status-warning font-semibold flex items-center gap-0.5">
+                              <span className="w-1 h-1 rounded-full bg-status-warning animate-ping" />
                               Live Sync
                             </span>
                           </div>

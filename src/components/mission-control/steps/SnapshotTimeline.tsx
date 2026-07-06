@@ -21,7 +21,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
         <motion.div
           layout
           key={snap.id}
-          className="text-[11px] space-y-1 bg-black/30 rounded-lg border border-white/5 overflow-hidden"
+          className="text-[11px] space-y-1 bg-surface-canvas/30 rounded-lg border border-white/5 overflow-hidden"
         >
           <div
             role="button"
@@ -39,34 +39,34 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
           >
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                {expandedSnapshot === snap.id ? <ChevronDown className="w-3.5 h-3.5 text-gray-400" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-400" />}
-                <span className="text-white font-semibold font-sans">
+                {expandedSnapshot === snap.id ? <ChevronDown className="w-3.5 h-3.5 text-content-secondary" /> : <ChevronRight className="w-3.5 h-3.5 text-content-secondary" />}
+                <span className="text-content-primary font-semibold font-sans">
                   {snap.label}
                 </span>
-                <span className="text-gray-500 font-mono text-[9px] bg-white/5 px-1.5 py-0.5 rounded">
+                <span className="text-content-primary0 font-mono text-[9px] bg-white/5 px-1.5 py-0.5 rounded">
                   {snap.id.substring(0, 14)}...
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-4 ml-5">
-                <p className="text-gray-400 flex items-center gap-1.5">
+                <p className="text-content-secondary flex items-center gap-1.5">
                   <span className="opacity-60">Source:</span>
                   <StatusBadge
                     status={snap.winnerSolution || "unknown"}
                     variant="success"
                   />
                 </p>
-                <p className="text-gray-400 flex items-center gap-1.5">
+                <p className="text-content-secondary flex items-center gap-1.5">
                   <span className="opacity-60">Value:</span>
-                  <span className="text-white font-bold font-mono">
+                  <span className="text-content-primary font-bold font-mono">
                     ${snap.totalValue.toLocaleString()}
                   </span>
                 </p>
-                <p className="text-gray-500 italic text-[10px] flex items-center gap-1">
+                <p className="text-content-primary0 italic text-[10px] flex items-center gap-1">
                   <Layers className="w-3 h-3" /> {snap.notes}
                 </p>
               </div>
             </div>
-            <span className="text-emerald-400/80 font-mono text-[9px] shrink-0 border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 rounded">
+            <span className="text-status-success/80 font-mono text-[9px] shrink-0 border border-status-success/20 bg-status-success/10 px-2 py-1 rounded">
               {snap.committedAt}
             </span>
           </div>
@@ -77,10 +77,10 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="border-t border-white/5 bg-black/40 p-4"
+                className="border-t border-white/5 bg-surface-canvas/40 p-4"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[10px] uppercase tracking-wider font-bold text-gray-400 flex items-center gap-2">
+                  <h4 className="text-[10px] uppercase tracking-wider font-bold text-content-secondary flex items-center gap-2">
                     <Eye className="w-3.5 h-3.5" /> Snapshot BOM Inspection
                   </h4>
                 </div>
@@ -91,12 +91,12 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                       <div key={cfg.id || cfgIdx} className="bg-surface-elevated border border-white/10 rounded-lg p-3">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-indigo-300 font-bold font-mono text-[10px]">{cfg.name || cfg.vendor || `Config ${cfgIdx + 1}`}</span>
-                          <span className="text-gray-400 font-mono text-[9px]">Value: ${(cfg.totalPrice || 0).toLocaleString()}</span>
+                          <span className="text-content-secondary font-mono text-[9px]">Value: ${(cfg.totalPrice || 0).toLocaleString()}</span>
                         </div>
                         <div className="overflow-x-auto">
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="border-b border-white/10 text-[9px] text-gray-500 uppercase font-mono">
+                              <tr className="border-b border-white/10 text-[9px] text-content-primary0 uppercase font-mono">
                                 <th className="py-1 px-2 font-normal">Part Number</th>
                                 <th className="py-1 px-2 font-normal">Type</th>
                                 <th className="py-1 px-2 font-normal">Description</th>
@@ -107,9 +107,9 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                               {cfg.items?.map((item: BOMItem, itIdx: number) => (
-                                <tr key={item.id || itIdx} className="hover:bg-white/5 text-[10px] text-gray-300 transition-colors">
+                                <tr key={item.id || itIdx} className="hover:bg-white/5 text-[10px] text-content-secondary transition-colors">
                                   <td className="py-1.5 px-2 font-mono text-indigo-200">{item.partNumber}</td>
-                                  <td className="py-1.5 px-2 text-gray-400">{item.type}</td>
+                                  <td className="py-1.5 px-2 text-content-secondary">{item.type}</td>
                                   <td className="py-1.5 px-2 truncate max-w-[200px]" title={item.name}>{item.name}</td>
                                   <td className="py-1.5 px-2 text-center font-mono">{item.quantity}</td>
                                   <td className="py-1.5 px-2 text-right font-mono">${(item.unitPrice || 0).toLocaleString()}</td>
@@ -117,7 +117,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                                 </tr>
                               ))}
                               {(!cfg.items || cfg.items.length === 0) && (
-                                <tr><td colSpan={6} className="py-4 text-center text-gray-500 text-[10px] italic">No items found in this config.</td></tr>
+                                <tr><td colSpan={6} className="py-4 text-center text-content-primary0 text-[10px] italic">No items found in this config.</td></tr>
                               )}
                             </tbody>
                           </table>
@@ -133,12 +133,12 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                           <div key={vs.id || vsIdx} className="bg-surface-elevated border border-white/10 rounded-lg p-3">
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-indigo-300 font-bold font-mono text-[10px]">{vs.vendor} Configuration</span>
-                              <span className="text-gray-400 font-mono text-[9px]">Value: ${vs.totalPrice?.toLocaleString()}</span>
+                              <span className="text-content-secondary font-mono text-[9px]">Value: ${vs.totalPrice?.toLocaleString()}</span>
                             </div>
                             <div className="overflow-x-auto">
                               <table className="w-full text-left border-collapse">
                                 <thead>
-                                  <tr className="border-b border-white/10 text-[9px] text-gray-500 uppercase font-mono">
+                                  <tr className="border-b border-white/10 text-[9px] text-content-primary0 uppercase font-mono">
                                     <th className="py-1 px-2 font-normal">Part Number</th>
                                     <th className="py-1 px-2 font-normal">Type</th>
                                     <th className="py-1 px-2 font-normal">Description</th>
@@ -149,9 +149,9 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                   {vs.configs?.flatMap((c: Config) => c.items)?.map((item: BOMItem, itIdx: number) => (
-                                    <tr key={item.id || itIdx} className="hover:bg-white/5 text-[10px] text-gray-300 transition-colors">
+                                    <tr key={item.id || itIdx} className="hover:bg-white/5 text-[10px] text-content-secondary transition-colors">
                                       <td className="py-1.5 px-2 font-mono text-indigo-200">{item.partNumber}</td>
-                                      <td className="py-1.5 px-2 text-gray-400">{item.type}</td>
+                                      <td className="py-1.5 px-2 text-content-secondary">{item.type}</td>
                                       <td className="py-1.5 px-2 truncate max-w-[200px]" title={item.name}>{item.name}</td>
                                       <td className="py-1.5 px-2 text-center font-mono">{item.quantity}</td>
                                       <td className="py-1.5 px-2 text-right font-mono">${(item.unitPrice || 0).toLocaleString()}</td>
@@ -160,7 +160,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                                   ))}
                                   {(!vs.configs || vs.configs.length === 0) && (
                                     <tr>
-                                      <td colSpan={6} className="py-4 text-center text-gray-500 text-[10px] italic">No items found in this payload.</td>
+                                      <td colSpan={6} className="py-4 text-center text-content-primary0 text-[10px] italic">No items found in this payload.</td>
                                     </tr>
                                   )}
                                 </tbody>
@@ -172,7 +172,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-gray-500 bg-white/5 border border-dashed border-white/10 rounded-lg">
+                  <div className="flex flex-col items-center justify-center py-6 text-content-primary0 bg-white/5 border border-dashed border-white/10 rounded-lg">
                     <CheckCircle className="w-6 h-6 mb-2 opacity-50" />
                     <span className="text-[10px]">Baseline snapshot stored without full BOM payload (Legacy Format).</span>
                   </div>

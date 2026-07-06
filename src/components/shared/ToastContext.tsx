@@ -67,9 +67,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <div
                 className={`p-3.5 rounded-xl border flex items-start gap-3 shadow-2xl ${
                   t.type === "success"
-                    ? "border-emerald-500/20 text-status-success"
+                    ? "border-status-success/20 text-status-success"
                     : t.type === "warn"
-                      ? "border-amber-500/20 text-status-warning"
+                      ? "border-status-warning/20 text-status-warning"
                       : "border-rose-500/20 text-status-error"
                 }`}
                 style={{
@@ -82,17 +82,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 }}
               >
                 {t.type === "success" && (
-                  <CheckCircle2 className="w-4.5 h-4.5 shrink-0 mt-0.5 text-emerald-400" />
+                  <CheckCircle2 className="w-4.5 h-4.5 shrink-0 mt-0.5 text-status-success" />
                 )}
                 {t.type === "warn" && (
-                  <AlertTriangle className="w-4.5 h-4.5 shrink-0 mt-0.5 text-amber-400" />
+                  <AlertTriangle className="w-4.5 h-4.5 shrink-0 mt-0.5 text-status-warning" />
                 )}
                 {t.type === "error" && (
                   <XCircle className="w-4.5 h-4.5 shrink-0 mt-0.5 text-rose-400" />
                 )}
 
                 <div className="flex-1 min-w-0 pr-4">
-                  <p className="text-[11px] font-medium text-white leading-snug">
+                  <p className="text-[11px] font-medium text-content-primary leading-snug">
                     {t.message}
                   </p>
                   {t.actionLabel && t.onAction && (
@@ -110,7 +110,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
                 <button type="button"
                   onClick={() => removeToast(t.id)}
-                  className="p-1 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition cursor-pointer"
+                  className="p-1 hover:bg-white/5 rounded-lg text-content-secondary hover:text-content-primary transition cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

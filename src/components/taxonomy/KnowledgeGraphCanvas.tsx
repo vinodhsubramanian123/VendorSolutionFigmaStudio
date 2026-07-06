@@ -26,51 +26,51 @@ import { ErrorBoundary } from '../shared/ErrorBoundary';
 // ==========================================
 const CatalogPartNode = ({ data }: { data: GraphNode }) => {
   return (
-    <div className={`bg-surface-card border-2 ${data.data?.isPathActive ? 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'border-indigo-500/50 shadow-lg'} rounded-xl p-3 min-w-[200px] hover:border-indigo-400 hover:shadow-indigo-500/20 transition-all cursor-pointer`}>
-      <Handle type="target" position={Position.Top} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-emerald-500' : 'bg-indigo-500'} border-2 border-black`} />
+    <div className={`bg-surface-card border-2 ${data.data?.isPathActive ? 'border-status-success shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'border-brand-indigo/50 shadow-lg'} rounded-xl p-3 min-w-[200px] hover:border-brand-indigo hover:shadow-indigo-500/20 transition-all cursor-pointer`}>
+      <Handle type="target" position={Position.Top} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-brand-indigo'} border-2 border-black`} />
       <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
-        <Server className={`w-4 h-4 ${data.data?.isPathActive ? 'text-emerald-400' : 'text-indigo-400'}`} />
+        <Server className={`w-4 h-4 ${data.data?.isPathActive ? 'text-status-success' : 'text-brand-indigo'}`} />
         <span className={`text-[10px] font-bold font-mono ${data.data?.isPathActive ? 'text-emerald-300' : 'text-indigo-300'} uppercase tracking-widest`}>Catalog Part</span>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-bold text-white">{data.label}</span>
-        {data.data?.partNumber && <div className="text-[9px] text-gray-500 font-mono mt-1">PN: {data.data.partNumber}</div>}
-        {data.data?.price && <div className="text-[10px] text-emerald-400 font-bold mt-1">${data.data.price.toLocaleString()}</div>}
+        <span className="text-sm font-bold text-content-primary">{data.label}</span>
+        {data.data?.partNumber && <div className="text-[9px] text-content-primary0 font-mono mt-1">PN: {data.data.partNumber}</div>}
+        {data.data?.price && <div className="text-[10px] text-status-success font-bold mt-1">${data.data.price.toLocaleString()}</div>}
       </div>
-      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-emerald-500' : 'bg-indigo-500'} border-2 border-black`} />
+      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-brand-indigo'} border-2 border-black`} />
     </div>
   );
 };
 const ScrapedOrphanNode = ({ data }: { data: GraphNode }) => {
   return (
-    <div className="bg-black border-2 border-amber-500/80 rounded-xl p-3 shadow-[0_0_15px_rgba(245,158,11,0.2)] min-w-[200px] hover:border-amber-400 transition-all cursor-pointer">
-      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-amber-500 border-2 border-black" />
-      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-amber-500/20">
-        <AlertTriangle className="w-4 h-4 text-amber-500 animate-pulse" />
-        <span className="text-[10px] font-bold font-mono text-amber-500 uppercase tracking-widest">Scraped Orphan</span>
+    <div className="bg-surface-canvas border-2 border-status-warning/80 rounded-xl p-3 shadow-[0_0_15px_rgba(245,158,11,0.2)] min-w-[200px] hover:border-status-warning transition-all cursor-pointer">
+      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-status-warning border-2 border-black" />
+      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-status-warning/20">
+        <AlertTriangle className="w-4 h-4 text-status-warning animate-pulse" />
+        <span className="text-[10px] font-bold font-mono text-status-warning uppercase tracking-widest">Scraped Orphan</span>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-bold text-white line-clamp-2">{data.label}</span>
+        <span className="text-sm font-bold text-content-primary line-clamp-2">{data.label}</span>
         {data.data?.confidenceScore !== undefined && (
-          <div className="text-[9px] text-amber-500 mt-2 font-mono flex items-center justify-between border-t border-white/10 pt-1">
+          <div className="text-[9px] text-status-warning mt-2 font-mono flex items-center justify-between border-t border-white/10 pt-1">
             <span>Confidence</span>
             <span>{Math.round(data.data.confidenceScore * 100)}%</span>
           </div>
         )}
       </div>
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-amber-500 border-2 border-black" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-status-warning border-2 border-black" />
     </div>
   );
 };
 const CategoryHubNode = ({ data }: { data: GraphNode }) => {
   return (
-    <div className={`bg-surface-elevated border-2 ${data.data?.isPathActive ? 'border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'border-gray-600 shadow-xl'} rounded-lg p-3 min-w-[150px] hover:border-gray-400 transition-all cursor-pointer`}>
-      <Handle type="target" position={Position.Top} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-emerald-500' : 'bg-gray-500'} border-2 border-black`} />
+    <div className={`bg-surface-elevated border-2 ${data.data?.isPathActive ? 'border-status-success/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'border-content-muted shadow-xl'} rounded-lg p-3 min-w-[150px] hover:border-content-secondary transition-all cursor-pointer`}>
+      <Handle type="target" position={Position.Top} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-gray-500'} border-2 border-black`} />
       <div className="flex items-center justify-center gap-2">
-        <Box className={`w-4 h-4 ${data.data?.isPathActive ? 'text-emerald-400' : 'text-gray-400'}`} />
-        <span className="text-sm font-bold text-gray-200">{data.label}</span>
+        <Box className={`w-4 h-4 ${data.data?.isPathActive ? 'text-status-success' : 'text-content-secondary'}`} />
+        <span className="text-sm font-bold text-content-primary">{data.label}</span>
       </div>
-      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-emerald-500' : 'bg-gray-500'} border-2 border-black`} />
+      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-gray-500'} border-2 border-black`} />
     </div>
   );
 };
@@ -227,9 +227,14 @@ function KnowledgeGraphCanvasInner({ apiNodes, apiEdges, apiPaths = [], activeSe
     [reactFlowInstance, onNodeDrop]
   );
 
+  const dragProps = {
+    onDragOver,
+    onDrop
+  };
+
   return (
     <ErrorBoundary>
-      <div className="w-full h-full min-h-[600px] bg-[#03050a] border border-white/5 rounded-xl overflow-hidden relative" onDragOver={onDragOver} onDrop={onDrop}>
+      <div className="w-full h-full min-h-[600px] bg-[#03050a] border border-white/5 rounded-xl overflow-hidden relative" {...dragProps}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -251,16 +256,16 @@ function KnowledgeGraphCanvasInner({ apiNodes, apiEdges, apiPaths = [], activeSe
               return '#4a85fd';
             }}
             maskColor="rgba(0, 0, 0, 0.7)"
-            className="bg-black border border-white/10 rounded-lg overflow-hidden shadow-2xl" 
+            className="bg-surface-canvas border border-white/10 rounded-lg overflow-hidden shadow-2xl" 
           />
         </ReactFlow>
         {/* Legend Overlay */}
-        <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur border border-white/10 rounded-lg p-3 pointer-events-none">
-          <span className="text-[10px] font-mono text-gray-400 font-bold uppercase block mb-2">Graph Legend</span>
-          <div className="space-y-1.5 text-[11px] text-gray-300">
-            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500" /> Catalog Verified</div>
-            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Scraped Orphan (Needs Map)</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-0.5 bg-indigo-500" /> Required Dependency</div>
+        <div className="absolute bottom-4 left-4 bg-surface-canvas/80 backdrop-blur border border-white/10 rounded-lg p-3 pointer-events-none">
+          <span className="text-[10px] font-mono text-content-secondary font-bold uppercase block mb-2">Graph Legend</span>
+          <div className="space-y-1.5 text-[11px] text-content-secondary">
+            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-brand-indigo" /> Catalog Verified</div>
+            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-status-warning animate-pulse" /> Scraped Orphan (Needs Map)</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-0.5 bg-brand-indigo" /> Required Dependency</div>
             <div className="flex items-center gap-2"><div className="w-4 h-0.5 bg-crimson-500 bg-[#ff3d5a]" /> Conflict / Blocker</div>
           </div>
         </div>

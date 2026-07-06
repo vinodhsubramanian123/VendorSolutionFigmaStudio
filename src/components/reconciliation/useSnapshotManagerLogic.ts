@@ -121,12 +121,7 @@ export function useSnapshotManagerLogic(
 }
 
 export function buildSnapshot(activeUCID: UCID, newLabel: string, newWinner: string, newNotes: string): Snapshot {
-  const currentTotalValue = activeUCID.solutions?.[0]?.vendorSubmissions?.[0]?.totalPrice || 0;
-  const chosenSubmission = activeUCID.solutions?.[0]?.vendorSubmissions?.find(
-    (vs) => vs.label === newWinner || vs.vendor === newWinner
-  ) || activeUCID.solutions?.[0]?.vendorSubmissions?.[0];
-  const bomConfigs = chosenSubmission?.configs || [];
-  const nextVersion = (activeUCID.snapshots?.length || 0) + 1;
+  const { currentTotalValue, bomConfigs, nextVersion } = getSnapshotBaseData(activeUCID, newWinner);
   const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
   return {
     id: crypto.randomUUID(),
@@ -141,4 +136,14 @@ export function buildSnapshot(activeUCID: UCID, newLabel: string, newWinner: str
     locked: nextVersion === 1,
     bomSnapshot: JSON.parse(JSON.stringify(bomConfigs))
   };
+}
+
+function getSnapshotBaseData(activeUCID: UCID, newWinner: string) {
+  const currentTotalValue = activeUCID.solutions?.[0]?.vendorSubmissions?.[0]?.totalPrice || 0;
+  const chosenSubmission = activeUCID.solutions?.[0]?.vendorSubmissions?.find(
+    (vs) => vs.label === newWinner || vs.vendor === newWinner
+  ) || activeUCID.solutions?.[0]?.vendorSubmissions?.[0];
+  const bomConfigs = chosenSubmission?.configs || [];
+  const nextVersion = (activeUCID.snapshots?.length || 0) + 1;
+  return { currentTotalValue, bomConfigs, nextVersion };
 }

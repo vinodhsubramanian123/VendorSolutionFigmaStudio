@@ -8,10 +8,10 @@ export function SnapshotHeader() {
         <CheckCircle className="w-5 h-5 text-status-success" />
       </div>
       <div>
-        <p className="text-xs text-white font-bold uppercase">
+        <p className="text-xs text-content-primary font-bold uppercase">
           Locked PO & Sourcing Ledger Committed
         </p>
-        <p className="text-[10px] text-gray-500">
+        <p className="text-[10px] text-content-primary0">
           This UCID transaction pipeline is fully synced and archived.
         </p>
       </div>

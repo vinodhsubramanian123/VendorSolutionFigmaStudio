@@ -55,7 +55,7 @@ export function ReconciliationView() {
             <span className="w-2.5 h-2.5 rounded-full bg-status-warning" /> 
             <span className="w-2.5 h-2.5 rounded-full bg-status-success" />
           </div>
-          <span className="font-mono text-[10px] uppercase font-black tracking-widest text-purple-500">
+          <span className="font-mono text-[10px] uppercase font-black tracking-widest text-brand-violet">
             BOM DRIFT RECONCILIATION · FIRST CLASS SUITE
           </span>
         </div>
@@ -67,8 +67,8 @@ export function ReconciliationView() {
             aria-label="View Version Snapshots"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded border transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
               isSnapshotPanelOpen 
-                ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30" 
-                : "bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40"
+                ? "bg-brand-indigo/20 text-brand-indigo border-brand-indigo/30" 
+                : "bg-surface-canvas/20 text-content-secondary border-white/5 hover:text-content-primary hover:bg-surface-canvas/40"
             }`}
           >
             <Camera className="w-3.5 h-3.5" />
@@ -77,7 +77,7 @@ export function ReconciliationView() {
           <div className="flex items-center gap-1">
             <StatusBadge 
               status="Dual Sourced Synced API" 
-              icon={<span className="text-gray-500 font-mono">INTEGRATION:</span>}
+              icon={<span className="text-content-primary0 font-mono">INTEGRATION:</span>}
               variant="info" 
             />
           </div>
@@ -96,7 +96,7 @@ export function ReconciliationView() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-surface-canvas/50 backdrop-blur-sm"
               onClick={() => setSelectedConfigSheet(null)}
             />
             <motion.div

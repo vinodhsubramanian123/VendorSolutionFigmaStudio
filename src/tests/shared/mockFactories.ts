@@ -1,5 +1,5 @@
 import type { CoreState } from '../../store/coreStore';
-import { CATALOG_SKUS, VENDORS, UCID_STEPS } from '../../lib/mockData';
+import { CATALOG_SKUS, VENDORS } from '../../lib/mockData';
 
 /**
  * Centralized Type-Safe Mock Factory for useCoreStore.

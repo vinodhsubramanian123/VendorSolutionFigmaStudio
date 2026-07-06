@@ -8,7 +8,6 @@ import {
   User,
   Sparkles,
 } from "lucide-react";
-import { UCID, Vendor, CatalogSKU } from "../../types";
 import { useToast } from "../shared/ToastContext";
 import { TopBarSearch } from "./TopBarSearch";
 import { useCoreStore } from "../../store/coreStore";
@@ -87,7 +86,7 @@ export function TopBar({
     >
       {/* View Title */}
       <div className="flex flex-col min-w-0 mr-4 flex-1">
-        <h1 className="text-sm font-semibold text-white tracking-tight truncate">
+        <h1 className="text-sm font-semibold text-content-primary tracking-tight truncate">
           {viewTitles[activeView] || "Procurement Workspace"}
         </h1>
       </div>
@@ -99,7 +98,7 @@ export function TopBar({
           id="topbar-create-solution-btn"
           data-testid="create-solution-btn"
           onClick={() => navigate("/solution-builder")}
-          className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 transition shadow-md shadow-indigo-500/10 cursor-pointer flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shrink-0"
+          className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-content-primary bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 transition shadow-md shadow-indigo-500/10 cursor-pointer flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Create Solution</span>
@@ -117,13 +116,13 @@ export function TopBar({
 
         {/* Live Clock / Timezone */}
         <div
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-gray-400 font-mono text-[10px]"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-content-secondary font-mono text-[10px]"
           style={{
             backgroundColor: "rgba(74, 133, 253,0.02)",
             borderColor: "rgba(74, 133, 253,0.08)",
           }}
         >
-          <Clock className="w-3.5 h-3.5 text-indigo-400" />
+          <Clock className="w-3.5 h-3.5 text-brand-indigo" />
           <span>{timeStr}</span>
         </div>
 
@@ -133,17 +132,17 @@ export function TopBar({
             id="btn-notifications"
             aria-label="Notifications"
             onClick={() => toast.success("No new priority notifications.")}
-            className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer relative"
+            className="p-2 text-content-secondary hover:text-content-primary rounded-lg hover:bg-white/5 transition-colors cursor-pointer relative"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-indigo" />
           </button>
 
           <button type="button"
             id="btn-settings"
             aria-label="Settings"
             onClick={() => toast.success("Settings modal opening...")}
-            className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-2 text-content-secondary hover:text-content-primary rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -154,11 +153,11 @@ export function TopBar({
           className="flex items-center gap-2.5 pl-2 border-l"
           style={{ borderColor: "rgba(74, 133, 253,0.1)" }}
         >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white bg-indigo-500/15 border border-indigo-500/30">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-content-primary bg-brand-indigo/15 border border-brand-indigo/30">
             <User className="w-4 h-4 text-indigo-300" />
           </div>
           <div className="hidden xl:flex flex-col">
-            <span className="text-[11px] font-bold text-white leading-none">
+            <span className="text-[11px] font-bold text-content-primary leading-none">
               Admin Operator
             </span>
             <span className="text-[9px] text-status-success font-mono font-semibold mt-0.5">

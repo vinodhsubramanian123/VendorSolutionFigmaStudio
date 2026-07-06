@@ -20,7 +20,7 @@ export function StepComparison({
 }: StepComparisonProps) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-gray-400 leading-normal text-left">
+      <p className="text-xs text-content-secondary leading-normal text-left">
         Cross-compare dual alternative metrics. Mark a chosen vendor as the
         active choice to freeze their respective Bill of Materials design as the
         winner.
@@ -34,13 +34,13 @@ export function StepComparison({
               key={sol.id}
               className={`p-4 rounded-xl border flex flex-col justify-between gap-3 transition-all duration-300 ${
                 isActiveChoice
-                  ? "bg-indigo-600/5 border-indigo-500 shadow-lg shadow-indigo-500/5"
+                  ? "bg-brand-indigo/5 border-brand-indigo shadow-lg shadow-indigo-500/5"
                   : "bg-surface-card border-white/5 opacity-80"
               }`}
             >
               <div className="space-y-3 text-left">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  <span className="text-xs font-bold text-content-primary uppercase tracking-wider">
                     {sol.vendor} Alternative Selection
                   </span>
                   <StatusBadge
@@ -49,10 +49,10 @@ export function StepComparison({
                   />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-white">
+                  <p className="text-lg font-bold text-content-primary">
                     ${sol.totalPrice.toLocaleString()}
                   </p>
-                  <p className="text-[10px] text-gray-500">
+                  <p className="text-[10px] text-content-primary0">
                     Original price:{" "}
                     <span className="line-through">
                       ${sol.originalPrice.toLocaleString()}
@@ -60,22 +60,22 @@ export function StepComparison({
                     (saved ${sol.savings.toLocaleString()})
                   </p>
                 </div>
-                <div className="text-[11px] text-gray-400 space-y-1">
+                <div className="text-[11px] text-content-secondary space-y-1">
                   <p>
                     • Estimated lead time:{" "}
-                    <span className="text-white font-medium">
+                    <span className="text-content-primary font-medium">
                       7–12 business days
                     </span>
                   </p>
                   <p>
                     • Shipping fee:{" "}
-                    <span className="text-green-400 font-medium">
+                    <span className="text-status-success font-medium">
                       Included (connected direct partner discount)
                     </span>
                   </p>
                   <p>
                     • Warranty structure:{" "}
-                    <span className="text-white font-semibold">
+                    <span className="text-content-primary font-semibold">
                       3-Year Factory Carepack
                     </span>
                   </p>
@@ -100,7 +100,7 @@ export function StepComparison({
                         `Set ${sol.vendor} submission as active sourcing winner.`,
                       );
                     }}
-                    className="px-2.5 py-1 text-[9px] uppercase font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 rounded cursor-pointer transition"
+                    className="px-2.5 py-1 text-[9px] uppercase font-bold text-brand-indigo bg-brand-indigo/10 hover:bg-brand-indigo/15 border border-brand-indigo/20 rounded cursor-pointer transition"
                   >
                     Select Sourcing Winner
                   </button>
@@ -117,8 +117,8 @@ export function StepComparison({
             submissions={ucid.solutions[0].vendorSubmissions}
           />
         )}
-      <div className="border-t pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-indigo-500/10 text-left">
-        <span className="text-xs text-gray-500">
+      <div className="border-t pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-brand-indigo/10 text-left">
+        <span className="text-xs text-content-primary0">
           Choosing the winner will generate a final digital snap PO for sign-off.
         </span>
         {committingSnapshot ? (

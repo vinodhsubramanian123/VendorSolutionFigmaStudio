@@ -25,6 +25,7 @@ import { useMissionControlWorkflow } from "./useMissionControlWorkflow";
 import { PRIORITY_COLOR } from "../../lib/constants";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { JobStreamer } from "../shared/JobStreamer";
+import { getSolutionName, getStepState } from "./missionControlUtils";
 interface MissionControlProps {
   selectedId?: string;
   onSelectId: (id: string | undefined) => void;
@@ -65,40 +66,18 @@ export const MissionControl = React.memo(function MissionControl({
   const [campaignLocked, setCampaignLocked] = useState<Record<string, boolean>>(
     {},
   );
-  // Helper function to extract or resolve Parent Solution/Campaign group
-  const getSolutionName = React.useCallback((u: UCID): string => {
-    const solution = solutions.find(s => s.id === u.solutionId);
-    if (solution) {
-      return solution.name;
-    }
-    if (u.name.includes(" — ")) {
-      return u.name.split(" — ")[0];
-    }
-    if (u.projectRef) {
-      if (u.projectRef === "PRJ-VIRT-NORTH-2026")
-        return "North Virtualization Cluster Campaign";
-      if (u.projectRef === "PRJ-STO-BACKUP-EAST")
-        return "East Backup Storage Consolidation";
-      if (u.projectRef === "PRJ-NET-DC-SPINE")
-        return "HQ Spine Network Overhaul";
-      if (u.projectRef === "PRJ-WAN-EDGE-SEC")
-        return "WAN Edge Security Gateway Refresh";
-      return u.projectRef;
-    }
-    return "General Sourcing Projects";
-  }, [solutions]);
   // Group UCIDs by their overarching Solution name
   const groupedUcids = React.useMemo(() => {
     const groups: Record<string, UCID[]> = {};
     ucids.forEach((u) => {
-      const groupName = getSolutionName(u);
+      const groupName = getSolutionName(u, solutions);
       if (!groups[groupName]) {
         groups[groupName] = [];
       }
       groups[groupName].push(u);
     });
     return groups;
-  }, [ucids, getSolutionName]);
+  }, [ucids, solutions]);
   // Default to first UCID if none selected or if selected is not found
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
@@ -120,14 +99,6 @@ export const MissionControl = React.memo(function MissionControl({
       : ucids.some((u) => u.currentStep !== "boq-intake")
         ? "active"
         : "planning";
-  function getStepState(
-    u: UCID,
-    stepId: UCIDStep,
-  ): "upcoming" | "active" | "complete" {
-    if (u.completedSteps.includes(stepId)) return "complete";
-    if (stepId === u.currentStep) return "active";
-    return "upcoming";
-  }
   const {
     runningIntel,
     intelProgress,
@@ -156,7 +127,7 @@ export const MissionControl = React.memo(function MissionControl({
           <button type="button"
             aria-label="Create New Mission"
             onClick={() => setShowNewUCID(true)}
-            className="px-6 py-2.5 rounded-lg bg-brand-indigo text-white font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
+            className="px-6 py-2.5 rounded-lg bg-brand-indigo text-content-primary font-bold tracking-wide text-sm cursor-pointer shadow-lg shadow-brand-indigo/20 transition-all hover:bg-brand-indigo/90"
           >
             Create New Mission
           </button>
@@ -198,7 +169,7 @@ export const MissionControl = React.memo(function MissionControl({
           setWorkspaceMode={setWorkspaceMode}
           onSelectId={onSelectId}
           setViewStep={setViewStep}
-          getSolutionName={getSolutionName}
+          getSolutionName={(u) => getSolutionName(u, solutions)}
         />
         {/* Right column: detailed workflow tracker */}
         <div className="xl:col-span-3 flex flex-col gap-4 min-w-0">
@@ -211,8 +182,8 @@ export const MissionControl = React.memo(function MissionControl({
               onClick={() => setWorkspaceMode("individual")}
               className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
                 workspaceMode === "individual"
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/25"
+                  : "text-content-secondary hover:text-content-primary hover:bg-white/5"
               }`}
             >
               <Activity className="w-3.5 h-3.5 animate-pulse" />
@@ -225,8 +196,8 @@ export const MissionControl = React.memo(function MissionControl({
               onClick={() => setWorkspaceMode("consolidation")}
               className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
                 workspaceMode === "consolidation"
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/25"
+                  : "text-content-secondary hover:text-content-primary hover:bg-white/5"
               }`}
             >
               <GitCompare className="w-3.5 h-3.5" />
@@ -234,7 +205,7 @@ export const MissionControl = React.memo(function MissionControl({
                 Campaign Consolidation Hub (
                 {
                   ucids.filter(
-                    (u) => getSolutionName(u) === getSolutionName(selected),
+                    (u) => getSolutionName(u, solutions) === getSolutionName(selected, solutions),
                   ).length
                 }{" "}
                 sheets)
@@ -244,9 +215,9 @@ export const MissionControl = React.memo(function MissionControl({
           <div className="pr-1">
             {workspaceMode === "consolidation" ? (
               <CampaignConsolidationHub
-                campaignName={getSolutionName(selected)}
+                campaignName={getSolutionName(selected, solutions)}
                 campaignUcids={ucids.filter(
-                  (u) => getSolutionName(u) === getSolutionName(selected),
+                  (u) => getSolutionName(u, solutions) === getSolutionName(selected, solutions),
                 )}
                 ucids={ucids}
                 setUcids={setUcids}
@@ -254,16 +225,16 @@ export const MissionControl = React.memo(function MissionControl({
                 setCampaignSigner={setCampaignSigner}
                 campaignLocked={campaignLocked}
                 setCampaignLocked={setCampaignLocked}
-                getSolutionName={getSolutionName}
+                getSolutionName={(u) => getSolutionName(u, solutions)}
               />
             ) : (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl border flex flex-col gap-4 bg-surface-elevated border-indigo-500/10">
+                <div className="p-4 rounded-xl border flex flex-col gap-4 bg-surface-elevated border-brand-indigo/10">
                   {/* Mission Head */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-indigo-500/10">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-brand-indigo/10">
                     <div className="text-left">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-mono text-indigo-400 font-bold">
+                        <span className="text-xs font-mono text-brand-indigo font-bold">
                           {selected.displayId}
                         </span>
                         <StatusBadge
@@ -271,8 +242,8 @@ export const MissionControl = React.memo(function MissionControl({
                           variant={selected.syncStatus === "Synced" ? "success" : selected.syncStatus === "Out-of-Sync" ? "warning" : "info"}
                           size="sm"
                         />
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-indigo/15 border border-brand-indigo/20 text-indigo-400 font-semibold select-none">
-                          Campaign: {getSolutionName(selected)}
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-indigo/15 border border-brand-indigo/20 text-brand-indigo font-semibold select-none">
+                          Campaign: {getSolutionName(selected, solutions)}
                         </span>
                         <span
                           className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase"
@@ -284,21 +255,21 @@ export const MissionControl = React.memo(function MissionControl({
                         >
                           {selected.priority} Priority
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-content-primary0">
                           Project Ref:{" "}
-                          <span className="font-mono text-gray-400">
+                          <span className="font-mono text-content-secondary">
                             {selected.projectRef}
                           </span>
                         </span>
                       </div>
-                      <h2 className="text-base text-white font-semibold mt-1">
+                      <h2 className="text-base text-content-primary font-semibold mt-1">
                         {selected.name.includes(" — ")
                           ? selected.name.split(" — ").slice(1).join(" — ")
                           : selected.name}
                       </h2>
                     </div>
                     <div className="flex items-center gap-2 self-start md:self-auto">
-                      <span className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                      <span className="text-xs text-content-primary0 font-mono flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" /> Ingested {new Date(selected.createdAt).toLocaleDateString()}
                       </span>
                     </div>

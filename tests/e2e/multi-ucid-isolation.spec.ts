@@ -1,37 +1,28 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to ingestion hub and split configs
     await page.goto('/');
     await page.locator('#nav-ingestion-hub').click();
-    await delay(500);
-
     const processBtn = page.getByText('Run Backend API Ingest', { exact: false }).first();
     await processBtn.click();
 
     const splitBtn = page.getByText('Split Configs into Active UCIDs', { exact: false }).first();
     await splitBtn.waitFor({ state: 'visible', timeout: 30000 });
     await splitBtn.click();
-    await delay(1000);
-
     // Deploy multiple UCIDs from solution builder
     await page.locator('#nav-solution-builder').click();
-    await delay(1000);
-
     // Enable multi-UCID mode if not already enabled
     const multiBtn = page.getByRole('button', { name: /Multi/i }).first();
     if (await multiBtn.isVisible()) {
       await multiBtn.click();
-      await delay(500);
     }
 
     const deployBtn = page.getByTestId('btn-deploy-solutions');
     if (await deployBtn.isVisible()) {
       await deployBtn.click();
-      await delay(1500);
     }
   });
 
@@ -46,18 +37,13 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
 
     // 2. Select UCID 1 in Mission Control
     await page.locator('#nav-mission-control').click();
-    await delay(500);
-    
     // 3. Move UCID 1 to Comparison Phase
     await page.locator('#nav-reconciliation').click();
-    await delay(1000);
-
     // Simulate clicking a vendor selection button (e.g., "Select HPE")
     // Assuming there's a button that selects the vendor for the solution
     const selectHpeBtn = page.locator('button', { hasText: 'Select' }).first();
     if (await selectHpeBtn.isVisible()) {
       await selectHpeBtn.click();
-      await delay(500);
     }
 
     // 4. Assert mutations

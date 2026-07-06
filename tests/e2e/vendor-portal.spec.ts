@@ -1,12 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('07 - Vendor Portal E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.locator('#nav-vendor-portal').click();
-    await delay(500);
   });
 
   test('should verify API Latency charts and vendor grids', async ({ page }) => {

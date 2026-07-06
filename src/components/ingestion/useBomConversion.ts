@@ -78,42 +78,7 @@ export function useBomConversion(
       setUcids((prev) =>
         prev.map((u) => {
           if (u.id === selectedUcidId) {
-            const updatedSolutions = u.solutions.map((sol) => {
-              const matchedMatrix = reconData.matrix?.find(
-                (m) => m.solutionId === sol.id,
-              );
-              return {
-                ...sol,
-                vendorSubmissions:
-                  sol.vendorSubmissions?.map((vs) => ({
-                    ...vs,
-                    complianceScore: matchedMatrix
-                      ? matchedMatrix.deliveryConfidenceRating
-                      : vs.complianceScore,
-                  })) || [],
-              };
-            });
-
-            const newEvent = {
-              timestamp: new Date().toISOString(),
-              level: constraintsData.isCompliant ? ("ok" as const) : ("warn" as const),
-              msg: `BOM Sheet "${fileName}" verified centrally. Compliance Rating matched: ${updatedSolutions[0]?.vendorSubmissions?.[0]?.complianceScore ?? "98"}%`,
-            };
-
-            return {
-              ...u,
-              currentStep: "post-intelligence",
-              completedSteps: Array.from(
-                new Set([
-                  ...u.completedSteps,
-                  "solution-design",
-                  "vendor-provisioning",
-                  "post-intelligence",
-                ]),
-              ),
-              solutions: updatedSolutions,
-              events: [newEvent, ...u.events],
-            };
+            return updateUcidWithVerification(u, reconData, constraintsData, fileName);
           }
           return u;
         }),
@@ -173,39 +138,7 @@ export function useBomConversion(
             return u;
           }
 
-          const updatedSolutions = u.solutions.map((sol) => {
-            const repairedSubmissions =
-              sol.vendorSubmissions?.map((vs) => {
-                const repairedConfigs =
-                  vs.configs?.map((c) => {
-                    const repairedItems =
-                      c.items?.map((it) => repairBomItem(it, vs.vendor)) || [];
-                    const newConfigSum = repairedItems.reduce(
-                      (acc, curr) => acc + curr.unitPrice * curr.quantity,
-                      0,
-                    );
-                    return {
-                      ...c,
-                      items: repairedItems,
-                      totalPrice: newConfigSum,
-                      savings: Math.max(0, c.originalPrice - newConfigSum),
-                    };
-                  }) || [];
-                const newVsSum = repairedConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
-                return {
-                  ...vs,
-                  configs: repairedConfigs,
-                  totalPrice: newVsSum,
-                  savings: Math.max(0, vs.originalPrice - newVsSum),
-                  complianceScore: 100,
-                };
-              }) || [];
-
-            return {
-              ...sol,
-              vendorSubmissions: repairedSubmissions,
-            };
-          });
+          const updatedSolutions = repairSolutions(u.solutions);
 
           return {
             ...u,
@@ -261,5 +194,80 @@ export function useBomConversion(
     bomError,
     triggerBOMParse,
     triggerBatchReconciliation,
+  };
+}
+
+function repairSolutions(solutions: any[]) {
+  return solutions.map((sol) => {
+    const repairedSubmissions =
+      sol.vendorSubmissions?.map((vs: any) => {
+        const repairedConfigs =
+          vs.configs?.map((c: any) => {
+            const repairedItems =
+              c.items?.map((it: any) => repairBomItem(it, vs.vendor)) || [];
+            const newConfigSum = repairedItems.reduce(
+              (acc: number, curr: any) => acc + curr.unitPrice * curr.quantity,
+              0,
+            );
+            return {
+              ...c,
+              items: repairedItems,
+              totalPrice: newConfigSum,
+              savings: Math.max(0, c.originalPrice - newConfigSum),
+            };
+          }) || [];
+        const newVsSum = repairedConfigs.reduce((acc: number, c: any) => acc + c.totalPrice, 0);
+        return {
+          ...vs,
+          configs: repairedConfigs,
+          totalPrice: newVsSum,
+          savings: Math.max(0, vs.originalPrice - newVsSum),
+          complianceScore: 100,
+        };
+      }) || [];
+
+    return {
+      ...sol,
+      vendorSubmissions: repairedSubmissions,
+    };
+  });
+}
+
+function updateUcidWithVerification(u: UCID, reconData: ReconciliationResponse, constraintsData: ConstraintCheckResponse, fileName: string): UCID {
+  const updatedSolutions = u.solutions.map((sol) => {
+    const matchedMatrix = reconData.matrix?.find(
+      (m) => m.solutionId === sol.id,
+    );
+    return {
+      ...sol,
+      vendorSubmissions:
+        sol.vendorSubmissions?.map((vs) => ({
+          ...vs,
+          complianceScore: matchedMatrix
+            ? matchedMatrix.deliveryConfidenceRating
+            : vs.complianceScore,
+        })) || [],
+    };
+  });
+
+  const newEvent = {
+    timestamp: new Date().toISOString(),
+    level: constraintsData.isCompliant ? ("ok" as const) : ("warn" as const),
+    msg: `BOM Sheet "${fileName}" verified centrally. Compliance Rating matched: ${updatedSolutions[0]?.vendorSubmissions?.[0]?.complianceScore ?? "98"}%`,
+  };
+
+  return {
+    ...u,
+    currentStep: "post-intelligence",
+    completedSteps: Array.from(
+      new Set([
+        ...u.completedSteps,
+        "solution-design",
+        "vendor-provisioning",
+        "post-intelligence",
+      ]),
+    ),
+    solutions: updatedSolutions,
+    events: [newEvent, ...u.events],
   };
 }

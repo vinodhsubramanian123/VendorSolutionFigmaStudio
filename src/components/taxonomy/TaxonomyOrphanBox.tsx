@@ -22,11 +22,11 @@ export function TaxonomyOrphanBox({
     <div className="mt-6 p-5 border border-rose-500/25 bg-rose-500/5 rounded-xl text-center max-w-2xl w-full">
       <div className="flex items-center justify-center gap-2 mb-4">
         <AlertTriangle className="w-4.5 h-4.5 text-rose-400 animate-pulse" />
-        <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest font-mono">
+        <div className="text-[10px] font-bold text-status-warning uppercase tracking-widest font-mono">
           Orphan Work Queue ({(data.unmappedIds || []).length})
         </div>
       </div>
-      <p className="text-[10px] text-gray-400 max-w-lg mx-auto mb-4 leading-normal">
+      <p className="text-[10px] text-content-secondary max-w-lg mx-auto mb-4 leading-normal">
         The mechanical intelligence scanner found unmapped items lacking categorization boundaries. 
         Use the Orphan Management Workshop on the right side panel to align these SKUs.
       </p>
@@ -57,10 +57,10 @@ export function TaxonomyOrphanBox({
                 setSelectedOrphanToMap(sku.id);
                 setActiveTab("orphans");
               }}
-              className="p-2 bg-black/40 border border-rose-500/30 rounded-lg text-left flex flex-col gap-1 w-full hover:border-rose-400 transition cursor-grab active:cursor-grabbing"
+              className="p-2 bg-surface-canvas/40 border border-rose-500/30 rounded-lg text-left flex flex-col gap-1 w-full hover:border-rose-400 transition cursor-grab active:cursor-grabbing"
             >
-              <span className="font-bold text-white leading-tight truncate">{sku.name}</span>
-              <span className="font-mono text-amber-500/70">{sku.partNumber}</span>
+              <span className="font-bold text-content-primary leading-tight truncate">{sku.name}</span>
+              <span className="font-mono text-status-warning/70">{sku.partNumber}</span>
               <button type="button" 
                 onClick={() => {
                   setSelectedOrphanToMap(sku.id);

@@ -19,7 +19,7 @@ export function SparesPoolCard({
   return (
     <div className="bg-surface-elevated/95 border border-white/5 rounded-xl p-4 space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-white tracking-tight uppercase text-[10.5px]">
+        <h3 className="font-bold text-content-primary tracking-tight uppercase text-[10.5px]">
           Spares Pool
         </h3>
         <StatusBadge 
@@ -28,19 +28,19 @@ export function SparesPoolCard({
         />
       </div>
 
-      <p className="text-[10.5px] text-gray-500 leading-normal font-medium text-left">
+      <p className="text-[10.5px] text-content-primary0 leading-normal font-medium text-left">
         BOQ items not consumed by any configuration—assign or leave as
         default
       </p>
 
       {/* Unassigned List */}
       <div className="space-y-2 text-left">
-        <span className="text-[9.5px] uppercase font-mono font-bold text-gray-400 tracking-wider block">
+        <span className="text-[9.5px] uppercase font-mono font-bold text-content-secondary tracking-wider block">
           Unassigned ({unassignedSpares.length})
         </span>
 
         {unassignedSpares.length === 0 ? (
-          <p className="text-[9px] text-gray-500 italic">
+          <p className="text-[9px] text-content-primary0 italic">
             No unassigned spares
           </p>
         ) : (
@@ -53,14 +53,14 @@ export function SparesPoolCard({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="bg-black/20 border border-white/2 p-2 rounded flex justify-between items-center text-[10px] hover:border-white/10 overflow-hidden"
+                className="bg-surface-canvas/20 border border-white/2 p-2 rounded flex justify-between items-center text-[10px] hover:border-white/10 overflow-hidden"
                 title={un.name}
               >
                 <div className="truncate pr-1">
-                  <span className="text-white font-mono font-bold block truncate">
+                  <span className="text-content-primary font-mono font-bold block truncate">
                     {un.part}
                   </span>
-                  <span className="text-[9px] text-gray-500 truncate block">
+                  <span className="text-[9px] text-content-primary0 truncate block">
                     {un.name}
                   </span>
                 </div>
@@ -70,7 +70,7 @@ export function SparesPoolCard({
                   </span>
                   <button type="button"
                     onClick={() => assignSpare(un.part)}
-                    className="p-1 rounded bg-indigo-500/10 hover:bg-indigo-500 text-indigo-300 hover:text-white transition cursor-pointer border border-white/5 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                    className="p-1 rounded bg-brand-indigo/10 hover:bg-brand-indigo text-indigo-300 hover:text-content-primary transition cursor-pointer border border-white/5 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                     title="Map device to config"
                   >
                     <Plus className="w-3 h-3" />
@@ -85,12 +85,12 @@ export function SparesPoolCard({
 
       {/* Assigned list */}
       <div className="space-y-2 pt-2 border-t border-white/5 text-left">
-        <span className="text-[9.5px] uppercase font-mono font-bold text-indigo-400 tracking-wider block">
+        <span className="text-[9.5px] uppercase font-mono font-bold text-brand-indigo tracking-wider block">
           Assigned ({assignedSpares.length})
         </span>
 
         {assignedSpares.length === 0 ? (
-          <p className="text-[9px] text-gray-500 italic">
+          <p className="text-[9px] text-content-primary0 italic">
             No spares matched
           </p>
         ) : (
@@ -103,20 +103,20 @@ export function SparesPoolCard({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="bg-black/25 border border-indigo-500/10 p-2 rounded flex justify-between items-center text-[10px] overflow-hidden"
+                className="bg-surface-canvas/25 border border-brand-indigo/10 p-2 rounded flex justify-between items-center text-[10px] overflow-hidden"
                 title={asp.name}
               >
                 <div className="truncate pr-1">
                   <span className="text-status-success font-mono font-semibold block">
                     {asp.part}
                   </span>
-                  <span className="text-[8.5px] text-gray-400 truncate block">
+                  <span className="text-[8.5px] text-content-secondary truncate block">
                     → Core Compute Servers
                   </span>
                 </div>
                 <button type="button"
                   onClick={() => deleteAssignedSpare(asp.part)}
-                  className="p-1 rounded hover:bg-red-500/10 text-gray-500 hover:text-status-error transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                  className="p-1 rounded hover:bg-status-error/10 text-content-primary0 hover:text-status-error transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                   title="Trash Linkage"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -128,7 +128,7 @@ export function SparesPoolCard({
         )}
       </div>
 
-      <p className="text-[9.5px] text-gray-600 leading-normal border-t border-white/5 pt-3 text-left">
+      <p className="text-[9.5px] text-content-muted leading-normal border-t border-white/5 pt-3 text-left">
         Default: spares are left unassigned and excluded from final
         commitment list.
       </p>

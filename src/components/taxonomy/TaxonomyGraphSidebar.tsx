@@ -141,7 +141,7 @@ export function TaxonomyGraphSidebar({
           onClick={() => setActiveTab("constraints")}
           aria-label="Constraints Tab"
           className={`flex-1 pb-2 text-xs font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
-            activeTab === "constraints" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+            activeTab === "constraints" ? 'text-brand-indigo border-b-2 border-brand-indigo' : 'text-content-primary0 hover:text-content-secondary'
           }`}
         >
           Mechanical Check
@@ -150,7 +150,7 @@ export function TaxonomyGraphSidebar({
           onClick={() => setActiveTab("orphans")}
           aria-label="Orphans Tab"
           className={`flex-1 pb-2 text-xs font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
-            activeTab === "orphans" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+            activeTab === "orphans" ? 'text-brand-indigo border-b-2 border-brand-indigo' : 'text-content-primary0 hover:text-content-secondary'
           }`}
         >
           Orphan Workshop
@@ -159,7 +159,7 @@ export function TaxonomyGraphSidebar({
           onClick={() => setActiveTab("edges")}
           aria-label="Edges Tab"
           className={`flex-1 pb-2 text-xs font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
-            activeTab === "edges" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+            activeTab === "edges" ? 'text-brand-indigo border-b-2 border-brand-indigo' : 'text-content-primary0 hover:text-content-secondary'
           }`}
         >
           Edges
@@ -168,7 +168,7 @@ export function TaxonomyGraphSidebar({
           onClick={() => setActiveTab("paths")}
           aria-label="Paths Tab"
           className={`flex-1 pb-2 text-[10px] font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
-            activeTab === "paths" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+            activeTab === "paths" ? 'text-brand-indigo border-b-2 border-brand-indigo' : 'text-content-primary0 hover:text-content-secondary'
           }`}
         >
           Paths
@@ -177,7 +177,7 @@ export function TaxonomyGraphSidebar({
           onClick={() => setActiveTab("nodes")}
           aria-label="Nodes Tab"
           className={`flex-1 pb-2 text-[10px] font-bold font-mono tracking-wider cursor-pointer uppercase transition-colors text-center border-0 bg-transparent ${
-            activeTab === "nodes" ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300'
+            activeTab === "nodes" ? 'text-brand-indigo border-b-2 border-brand-indigo' : 'text-content-primary0 hover:text-content-secondary'
           }`}
         >
           Nodes

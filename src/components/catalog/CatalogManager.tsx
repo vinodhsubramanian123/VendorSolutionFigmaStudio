@@ -187,13 +187,13 @@ export function CatalogManager() {
         onAddClick={() => setShowAddForm(true)}
       />
       {/* Explanation Banner to resolve "Hierarchy Confusion" */}
-      <div className="p-3.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl flex items-start gap-2.5">
-        <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+      <div className="p-3.5 bg-brand-indigo/5 border border-brand-indigo/10 rounded-xl flex items-start gap-2.5">
+        <Info className="w-4 h-4 text-brand-indigo shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <p className="font-bold text-white text-[11.5px]">
+          <p className="font-bold text-content-primary text-[11.5px]">
             Taxonomy & Sourcing Cardinality Clarity Tool
           </p>
-          <p className="text-gray-400 leading-normal text-[10.5px]">
+          <p className="text-content-secondary leading-normal text-[10.5px]">
             Please note: The <strong>Vendor Taxonomy</strong> list represents
             our partner manufacturer global catalogs (totaling{" "}
             {totalCatalogItems.toLocaleString()} available partner items). The
@@ -208,10 +208,10 @@ export function CatalogManager() {
         {/* LEFT COLUMN: VENDOR TAXONOMY DRAWER */}
         <div className="lg:col-span-3 xl:col-span-2 bg-surface-elevated border border-white/5 rounded-xl p-4 flex flex-col gap-4">
           <div className="pb-2 border-b border-white/5 flex flex-col shrink-0">
-            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider font-mono">
+            <span className="text-[10px] text-brand-indigo font-bold uppercase tracking-wider font-mono">
               Manufacturer Taxonomy
             </span>
-            <span className="text-[11.5px] font-bold text-white mt-0.5">
+            <span className="text-[11.5px] font-bold text-content-primary mt-0.5">
               {catalogSkus.length} Contract SKUs Indexed
             </span>
           </div>

@@ -42,8 +42,8 @@ export function ConfigLibraryItem({
       onClick={onSelect}
       className={`p-3 rounded-lg border transition-colors duration-150 cursor-grab active:cursor-grabbing text-left block ${
         isSelected
-          ? "bg-indigo-500/5 border-indigo-500"
-          : "bg-black/10 border-white/5 hover:bg-black/20"
+          ? "bg-brand-indigo/5 border-brand-indigo"
+          : "bg-surface-canvas/10 border-white/5 hover:bg-surface-canvas/20"
       }`}
     >
       <div
@@ -60,12 +60,12 @@ export function ConfigLibraryItem({
         <span>{cfg.vendor} Sourcing Alternative</span>
         <span>${cfg.totalPrice.toLocaleString()}</span>
       </div>
-      <h4 className="text-xs font-bold text-white mt-1">
+      <h4 className="text-xs font-bold text-content-primary mt-1">
         {cfg.name}
       </h4>
 
       {/* Configuration items detail */}
-      <div className="mt-2 text-[10px] text-gray-500 line-clamp-1">
+      <div className="mt-2 text-[10px] text-content-primary0 line-clamp-1">
         {cfg.items
           .map((i) => `${i.quantity}x ${i.type}`)
           .join(", ")}
@@ -73,11 +73,11 @@ export function ConfigLibraryItem({
 
       {/* Assignment Badge & Dropdown */}
       <div className="mt-2.5 pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-        <span className="text-[9.5px] font-mono text-gray-400 uppercase flex items-center gap-1 shrink-0">
-          <CheckCircle className="w-3 h-3 text-indigo-400" />
+        <span className="text-[9.5px] font-mono text-content-secondary uppercase flex items-center gap-1 shrink-0">
+          <CheckCircle className="w-3 h-3 text-brand-indigo" />
           <span>
             Assigned →{" "}
-            <strong className="text-indigo-400">
+            <strong className="text-brand-indigo">
               {cfg.targetUcidId}
             </strong>
           </span>

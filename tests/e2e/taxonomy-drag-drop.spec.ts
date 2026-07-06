@@ -1,13 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('26 - Taxonomy Graph Sync E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to taxonomy graph
     await page.goto('/');
     await page.locator('#nav-taxonomy-graph').click();
-    await delay(1000);
   });
 
   test('should render the graph workspace and open panels', async ({ page }) => {
@@ -17,8 +15,6 @@ test.describe('26 - Taxonomy Graph Sync E2E', () => {
 
     // Open orphan alignment desk
     await orphansTab.click();
-    await delay(500);
-
     // Verify orphan node mapping can be initiated
     const activeOrphansList = page.getByText(/Active Orphans/i).first();
     await expect(activeOrphansList).toBeVisible();
@@ -26,8 +22,6 @@ test.describe('26 - Taxonomy Graph Sync E2E', () => {
     const mapButton = page.locator('button:has-text("Map")').first();
     if (await mapButton.isVisible()) {
       await mapButton.click();
-      await delay(500);
-
       // Verify the target subsystem select appears
       const selectTarget = page.getByRole('combobox').first();
       await expect(selectTarget).toBeVisible();
@@ -35,8 +29,6 @@ test.describe('26 - Taxonomy Graph Sync E2E', () => {
       // Check the path orchestrator tab
       const pathTab = page.getByLabel('Paths Tab').first();
       await pathTab.click();
-      await delay(500);
-
       const pathHelp = page.getByText(/Click on any primary Category Hub node/i).first();
       await expect(pathHelp).toBeVisible();
     }

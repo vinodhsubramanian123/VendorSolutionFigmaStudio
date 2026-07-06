@@ -58,18 +58,18 @@ export function BreadcrumbNav({
     <div className="flex items-center text-[10px] font-mono tracking-wider mb-4 px-1 rounded bg-surface-elevated/50 py-2 border border-white/5 shrink-0">
       <button type="button"
         onClick={() => navigate("/")}
-        className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors cursor-pointer group"
+        className="flex items-center gap-1.5 text-content-secondary hover:text-content-primary transition-colors cursor-pointer group"
       >
-        <Home className="w-3 h-3 group-hover:text-indigo-400" />
+        <Home className="w-3 h-3 group-hover:text-brand-indigo" />
         <span className="uppercase">Vendor Intel</span>
       </button>
 
       {view !== "dashboard" && (
         <>
-          <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
+          <ChevronRight className="w-3 h-3 mx-2 text-content-muted" />
           <button type="button"
             onClick={() => navigate(`/${view}`)}
-            className={`uppercase transition-colors ${activeMission ? "text-gray-400 hover:text-white cursor-pointer" : "text-indigo-400 cursor-default"}`}
+            className={`uppercase transition-colors ${activeMission ? "text-content-secondary hover:text-content-primary cursor-pointer" : "text-brand-indigo cursor-default"}`}
             disabled={!activeMission}
           >
             {viewLabels[view] || view}
@@ -79,14 +79,14 @@ export function BreadcrumbNav({
 
       {activeSolution && (
         <>
-          <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
+          <ChevronRight className="w-3 h-3 mx-2 text-content-muted" />
           <span className="uppercase text-status-warning font-bold">
             [{activeSolution.displayId}] {activeSolution.name}
           </span>
           {activeMission && (
             <>
-              <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
-              <span className="uppercase text-indigo-400 font-bold">
+              <ChevronRight className="w-3 h-3 mx-2 text-content-muted" />
+              <span className="uppercase text-brand-indigo font-bold">
                 {activeMission.configLabel || activeMission.displayId}
               </span>
             </>
@@ -95,7 +95,7 @@ export function BreadcrumbNav({
       )}
       {!activeSolution && activeMission && (
         <>
-          <ChevronRight className="w-3 h-3 mx-2 text-gray-600" />
+          <ChevronRight className="w-3 h-3 mx-2 text-content-muted" />
           <span className="uppercase text-status-warning font-bold">
             [{activeMission.solutionDisplayId || activeMission.displayId}]{" "}
             {activeMission.name.split("—")[0]?.trim() || activeMission.name}

@@ -23,15 +23,15 @@ export function CatalogHeader({
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-          <Database className="w-5.5 h-5.5 text-indigo-400" />
+        <div className="w-10 h-10 rounded-xl bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20">
+          <Database className="w-5.5 h-5.5 text-brand-indigo" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-white tracking-tight">
+          <h2 className="text-sm font-semibold text-content-primary tracking-tight">
             Central Sourcing Database & Inventory Rules
           </h2>
-          <p className="text-[10.5px] text-gray-400 flex items-center gap-1.5 mt-0.5">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <p className="text-[10.5px] text-content-secondary flex items-center gap-1.5 mt-0.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-status-success animate-pulse" />
             <span>
               Sourcing Engine Database — {totalCatalogItems.toLocaleString()}{" "}
               SKUs across {totalConnectedVendors} connected direct vendor APIs
@@ -43,14 +43,14 @@ export function CatalogHeader({
         <button
           type="button"
           onClick={() => toast.success("Manual catalog sync initiated. Verifying vendor APIs...")}
-          className="px-3 py-1.5 rounded-lg bg-black/20 text-gray-400 hover:text-white border border-white/5 font-semibold transition cursor-pointer text-[10.5px] flex items-center gap-1"
+          className="px-3 py-1.5 rounded-lg bg-surface-canvas/20 text-content-secondary hover:text-content-primary border border-white/5 font-semibold transition cursor-pointer text-[10.5px] flex items-center gap-1"
         >
-          <RefreshCw className="w-3 h-3 text-indigo-400" />
+          <RefreshCw className="w-3 h-3 text-brand-indigo" />
           <span>Sync API</span>
         </button>
         <button type="button"
           onClick={onAddClick}
-          className="flex items-center gap-1 text-[11px] px-3.5 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-bold text-white transition-all cursor-pointer shadow-lg shadow-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+          className="flex items-center gap-1 text-[11px] px-3.5 py-1.5 rounded-lg bg-brand-indigo hover:bg-brand-indigo font-bold text-content-primary transition-all cursor-pointer shadow-lg shadow-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         >
           <Plus className="w-3.5 h-3.5" /> Add Sourced SKU
         </button>

@@ -67,19 +67,19 @@ export function AddRuleForm({
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
       onSubmit={handleSubmit} 
-      className="p-4 rounded-lg bg-black/45 border border-white/5 space-y-4 overflow-hidden"
+      className="p-4 rounded-lg bg-surface-canvas/45 border border-white/5 space-y-4 overflow-hidden"
     >
-      <div className="text-[11px] font-bold uppercase text-gray-400 flex items-center gap-1 tracking-wider border-b border-white/5 pb-1">
-        <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" /> Create New Sourcing Intelligence Directive
+      <div className="text-[11px] font-bold uppercase text-content-secondary flex items-center gap-1 tracking-wider border-b border-white/5 pb-1">
+        <Sparkles className="w-3.5 h-3.5 text-brand-indigo animate-pulse" /> Create New Sourcing Intelligence Directive
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
         <div>
-          <label htmlFor="ruleType" className="block text-gray-400 font-medium mb-1">Rule Class Category</label>
+          <label htmlFor="ruleType" className="block text-content-secondary font-medium mb-1">Rule Class Category</label>
           <select
             id="ruleType"
             value={newRuleType}
             onChange={(e) => setNewRuleType(e.target.value as SourcingRule["ruleType"])}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+            className="w-full bg-surface-card border border-white/10 text-content-primary p-2 rounded-lg font-mono focus:border-brand-indigo/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <option value="substitution">Obsolete Substitution Mapping</option>
             <option value="price_cap">Price Contract Cap ($)</option>
@@ -89,36 +89,36 @@ export function AddRuleForm({
         </div>
 
         <div>
-          <label htmlFor="partNumber" className="block text-gray-400 font-medium mb-1">Target SKU / Parameter Code</label>
+          <label htmlFor="partNumber" className="block text-content-secondary font-medium mb-1">Target SKU / Parameter Code</label>
           <input
             id="partNumber"
             type="text"
             placeholder="e.g. 400-BPSB or Processor"
             value={newPartNumber}
             onChange={(e) => setNewPartNumber(e.target.value)}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+            className="w-full bg-surface-card border border-white/10 text-content-primary p-2 rounded-lg font-mono placeholder-gray-600 focus:border-brand-indigo/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           />
         </div>
 
         <div>
-          <label htmlFor="mappedOutput" className="block text-gray-400 font-medium mb-1">Alignment Override Value</label>
+          <label htmlFor="mappedOutput" className="block text-content-secondary font-medium mb-1">Alignment Override Value</label>
           <input
             id="mappedOutput"
             type="text"
             placeholder="e.g. P40424-B21 or 1190"
             value={newMappedOutput}
             onChange={(e) => setNewMappedOutput(e.target.value)}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+            className="w-full bg-surface-card border border-white/10 text-content-primary p-2 rounded-lg font-mono placeholder-gray-600 focus:border-brand-indigo/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           />
         </div>
 
         <div>
-          <label htmlFor="vendorSelect" className="block text-gray-400 font-medium mb-1">Brand Sourcing Entity</label>
+          <label htmlFor="vendorSelect" className="block text-content-secondary font-medium mb-1">Brand Sourcing Entity</label>
           <select
             id="vendorSelect"
             value={newVendor}
             onChange={(e) => setNewVendor(e.target.value)}
-            className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg font-mono focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+            className="w-full bg-surface-card border border-white/10 text-content-primary p-2 rounded-lg font-mono focus:border-brand-indigo/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <option value="HPE">HPE (Hewlett Packard Enterprise)</option>
             <option value="Dell">Dell Technologies</option>
@@ -129,14 +129,14 @@ export function AddRuleForm({
       </div>
 
       <div>
-        <label htmlFor="ruleLabel" className="block text-xs text-gray-400 font-medium mb-1">Directive Override Narrative / Explanation</label>
+        <label htmlFor="ruleLabel" className="block text-xs text-content-secondary font-medium mb-1">Directive Override Narrative / Explanation</label>
         <input
           id="ruleLabel"
           type="text"
           placeholder="Brief justification logs e.g. Contract rate locked during 2026 Procurement summit"
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
-          className="w-full bg-surface-card border border-white/10 text-white p-2 rounded-lg text-xs placeholder-gray-600 focus:border-indigo-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+          className="w-full bg-surface-card border border-white/10 text-content-primary p-2 rounded-lg text-xs placeholder-gray-600 focus:border-brand-indigo/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         />
       </div>
 
@@ -144,14 +144,14 @@ export function AddRuleForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3.5 py-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition cursor-pointer font-bold border-0"
+          className="px-3.5 py-2 rounded-lg bg-white/5 text-content-secondary hover:bg-white/10 transition cursor-pointer font-bold border-0"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition cursor-pointer font-bold flex items-center gap-1.5 border-0 disabled:opacity-50"
+          className="px-4 py-2 rounded-lg bg-brand-indigo text-content-primary hover:bg-brand-indigo transition cursor-pointer font-bold flex items-center gap-1.5 border-0 disabled:opacity-50"
         >
           {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
           Save Sourcing Rule

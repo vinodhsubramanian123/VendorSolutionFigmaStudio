@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { assertUCIDPayloadIntegrity } from '../utils/assertPayload';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -14,24 +13,17 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     const splitBtn = page.getByText('Split Configs into Active UCIDs', { exact: false }).first();
     await splitBtn.waitFor({ state: 'visible', timeout: 30000 });
     await splitBtn.click();
-    await delay(1000);
-
     // Deploy to get solutions in the UCID
     await page.locator('#nav-solution-builder').click();
-    await delay(1000);
     const deployBtn = page.getByText('Deploy Solutions to Live Mission Control');
     await deployBtn.waitFor({ state: 'visible', timeout: 15000 });
     await deployBtn.click();
-    await delay(1500);
-
     // Navigate to reconciliation
     await page.locator('#nav-reconciliation').click();
-    await delay(1000);
     // Open Version Snapshots side panel
     const snapshotsBtn = page.getByTestId('btn-version-snapshots').first();
     await expect(snapshotsBtn).toBeVisible({ timeout: 5000 });
     await snapshotsBtn.click();
-    await delay(500);
   });
 
   test('should commit multiple snapshots and verify payload integrity, iso dates, and version incrementing', async ({ page }) => {
@@ -41,16 +33,12 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     // OPEN SNAPSHOT MODAL
     const commitBtn = page.getByTestId('btn-capture-snapshot').first();
     await commitBtn.click();
-    await delay(1000);
-
     let labelInput = page.getByPlaceholder(/e.g. Snapshot v1.0/i);
     await labelInput.clear();
     await labelInput.fill('Integrity-Snap-v1');
 
     let submitBtn = page.getByTestId('btn-confirm-snapshot').first();
     await submitBtn.click();
-    await delay(1000);
-
     const ucidState = await page.evaluate(() => localStorage.getItem('vsip-core-storage'));
     console.log("sys_ucids after snapshot:", ucidState);
 
@@ -74,16 +62,12 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     // Create Snapshot 2
     // ------------------------------------
     await commitBtn.click();
-    await delay(500);
-
     labelInput = page.getByPlaceholder(/e.g. Snapshot v1.0/i);
     await labelInput.clear();
     await labelInput.fill('Integrity-Snap-v2');
 
     submitBtn = page.getByTestId('btn-confirm-snapshot');
     await submitBtn.click();
-    await delay(1000);
-
     await expect(page.getByText('Integrity-Snap-v2').first()).toBeVisible({ timeout: 8000 });
 
     // VERIFY SNAPSHOT 2 INTEGRITY
@@ -102,8 +86,6 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     // ------------------------------------
     const lockBtn = page.locator('button[title="Unsecured Draft. Click to lock baseline"]').first();
     await lockBtn.click();
-    await delay(500);
-
     ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
     ucidWithSnap = ucids.find((u: any) => u.id === ucidWithSnap.id);
     snap2 = ucidWithSnap.snapshots.find((s: any) => s.label === 'Integrity-Snap-v2');

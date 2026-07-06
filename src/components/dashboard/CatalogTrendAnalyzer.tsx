@@ -104,8 +104,8 @@ export const CatalogTrendAnalyzer = React.memo(function CatalogTrendAnalyzer({ d
             />
           </AreaChart>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-[11px] text-gray-500 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
-            <Activity className="w-4 h-4 text-gray-600 mb-1" />
+          <div className="w-full h-full flex flex-col items-center justify-center text-[11px] text-content-primary0 bg-white/[0.02] rounded-lg border border-white/5 border-dashed">
+            <Activity className="w-4 h-4 text-content-muted mb-1" />
             <span>Mounting visualizer...</span>
           </div>
         )}

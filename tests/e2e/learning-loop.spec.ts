@@ -1,13 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('15 - Learning Loop Intelligence E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // Navigate to Forensic Scan
     await page.locator('#nav-forensic').click();
-    await delay(600);
   });
 
   test('should display Learning Loop Feed panel on forensic page', async ({ page }) => {
@@ -26,29 +24,20 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
   test('should trigger Auto-Heal on EOL issue and verify learning event appears', async ({ page }) => {
     // First ensure we have an EOL issue - load HPE preset via Mission Control
     await page.locator('#nav-mission-control').click();
-    await delay(400);
-
     // Select first UCID
     await page.getByRole('button', { name: /UCID-2026-/ }).first().click();
-    await delay(300);
-
     // Simulate HPE EOL BOQ preset via the step simulator
     const hpeBtn = page.locator('button').filter({ hasText: '6130 Legacy CPU' }).first();
     if (await hpeBtn.isVisible()) {
       await hpeBtn.click();
-      await delay(800);
     }
 
     // Navigate to Forensics
     await page.locator('#nav-forensic').click();
-    await delay(600);
-
     // Try to find and click Auto-Heal
     const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
     if (await healBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await healBtn.click();
-      await delay(1000);
-
       // Verify toast or success indicator appears
       const successIndicators = [
         page.getByText('replaced', { exact: false }),
@@ -85,12 +74,8 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
   test('should show Pre-Intelligence catalog intelligence banner when rules exist', async ({ page }) => {
     // Navigate to Mission Control
     await page.locator('#nav-mission-control').click();
-    await delay(400);
-
     // Select a UCID with BOQ already loaded
     await page.getByRole('button', { name: /UCID-2026-/ }).first().click();
-    await delay(300);
-
     // Check if on pre-intelligence step or navigate there
     const preIntelStep = page.getByText('Run Vendor', { exact: false });
     const intelBanner = page.getByText('Catalog Intelligence Active', { exact: false });

@@ -101,13 +101,13 @@ export function DeepCleansingEditor() {
         <div className="flex gap-3">
           <button 
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-black/40 border border-white/10 hover:border-white/20 text-white rounded-lg text-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-surface-canvas/40 border border-white/10 hover:border-white/20 text-content-primary rounded-lg text-sm transition-colors"
           >
-            <Plus className="w-4 h-4 text-emerald-400" /> Add Missing Part
+            <Plus className="w-4 h-4 text-status-success" /> Add Missing Part
           </button>
           <button 
             onClick={() => setIsSplitWizardOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 hover:border-indigo-500/50 text-indigo-300 rounded-lg text-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-indigo/10 border border-brand-indigo/30 hover:border-brand-indigo/50 text-indigo-300 rounded-lg text-sm transition-colors"
           >
             <SplitSquareHorizontal className="w-4 h-4" /> Split Config (1-to-N)
           </button>
@@ -115,9 +115,9 @@ export function DeepCleansingEditor() {
       </div>
 
       {/* Editor Grid */}
-      <div className="flex-1 border border-white/10 rounded-xl overflow-hidden bg-black/20 flex flex-col mb-6">
+      <div className="flex-1 border border-white/10 rounded-xl overflow-hidden bg-surface-canvas/20 flex flex-col mb-6">
         {/* Grid Header */}
-        <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-white/10 bg-black/40 text-xs font-semibold text-gray-500 uppercase tracking-wider shrink-0">
+        <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-white/10 bg-surface-canvas/40 text-xs font-semibold text-content-primary0 uppercase tracking-wider shrink-0">
           <div className="col-span-2">Part Number</div>
           <div className="col-span-4">Description</div>
           <div className="col-span-3">Quantity</div>
@@ -152,20 +152,20 @@ export function DeepCleansingEditor() {
       {/* New Split Configs Preview */}
       {splitConfigs.length > 0 && (
          <div className="mb-6 shrink-0">
-            <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Diverged Configurations ({splitConfigs.length})</h3>
+            <h3 className="text-sm font-medium text-content-secondary mb-3 uppercase tracking-wider">Diverged Configurations ({splitConfigs.length})</h3>
             <div className="flex gap-4 overflow-x-auto pb-2">
               {splitConfigs.map(cfg => (
-                <div key={cfg.id} className="min-w-[300px] p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
+                <div key={cfg.id} className="min-w-[300px] p-4 bg-brand-indigo/5 border border-brand-indigo/20 rounded-xl">
                   <div className="font-medium text-indigo-300 mb-1">{cfg.name}</div>
-                  <div className="text-xs text-gray-500 mb-3">{cfg.items.length} Component Types</div>
+                  <div className="text-xs text-content-primary0 mb-3">{cfg.items.length} Component Types</div>
                   <div className="space-y-1">
                     {cfg.items.slice(0, 3).map(i => (
                       <div key={i.id} className="flex justify-between text-xs">
-                        <span className="text-gray-400 truncate pr-2">{i.name}</span>
-                        <span className="text-white font-mono shrink-0">x{i.quantity}</span>
+                        <span className="text-content-secondary truncate pr-2">{i.name}</span>
+                        <span className="text-content-primary font-mono shrink-0">x{i.quantity}</span>
                       </div>
                     ))}
-                    {cfg.items.length > 3 && <div className="text-xs text-indigo-400/50 pt-1">+{cfg.items.length - 3} more...</div>}
+                    {cfg.items.length > 3 && <div className="text-xs text-brand-indigo/50 pt-1">+{cfg.items.length - 3} more...</div>}
                   </div>
                 </div>
               ))}
@@ -177,17 +177,17 @@ export function DeepCleansingEditor() {
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-surface border-t border-white/10 flex items-center justify-between px-8 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <div className="flex items-center gap-6">
           <div className="text-sm">
-            <span className="text-gray-400">Total Configs: </span>
-            <span className="text-white font-bold">{1 + splitConfigs.length}</span>
+            <span className="text-content-secondary">Total Configs: </span>
+            <span className="text-content-primary font-bold">{1 + splitConfigs.length}</span>
           </div>
           <div className="text-sm">
-            <span className="text-gray-400">Pending Changes: </span>
-            <span className="text-emerald-400 font-bold">{removedParts.size + splitConfigs.length}</span>
+            <span className="text-content-secondary">Pending Changes: </span>
+            <span className="text-status-success font-bold">{removedParts.size + splitConfigs.length}</span>
           </div>
         </div>
         <button 
           onClick={handleCommitCleansedBOQ}
-          className="flex items-center gap-2 px-8 py-2 bg-emerald-500 hover:bg-emerald-600 text-black font-semibold rounded-lg transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+          className="flex items-center gap-2 px-8 py-2 bg-status-success hover:bg-status-success text-black font-semibold rounded-lg transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]"
         >
           <Save className="w-5 h-5" /> Commit Cleansed BOQ
         </button>

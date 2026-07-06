@@ -25,13 +25,13 @@ export function SweepCoordinatorBoard({
     > 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2 max-w-2xl text-left">
-          <span className="text-[9.5px] bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded font-black uppercase tracking-wider">
+          <span className="text-[9.5px] bg-brand-indigo/15 text-brand-indigo border border-brand-indigo/20 px-2.5 py-1 rounded font-black uppercase tracking-wider">
             Sweep Coordinator Engine
           </span>
-          <h2 className="text-sm font-semibold text-white tracking-tight">
+          <h2 className="text-sm font-semibold text-content-primary tracking-tight">
             Global Multi-UCID Batch Reconciliation Control Board
           </h2>
-          <p className="text-[11px] text-gray-400 leading-relaxed">
+          <p className="text-[11px] text-content-secondary leading-relaxed">
             Initiate a complete multi-UCID data sweep once your vendor sheets
             (HPE, Dell & Cisco BOM lists) are active. This reconciles EOL
             processor warnings, recalculates contractual unit pricing
@@ -45,18 +45,18 @@ export function SweepCoordinatorBoard({
           type="button"
           aria-label="Initiate multi UCID comparison sweep"
           onClick={onTriggerBatchReconciliation}
-          className="w-full md:w-auto px-5 py-3 rounded-lg bg-sky-500 hover:bg-sky-600 border border-sky-400/25 text-white font-extrabold cursor-pointer transition flex items-center justify-center gap-2 shadow-2xl text-[10.5px] tracking-wider uppercase shrink hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full md:w-auto px-5 py-3 rounded-lg bg-sky-500 hover:bg-sky-600 border border-sky-400/25 text-content-primary font-extrabold cursor-pointer transition flex items-center justify-center gap-2 shadow-2xl text-[10.5px] tracking-wider uppercase shrink hover:scale-[1.02] active:scale-[0.98]"
         >
-          <RefreshCw className="w-4 h-4 text-white animate-spin-slow shrink-0" />
+          <RefreshCw className="w-4 h-4 text-content-primary animate-spin-slow shrink-0" />
           <span className="truncate">
             Initiate Multi-UCID Comparison Sweep
           </span>
         </button>
       </div>
 
-      <div className="space-y-3 w-full bg-black/20 p-4 rounded-xl border border-white/5">
+      <div className="space-y-3 w-full bg-surface-canvas/20 p-4 rounded-xl border border-white/5">
         <div className="flex justify-between items-center pb-2 border-b border-white/5">
-          <span className="text-[10px] text-indigo-400 uppercase font-bold tracking-wider">
+          <span className="text-[10px] text-brand-indigo uppercase font-bold tracking-wider">
             Select active supplier BOMs / UCID configurations to sweep:
           </span>
           <div className="flex gap-2">
@@ -112,29 +112,29 @@ export function SweepCoordinatorBoard({
                       );
                     }
                   }}
-                  className="mt-0.5 rounded border-white/10 text-sky-500 focus:ring-sky-500/20 bg-black/40 cursor-pointer"
+                  className="mt-0.5 rounded border-white/10 text-sky-500 focus:ring-sky-500/20 bg-surface-canvas/40 cursor-pointer"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-[10px] text-indigo-400 font-bold">
+                    <span className="font-mono text-[10px] text-brand-indigo font-bold">
                       {u.displayId}
                     </span>
                     <span
                       className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded border leading-none ${
                         u.syncStatus === "Synced"
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          ? "bg-status-success/10 text-status-success border-status-success/20"
                           : u.syncStatus === "Out-of-Sync"
-                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                            ? "bg-status-warning/10 text-status-warning border-status-warning/20"
+                            : "bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20"
                       }`}
                     >
                       {u.syncStatus || "Pending"}
                     </span>
                   </div>
-                  <p className="text-[10px] text-gray-300 font-semibold truncate mt-0.5">
+                  <p className="text-[10px] text-content-secondary font-semibold truncate mt-0.5">
                     {u.name}
                   </p>
-                  <p className="text-[9px] text-gray-500 font-mono">
+                  <p className="text-[9px] text-content-primary0 font-mono">
                     {u.solutions?.[0]?.vendorSubmissions?.[0]?.vendor ||
                       "Offline"}{" "}
                     Config

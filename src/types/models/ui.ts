@@ -1,6 +1,6 @@
 import { GraphMetadataSchema, GraphNodeSchema, GraphEdgeSchema, GraphPathSchema, GraphAPISchema,   AdviceResolutionSchema, RuleConflictSchema } from '../zodSchemas';
 import { z } from 'zod';
-import { SolutionProject, UCID, BOMItem } from './sourcing';
+import { BOMItem } from './sourcing';
 export interface WorkflowStep {
   id: string;
   label: string;

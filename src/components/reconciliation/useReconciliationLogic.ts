@@ -101,26 +101,7 @@ function processReconciliationItem(item: BOMItem, idx: number, catalogSkus?: Cat
     status = isSimulated ? "Missing" : "Spec !=";
   }
   
-  const hasEolAlert = ActiveSourcingRules.legacySKUs.includes(item.partNumber) && forensicIssues?.some(i => i.id === "iss-1" && i.status !== "resolved");
-  const hasPriceAlert = item.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && item.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit && forensicIssues?.some(i => i.id === "iss-2" && i.status !== "resolved");
-  const hasMemorySymmetryAlert = type === "Memory" && item.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0 && forensicIssues?.some(i => i.id === "iss-3" && i.status !== "resolved");
-  
-  let hasAlert = false;
-  let alertId = "";
-  let alertTitle = "";
-  if (hasEolAlert) {
-    hasAlert = true;
-    alertId = "iss-1";
-    alertTitle = "Obsolete HPE Xeon CPU Vendor Limit Warning";
-  } else if (hasPriceAlert) {
-    hasAlert = true;
-    alertId = "iss-2";
-    alertTitle = "Quotation Price Premium Overage Detected";
-  } else if (hasMemorySymmetryAlert) {
-    hasAlert = true;
-    alertId = "iss-3";
-    alertTitle = "Power bus memory allocation asymmetrical";
-  }
+  const { hasAlert, alertId, alertTitle } = determineReconciliationAlerts(item, type, forensicIssues);
   
   return {
     id: item.id || `row-${idx}`,
@@ -141,4 +122,22 @@ function processReconciliationItem(item: BOMItem, idx: number, catalogSkus?: Cat
     alertId,
     alertTitle,
   };
+}
+
+function determineReconciliationAlerts(item: BOMItem, type: string, forensicIssues?: ForensicIssue[]) {
+  const hasEolAlert = ActiveSourcingRules.legacySKUs.includes(item.partNumber) && forensicIssues?.some(i => i.id === "iss-1" && i.status !== "resolved");
+  const hasPriceAlert = item.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU && item.unitPrice > ActiveSourcingRules.thresholds.dellOverchargeBaseLimit && forensicIssues?.some(i => i.id === "iss-2" && i.status !== "resolved");
+  const hasMemorySymmetryAlert = type === "Memory" && item.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0 && forensicIssues?.some(i => i.id === "iss-3" && i.status !== "resolved");
+
+  if (hasEolAlert) {
+    return { hasAlert: true, alertId: "iss-1", alertTitle: "Obsolete HPE Xeon CPU Vendor Limit Warning" };
+  } 
+  if (hasPriceAlert) {
+    return { hasAlert: true, alertId: "iss-2", alertTitle: "Quotation Price Premium Overage Detected" };
+  } 
+  if (hasMemorySymmetryAlert) {
+    return { hasAlert: true, alertId: "iss-3", alertTitle: "Power bus memory allocation asymmetrical" };
+  }
+
+  return { hasAlert: false, alertId: "", alertTitle: "" };
 }

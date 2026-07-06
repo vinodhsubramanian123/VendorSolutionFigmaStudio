@@ -36,10 +36,10 @@ export function ConfigLibrarySelector({
     <div className="lg:col-span-5 flex flex-col gap-4">
       <div className="bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col gap-3 flex-1">
         <div className="flex items-center justify-between shrink-0">
-          <span className="text-xs text-white font-bold uppercase tracking-wider">
+          <span className="text-xs text-content-primary font-bold uppercase tracking-wider">
             Config Library ({configs.length})
           </span>
-          <span className="font-mono text-[10px] text-gray-500 font-semibold">
+          <span className="font-mono text-[10px] text-content-primary0 font-semibold">
             Sheets Extracted
           </span>
         </div>
@@ -55,7 +55,7 @@ export function ConfigLibrarySelector({
                 <p className="text-[10px] text-content-muted max-w-[200px] mb-4">
                   Construct components or import an approved BOM.
                 </p>
-                <button type="button" onClick={() => toast.success("Opening component library...")} className="px-4 py-2 rounded-lg bg-surface-card border border-white/10 text-white font-bold tracking-wide text-[10px] cursor-pointer hover:bg-white/5 transition-all">
+                <button type="button" onClick={() => toast.success("Opening component library...")} className="px-4 py-2 rounded-lg bg-surface-card border border-white/10 text-content-primary font-bold tracking-wide text-[10px] cursor-pointer hover:bg-white/5 transition-all">
                   Add First Component
                 </button>
               </motion.div>
@@ -79,7 +79,7 @@ export function ConfigLibrarySelector({
       {/* Config Sub-items detail breakdown */}
       {activePromoConfig && (
         <div className="bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col gap-3 shrink-0 max-h-[40%]">
-          <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider shrink-0">
+          <span className="text-[10px] text-content-secondary font-bold block uppercase tracking-wider shrink-0">
             Config BOM Breakdown: {activePromoConfig.name}
           </span>
           <div className="pr-1 space-y-2">
@@ -93,40 +93,40 @@ export function ConfigLibrarySelector({
                   key={item.id}
                   className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-2.5 rounded gap-2 text-[10px] border transition ${
                     isEolSubstitute
-                      ? "bg-emerald-500/5 border-emerald-500/20"
+                      ? "bg-status-success/5 border-status-success/20"
                       : isContractPriceAligned
-                        ? "bg-indigo-500/5 border-indigo-500/20"
-                        : "bg-black/10 border-white/2"
+                        ? "bg-brand-indigo/5 border-brand-indigo/20"
+                        : "bg-surface-canvas/10 border-white/2"
                   }`}
                 >
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="font-bold text-white truncate">
+                      <p className="font-bold text-content-primary truncate">
                         {item.name}
                       </p>
                       {isEolSubstitute && (
-                        <span className="bg-emerald-400/10 text-emerald-400 text-[8px] px-1 py-0.2 rounded font-mono font-bold uppercase tracking-wider shrink-0">
+                        <span className="bg-status-success/10 text-status-success text-[8px] px-1 py-0.2 rounded font-mono font-bold uppercase tracking-wider shrink-0">
                           ✓ Resolved EOL (815100-B21 substitute)
                         </span>
                       )}
                       {isContractPriceAligned && (
-                        <span className="bg-indigo-400/10 text-indigo-400 text-[8px] px-1 py-0.2 rounded font-mono font-bold uppercase tracking-wider shrink-0">
+                        <span className="bg-brand-indigo/10 text-brand-indigo text-[8px] px-1 py-0.2 rounded font-mono font-bold uppercase tracking-wider shrink-0">
                           ✓ Contract Priced (Saved $400/ea)
                         </span>
                       )}
                     </div>
-                    <p className="text-[9px] font-mono text-indigo-400 font-semibold">
+                    <p className="text-[9px] font-mono text-brand-indigo font-semibold">
                       {item.partNumber}
                     </p>
                   </div>
                   <div className="text-right shrink-0 self-end sm:self-auto">
-                    <p className="font-bold font-mono text-white">
+                    <p className="font-bold font-mono text-content-primary">
                       {item.quantity} Qty
                     </p>
-                    <p className="text-[9px] font-mono font-semibold text-gray-500">
+                    <p className="text-[9px] font-mono font-semibold text-content-primary0">
                       ${item.unitPrice.toLocaleString()}/ea
                       {isContractPriceAligned && (
-                        <span className="text-indigo-400">
+                        <span className="text-brand-indigo">
                           {" "}
                           (API standard)
                         </span>
@@ -142,8 +142,8 @@ export function ConfigLibrarySelector({
           {constraints && (
             <div className="mt-4 p-3 rounded-lg border bg-surface-card flex flex-col gap-3 transition-colors duration-300" style={{ borderColor: constraints.isCompliant ? 'rgba(0, 212, 160, 0.2)' : 'rgba(255, 61, 90, 0.2)' }}>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-white flex items-center gap-2">
-                  <Sparkles className={`w-3.5 h-3.5 ${constraints.isCompliant ? 'text-emerald-400' : 'text-rose-400'}`} />
+                <span className="text-[10px] uppercase font-bold tracking-wider text-content-primary flex items-center gap-2">
+                  <Sparkles className={`w-3.5 h-3.5 ${constraints.isCompliant ? 'text-status-success' : 'text-rose-400'}`} />
                   Intelligent Auto-Complete
                 </span>
                 <StatusBadge status={constraints.isCompliant ? "COMPLIANT" : "FLAGGED"} variant={constraints.isCompliant ? "success" : "error"} />
@@ -151,13 +151,13 @@ export function ConfigLibrarySelector({
               
               <div className="space-y-2 text-[9.5px]">
                 {/* Socket Match */}
-                <div className={`p-2 rounded flex justify-between items-start ${constraints.socketMatch.status === 'compatible' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                <div className={`p-2 rounded flex justify-between items-start ${constraints.socketMatch.status === 'compatible' ? 'bg-status-success/10 text-status-success' : 'bg-rose-500/10 text-rose-400'}`}>
                   <span>Socket Compatibility</span>
                   <span className="font-mono text-right max-w-[60%]">{constraints.socketMatch.description}</span>
                 </div>
 
                 {/* Memory Symmetry */}
-                <div className={`p-2 rounded flex justify-between items-start ${constraints.memoryBalanceCheck.passed ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                <div className={`p-2 rounded flex justify-between items-start ${constraints.memoryBalanceCheck.passed ? 'bg-status-success/10 text-status-success' : 'bg-status-warning/10 text-status-warning'}`}>
                   <span>Memory Topology</span>
                   <span className="font-mono text-right max-w-[60%]">{constraints.memoryBalanceCheck.message}</span>
                 </div>
@@ -166,7 +166,7 @@ export function ConfigLibrarySelector({
               {!constraints.isCompliant && (
                 <button type="button" 
                   onClick={() => toast.success("Auto-healed configuration applying optimal taxonomy paths.")}
-                  className="mt-2 w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold uppercase text-[9px] tracking-wider rounded transition-colors"
+                  className="mt-2 w-full py-2 bg-brand-indigo hover:bg-brand-indigo text-content-primary font-bold uppercase text-[9px] tracking-wider rounded transition-colors"
                 >
                   Auto-Resolve Constraints
                 </button>

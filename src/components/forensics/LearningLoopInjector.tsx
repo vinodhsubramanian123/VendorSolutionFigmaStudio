@@ -33,30 +33,30 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
       initial={{ opacity: 0, height: 0, y: -10 }}
       animate={{ opacity: 1, height: "auto", y: 0 }}
       exit={{ opacity: 0, height: 0, scale: 0.95 }}
-      className="rounded-xl border bg-black/40 overflow-hidden mb-4 flex flex-col relative"
+      className="rounded-xl border bg-surface-canvas/40 overflow-hidden mb-4 flex flex-col relative"
       style={{ borderColor: "rgba(74, 133, 253, 0.3)" }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-indigo-500/20 bg-indigo-500/10 shrink-0">
+      <div className="flex items-center justify-between p-3 border-b border-brand-indigo/20 bg-brand-indigo/10 shrink-0">
         <div className="flex items-center gap-2">
-          <BrainCircuit className="w-4.5 h-4.5 text-indigo-400" />
+          <BrainCircuit className="w-4.5 h-4.5 text-brand-indigo" />
           <h4 className="text-xs font-bold text-indigo-100 uppercase tracking-wider font-mono">
             Semantic Intelligence Injector
           </h4>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-white transition cursor-pointer border-0 bg-transparent">
+        <button type="button" onClick={onClose} aria-label="Close" className="text-content-secondary hover:text-content-primary transition cursor-pointer border-0 bg-transparent">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex bg-black/35 border-b border-white/5 p-1 shrink-0">
+      <div className="flex bg-surface-canvas/35 border-b border-white/5 p-1 shrink-0">
         <button type="button"
           onClick={() => setActiveTab("chat")}
           className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
             activeTab === "chat" 
-              ? "bg-indigo-500/20 text-white border border-indigo-500/30" 
-              : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+              ? "bg-brand-indigo/20 text-content-primary border border-brand-indigo/30" 
+              : "text-content-secondary hover:text-content-primary hover:bg-white/5 border border-transparent"
           }`}
         >
           AI Semantic Agent
@@ -65,8 +65,8 @@ export function LearningLoopInjector({ onRuleDrafted, onClose }: LearningLoopInj
           onClick={() => setActiveTab("file")}
           className={`flex-1 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
             activeTab === "file" 
-              ? "bg-indigo-500/20 text-white border border-indigo-500/30" 
-              : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+              ? "bg-brand-indigo/20 text-content-primary border border-brand-indigo/30" 
+              : "text-content-secondary hover:text-content-primary hover:bg-white/5 border border-transparent"
           }`}
         >
           Advice File Ingestion

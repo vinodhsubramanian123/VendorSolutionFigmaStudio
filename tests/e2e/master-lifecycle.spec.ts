@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { assertUCIDPayloadIntegrity, assertForensicIssuesIntegrity, assertSourcingRulesIntegrity } from '../utils/assertPayload';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('11 - Master E2E Lifecycle', () => {
   // Give this master test a generous timeout to complete the full circle
@@ -11,8 +10,6 @@ test.describe('11 - Master E2E Lifecycle', () => {
     page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
     // Navigate to root to start the session
     await page.goto('/');
-    await delay(1000);
-
     // ==========================================
     // PHASE 1: CORE FOUNDATION (CATALOG & TAXONOMY)
     // ==========================================
@@ -23,19 +20,14 @@ test.describe('11 - Master E2E Lifecycle', () => {
       
       // Open Add New SKU form
       await page.getByRole('button', { name: 'Add Sourced SKU' }).click();
-      await delay(500);
-      
       // Fill in new SKU details
       await page.locator('form input').nth(0).fill('E2E-MASTER-SKU-001');
       await page.locator('form input').nth(1).fill('Master Validation Processor');
       await page.locator('form input').nth(2).fill('2500');
       await page.locator('form input').nth(3).fill('14');
       await page.getByRole('button', { name: 'Add Part' }).click();
-      await delay(1000);
-      
       // Verify SKU is in the catalog
       await page.locator('input[placeholder="Search Active Part Number or Name..."]').fill('E2E-MASTER-SKU-001');
-      await delay(500);
       await expect(page.getByText('E2E-MASTER-SKU-001').first()).toBeVisible();
 
       // Clear search
@@ -43,13 +35,11 @@ test.describe('11 - Master E2E Lifecycle', () => {
 
       // Navigate to Taxonomy Graph
       await page.locator('#nav-taxonomy-graph').click();
-      await delay(1000);
       await expect(page.getByText('Taxonomy Graph Canvas').first()).toBeVisible();
       
       // Click "Validate Constraints"
       const validationBtn = page.getByRole('button', { name: 'Validate Constraints' });
       await validationBtn.click();
-      await delay(1000);
       // Wait for toast to appear
       await expect(page.getByText('Please select a Chassis SKU and CPU SKU', { exact: false }).first()).toBeVisible();
     });
@@ -59,7 +49,6 @@ test.describe('11 - Master E2E Lifecycle', () => {
     // ==========================================
     await test.step('Phase 2: Ingestion & Parsing', async () => {
       await page.locator('#nav-ingestion-hub').click();
-      await delay(1000);
       await expect(page.getByText('Centralized BOQ & BOM Ingestion Hub').first()).toBeVisible();
 
       // Trigger BOQ mock ingest
@@ -70,11 +59,8 @@ test.describe('11 - Master E2E Lifecycle', () => {
       const splitBtn = page.getByText('Split Configs into Active UCIDs', { exact: false }).first();
       await splitBtn.waitFor({ state: 'visible', timeout: 30000 });
       await splitBtn.click();
-      await delay(1000);
-
       // Navigate to Cleansing Workshop
       await page.locator('#nav-cleansing').click();
-      await delay(1000);
       await expect(page.getByText('Interactive Splicing & Mapping Workshop').first()).toBeVisible();
 
       // Verify fuzzy entries exist
@@ -84,8 +70,6 @@ test.describe('11 - Master E2E Lifecycle', () => {
       const autoMapBtn = page.getByRole('button', { name: 'Auto-Map', exact: true });
       await expect(autoMapBtn).toBeVisible();
       await autoMapBtn.click();
-      await delay(1000);
-
       // Verify "Exact Match"
       await expect(page.getByText('Exact Match').first()).toBeVisible();
 
@@ -103,15 +87,13 @@ test.describe('11 - Master E2E Lifecycle', () => {
     // ==========================================
     await test.step('Phase 3: Assign & Deploy Solutions', async () => {
       await page.locator('#nav-solution-builder').click();
-      await delay(1000);
-      
       await expect(page.getByText('Mission Builder').first()).toBeVisible();
 
       // Deploy the mapped configs to Mission Control
       const deployBtn = page.getByTestId('btn-deploy-solutions');
       await expect(deployBtn).toBeVisible();
       await deployBtn.click();
-      await delay(2000); // Wait for transit navigation
+       // Wait for transit navigation
 
       // [STATE ASSERTION] Phase 3
       const ucidsPhase3 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
@@ -132,13 +114,12 @@ test.describe('11 - Master E2E Lifecycle', () => {
 
       // Switch to Vendor Portal
       await page.locator('#nav-vendor-portal').click();
-      await delay(1000);
       await expect(page.getByText('Authorized Manufacturer Inventory Endpoints').first()).toBeVisible();
 
       // Sync HPE Gateway
       const syncBtn = page.locator('button:has-text("Sync Sourcing Gateway")').first();
       await syncBtn.click();
-      await delay(1500); // Simulated delay
+       // Simulated delay
       await expect(page.getByText('Vendor system status altered successfully.').first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 4 Sync Status
@@ -154,31 +135,25 @@ test.describe('11 - Master E2E Lifecycle', () => {
     // ==========================================
     await test.step('Phase 5: Auto-Heal & Learn', async () => {
       await page.locator('#nav-forensic').click();
-      await delay(1000);
       await expect(page.getByText('Sourcing Integrity Diagnostic Sandbox', { exact: false }).first()).toBeVisible();
 
       // Trigger compliance scan
       const scanBtn = page.getByTestId('btn-execute-scan').first();
       if (await scanBtn.isVisible()) {
         await scanBtn.click();
-        await delay(3000); // Wait for scan to complete
+         // Wait for scan to complete
       }
 
       // Find Auto-Heal button for the Mock EOL issue
       const autoHealBtn = page.getByTestId('btn-auto-align').first();
       if (await autoHealBtn.isVisible()) {
         await autoHealBtn.click();
-        await delay(2500);
-        
         // Confirm the Clarification Modal
         const lockBtn = page.getByTestId('btn-lock-intelligence-rule');
         if (await lockBtn.isVisible()) {
           await lockBtn.click();
-          await delay(1500);
         }
       }
-
-      await delay(1000);
       await expect(page.getByText('Obsolete HPE Intel Xeon', { exact: false }).first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 5 Auto-Heal & Learn Chain
@@ -207,25 +182,18 @@ test.describe('11 - Master E2E Lifecycle', () => {
     // ==========================================
     await test.step('Phase 6: Reconcile and Capture Snapshot', async () => {
       await page.locator('#nav-reconciliation').click();
-      await delay(1000);
       await expect(page.getByText('BOM DRIFT RECONCILIATION', { exact: false }).first()).toBeVisible();
 
       // Go to Snapshots
       const snapshotsBtn = page.getByTestId('btn-version-snapshots');
       await snapshotsBtn.click();
-      await delay(1000);
-
       // Trigger a snapshot commit
       const captureBtn = page.getByTestId('btn-capture-snapshot').first();
       await expect(captureBtn).toBeVisible();
       await captureBtn.click();
-      await delay(500);
-
       const confirmBtn = page.getByTestId('btn-confirm-snapshot').first();
       await expect(confirmBtn).toBeVisible();
       await confirmBtn.click();
-      await delay(1500);
-
       // Assert the new snapshot was added to the history list
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
 
@@ -233,7 +201,6 @@ test.describe('11 - Master E2E Lifecycle', () => {
       const lockBtn = page.locator('button[title="Unsecured Draft. Click to lock baseline"]').first();
       if (await lockBtn.isVisible()) {
         await lockBtn.click();
-        await delay(500);
         await expect(page.locator('button[title="Immutability Locked. Click to unlock"]').first()).toBeVisible();
       }
 

@@ -29,13 +29,13 @@ function TableRowNode({
 }) {
   return (
     <tr className="hover:bg-white/[0.01] transition-all text-left">
-      <td className="py-3 font-bold font-mono text-white text-left">{ucid} ({name})</td>
-      <td className="py-3 text-gray-400 font-mono">{channel}</td>
+      <td className="py-3 font-bold font-mono text-content-primary text-left">{ucid} ({name})</td>
+      <td className="py-3 text-content-secondary font-mono">{channel}</td>
       <td className="py-3">
         <StatusBadge status={status} variant={variant} size="sm" />
       </td>
       <td className="py-3">{message}</td>
-      <td className="py-3 text-right font-mono font-bold text-white">{valuation}</td>
+      <td className="py-3 text-right font-mono font-bold text-content-primary">{valuation}</td>
     </tr>
   );
 }
@@ -72,7 +72,7 @@ function getDellRowData(status: "pending" | "partial" | "complete", ucid: string
 
   if (status === "complete") {
     variant = "success";
-    message = <span className="text-emerald-400 font-medium">All 4 structural hardware components mapped and validated</span>;
+    message = <span className="text-status-success font-medium">All 4 structural hardware components mapped and validated</span>;
   } else if (status === "partial") {
     variant = "warning";
     message = <span>2 of 4 hardware components mapped from partial spreadsheet drop</span>;
@@ -92,7 +92,7 @@ function getHpeRowData(syncedConfigs: number, ucid: string) {
   if (syncedConfigs === 4) {
     status = "complete";
     variant = "success";
-    message = <span className="text-emerald-400 font-medium">All 4 catalog configurations tracked, aligned and verified</span>;
+    message = <span className="text-status-success font-medium">All 4 catalog configurations tracked, aligned and verified</span>;
   } else if (syncedConfigs > 0) {
     status = "syncing";
     variant = "info";
@@ -109,7 +109,7 @@ function getCiscoRowData(syncedConfigs: number, ucid: string) {
   if (syncedConfigs === 4) {
     status = "complete";
     variant = "success";
-    message = <span className="text-emerald-400 font-medium">All 4 catalog configurations tracked, aligned and verified</span>;
+    message = <span className="text-status-success font-medium">All 4 catalog configurations tracked, aligned and verified</span>;
   } else if (syncedConfigs > 0) {
     status = "syncing";
     variant = "info";
@@ -137,10 +137,10 @@ export function ConsolidatedStatusBoard({
 
   return (
     <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-4 text-left">
-      <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400"> 
+      <h3 className="text-xs font-bold uppercase tracking-widest text-brand-indigo"> 
         Portfolio Consensus Status Board
       </h3>
-      <p className="text-gray-400 text-[11px] leading-relaxed">
+      <p className="text-content-secondary text-[11px] leading-relaxed">
         Dual-path reconciliation matches files arriving through different
         tracks. High availability parallel crawlers sync digital profiles
         while manually uploaded vendor bids match simultaneously.
@@ -148,7 +148,7 @@ export function ConsolidatedStatusBoard({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-[10px]">
           <thead>
-            <tr className="border-b border-white/5 text-gray-500 font-mono">
+            <tr className="border-b border-white/5 text-content-primary0 font-mono">
               <th className="pb-2 text-left">NODE ID</th>
               <th className="pb-2">CHANNEL TYPE</th>
               <th className="pb-2">SYNC STATUS</th>
@@ -164,11 +164,11 @@ export function ConsolidatedStatusBoard({
         </table>
       </div>
       <div className="bg-surface-card border border-white/5 p-4 rounded-lg space-y-2 mt-2 text-left">
-        <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold text-left">
-          <Activity className="w-4 h-4 text-indigo-400 animate-pulse shrink-0" />
+        <div className="flex items-center gap-2 text-brand-indigo text-xs font-semibold text-left">
+          <Activity className="w-4 h-4 text-brand-indigo animate-pulse shrink-0" />
           <span>Real-time Portfolio Reconciliation Intelligence</span>
         </div>
-        <p className="text-gray-400 text-[10px] leading-relaxed text-left">
+        <p className="text-content-secondary text-[10px] leading-relaxed text-left">
           <StatusMessageNode
             manualBOMStatus={manualBOMStatus}
             hpeSyncedConfigs={hpeSyncedConfigs}

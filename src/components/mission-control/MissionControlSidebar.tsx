@@ -30,7 +30,6 @@ export function MissionControlSidebar({
   setViewStep,
   getSolutionName,
 }: MissionControlSidebarProps) {
-  const ucids = useCoreStore((s) => s.ucids);
   const setUcids = useCoreStore((s) => s.setUcids);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeMenuUcidId, setActiveMenuUcidId] = useState<string | null>(null);

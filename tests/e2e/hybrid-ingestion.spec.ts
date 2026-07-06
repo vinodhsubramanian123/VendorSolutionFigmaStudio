@@ -1,12 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('13 - Hybrid Ingestion Modes E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.locator('#nav-ingestion-hub').click();
-    await delay(500);
   });
 
   test('should allow manual BOM workbook upload and simulate processing', async ({ page }) => {
@@ -18,20 +16,16 @@ test.describe('13 - Hybrid Ingestion Modes E2E', () => {
     const uploadBtn = page.getByRole('button', { name: /Process Raw/i }).first();
     if (await uploadBtn.isVisible()) {
       await uploadBtn.click();
-      await delay(1000);
     }
   });
 
   test('should allow vendor playwright scraper sync', async ({ page }) => {
     // Navigate to vendor portal to sync
     await page.locator('#nav-vendor-portal').click();
-    await delay(500);
-    
     // Click Sync All Endpoints
     const syncBtn = page.getByRole('button', { name: /SYNC ALL ENDPOINTS/i });
     if (await syncBtn.isVisible()) {
       await syncBtn.click();
-      await delay(1000);
     }
   });
 });

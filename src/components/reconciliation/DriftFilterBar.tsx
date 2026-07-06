@@ -19,7 +19,7 @@ export const DriftFilterBar = React.memo(function DriftFilterBar({
   setReconciliationFilter
 }: DriftFilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 select-none bg-black/15 p-1 rounded-xl border border-white/2">
+    <div className="flex flex-wrap items-center gap-1.5 select-none bg-surface-canvas/15 p-1 rounded-xl border border-white/2">
       {[
         { label: `All Items (${stats.all})`, count: "All" },
         { label: `${stats.matched} Matched`, count: "Matched" },
@@ -35,8 +35,8 @@ export const DriftFilterBar = React.memo(function DriftFilterBar({
             onClick={() => setReconciliationFilter(pill.count)}
             className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
               isActive
-                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/10"
-                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/10"
+                : "text-content-primary0 hover:text-content-secondary hover:bg-white/5"
             }`}
           >
             {pill.label}

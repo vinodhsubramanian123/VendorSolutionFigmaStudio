@@ -58,14 +58,14 @@ function ExecutionModeStrategy({
   return (
     <div className="space-y-2 border-t border-white/5 pt-3 mt-1">
       <div className="flex items-center justify-between">
-        <label htmlFor={`exec-mode-${container.id}`} className="text-gray-500 font-bold uppercase block text-[9.5px]">
+        <label htmlFor={`exec-mode-${container.id}`} className="text-content-primary0 font-bold uppercase block text-[9.5px]">
           Mapping Execution Strategy
         </label>
         <select
           id={`exec-mode-${container.id}`}
           value={container.executionMode || 'automated'}
           onChange={(e) => updateContainerExecutionMode(container.id, e.target.value as ExecutionMode)}
-          className="bg-surface-elevated border border-white/10 text-white text-[10px] rounded px-2 py-1 focus:outline-none focus-visible:border-indigo-500 cursor-pointer"
+          className="bg-surface-elevated border border-white/10 text-content-primary text-[10px] rounded px-2 py-1 focus:outline-none focus-visible:border-brand-indigo cursor-pointer"
         >
           <option value="automated">Automated (Scraping)</option>
           <option value="manual">Manual (Portal Upload)</option>
@@ -77,9 +77,9 @@ function ExecutionModeStrategy({
         <div className="space-y-2 mt-2">
           {container.uploadedBOMFiles && container.uploadedBOMFiles.length > 0 && (
             <div className="flex flex-col gap-1 mb-2">
-              <span className="text-[9px] text-gray-500 uppercase font-bold">Mapped BOM Files:</span>
+              <span className="text-[9px] text-content-primary0 uppercase font-bold">Mapped BOM Files:</span>
               {container.uploadedBOMFiles.map((file, idx) => (
-                <div key={idx} className="text-[10px] text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 truncate">
+                <div key={idx} className="text-[10px] text-indigo-300 bg-brand-indigo/10 px-2 py-1 rounded border border-brand-indigo/20 truncate">
                   📄 {file}
                 </div>
               ))}
@@ -88,7 +88,7 @@ function ExecutionModeStrategy({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="border border-dashed border-white/20 hover:border-indigo-500/50 rounded-lg p-4 bg-black/20 flex flex-col items-center justify-center cursor-pointer transition-colors"
+            className="border border-dashed border-white/20 hover:border-brand-indigo/50 rounded-lg p-4 bg-surface-canvas/20 flex flex-col items-center justify-center cursor-pointer transition-colors"
           >
             <input
               type="file"
@@ -100,12 +100,12 @@ function ExecutionModeStrategy({
               }}
             />
             <label htmlFor={`upload-${container.id}`} className="cursor-pointer text-center w-full">
-              <span className="block text-[11px] font-bold text-indigo-400 mb-1">
+              <span className="block text-[11px] font-bold text-brand-indigo mb-1">
                 {container.uploadedBOMFiles && container.uploadedBOMFiles.length > 0
                   ? 'Add Another Partial BOM Spreadsheet'
                   : 'Drop Vendor BOM Spreadsheet Here'}
               </span>
-              <span className="block text-[9.5px] text-gray-500">
+              <span className="block text-[9.5px] text-content-primary0">
                 Click to browse files to append to this UCID...
               </span>
             </label>
@@ -157,17 +157,17 @@ function UcidContainerCard({
       {/* Top title bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-          <span className="font-mono text-indigo-400 font-bold tracking-wider">
+          <span className="w-2 h-2 rounded-full bg-brand-indigo animate-pulse" />
+          <span className="font-mono text-brand-indigo font-bold tracking-wider">
             {container.displayId || container.id}
           </span>
           <span
             className={`text-[8.5px] font-mono font-bold px-1.5 py-0.2 rounded border ${
               resolvedSyncStatus === "Synced"
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                ? "bg-status-success/10 text-status-success border-status-success/20"
                 : resolvedSyncStatus === "Out-of-Sync"
-                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                  : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                  ? "bg-status-warning/10 text-status-warning border-status-warning/20"
+                  : "bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20"
             }`}
           >
             {resolvedSyncStatus}
@@ -177,7 +177,7 @@ function UcidContainerCard({
             value={container.name}
             onChange={(e) => updateContainerName(container.id, e.target.value)}
             placeholder="deployment name"
-            className="bg-transparent text-white font-bold border-b border-transparent hover:border-white/20 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 w-44 px-1"
+            className="bg-transparent text-content-primary font-bold border-b border-transparent hover:border-white/20 focus:border-brand-indigo focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 w-44 px-1"
           />
         </div>
 
@@ -187,8 +187,8 @@ function UcidContainerCard({
             onClick={() => toggleContainerLock(container.id)}
             className={`p-1.5 rounded border transition cursor-pointer ${
               container.locked
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 font-bold"
-                : "bg-black/20 border-white/5 text-gray-500 hover:text-white"
+                ? "bg-status-success/10 border-status-success/20 text-status-success font-bold"
+                : "bg-surface-canvas/20 border-white/5 text-content-primary0 hover:text-content-primary"
             }`}
             title={container.locked ? "Unlock Sourcing Container" : "Lock Sourcing Container"}
           >
@@ -204,11 +204,11 @@ function UcidContainerCard({
 
       {/* Assigned equipment layout */}
       <div className="space-y-2">
-        <label className="text-gray-500 font-bold uppercase block text-[9.5px]">
+        <label className="text-content-primary0 font-bold uppercase block text-[9.5px]">
           Assigned Equipment Sheets ({assignedConfigs.length})
         </label>
         {assignedConfigs.length === 0 ? (
-          <p className="text-[11px] text-gray-500 italic p-3 bg-black/10 rounded-lg text-center font-medium">
+          <p className="text-[11px] text-content-primary0 italic p-3 bg-surface-canvas/10 rounded-lg text-center font-medium">
             No configurations mapped yet. Change selections in Config Library dropdown.
           </p>
         ) : (
@@ -221,10 +221,10 @@ function UcidContainerCard({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   key={cfg.id}
-                  className="bg-black/15 border border-white/3 p-2 rounded-lg flex justify-between items-center font-bold text-[10.5px]"
+                  className="bg-surface-canvas/15 border border-white/3 p-2 rounded-lg flex justify-between items-center font-bold text-[10.5px]"
                 >
-                  <span className="text-white truncate pr-2">{cfg.name}</span>
-                  <span className="text-indigo-400 font-mono shrink-0">
+                  <span className="text-content-primary truncate pr-2">{cfg.name}</span>
+                  <span className="text-brand-indigo font-mono shrink-0">
                     ${cfg.totalPrice.toLocaleString()}
                   </span>
                 </motion.div>
@@ -236,7 +236,7 @@ function UcidContainerCard({
 
       {/* Editable reasoning label */}
       <div className="space-y-1.5">
-        <label htmlFor={`reasoning-${container.id}`} className="text-gray-500 font-bold uppercase block text-[9.5px]">
+        <label htmlFor={`reasoning-${container.id}`} className="text-content-primary0 font-bold uppercase block text-[9.5px]">
           Sourcing Reasoning Label
         </label>
         <textarea
@@ -245,7 +245,7 @@ function UcidContainerCard({
           onChange={(e) => updateContainerReasoning(container.id, e.target.value)}
           placeholder="Provide details on choice of vendors, quotes or compliance decisions..."
           rows={2}
-          className="w-full bg-black/35 border border-white/5 focus:border-indigo-500/50 rounded-lg p-2 text-white font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+          className="w-full bg-surface-canvas/35 border border-white/5 focus:border-brand-indigo/50 rounded-lg p-2 text-content-primary font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         />
       </div>
 
@@ -259,7 +259,7 @@ function UcidContainerCard({
       {/* Integrated calculation ledger & status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-surface-card p-4 rounded-lg border border-white/2">
         <div className="space-y-0.5">
-          <span className="text-[9px] text-gray-400 uppercase tracking-widest block font-black">
+          <span className="text-[9px] text-content-secondary uppercase tracking-widest block font-black">
             Contract Sourced Price
           </span>
           <p className="text-lg font-mono font-bold text-status-success">
@@ -273,7 +273,7 @@ function UcidContainerCard({
               Power load checked
             </span>
           </div>
-          <p className="text-[9.5px] text-gray-500 leading-normal">
+          <p className="text-[9.5px] text-content-primary0 leading-normal">
             {isPowerExceeded ? "Warning: High peak thermal envelopes" : "Nominal symmetry load margins."}
           </p>
         </div>
@@ -297,7 +297,7 @@ export function UcidContainerList({
   const ucids = useCoreStore(s => s.ucids);
   return (
     <div className="lg:col-span-7 flex flex-col gap-4">
-      <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase tracking-wider block shrink-0">
+      <span className="text-[9px] font-mono text-brand-indigo font-bold uppercase tracking-wider block shrink-0">
         UCID Deployment Containers Grid
       </span>
       <div className="pr-1 space-y-4">
@@ -331,11 +331,11 @@ export function UcidContainerList({
         <button type="button"
           data-testid="btn-deploy-solutions"
           onClick={handleDeployToMissionControl}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 text-white font-black uppercase text-xs tracking-wider shadow-lg shadow-indigo-500/25 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 hover:from-blue-600 hover:via-indigo-600 hover:to-indigo-700 text-content-primary font-black uppercase text-xs tracking-wider shadow-lg shadow-indigo-500/25 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
         >
-          <Sparkles className="w-4.5 h-4.5 text-white animate-pulse" />
+          <Sparkles className="w-4.5 h-4.5 text-content-primary animate-pulse" />
           <span>Deploy Solutions to Live Mission Control</span>
-          <ArrowRight className="w-4 h-4 text-white shrink-0" />
+          <ArrowRight className="w-4 h-4 text-content-primary shrink-0" />
         </button>
       </div>
     </div>

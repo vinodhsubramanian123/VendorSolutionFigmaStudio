@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { assertUCIDPayloadIntegrity } from '../utils/assertPayload';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('10 - Unified Mega-Flow E2E', () => {
   test.setTimeout(90000);
@@ -9,8 +8,6 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
   test('should seamlessly flow data from Ingestion Hub to Solution Builder and Mission Control', async ({ page }) => {
     // Navigate to root
     await page.goto('/');
-    await delay(500);
-
     // ==========================================
     // PHASE 1: INGESTION HUB
     // ==========================================
@@ -26,8 +23,6 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       const splitBtn = page.getByText('Split Configs into Active UCIDs', { exact: false }).first();
       await splitBtn.waitFor({ state: 'visible', timeout: 30000 });
       await splitBtn.click();
-      await delay(1000);
-      
       // Verify we transitioned to BOM mode (step 2 of ingestion hub)
       await expect(page.getByText('Global Multi-UCID Batch Reconciliation Control Board').first()).toBeVisible();
 
@@ -47,8 +42,6 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
     await test.step('Phase 2: Solution Builder Auto-Bypass', async () => {
       // Navigate to Solution Builder
       await page.locator('#nav-solution-builder').click();
-      await delay(1000);
-
       // Assert we are in Solution Builder
       await expect(page.getByText('Mission Builder').first()).toBeVisible();
       
@@ -64,8 +57,6 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
       const deployBtn = page.getByText('Deploy Solutions to Live Mission Control');
       await expect(deployBtn).toBeVisible();
       await deployBtn.click();
-      await delay(1500);
-
       // [STATE ASSERTION] Verify UCID state after Solution Builder deployment
       const ucidsPhase2 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
       const deployed = ucidsPhase2.find((u: any) => u.displayId.startsWith('UCID-'));
@@ -99,27 +90,19 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
     // ==========================================
     await test.step('Phase 4: Compare & Snapshot', async () => {
       await page.locator('#nav-reconciliation').click();
-      await delay(1000);
-
       // Assert Reconciliation Drift metrics appear
       await expect(page.getByText('BOM DRIFT RECONCILIATION', { exact: false }).first()).toBeVisible();
 
       // Go to Snapshots
       const snapshotsBtn = page.locator('button', { hasText: 'Version Snapshots' });
       await snapshotsBtn.click();
-      await delay(1000);
-
       // Trigger a snapshot commit
       const captureBtn = page.getByText('Capture Snapshot', { exact: false }).first();
       await expect(captureBtn).toBeVisible();
       await captureBtn.click();
-      await delay(500);
-
       const confirmBtn = page.getByText('Confirm Version Snapshot Block', { exact: false }).first();
       await expect(confirmBtn).toBeVisible();
       await confirmBtn.click();
-      await delay(1000);
-
       // Assert the new snapshot was added to the history list
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
 
@@ -134,7 +117,6 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
 
       // Close the snapshot drawer by clicking the close button
       await page.locator('button').filter({ has: page.locator('svg.lucide-x') }).first().click();
-      await delay(1000);
     });
   });
 });

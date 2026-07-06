@@ -9,7 +9,7 @@ export function SnapshotDiffTableRow({ it }: { it: DiffItem }) {
     <tr
       className={`border-b border-white/2 hover:bg-white/[0.01] transition-all duration-100 ${rowClass}`}
     >
-      <td className="py-3 px-4 font-semibold text-white max-w-xs text-left">
+      <td className="py-3 px-4 font-semibold text-content-primary max-w-xs text-left">
         <div className="truncate">{it.name}</div>
         {it.labelChanged && (
           <div className="text-[9px] text-indigo-300 font-mono mt-0.5">
@@ -17,7 +17,7 @@ export function SnapshotDiffTableRow({ it }: { it: DiffItem }) {
           </div>
         )}
       </td>
-      <td className="py-3 px-2 font-mono text-gray-400 text-left">
+      <td className="py-3 px-2 font-mono text-content-secondary text-left">
         {it.partNumber}
       </td>
       <td className="py-3 px-2 text-center">
@@ -25,17 +25,17 @@ export function SnapshotDiffTableRow({ it }: { it: DiffItem }) {
           {statusLabel}
         </span>
       </td>
-      <td className="py-3 px-2 text-center font-mono text-gray-400">
+      <td className="py-3 px-2 text-center font-mono text-content-secondary">
         {it.changeType === "added" ? "—" : it.aQty}
       </td>
-      <td className="py-3 px-2 text-center font-mono text-white">
+      <td className="py-3 px-2 text-center font-mono text-content-primary">
         {it.changeType === "removed" ? "—" : it.bQty}
         {renderQtyDrift(it.changeType, it.qtyDrift)}
       </td>
-      <td className="py-3 px-2 text-right font-mono text-gray-500">
+      <td className="py-3 px-2 text-right font-mono text-content-primary0">
         {it.changeType === "added" ? "—" : `$${it.aPrice}`}
       </td>
-      <td className="py-3 px-2 text-right font-mono text-white">
+      <td className="py-3 px-2 text-right font-mono text-content-primary">
         {it.changeType === "removed" ? "—" : `$${it.bPrice}`}
         {renderUnitDrift(it.changeType, it.unitDrift)}
       </td>
@@ -49,9 +49,9 @@ export function SnapshotDiffTableRow({ it }: { it: DiffItem }) {
 function getChangeStyles(changeType: string) {
   if (changeType === "added") {
     return {
-      rowClass: "bg-emerald-500/[0.02] border-l-2 border-l-emerald-400",
+      rowClass: "bg-status-success/[0.02] border-l-2 border-l-emerald-400",
       statusLabel: "Added",
-      labelClass: "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+      labelClass: "text-status-success bg-status-success/10 border border-status-success/20"
     };
   }
   if (changeType === "removed") {
@@ -63,15 +63,15 @@ function getChangeStyles(changeType: string) {
   }
   if (changeType === "modified") {
     return {
-      rowClass: "bg-amber-500/[0.02] border-l-2 border-l-amber-500",
+      rowClass: "bg-status-warning/[0.02] border-l-2 border-l-amber-500",
       statusLabel: "Modified",
-      labelClass: "text-amber-400 bg-amber-500/10 border border-amber-500/20"
+      labelClass: "text-status-warning bg-status-warning/10 border border-status-warning/20"
     };
   }
   return {
     rowClass: "",
     statusLabel: "No Change",
-    labelClass: "text-gray-500 bg-white/2"
+    labelClass: "text-content-primary0 bg-white/2"
   };
 }
 
@@ -79,7 +79,7 @@ function renderQtyDrift(changeType: string, qtyDrift?: number) {
   if (changeType !== "modified" || !qtyDrift) return null;
   const isQtyReduction = qtyDrift < 0;
   const absoluteDrift = Math.abs(qtyDrift);
-  const driftClass = qtyDrift > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400";
+  const driftClass = qtyDrift > 0 ? "bg-status-success/10 text-status-success" : "bg-rose-500/10 text-rose-400";
   return (
     <span className={`text-[8px] font-mono font-bold ml-1 px-1 py-0.2 rounded ${driftClass}`}>
       {isQtyReduction ? "-" : "+"}{absoluteDrift}
@@ -89,7 +89,7 @@ function renderQtyDrift(changeType: string, qtyDrift?: number) {
 
 function renderUnitDrift(changeType: string, unitDrift: number) {
   if (changeType !== "modified" || unitDrift === 0) return null;
-  const driftClass = unitDrift > 0 ? "bg-rose-500/10 text-rose-400 font-black" : "bg-emerald-500/10 text-emerald-400 font-extrabold";
+  const driftClass = unitDrift > 0 ? "bg-rose-500/10 text-rose-400 font-black" : "bg-status-success/10 text-status-success font-extrabold";
   return (
     <span className={`hidden sm:inline text-[8px] font-mono font-bold ml-1 px-1 py-0.2 rounded ${driftClass}`}>
       {unitDrift > 0 ? "+" : ""}{unitDrift}
@@ -99,6 +99,6 @@ function renderUnitDrift(changeType: string, unitDrift: number) {
 
 function getTotalDriftStyle(totalDrift: number) {
   if (totalDrift > 0) return "text-rose-500";
-  if (totalDrift < 0) return "text-emerald-400 animate-pulse";
-  return "text-gray-500";
+  if (totalDrift < 0) return "text-status-success animate-pulse";
+  return "text-content-primary0";
 }

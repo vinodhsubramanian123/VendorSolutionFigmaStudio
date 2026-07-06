@@ -119,15 +119,15 @@ export function DocumentPipelinePanel() {
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label: "Queued", value: pipelineStats.queued, color: "text-gray-300" },
-          { label: "Running", value: pipelineStats.running, color: "text-indigo-400" },
-          { label: "Completed", value: pipelineStats.completed, color: "text-emerald-400" },
-          { label: "Failed", value: pipelineStats.failed, color: "text-red-400" },
-          { label: "Rules Extracted", value: pipelineStats.extracted, color: "text-amber-400" },
+          { label: "Queued", value: pipelineStats.queued, color: "text-content-secondary" },
+          { label: "Running", value: pipelineStats.running, color: "text-brand-indigo" },
+          { label: "Completed", value: pipelineStats.completed, color: "text-status-success" },
+          { label: "Failed", value: pipelineStats.failed, color: "text-status-error" },
+          { label: "Rules Extracted", value: pipelineStats.extracted, color: "text-status-warning" },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-white/5 bg-black/20 p-3 text-center">
+          <div key={stat.label} className="rounded-xl border border-white/5 bg-surface-canvas/20 p-3 text-center">
             <p className={`text-2xl font-bold font-mono ${stat.color}`}>{stat.value}</p>
-            <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-1">{stat.label}</p>
+            <p className="text-[9px] text-content-primary0 uppercase tracking-wider mt-1">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -143,8 +143,8 @@ export function DocumentPipelinePanel() {
         onClick={() => fileInputRef.current?.click()}
         className={`relative rounded-xl border-2 border-dashed p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all ${
           isDragging
-            ? "border-indigo-500/60 bg-indigo-500/8"
-            : "border-white/10 bg-black/10 hover:border-indigo-500/30 hover:bg-indigo-500/5"
+            ? "border-brand-indigo/60 bg-brand-indigo/8"
+            : "border-white/10 bg-surface-canvas/10 hover:border-brand-indigo/30 hover:bg-brand-indigo/5"
         }`}
       >
         <input
@@ -156,35 +156,35 @@ export function DocumentPipelinePanel() {
           onChange={handleFileChange}
         />
         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-          isDragging ? "bg-indigo-500/20 border border-indigo-500/40" : "bg-white/5 border border-white/10"
+          isDragging ? "bg-brand-indigo/20 border border-brand-indigo/40" : "bg-white/5 border border-white/10"
         }`}>
-          <Upload className={`w-6 h-6 ${isDragging ? "text-indigo-400" : "text-gray-500"}`} />
+          <Upload className={`w-6 h-6 ${isDragging ? "text-brand-indigo" : "text-content-primary0"}`} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-white">
+          <p className="text-sm font-bold text-content-primary">
             {isDragging ? "Drop to queue for processing" : "Drop files or click to upload"}
           </p>
-          <p className="text-[11px] text-gray-500 mt-1">
+          <p className="text-[11px] text-content-primary0 mt-1">
             PDF · Excel · CSV · TXT · DOCX — multiple files processed in parallel
           </p>
-          <p className="text-[10px] text-indigo-400 mt-1 font-mono">
+          <p className="text-[10px] text-brand-indigo mt-1 font-mono">
             Intelligence rules extracted automatically · No race conditions
           </p>
         </div>
         {isDragging && (
-          <div className="absolute inset-0 rounded-xl border-2 border-indigo-500 pointer-events-none animate-pulse" />
+          <div className="absolute inset-0 rounded-xl border-2 border-brand-indigo pointer-events-none animate-pulse" />
         )}
       </div>
       {/* Job list */}
       {jobs.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
+            <p className="text-[11px] text-content-secondary font-semibold uppercase tracking-wider">
               Processing Queue ({jobs.length})
             </p>
             <button type="button"
               onClick={() => setJobs((prev) => prev.filter((j) => j.status !== "completed"))}
-              className="text-[10px] text-gray-600 hover:text-gray-400 font-mono cursor-pointer transition"
+              className="text-[10px] text-content-muted hover:text-content-secondary font-mono cursor-pointer transition"
             >
               Clear Completed
             </button>
@@ -201,7 +201,7 @@ export function DocumentPipelinePanel() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   layout
-                  className="rounded-xl border border-white/5 bg-black/20 overflow-hidden"
+                  className="rounded-xl border border-white/5 bg-surface-canvas/20 overflow-hidden"
                 >
                   <div
                     role="button"
@@ -212,31 +212,31 @@ export function DocumentPipelinePanel() {
                     onClick={() => setExpandedJobId(isExpanded ? null : job.id)}
                   >
                     <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center shrink-0">
-                      <Icon className="w-4 h-4 text-gray-400" />
+                      <Icon className="w-4 h-4 text-content-secondary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[11px] font-bold text-white truncate max-w-[200px]">{job.filename}</span>
+                        <span className="text-[11px] font-bold text-content-primary truncate max-w-[200px]">{job.filename}</span>
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
                           {cfg.label}
                         </span>
                         {job.extractedCount !== undefined && (
-                          <span className="text-[9px] text-amber-400 font-mono">{job.extractedCount} rules</span>
+                          <span className="text-[9px] text-status-warning font-mono">{job.extractedCount} rules</span>
                         )}
                       </div>
-                      <p className="text-[9px] text-gray-500 mt-0.5">
+                      <p className="text-[9px] text-content-primary0 mt-0.5">
                         {formatBytes(job.fileSize)} · {new Date(job.uploadedAt).toLocaleTimeString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {(job.status === "processing" || job.status === "extracting") && (
-                        <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 text-brand-indigo animate-spin" />
                       )}
-                      <span className="text-[10px] text-gray-500 font-mono w-8 text-right">{job.progress}%</span>
+                      <span className="text-[10px] text-content-primary0 font-mono w-8 text-right">{job.progress}%</span>
                       <button type="button"
                         onClick={(e) => { e.stopPropagation(); handleClearJob(job.id); }}
                         aria-label={`Remove ${job.filename}`}
-                        className="w-5 h-5 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition cursor-pointer"
+                        className="w-5 h-5 flex items-center justify-center rounded text-content-muted hover:text-status-error hover:bg-status-error/10 transition cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -270,18 +270,18 @@ export function DocumentPipelinePanel() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden border-t border-white/5"
                       >
-                        <div className="p-3 bg-black/30 font-mono text-[9px] text-gray-400 space-y-0.5 max-h-32 overflow-y-auto">
+                        <div className="p-3 bg-surface-canvas/30 font-mono text-[9px] text-content-secondary space-y-0.5 max-h-32 overflow-y-auto">
                           {job.logLines.map((line, idx) => (
                             <div
                               key={idx}
                               className={
                                 line.includes("[DONE]")
-                                  ? "text-emerald-400"
+                                  ? "text-status-success"
                                   : line.includes("[ERROR]")
-                                  ? "text-red-400"
+                                  ? "text-status-error"
                                   : line.includes("[EXTRACT]") || line.includes("[RULES]")
-                                  ? "text-amber-400"
-                                  : "text-gray-400"
+                                  ? "text-status-warning"
+                                  : "text-content-secondary"
                               }
                             >
                               {line}
@@ -299,7 +299,7 @@ export function DocumentPipelinePanel() {
       )}
       {jobs.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
-          <p className="text-[11px] text-gray-600">No documents queued yet. Upload files above to begin extraction.</p>
+          <p className="text-[11px] text-content-muted">No documents queued yet. Upload files above to begin extraction.</p>
         </div>
       )}
     </motion.div>

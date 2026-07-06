@@ -30,11 +30,11 @@ export function NodeEditorPanel({
   return (
     <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1 scrollbar-thin">
       <div className="space-y-3.5">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 font-mono">
-          <Layers className="w-4 h-4 text-indigo-400" />
+        <div className="text-[10px] font-bold uppercase tracking-wider text-brand-indigo flex items-center gap-1.5 font-mono">
+          <Layers className="w-4 h-4 text-brand-indigo" />
           Node Editor
         </div>
-        <p className="text-[10px] text-gray-400 leading-normal">
+        <p className="text-[10px] text-content-secondary leading-normal">
           Manage taxonomy nodes. Differentiate complex products (bundles) from catalog parts.
         </p>
 
@@ -42,15 +42,15 @@ export function NodeEditorPanel({
           const selectedNode = data.nodes.find((n) => n.id === selectedNodeId);
           if (!selectedNode) return null;
           return (
-            <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs">
+            <div className="p-3 bg-indigo-950/20 border border-brand-indigo/20 rounded-lg space-y-3 animate-fadeIn text-xs">
               <div>
-                <span className="text-[9px] font-mono text-gray-400 uppercase block">Selected Node</span>
+                <span className="text-[9px] font-mono text-content-secondary uppercase block">Selected Node</span>
                 <strong className="text-indigo-300 font-mono text-xs">{selectedNode.label}</strong>
-                <span className="text-[8px] text-gray-500 block">ID: {selectedNode.id}</span>
+                <span className="text-[8px] text-content-primary0 block">ID: {selectedNode.id}</span>
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-white/5">
-                <label htmlFor="nodeType" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide block">
+                <label htmlFor="nodeType" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide block">
                   Node Category / Type
                 </label>
                 <select
@@ -62,7 +62,7 @@ export function NodeEditorPanel({
                       if (success) toast("Node type updated", "success");
                     }
                   }}
-                  className="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 text-white font-mono"
+                  className="w-full bg-surface-canvas/60 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 text-content-primary font-mono"
                 >
                   <option value="catalog_part">Catalog Part (Atomic)</option>
                   <option value="product">Complex Product (Synergy/Bundle)</option>
@@ -88,19 +88,19 @@ export function NodeEditorPanel({
 
               <button type="button" 
                 onClick={() => setSelectedNodeId && setSelectedNodeId(null)}
-                className="w-full text-center text-[9px] font-mono text-gray-500 hover:text-gray-300 border-0 bg-transparent cursor-pointer mt-1"
+                className="w-full text-center text-[9px] font-mono text-content-primary0 hover:text-content-secondary border-0 bg-transparent cursor-pointer mt-1"
               >
                 Clear Selection
               </button>
             </div>
           );
         })() : (
-          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-gray-500 flex flex-col items-center justify-center min-h-[140px] gap-2">
-            <HelpCircle className="w-8 h-8 text-gray-600" />
+          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-primary0 flex flex-col items-center justify-center min-h-[140px] gap-2">
+            <HelpCircle className="w-8 h-8 text-content-muted" />
             <p>Click on any node in the graph canvas to modify its properties.</p>
             <button type="button"
               onClick={() => setIsEditingNode(true)}
-              className="mt-2 px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded font-mono text-[9px] uppercase hover:bg-indigo-500/30 cursor-pointer"
+              className="mt-2 px-4 py-1.5 bg-brand-indigo/20 text-indigo-300 border border-brand-indigo/30 rounded font-mono text-[9px] uppercase hover:bg-brand-indigo/30 cursor-pointer"
             >
               + Create New Node
             </button>
@@ -108,49 +108,49 @@ export function NodeEditorPanel({
         )}
 
         {isEditingNode && !selectedNodeId && (
-          <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs mt-2">
+          <div className="p-3 bg-indigo-950/20 border border-brand-indigo/20 rounded-lg space-y-3 animate-fadeIn text-xs mt-2">
             <div className="text-[10px] font-bold font-mono text-indigo-300 uppercase">New Node Definition</div>
             <div className="space-y-1.5">
-              <label htmlFor="newNodeLabel" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Label</label>
+              <label htmlFor="newNodeLabel" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Label</label>
               <input
                 id="newNodeLabel"
                 type="text" value={newNodeLabel} onChange={e => setNewNodeLabel(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
                 placeholder="e.g. HPE Synergy Frame"
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="newNodeType" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Type</label>
+              <label htmlFor="newNodeType" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Type</label>
               <select
                 id="newNodeType"
                 value={newNodeType} onChange={e => setNewNodeType(e.target.value as "catalog_part" | "product")}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
               >
                 <option value="catalog_part">Catalog Part (Atomic)</option>
                 <option value="product">Complex Product (Synergy/Bundle)</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="newNodePart" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Part Number</label>
+              <label htmlFor="newNodePart" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Part Number</label>
               <input
                 id="newNodePart"
                 type="text" value={newNodePart} onChange={e => setNewNodePart(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
                 placeholder="e.g. P12345-B21"
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="newNodePrice" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Price USD</label>
+              <label htmlFor="newNodePrice" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Price USD</label>
               <input
                 id="newNodePrice"
                 type="number" value={newNodePrice} onChange={e => setNewNodePrice(Number(e.target.value))}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
               />
             </div>
             <div className="flex gap-2">
               <button type="button"
                 onClick={() => setIsEditingNode(false)}
-                className="flex-1 py-1.5 bg-gray-800 text-gray-300 border border-white/10 rounded font-mono text-[9px] cursor-pointer"
+                className="flex-1 py-1.5 bg-surface-elevated text-content-secondary border border-white/10 rounded font-mono text-[9px] cursor-pointer"
               >
                 Cancel
               </button>
@@ -169,7 +169,7 @@ export function NodeEditorPanel({
                     } else toast("Failed to create node", "error");
                   }
                 }}
-                className="flex-1 py-1.5 bg-indigo-600 text-white border border-indigo-500 rounded font-mono text-[9px] cursor-pointer"
+                className="flex-1 py-1.5 bg-brand-indigo text-content-primary border border-brand-indigo rounded font-mono text-[9px] cursor-pointer"
               >
                 Save Node
               </button>

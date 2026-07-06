@@ -19,12 +19,21 @@ export const SKUCard: React.FC<SKUCardProps> = ({
   const isEol = sku.status === "eol";
   const [isHovered, setIsHovered] = useState(false);
 
+  const interactiveProps = onClick ? {
+    role: "button",
+    tabIndex: 0,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick();
+      }
+    },
+    onClick
+  } : {};
+
   return (
     <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={(e) => { if (e.key === "Enter" && onClick) onClick(); }}
-      onClick={onClick}
+      {...interactiveProps}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`bg-surface-elevated border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${onClick ? "cursor-pointer hover:border-brand-indigo/50 transition-all" : ""} ${className}`}
@@ -39,11 +48,11 @@ export const SKUCard: React.FC<SKUCardProps> = ({
         </div>
       </div>
 
-      <h4 className="text-sm font-semibold text-white tracking-tight mb-1 truncate" title={sku.name}>
+      <h4 className="text-sm font-semibold text-content-primary tracking-tight mb-1 truncate" title={sku.name}>
         {sku.name}
       </h4>
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-        <button type="button" className="text-[11px] font-mono text-content-muted flex items-center gap-1.5 cursor-pointer hover:text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-indigo/50 rounded" onClick={(e) => {
+        <button type="button" className="text-[11px] font-mono text-content-muted flex items-center gap-1.5 cursor-pointer hover:text-content-primary transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-indigo/50 rounded" onClick={(e) => {
           e.stopPropagation();
           onCopy?.(sku.partNumber);
         }}>
@@ -51,7 +60,7 @@ export const SKUCard: React.FC<SKUCardProps> = ({
           <Copy className="w-3 h-3 hover:text-brand-indigo" />
         </button>
         <div className="text-right">
-          <div className="text-xs font-bold text-white tracking-tight">${sku.price?.toLocaleString()}</div>
+          <div className="text-xs font-bold text-content-primary tracking-tight">${sku.price?.toLocaleString()}</div>
           <div className="text-[9px] text-content-muted font-medium">{sku.leadTimeDays}d ETA</div>
         </div>
       </div>

@@ -48,7 +48,7 @@ export function CatalogAddForm({
 
   return (
     <div 
-      className="fixed inset-0 z-[100] bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
+      className="fixed inset-0 z-[100] bg-surface-canvas/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
       tabIndex={0}
@@ -68,13 +68,13 @@ export function CatalogAddForm({
           className="flex items-center justify-between pb-2 border-b"
           style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
         >
-          <h3 id="catalog-add-form-title" className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-            <Database className="w-4 h-4 text-indigo-400" /> Insert Direct
+          <h3 id="catalog-add-form-title" className="text-xs font-bold text-content-primary uppercase tracking-wider flex items-center gap-1.5">
+            <Database className="w-4 h-4 text-brand-indigo" /> Insert Direct
             Sourced SKU
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white cursor-pointer"
+            className="text-content-secondary hover:text-content-primary cursor-pointer"
             type="button"
             aria-label="Close add SKU form"
           >
@@ -85,7 +85,7 @@ export function CatalogAddForm({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 text-xs">
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1 text-left">
-              <label htmlFor="vendor" className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="vendor" className="text-content-secondary font-semibold uppercase">
                 Vendor
               </label>
               <Controller
@@ -102,7 +102,7 @@ export function CatalogAddForm({
               />
             </div>
             <div className="space-y-1 text-left">
-              <label htmlFor="type" className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="type" className="text-content-secondary font-semibold uppercase">
                 Category
               </label>
               <Controller
@@ -123,7 +123,7 @@ export function CatalogAddForm({
           </div>
 
           <div className="space-y-1 text-left">
-            <label htmlFor="partNumber" className="text-gray-400 font-semibold uppercase">
+            <label htmlFor="partNumber" className="text-content-secondary font-semibold uppercase">
               Part Number ID
             </label>
             <input
@@ -132,7 +132,7 @@ export function CatalogAddForm({
               data-testid="input-partNumber"
               {...register("partNumber")}
               placeholder="e.g. P40445-B21"
-              className={`w-full p-2.5 bg-black/30 border text-white font-mono uppercase transition-colors duration-200 ${
+              className={`w-full p-2.5 bg-surface-canvas/30 border text-content-primary font-mono uppercase transition-colors duration-200 ${
                 errors.partNumber ? "border-[#ff3d5a]" : "border-white/6"
               }`}
             />
@@ -151,7 +151,7 @@ export function CatalogAddForm({
           </div>
 
           <div className="space-y-1 text-left">
-            <label htmlFor="name" className="text-gray-400 font-semibold uppercase">
+            <label htmlFor="name" className="text-content-secondary font-semibold uppercase">
               Part Description
             </label>
             <input
@@ -160,7 +160,7 @@ export function CatalogAddForm({
               data-testid="input-name"
               {...register("name")}
               placeholder="e.g. Intel Gold 6430 32-Core 2.1GHz"
-              className={`w-full p-2.5 bg-black/30 border text-white transition-colors duration-200 ${
+              className={`w-full p-2.5 bg-surface-canvas/30 border text-content-primary transition-colors duration-200 ${
                 errors.name ? "border-[#ff3d5a]" : "border-white/6"
               }`}
             />
@@ -180,7 +180,7 @@ export function CatalogAddForm({
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1 text-left">
-              <label htmlFor="price" className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="price" className="text-content-secondary font-semibold uppercase">
                 Contract Rate ($)
               </label>
               <input
@@ -189,7 +189,7 @@ export function CatalogAddForm({
                 data-testid="input-price"
                 {...register("price", { valueAsNumber: true })}
                 placeholder="2450"
-                className={`w-full p-2.5 bg-black/30 border text-white font-mono transition-colors duration-200 ${
+                className={`w-full p-2.5 bg-surface-canvas/30 border text-content-primary font-mono transition-colors duration-200 ${
                   errors.price ? "border-[#ff3d5a]" : "border-white/6"
                 }`}
               />
@@ -207,7 +207,7 @@ export function CatalogAddForm({
               </AnimatePresence>
             </div>
             <div className="space-y-1 text-left">
-              <label htmlFor="leadTimeDays" className="text-gray-400 font-semibold uppercase">
+              <label htmlFor="leadTimeDays" className="text-content-secondary font-semibold uppercase">
                 Lead Time (Days)
               </label>
               <input
@@ -216,7 +216,7 @@ export function CatalogAddForm({
                 data-testid="input-leadTimeDays"
                 {...register("leadTimeDays", { valueAsNumber: true })}
                 placeholder="7"
-                className={`w-full p-2.5 bg-black/30 border text-white transition-colors duration-200 ${
+                className={`w-full p-2.5 bg-surface-canvas/30 border text-content-primary transition-colors duration-200 ${
                   errors.leadTimeDays ? "border-[#ff3d5a]" : "border-white/6"
                 }`}
               />

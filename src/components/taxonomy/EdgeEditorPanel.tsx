@@ -57,21 +57,21 @@ export function EdgeEditorPanel({
   return (
     <div className="flex-1 flex flex-col justify-between gap-4">
       <div className="space-y-3.5">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5 font-mono">
-          <Network className="w-4 h-4 text-indigo-400" />
+        <div className="text-[10px] font-bold uppercase tracking-wider text-brand-indigo flex items-center gap-1.5 font-mono">
+          <Network className="w-4 h-4 text-brand-indigo" />
           Relationship Editor
         </div>
-        <p className="text-[10px] text-gray-400 leading-normal">
+        <p className="text-[10px] text-content-secondary leading-normal">
           Modify graph edge heuristics like substitution weights or compatibility scores.
         </p>
         {selectedEdgeId ? (
-          <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs">
+          <div className="p-3 bg-indigo-950/20 border border-brand-indigo/20 rounded-lg space-y-3 animate-fadeIn text-xs">
             <div>
-              <span className="text-[9px] font-mono text-gray-400 uppercase block">Selected Edge</span>
+              <span className="text-[9px] font-mono text-content-secondary uppercase block">Selected Edge</span>
               <strong className="text-indigo-300 font-mono text-xs">{selectedEdgeId}</strong>
             </div>
             <div className="space-y-1.5 pt-2 border-t border-white/5">
-              <label htmlFor="edge-weight" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide block">
+              <label htmlFor="edge-weight" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide block">
                 Heuristic Weight / Preference Score
               </label>
               <input
@@ -82,14 +82,14 @@ export function EdgeEditorPanel({
                 max="1.0"
                 value={edgeWeight}
                 onChange={e => setEdgeWeight(Number(e.target.value))}
-                className="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 text-content-primary font-mono"
               />
-              <p className="text-[8px] text-gray-500 font-mono mt-1">1.0 = Absolute Requirement | 0.5 = Moderate Substitute</p>
+              <p className="text-[8px] text-content-primary0 font-mono mt-1">1.0 = Absolute Requirement | 0.5 = Moderate Substitute</p>
             </div>
             <button type="button"
               onClick={handleUpdateEdge}
               disabled={isUpdatingEdge || !updateGraphEdge}
-              className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-lg border border-indigo-400/20 transition cursor-pointer text-[10px] uppercase font-mono"
+              className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-brand-indigo hover:bg-brand-indigo disabled:opacity-50 text-content-primary font-bold rounded-lg border border-brand-indigo/20 transition cursor-pointer text-[10px] uppercase font-mono"
             >
               {isUpdatingEdge ? "Syncing..." : "Update Edge Weight"}
             </button>
@@ -111,57 +111,57 @@ export function EdgeEditorPanel({
             </button>
             <button type="button" 
               onClick={() => setSelectedEdgeId && setSelectedEdgeId(null)}
-              className="w-full text-center text-[9px] font-mono text-gray-500 hover:text-gray-300 border-0 bg-transparent cursor-pointer mt-1"
+              className="w-full text-center text-[9px] font-mono text-content-primary0 hover:text-content-secondary border-0 bg-transparent cursor-pointer mt-1"
             >
               Clear Selection
             </button>
           </div>
         ) : (
-          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-gray-500 flex flex-col items-center justify-center min-h-[140px] gap-2">
-            <HelpCircle className="w-8 h-8 text-gray-600" />
+          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-primary0 flex flex-col items-center justify-center min-h-[140px] gap-2">
+            <HelpCircle className="w-8 h-8 text-content-muted" />
             <p>Click on any relationship edge in the graph canvas to modify its properties.</p>
             <button type="button"
               onClick={() => setIsCreatingEdge(true)}
-              className="mt-2 px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded font-mono text-[9px] uppercase hover:bg-indigo-500/30 cursor-pointer"
+              className="mt-2 px-4 py-1.5 bg-brand-indigo/20 text-indigo-300 border border-brand-indigo/30 rounded font-mono text-[9px] uppercase hover:bg-brand-indigo/30 cursor-pointer"
             >
               + Add New Edge
             </button>
           </div>
         )}
         {isCreatingEdge && !selectedEdgeId && (
-          <div className="p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-lg space-y-3 animate-fadeIn text-xs mt-2">
+          <div className="p-3 bg-indigo-950/20 border border-brand-indigo/20 rounded-lg space-y-3 animate-fadeIn text-xs mt-2">
             <div className="text-[10px] font-bold font-mono text-indigo-300 uppercase">Create Edge</div>
             <div className="space-y-1.5">
-              <label htmlFor="newEdgeSource" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Source Node</label>
+              <label htmlFor="newEdgeSource" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Source Node</label>
               <select
                 id="newEdgeSource"
                 value={newEdgeSource}
                 onChange={e => setNewEdgeSource(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
               >
                 <option value="">-- Select Source --</option>
                 {data.nodes.map((n) => <option key={`src-${n.id}`} value={n.id}>{n.label} ({n.id})</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="newEdgeTarget" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Target Node</label>
+              <label htmlFor="newEdgeTarget" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Target Node</label>
               <select
                 id="newEdgeTarget"
                 value={newEdgeTarget}
                 onChange={e => setNewEdgeTarget(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
               >
                 <option value="">-- Select Target --</option>
                 {data.nodes.map((n) => <option key={`tgt-${n.id}`} value={n.id}>{n.label} ({n.id})</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="newEdgeRelationship" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Relationship</label>
+              <label htmlFor="newEdgeRelationship" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Relationship</label>
               <select
                 id="newEdgeRelationship"
                 value={newEdgeRelationship}
                 onChange={e => setNewEdgeRelationship(e.target.value as "requires" | "substitutes" | "compatible" | "conflicts")}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
               >
                 <option value="requires">Requires</option>
                 <option value="substitutes">Substitutes</option>
@@ -170,19 +170,19 @@ export function EdgeEditorPanel({
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="newEdgeWeight" className="text-[9px] font-mono text-gray-400 uppercase font-bold tracking-wide">Weight</label>
+              <label htmlFor="newEdgeWeight" className="text-[9px] font-mono text-content-secondary uppercase font-bold tracking-wide">Weight</label>
               <input
                 id="newEdgeWeight"
                 type="number" step="0.1"
                 value={newEdgeWeight}
                 onChange={e => setNewEdgeWeight(Number(e.target.value))}
-                className="w-full bg-black/60 border border-white/10 rounded p-1.5 text-[10px] text-white font-mono"
+                className="w-full bg-surface-canvas/60 border border-white/10 rounded p-1.5 text-[10px] text-content-primary font-mono"
               />
             </div>
             <div className="flex gap-2">
               <button type="button"
                 onClick={() => setIsCreatingEdge(false)}
-                className="flex-1 py-1.5 bg-gray-800 text-gray-300 border border-white/10 rounded font-mono text-[9px] cursor-pointer"
+                className="flex-1 py-1.5 bg-surface-elevated text-content-secondary border border-white/10 rounded font-mono text-[9px] cursor-pointer"
               >
                 Cancel
               </button>
@@ -202,7 +202,7 @@ export function EdgeEditorPanel({
                     } else toast("Failed to create edge", "error");
                   }
                 }}
-                className="flex-1 py-1.5 bg-indigo-600 text-white border border-indigo-500 rounded font-mono text-[9px] cursor-pointer"
+                className="flex-1 py-1.5 bg-brand-indigo text-content-primary border border-brand-indigo rounded font-mono text-[9px] cursor-pointer"
               >
                 Save
               </button>

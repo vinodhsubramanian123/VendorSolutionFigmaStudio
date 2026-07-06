@@ -183,14 +183,14 @@ export function CleansingView() {
       {/* Mode Toggle Bar */}
       <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4 shrink-0">
         <div>
-          <h1 className="text-xl font-semibold text-white tracking-tight">Interactive Splicing Workshop</h1>
-          <p className="text-sm text-gray-400">Resolve mapping anomalies and perform deep BOQ edits before Solution compilation.</p>
+          <h1 className="text-xl font-semibold text-content-primary tracking-tight">Interactive Splicing Workshop</h1>
+          <p className="text-sm text-content-secondary">Resolve mapping anomalies and perform deep BOQ edits before Solution compilation.</p>
         </div>
-        <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
+        <div className="flex bg-surface-canvas/40 p-1 rounded-lg border border-white/10">
           <button
             onClick={() => setViewMode("auto-map")}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              viewMode === "auto-map" ? "bg-indigo-500 text-white shadow-sm" : "text-gray-400 hover:text-white"
+              viewMode === "auto-map" ? "bg-brand-indigo text-content-primary shadow-sm" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Auto-Mapping Mode
@@ -198,7 +198,7 @@ export function CleansingView() {
           <button
             onClick={() => setViewMode("deep-editor")}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              viewMode === "deep-editor" ? "bg-indigo-500 text-white shadow-sm" : "text-gray-400 hover:text-white"
+              viewMode === "deep-editor" ? "bg-brand-indigo text-content-primary shadow-sm" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Deep Cleanse Editor
@@ -219,16 +219,16 @@ export function CleansingView() {
           />
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3 flex flex-col gap-3">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-black/20 border-white/5">
-                <Search className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-surface-canvas/20 border-white/5">
+                <Search className="w-3.5 h-3.5 text-content-primary0 shrink-0" />
                 <input
                   type="text"
                   placeholder="Search raw values, part numbers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 bg-transparent text-xs text-white focus:outline-none"
+                  className="flex-1 bg-transparent text-xs text-content-primary focus:outline-none"
                 />
-                {searchTerm && <X className="w-3.5 h-3.5 cursor-pointer text-gray-600 hover:text-gray-400" onClick={() => setSearchTerm("")} />}
+                {searchTerm && <X className="w-3.5 h-3.5 cursor-pointer text-content-muted hover:text-content-secondary" onClick={() => setSearchTerm("")} />}
               </div>
               <div className="space-y-1.5 max-h-[600px] overflow-y-auto pr-2">
                 <AnimatePresence initial={false}>
@@ -243,7 +243,7 @@ export function CleansingView() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -8 }}
                         className={`rounded-lg border transition-all cursor-pointer p-3 ${
-                          isSelected ? "border-indigo-500/40 bg-indigo-500/5" : "border-white/5 bg-black/15 hover:border-white/10"
+                          isSelected ? "border-brand-indigo/40 bg-brand-indigo/5" : "border-white/5 bg-surface-canvas/15 hover:border-white/10"
                         }`}
                         onClick={() => {
                           setSelectedEntryId(isSelected ? null : entry.id);
@@ -254,18 +254,18 @@ export function CleansingView() {
                           <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
                           <div className="flex-1 min-w-0">
                             <div className="flex gap-2 items-center mb-1">
-                              <span className="text-xs font-bold text-white truncate max-w-[200px]">{entry.rawValue}</span>
+                              <span className="text-xs font-bold text-content-primary truncate max-w-[200px]">{entry.rawValue}</span>
                               <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${cfg.color} ${cfg.bg} border ${cfg.border}`}>{cfg.label}</span>
                             </div>
                             {entry.matchedPartNumber && (
-                              <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                              <div className="flex items-center gap-1.5 text-[10px] text-content-secondary">
                                 <span className="font-mono text-indigo-300">{entry.matchedPartNumber}</span>
                                 <ArrowRight className="w-3 h-3 text-gray-700" />
                                 <span>{entry.normalizedName}</span>
                               </div>
                             )}
                             {entry.flagReason && (
-                              <p className="text-[9px] text-red-400 mt-0.5">{entry.flagReason}</p>
+                              <p className="text-[9px] text-status-error mt-0.5">{entry.flagReason}</p>
                             )}
                           </div>
                         </div>
@@ -276,7 +276,7 @@ export function CleansingView() {
                 {filteredEntries.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
                     <Filter className="w-8 h-8 text-gray-700" />
-                    <p className="text-sm text-gray-500">No entries match the current filter</p>
+                    <p className="text-sm text-content-primary0">No entries match the current filter</p>
                   </div>
                 )}
               </div>

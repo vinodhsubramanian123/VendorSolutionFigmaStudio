@@ -161,11 +161,11 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
             >
             <div className={`max-w-[80%] rounded-lg p-3 text-xs leading-relaxed ${
               msg.sender === "human" 
-                ? "bg-indigo-500/20 border border-indigo-500/30 text-indigo-100 rounded-br-sm" 
-                : "bg-white/5 border border-white/10 text-gray-300 rounded-bl-sm"
+                ? "bg-brand-indigo/20 border border-brand-indigo/30 text-indigo-100 rounded-br-sm" 
+                : "bg-white/5 border border-white/10 text-content-secondary rounded-bl-sm"
             }`}>
               {msg.sender === "agent" && (
-                <div className="flex items-center gap-1.5 mb-1.5 text-[9px] font-bold text-indigo-400 uppercase tracking-wider font-mono">
+                <div className="flex items-center gap-1.5 mb-1.5 text-[9px] font-bold text-brand-indigo uppercase tracking-wider font-mono">
                   <BrainCircuit className="w-3 h-3" /> Agent
                 </div>
               )}
@@ -183,8 +183,8 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
               exit={{ opacity: 0, scale: 0.9 }}
               className="flex justify-start"
             >
-              <div className="max-w-[80%] rounded-lg p-3 bg-white/5 border border-white/10 text-gray-400 rounded-bl-sm flex items-center gap-2 text-xs">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+              <div className="max-w-[80%] rounded-lg p-3 bg-white/5 border border-white/10 text-content-secondary rounded-bl-sm flex items-center gap-2 text-xs">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-indigo" />
                 Parsing semantic intent...
               </div>
             </motion.div>
@@ -194,7 +194,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-3 border-t border-white/5 bg-black/50 flex items-center gap-2 shrink-0">
+      <div className="p-3 border-t border-white/5 bg-surface-canvas/50 flex items-center gap-2 shrink-0">
         <input 
           type="text"
           value={inputValue}
@@ -202,12 +202,12 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder={state.includes("clarifying") ? "Type the missing parameter..." : "Describe the override rule or paste warning logs..."}
           disabled={state === "parsing" || state === "drafting"}
-          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/50 disabled:opacity-50"
+          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-content-primary placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-brand-indigo/50 disabled:opacity-50"
         />
         <button type="button" 
           onClick={handleSend}
           disabled={!inputValue.trim() || state === "parsing" || state === "drafting"}
-          className="p-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-700 disabled:text-gray-500 text-white transition cursor-pointer"
+          className="p-2 rounded-lg bg-brand-indigo hover:bg-brand-indigo disabled:bg-gray-700 disabled:text-content-primary0 text-content-primary transition cursor-pointer"
         >
           <Send className="w-4 h-4" />
         </button>

@@ -45,7 +45,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
       <div className="flex-1 min-w-0 space-y-2">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-xs text-white font-bold">{issue.title}</h3>
+            <h3 className="text-xs text-content-primary font-bold">{issue.title}</h3>
             <motion.span
               className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
                 isCritical
@@ -59,24 +59,24 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
               {issue.severity}
             </motion.span>
           </div>
-          <p className="text-[11px] text-gray-400 mt-1 leading-normal">
+          <p className="text-[11px] text-content-secondary mt-1 leading-normal">
             {issue.description}
           </p>
         </div>
 
-        <div className="p-2.5 rounded text-[11px] space-y-1 bg-black/30 border border-white/5 text-indigo-300">
-          <span className="font-bold uppercase text-[9px] text-gray-500 tracking-wider flex items-center gap-1">
-            <Zap className="w-3 h-3 text-indigo-400" /> Suggested Sourcing Alignment Action:
+        <div className="p-2.5 rounded text-[11px] space-y-1 bg-surface-canvas/30 border border-white/5 text-indigo-300">
+          <span className="font-bold uppercase text-[9px] text-content-primary0 tracking-wider flex items-center gap-1">
+            <Zap className="w-3 h-3 text-brand-indigo" /> Suggested Sourcing Alignment Action:
           </span>
-          <p className="text-gray-300 leading-normal font-medium">{issue.suggestedAction}</p>
+          <p className="text-content-secondary leading-normal font-medium">{issue.suggestedAction}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-2 border-t border-white/5 gap-2">
-          <div className="text-[10px] text-gray-500 font-mono">
+          <div className="text-[10px] text-content-primary0 font-mono">
             Affected Manufacturer:{" "}
             <span className="text-brand-indigo font-bold">{issue.vendor}</span>{" "}
             · Line Item Details:{" "}
-            <span className="text-gray-300 font-bold">{issue.affectedItems} items</span>
+            <span className="text-content-secondary font-bold">{issue.affectedItems} items</span>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             {onManualPromote && (
@@ -84,7 +84,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
                 type="button"
                 onClick={() => onManualPromote(issue)}
                 aria-label={`Seed Intel Override for ${issue.title}`}
-                className="flex items-center gap-1 text-[10px] font-medium py-2 px-3 rounded-lg bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/25 transition-colors cursor-pointer border border-indigo-500/20 uppercase tracking-wide"
+                className="flex items-center gap-1 text-[10px] font-medium py-2 px-3 rounded-lg bg-brand-indigo/10 text-indigo-300 hover:bg-brand-indigo/25 transition-colors cursor-pointer border border-brand-indigo/20 uppercase tracking-wide"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -100,7 +100,7 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
               whileHover={{ scale: 1.04, boxShadow: "0 0 18px rgba(0,212,160,0.22)" }}
               whileTap={{ scale: 0.96 }}
             >
-              <Zap className="w-3.5 h-3.5 text-yellow-400 shrink-0" /> Auto-Align Component
+              <Zap className="w-3.5 h-3.5 text-status-warning shrink-0" /> Auto-Align Component
             </motion.button>
           </div>
         </div>

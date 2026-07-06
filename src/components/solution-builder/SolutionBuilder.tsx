@@ -288,8 +288,8 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-        <p className="text-xs text-gray-500 font-mono">Loading builder mock data...</p>
+        <Loader2 className="w-8 h-8 text-brand-indigo animate-spin" />
+        <p className="text-xs text-content-primary0 font-mono">Loading builder mock data...</p>
       </div>
     );
   }
@@ -305,24 +305,24 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
         transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
       >
         {solutionIsComplete && (
-          <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center justify-between">
+          <div className="bg-status-success/10 border border-status-success/20 p-4 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Check className="w-5 h-5 text-emerald-400" />
+              <Check className="w-5 h-5 text-status-success" />
               <div>
-                <h3 className="text-sm font-bold text-emerald-400">Solution Provisioning Complete</h3>
-                <p className="text-[10px] text-emerald-500/70">All vendor assignments have been executed successfully.</p>
+                <h3 className="text-sm font-bold text-status-success">Solution Provisioning Complete</h3>
+                <p className="text-[10px] text-status-success/70">All vendor assignments have been executed successfully.</p>
               </div>
             </div>
           </div>
         )}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-indigo-500/10 p-5 rounded-xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-brand-indigo/10 p-5 rounded-xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
-              <Hammer className="w-5 h-5 text-indigo-400" />
+            <div className="w-10 h-10 rounded-xl bg-brand-indigo/15 border border-brand-indigo/25 flex items-center justify-center">
+              <Hammer className="w-5 h-5 text-brand-indigo" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-white">Mission Builder</h1>
-              <p className="text-[10px] text-gray-500 mt-0.5">
+              <h1 className="text-sm font-semibold text-content-primary">Mission Builder</h1>
+              <p className="text-[10px] text-content-primary0 mt-0.5">
                 Intake raw excel Sheets of multi-tab Bills of Quantities and compile them into distinct parallel UCIDs.
               </p>
             </div>
@@ -330,20 +330,20 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-                step >= 1 ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
+                step >= 1 ? 'bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-content-primary0 border border-white/5'
               }`}>
                 {step > 1 || isIngested ? <Check className="w-3.5 h-3.5" /> : '1'}
               </div>
-              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.INTAKE ? 'text-indigo-400 font-bold' : 'text-gray-400'}`}>BOQ Intake Parse</span>
+              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.INTAKE ? 'text-brand-indigo font-bold' : 'text-content-secondary'}`}>BOQ Intake Parse</span>
             </div>
             <div className="w-6 h-px bg-white/10" />
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-                step === SolutionBuilderStep.WORKSPACE ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-gray-500 border border-white/5'
+                step === SolutionBuilderStep.WORKSPACE ? 'bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-content-primary0 border border-white/5'
               }`}>
                 2
               </div>
-              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.WORKSPACE ? 'text-indigo-400 font-bold' : 'text-gray-500'}`}>UCID Assignment Map</span>
+              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.WORKSPACE ? 'text-brand-indigo font-bold' : 'text-content-primary0'}`}>UCID Assignment Map</span>
             </div>
           </div>
         </div>

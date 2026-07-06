@@ -37,23 +37,23 @@ export function StepIntake({
       {/* Main Intake Canvas */}
       <div className="lg:col-span-2 space-y-4">
         {/* Unified Pipeline Active Banner */}
-        <div className="p-3 bg-indigo-500/5 border border-indigo-500/15 rounded-xl flex items-center justify-between text-left gap-4">
+        <div className="p-3 bg-brand-indigo/5 border border-brand-indigo/15 rounded-xl flex items-center justify-between text-left gap-4">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse shrink-0" />
-              <span className="text-[9px] font-bold text-indigo-400 font-mono uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-indigo animate-pulse shrink-0" />
+              <span className="text-[9px] font-bold text-brand-indigo font-mono uppercase tracking-wider">
                 Sourcing State Sync Connected
               </span>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1 leading-normal">
-              Any specification uploaded or demo loaded in this Configurator instantly binds to the central <span className="text-gray-300 font-medium">Opportunities Ledger</span>, and feeds metrics straight into your parallel tracking dashboards.
+            <p className="text-[10px] text-content-secondary mt-1 leading-normal">
+              Any specification uploaded or demo loaded in this Configurator instantly binds to the central <span className="text-content-secondary font-medium">Opportunities Ledger</span>, and feeds metrics straight into your parallel tracking dashboards.
             </p>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-[10px] font-mono text-emerald-400 font-bold block">
+            <span className="text-[10px] font-mono text-status-success font-bold block">
               Active Sync
             </span>
-            <span className="text-[9px] text-gray-500 font-sans block mt-0.5 animate-fadeIn">
+            <span className="text-[9px] text-content-primary0 font-sans block mt-0.5 animate-fadeIn">
               Active Accounts: {activeUcidsCount}
             </span>
           </div>
@@ -61,15 +61,15 @@ export function StepIntake({
 
         <div className="bg-surface-elevated border border-white/5 rounded-xl p-6 space-y-6">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
+            <div className="w-12 h-12 rounded-xl bg-brand-indigo/10 border border-brand-indigo/20 flex items-center justify-center shrink-0 text-brand-indigo">
               <UploadCloud className="w-6 h-6" />
             </div>
             <div>
               <StatusBadge status="Direct Solution Ingest" variant="info" />
-              <h3 className="text-sm font-semibold text-white mt-1.5 font-sans">
+              <h3 className="text-sm font-semibold text-content-primary mt-1.5 font-sans">
                 Bill of Quantities (BOQ) Ingestion
               </h3>
-              <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+              <p className="text-[11px] text-content-secondary mt-1 leading-relaxed">
                 Upload your customer hardware requirements sheet,
                 cross-vendor BOQ workbook, or raw equipment PARTS spec file.
                 The system will dynamically resolve nomenclature, run rules
@@ -79,8 +79,8 @@ export function StepIntake({
           </div>
 
           <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-indigo-500/[0.02] border border-indigo-500/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-gray-400 text-[10.5px] max-w-sm text-center sm:text-left leading-normal">
+            <div className="p-4 rounded-lg bg-brand-indigo/[0.02] border border-brand-indigo/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-content-secondary text-[10.5px] max-w-sm text-center sm:text-left leading-normal">
                 Don't have a spreadsheet handy? Click here to instantly
                 parse a pre-scanned mock enterprise server &amp; storage
                 workbook.
@@ -90,7 +90,7 @@ export function StepIntake({
                 onClick={() =>
                   handleFileUpload("demographic_sourcing_specs_2026.xlsx")
                 }
-                className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold cursor-pointer text-[10px] font-sans flex items-center gap-2 shrink-0 transition"
+                className="px-4 py-2 rounded-lg bg-brand-indigo hover:bg-brand-indigo text-content-primary font-bold cursor-pointer text-[10px] font-sans flex items-center gap-2 shrink-0 transition"
               >
                 <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
                 <span>Load Demo BOQ</span>
@@ -113,7 +113,7 @@ export function StepIntake({
 
             {/* Raw Text Input Section */}
             <div className="pt-4 space-y-2">
-              <label htmlFor="rawBoqText" className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+              <label htmlFor="rawBoqText" className="text-[10px] uppercase font-bold text-content-primary0 tracking-wider">
                 Or Paste Raw BOQ Text
               </label>
               <textarea
@@ -121,7 +121,7 @@ export function StepIntake({
                 value={rawBoqText}
                 onChange={(e) => setRawBoqText(e.target.value)}
                 placeholder="E.g. 2x P40424-B21 Server Processor..."
-                className="w-full h-24 bg-surface-canvas border border-white/10 rounded-lg p-3 text-[11px] text-gray-300 font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-500/50 resize-none"
+                className="w-full h-24 bg-surface-canvas border border-white/10 rounded-lg p-3 text-[11px] text-content-secondary font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-brand-indigo/50 resize-none"
               />
               <div className="flex justify-end">
                 <button type="button"
@@ -131,7 +131,7 @@ export function StepIntake({
                     }
                   }}
                   disabled={!rawBoqText.trim() || isIngesting}
-                  className="px-4 py-2 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-indigo-300 font-bold rounded-lg cursor-pointer text-[10px] disabled:opacity-50 transition"
+                  className="px-4 py-2 bg-brand-indigo/20 text-brand-indigo hover:bg-brand-indigo/30 hover:text-indigo-300 font-bold rounded-lg cursor-pointer text-[10px] disabled:opacity-50 transition"
                 >
                   Parse Text
                 </button>
@@ -141,17 +141,17 @@ export function StepIntake({
 
           <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="text-left">
-              <p className="text-xs font-bold text-gray-300">
+              <p className="text-xs font-bold text-content-secondary">
                 Have active configurations in memory?
               </p>
-              <p className="text-[10px] text-gray-500 mt-0.5">
+              <p className="text-[10px] text-content-primary0 mt-0.5">
                 We detected {activeUcidsCount} active tracking UCID container(s)
                 pre-loaded.
               </p>
             </div>
             <button type="button"
               onClick={onProceed}
-              className="px-5 py-2.5 rounded-lg bg-surface-elevated hover:bg-surface-elevated text-indigo-400 font-bold border border-indigo-500/20 hover:border-indigo-500/40 cursor-pointer transition flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px]" 
+              className="px-5 py-2.5 rounded-lg bg-surface-elevated hover:bg-surface-elevated text-brand-indigo font-bold border border-brand-indigo/20 hover:border-brand-indigo/40 cursor-pointer transition flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 text-[10px]" 
             >
               <span>Proceed to Assignment Map (Step 2)</span>
               <ArrowRight className="w-4 h-4" />

@@ -149,9 +149,9 @@ export function ReconciliationOverview({
   if (!dynamicConfigs || dynamicConfigs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[500px] border border-white/5 rounded-xl bg-surface-card animate-fadeIn text-center p-8">
-        <Database className="w-12 h-12 text-indigo-500/30 mb-4" />
-        <h3 className="text-base font-bold text-white mb-2">No Configurations to Reconcile</h3>
-        <p className="text-xs text-gray-400 max-w-md leading-relaxed">
+        <Database className="w-12 h-12 text-brand-indigo/30 mb-4" />
+        <h3 className="text-base font-bold text-content-primary mb-2">No Configurations to Reconcile</h3>
+        <p className="text-xs text-content-secondary max-w-md leading-relaxed">
           There are no active configuration sheets available for reconciliation. Please complete the intelligence processing and solution comparison stages first.
         </p>
       </div>
@@ -163,9 +163,9 @@ export function ReconciliationOverview({
   if (isBomPending) {
     return (
       <div className="flex flex-col items-center justify-center h-[500px] border border-white/5 rounded-xl bg-surface-card animate-fadeIn text-center p-8">
-        <Database className="w-12 h-12 text-amber-500/30 mb-4 animate-pulse" />
-        <h3 className="text-base font-bold text-white mb-2">Awaiting BOM Validation</h3>
-        <p className="text-xs text-gray-400 max-w-md leading-relaxed">
+        <Database className="w-12 h-12 text-status-warning/30 mb-4 animate-pulse" />
+        <h3 className="text-base font-bold text-content-primary mb-2">Awaiting BOM Validation</h3>
+        <p className="text-xs text-content-secondary max-w-md leading-relaxed">
           The technical Bill of Materials has not been fully processed. Please complete the BOM compile step to enable reconciliation.
         </p>
       </div>
@@ -194,7 +194,7 @@ export function ReconciliationOverview({
 
       {/* Left hand column: Dynamic derived config items listed */}
       <div className="lg:col-span-3 space-y-3">
-        <span className="text-[10px] font-mono text-gray-400 tracking-wider uppercase block font-bold">
+        <span className="text-[10px] font-mono text-content-secondary tracking-wider uppercase block font-bold">
           {dynamicConfigs.length} BOQ Configs — click any to drill into reconciliation
         </span>
 

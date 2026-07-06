@@ -112,17 +112,17 @@ export const DOC_ICON: Record<DocCategory, ElementType> = {
 };
 
 export const STATUS_STYLES: Record<DocStatus, { color: string; bg: string; border: string; label: string }> = {
-  queued:     { color: "text-gray-400",    bg: "bg-white/5",         border: "border-white/8",          label: "Queued" },
-  processing: { color: "text-indigo-400",  bg: "bg-indigo-500/8",    border: "border-indigo-500/20",    label: "Processing" },
-  extracting: { color: "text-amber-400",   bg: "bg-amber-500/8",     border: "border-amber-500/20",     label: "Extracting" },
-  completed:  { color: "text-emerald-400", bg: "bg-emerald-500/8",   border: "border-emerald-500/20",   label: "Completed" },
-  failed:     { color: "text-red-400",     bg: "bg-red-500/8",       border: "border-red-500/20",       label: "Failed" },
+  queued:     { color: "text-content-secondary",    bg: "bg-white/5",         border: "border-white/8",          label: "Queued" },
+  processing: { color: "text-brand-indigo",  bg: "bg-brand-indigo/8",    border: "border-brand-indigo/20",    label: "Processing" },
+  extracting: { color: "text-status-warning",   bg: "bg-status-warning/8",     border: "border-status-warning/20",     label: "Extracting" },
+  completed:  { color: "text-status-success", bg: "bg-status-success/8",   border: "border-status-success/20",   label: "Completed" },
+  failed:     { color: "text-status-error",     bg: "bg-status-error/8",       border: "border-status-error/20",       label: "Failed" },
 };
 
 export const HTTP_COLOR: Record<number, string> = {};
 export function getHttpColor(code: number): string {
-  if (code >= 500) return "text-red-400";
-  if (code >= 400) return "text-amber-400";
-  if (code >= 200 && code < 300) return "text-emerald-400";
-  return "text-gray-400";
+  if (code >= 500) return "text-status-error";
+  if (code >= 400) return "text-status-warning";
+  if (code >= 200 && code < 300) return "text-status-success";
+  return "text-content-secondary";
 }

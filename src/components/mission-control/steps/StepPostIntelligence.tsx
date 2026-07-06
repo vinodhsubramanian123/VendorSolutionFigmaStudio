@@ -56,7 +56,7 @@ export function StepPostIntelligence({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-gray-400 leading-normal text-left">
+      <p className="text-xs text-content-secondary leading-normal text-left">
         Validating deep architectural rules: checking system load thresholds,
         power dissipation, module-socket layouts, and EOL components.
       </p>
@@ -69,14 +69,14 @@ export function StepPostIntelligence({
               key={warn.id}
               className={`p-3.5 rounded-lg border transition-all duration-300 text-left ${
                 isOverridden
-                  ? "border-emerald-500/25 bg-emerald-500/5 text-gray-500"
-                  : "border-amber-500/20 bg-amber-500/5 text-gray-200"
+                  ? "border-status-success/25 bg-status-success/5 text-content-primary0"
+                  : "border-status-warning/20 bg-status-warning/5 text-content-primary"
               }`}
             >
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <div
                   className={`flex items-center gap-1.5 text-xs font-bold ${
-                    isOverridden ? "text-emerald-400" : "text-amber-500"
+                    isOverridden ? "text-status-success" : "text-status-warning"
                   }`}
                 >
                   {isOverridden ? (
@@ -89,14 +89,14 @@ export function StepPostIntelligence({
                   </span>
                 </div>
                 {isOverridden ? (
-                  <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider">
+                  <span className="text-[9px] bg-status-success/10 text-status-success px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider">
                     ✓ Overridden
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => handleOverride(warn.id, warn.title)}
-                    className="text-[9px] px-2 py-1 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 font-semibold hover:bg-indigo-500/25 cursor-pointer font-sans transition"
+                    className="text-[9px] px-2 py-1 rounded bg-brand-indigo/15 text-brand-indigo border border-brand-indigo/30 font-semibold hover:bg-brand-indigo/25 cursor-pointer font-sans transition"
                   >
                     Override Rule
                   </button>
@@ -104,7 +104,7 @@ export function StepPostIntelligence({
               </div>
               <p
                 className={`text-[11px] leading-relaxed ${
-                  isOverridden ? "text-gray-600 line-through italic" : "text-gray-400"
+                  isOverridden ? "text-content-muted line-through italic" : "text-content-secondary"
                 }`}
               >
                 {warn.desc}
@@ -118,7 +118,7 @@ export function StepPostIntelligence({
         <button
           type="button"
           onClick={onAdvance}
-          className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 cursor-pointer transition"
+          className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-brand-indigo text-content-primary hover:bg-brand-indigo cursor-pointer transition"
         >
           Proceed to Cost Comparison <ArrowRight className="w-4 h-4" />
         </button>

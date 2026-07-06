@@ -1,12 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.describe('08 - Forensic Scan E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.locator('#nav-forensic').click();
-    await delay(500);
   });
 
   test('should validate global scan metrics', async ({ page }) => {
@@ -18,7 +16,6 @@ test.describe('08 - Forensic Scan E2E', () => {
     const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
     if (await healBtn.isVisible()) {
       await healBtn.click();
-      await delay(1000);
       // Wait for an optimistic UI change (like a success badge or row fading)
       // We expect a toast to appear or the heal button to disappear.
       await expect(page.getByText('Auto-Heal Threat', { exact: false })).toHaveCount(await page.getByText('Auto-Heal Threat', { exact: false }).count()); 
@@ -37,7 +34,6 @@ test.describe('08 - Forensic Scan E2E', () => {
     // Sourcing Rules Vault is already on the page at the bottom
     const addRuleBtn = page.locator('button', { hasText: 'Define Sourcing Override' });
     await addRuleBtn.click();
-    await delay(1000);
     await expect(page.getByText('Create New Sourcing Intelligence Directive', { exact: false })).toBeVisible();
     await page.keyboard.press('Escape');
   });

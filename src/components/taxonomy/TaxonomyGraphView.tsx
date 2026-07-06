@@ -46,7 +46,7 @@ export function TaxonomyGraphView() {
     return configs && configs.length > 0 ? configs : DEFAULT_CONFIGS;
   }, [activeUcid]);
 
-  const [selectedConfigIdState, setSelectedConfigIdState] = useState<string>("");
+  const [selectedConfigIdState] = useState<string>("");
   const selectedConfigId = useMemo(() => {
     if (activeConfigs.some(c => c.id === selectedConfigIdState)) {
       return selectedConfigIdState;
@@ -101,19 +101,19 @@ export function TaxonomyGraphView() {
   const cpuOptions = useMemo(() => catalogSkus.filter(s => s.type === "Processor" && s.status === "active"), [catalogSkus]);
   return (
     <ErrorBoundary>
-      <div className="flex flex-col lg:flex-row gap-6 w-full h-full max-w-7xl mx-auto text-white">
+      <div className="flex flex-col lg:flex-row gap-6 w-full h-full max-w-7xl mx-auto text-content-primary">
         {/* LEFT: Interactive Taxonomy Tree Graph Canvas */}
       <div className="flex-1 flex flex-col gap-4">
         {/* Header Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-surface-card border border-white/5 rounded-xl">
           <div>
-            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
-              <Network className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-sm font-bold text-content-primary flex items-center gap-2 uppercase tracking-wider">
+              <Network className="w-4 h-4 text-brand-indigo" />
               Taxonomy Graph Canvas
             </h2>
             <div className="flex items-center gap-2 mt-2">
               <select
-                className="bg-surface-elevated border border-white/10 text-white text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
+                className="bg-surface-elevated border border-white/10 text-content-primary text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
                 value={selectedSolutionId}
                 onChange={(e) => setSelectedSolutionId(e.target.value)}
               >
@@ -124,7 +124,7 @@ export function TaxonomyGraphView() {
               </select>
               
               <select
-                className="bg-surface-elevated border border-white/10 text-white text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
+                className="bg-surface-elevated border border-white/10 text-content-primary text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
                 value={selectedUcidId}
                 onChange={(e) => setSelectedUcidId(e.target.value)}
                 disabled={!selectedSolutionId || availableUcids.length === 0}
@@ -139,7 +139,7 @@ export function TaxonomyGraphView() {
           <div className="flex items-center gap-2 flex-wrap">
             <button type="button" 
               onClick={() => setFilterOrphansOnly(!filterOrphansOnly)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all cursor-pointer ${filterOrphansOnly ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold' : 'bg-surface-elevated border-white/5 text-gray-400 hover:text-white'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all cursor-pointer ${filterOrphansOnly ? 'bg-status-warning/20 border-status-warning/40 text-amber-300 font-bold' : 'bg-surface-elevated border-white/5 text-content-secondary hover:text-content-primary'}`}
             >
               <Filter className="w-3.5 h-3.5" />
               <span>{filterOrphansOnly ? 'Showing Orphans' : 'Filter Orphans'}</span>
@@ -147,7 +147,7 @@ export function TaxonomyGraphView() {
             <button type="button" 
               onClick={() => refresh()}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-xs font-bold rounded-lg border border-indigo-400/20 transition cursor-pointer text-white"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-indigo hover:bg-brand-indigo disabled:opacity-50 text-xs font-bold rounded-lg border border-brand-indigo/20 transition cursor-pointer text-content-primary"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh Topology</span>
@@ -155,18 +155,18 @@ export function TaxonomyGraphView() {
           </div>
         </div>
         {/* Viewport Canvas Container (Phase 3 Integration) */}
-        <div className="relative flex-1 w-full border border-indigo-500/10 rounded-xl overflow-hidden min-h-[560px]">
+        <div className="relative flex-1 w-full border border-brand-indigo/10 rounded-xl overflow-hidden min-h-[560px]">
           {!activeUcid ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-card">
-              <GitFork className="w-12 h-12 text-gray-600" />
+              <GitFork className="w-12 h-12 text-content-muted" />
               <div className="text-center">
-                <span className="block text-sm font-bold text-gray-300">No Config Selected</span>
-                <span className="text-[10px] text-gray-500 max-w-xs mt-1 inline-block">Please select a Solution and a corresponding configuration context to map taxonomy rules.</span>
+                <span className="block text-sm font-bold text-content-secondary">No Config Selected</span>
+                <span className="text-[10px] text-content-primary0 max-w-xs mt-1 inline-block">Please select a Solution and a corresponding configuration context to map taxonomy rules.</span>
               </div>
             </div>
           ) : isLoading ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-card">
-              <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
+              <RefreshCw className="w-8 h-8 text-brand-indigo animate-spin" />
               <span className="text-xs font-mono text-indigo-300">Synchronizing Graph Topology...</span>
             </div>
           ) : (

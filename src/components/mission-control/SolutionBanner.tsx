@@ -1,6 +1,5 @@
 import React from "react";
 import { Network } from "lucide-react";
-import { UCID } from "../../types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { tokens } from "../../styles/tokens";
 import { motion } from "motion/react";
@@ -66,13 +65,13 @@ export function SolutionBanner({
       {/* Visual background ambient glow overlay for freshly deployed campaign */}
       {deployedSolution && (
         <span 
-          className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none animate-pulse" 
+          className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-brand-indigo/20 blur-3xl pointer-events-none animate-pulse" 
         />
       )}
 
       <div className="flex items-center gap-4">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-indigo-500/5 border-indigo-500/15">
-          <Network className="w-5 h-5 text-indigo-400" />
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-brand-indigo/5 border-brand-indigo/15">
+          <Network className="w-5 h-5 text-brand-indigo" />
         </div>
         <div>
           {deployedSolution ? (
@@ -81,7 +80,7 @@ export function SolutionBanner({
                 ACTIVE SOLUTION MISSION
               </span>
               <div className="flex flex-wrap items-center gap-2.5">
-                <h3 className="text-sm font-bold text-white tracking-tight">
+                <h3 className="text-sm font-bold text-content-primary tracking-tight">
                   {deployedSolution.name}
                 </h3>
                 <StatusBadge 
@@ -91,7 +90,7 @@ export function SolutionBanner({
                 />
                 <button type="button"
                   onClick={onClearDeployed}
-                  className="text-[9px] text-gray-500 hover:text-white underline font-mono cursor-pointer bg-transparent border-none p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                  className="text-[9px] text-content-primary0 hover:text-content-primary underline font-mono cursor-pointer bg-transparent border-none p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
                   Reset Banner
                 </button>
@@ -99,7 +98,7 @@ export function SolutionBanner({
             </div>
           ) : (
             <div className="space-y-1">
-              <p className="text-[10px] text-gray-500 tracking-wider font-bold uppercase leading-none">
+              <p className="text-[10px] text-content-primary0 tracking-wider font-bold uppercase leading-none">
                 Global Campaign Status
               </p>
               <div className="flex items-center gap-1.5">
@@ -107,7 +106,7 @@ export function SolutionBanner({
                   className="w-2 h-2 rounded-full animate-pulse"
                   style={{ backgroundColor: stateCfg.color }}
                 />
-                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                <span className="text-xs font-bold text-content-primary uppercase tracking-wider">
                   {stateCfg.label}
                 </span>
               </div>
@@ -118,16 +117,16 @@ export function SolutionBanner({
 
       <div className="flex items-center gap-6 shrink-0">
         <div className="flex flex-col">
-          <span className="text-[9px] text-gray-500 tracking-wider font-bold uppercase leading-none">
+          <span className="text-[9px] text-content-primary0 tracking-wider font-bold uppercase leading-none">
             Sync Pipeline
           </span>
-          <span className="text-xs font-semibold text-white mt-1.5">
+          <span className="text-xs font-semibold text-content-primary mt-1.5">
             {completeCount} of {ucids.length} Locked Snapshot
           </span>
         </div>
         <div className="w-px h-8 bg-white/5" />
         <div className="flex flex-col">
-          <span className="text-[9px] text-gray-500 tracking-wider font-bold uppercase leading-none">
+          <span className="text-[9px] text-content-primary0 tracking-wider font-bold uppercase leading-none">
             Committed Budget Val
           </span>
           <span className="text-xs font-bold text-status-success mt-1.5">

@@ -20,10 +20,10 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
   handleAutoHeal
 }: VendorDifferencesTableProps) {
   return (
-    <div className="overflow-x-auto border border-white/5 rounded-xl bg-black/10">
+    <div className="overflow-x-auto border border-white/5 rounded-xl bg-surface-canvas/10">
       <table className="min-w-[1050px] w-full text-left border-collapse">
         <thead>
-          <tr className="bg-black/40 border-b border-white/5 text-[10.5px] font-mono uppercase tracking-wider text-gray-400 select-none">
+          <tr className="bg-surface-canvas/40 border-b border-white/5 text-[10.5px] font-mono uppercase tracking-wider text-content-secondary select-none">
             <th className="py-3 px-4 text-left">BOQ Item Description</th>
             <th className="py-3 px-2 text-left">BOQ Part #</th>
             <th className="py-3 px-2 text-center">QTY</th>
@@ -52,20 +52,20 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
                 <motion.tr
                   layout
                   onClick={() => toggleGroup(group.name)}
-                  className="bg-zinc-950/70 border-b border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors select-none font-bold text-xs"
+                  className="bg-surface-canvas/70 border-b border-white/5 cursor-pointer hover:bg-surface-card/60 transition-colors select-none font-bold text-xs"
                 >
                   <td colSpan={9} className="py-2.5 px-4 font-semibold text-left">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
-                          <ChevronRight className="w-4 h-4 text-gray-500" />
+                          <ChevronRight className="w-4 h-4 text-content-primary0" />
                         ) : (
-                          <ChevronDown className="w-4 h-4 text-indigo-400" />
+                          <ChevronDown className="w-4 h-4 text-brand-indigo" />
                         )}
-                        <span className="text-white font-black tracking-tight">
+                        <span className="text-content-primary font-black tracking-tight">
                           {group.name}
                         </span>
-                        <span className="text-[10px] bg-black/45 border border-white/5 px-2 py-0.2 rounded-full text-indigo-400 font-mono">
+                        <span className="text-[10px] bg-surface-canvas/45 border border-white/5 px-2 py-0.2 rounded-full text-brand-indigo font-mono">
                           {filteredRows.length}{" "}
                           {filteredRows.length === 1 ? "item" : "items"}
                         </span>
@@ -73,12 +73,12 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
 
                       <div className="flex items-center gap-1.5">
                         {group.greenDot && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse" />
                         )}
                         {group.orangeDot && (
                           <span className="w-1.5 h-1.5 rounded-full bg-status-warning" /> 
                         )}
-                        <span className="text-[9.5px] font-mono text-gray-600 font-extrabold tracking-wider">
+                        <span className="text-[9.5px] font-mono text-content-muted font-extrabold tracking-wider">
                           {isCollapsed ? "EXPAND CATEGORY" : "COLLAPSE"}
                         </span>
                       </div>
@@ -101,7 +101,7 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
           })}
           {driftTableData.length === 0 && (
             <tr>
-              <td colSpan={9} className="p-8 text-center text-[11px] text-gray-500 font-mono">
+              <td colSpan={9} className="p-8 text-center text-[11px] text-content-primary0 font-mono">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <span className="text-xl">✅</span>
                   <p>All active configuration categories matched perfectly.</p>

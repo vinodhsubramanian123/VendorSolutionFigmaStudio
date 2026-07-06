@@ -69,10 +69,10 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xs text-white font-bold truncate">
+                  <h3 className="text-xs text-content-primary font-bold truncate">
                     {vendor.name}
                   </h3>
-                  <p className="text-[9px] text-gray-500 font-mono font-bold uppercase truncate">
+                  <p className="text-[9px] text-content-primary0 font-mono font-bold uppercase truncate">
                     {vendor.shortName} CONTRACT SYSTEM
                   </p>
                 </div>
@@ -91,20 +91,20 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
 
             {/* API Specs */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-2.5 rounded bg-black/20 space-y-0.5 border border-white/5">
-                <span className="text-gray-500 font-medium text-[9.5px]">
+              <div className="p-2.5 rounded bg-surface-canvas/20 space-y-0.5 border border-white/5">
+                <span className="text-content-primary0 font-medium text-[9.5px]">
                   Synced SKUs
                 </span>
-                <p className="text-white font-bold font-mono text-[13px]">
+                <p className="text-content-primary font-bold font-mono text-[13px]">
                   {vendor.catalogItems.toLocaleString()}
                 </p>
               </div>
-              <div className="p-2.5 rounded bg-black/20 space-y-0.5 border border-white/5">
-                <span className="text-gray-500 font-medium text-[9.5px]">
+              <div className="p-2.5 rounded bg-surface-canvas/20 space-y-0.5 border border-white/5">
+                <span className="text-content-primary0 font-medium text-[9.5px]">
                   Channel Health
                 </span>
                 <p
-                  className={`font-bold font-mono text-[13px] ${isConnected ? "text-status-success" : "text-red-400"}`}
+                  className={`font-bold font-mono text-[13px] ${isConnected ? "text-status-success" : "text-status-error"}`}
                 >
                   {vendor.apiHealth}%
                 </p>
@@ -112,19 +112,19 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
             </div>
 
             {/* REST details */}
-            <div className="text-[10px] space-y-1 bg-black/10 p-2.5 rounded-lg font-mono">
-              <p className="text-gray-500 truncate">
-                <span className="text-indigo-400">Endpoint:</span>{" "}
+            <div className="text-[10px] space-y-1 bg-surface-canvas/10 p-2.5 rounded-lg font-mono">
+              <p className="text-content-primary0 truncate">
+                <span className="text-brand-indigo">Endpoint:</span>{" "}
                 {vendor.apiEndpoint}
               </p>
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-content-primary0">
                 <p>
                   Interval:{" "}
-                  <span className="text-gray-300">{vendor.syncInterval}</span>
+                  <span className="text-content-secondary">{vendor.syncInterval}</span>
                 </p>
                 <p>
                   Last Sync:{" "}
-                  <span className="text-gray-300">{vendor.lastSync}</span>
+                  <span className="text-content-secondary">{vendor.lastSync}</span>
                 </p>
               </div>
             </div>
@@ -137,7 +137,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
                 onClick={() => handleToggleStatus(vendor.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-bold border cursor-pointer transition-colors ${
                   isConnected
-                    ? "bg-red-500/10 text-red-400 border-red-500/15 hover:bg-red-500/15"
+                    ? "bg-status-error/10 text-status-error border-status-error/15 hover:bg-status-error/15"
                     : "bg-status-success/10 text-status-success border-status-success/15 hover:bg-status-success/20"
                 }`}
                 whileHover={{ scale: 1.02 }}

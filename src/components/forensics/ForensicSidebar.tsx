@@ -57,7 +57,7 @@ export function ForensicSidebar({
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <h3 className="text-xs text-white font-bold">
+        <h3 className="text-xs text-content-primary font-bold">
           Workspace Health Integrity Score
         </h3>
         <div className="flex items-baseline gap-2">
@@ -68,9 +68,9 @@ export function ForensicSidebar({
           >
             {displayScore}
           </motion.span>
-          <span className="text-xs text-gray-500 font-mono">/ 100</span>
+          <span className="text-xs text-content-primary0 font-mono">/ 100</span>
         </div>
-        <div className="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-surface-card rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full"
             style={{
@@ -81,7 +81,7 @@ export function ForensicSidebar({
             transition={{ duration: 0.9, ease: "easeOut", delay: 0.1 }}
           />
         </div>
-        <p className="text-[10px] text-gray-500">
+        <p className="text-[10px] text-content-primary0">
           Each unresolved open compliance exception reduces your aggregate score.
         </p>
       </motion.div>
@@ -96,34 +96,34 @@ export function ForensicSidebar({
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
       >
-        <span className="text-xs text-white font-bold flex items-center gap-1.5 shrink-0">
+        <span className="text-xs text-content-primary font-bold flex items-center gap-1.5 shrink-0">
           <ShieldCheck className="w-4 h-4 text-status-success" /> Compliance
           Resolved List ({uniqueResolved.length})
         </span>
-        <div className="divide-y divide-white/5 mt-3 p-1.5 bg-black/20 rounded-lg flex-1 overflow-y-auto space-y-2">
+        <div className="divide-y divide-white/5 mt-3 p-1.5 bg-surface-canvas/20 rounded-lg flex-1 overflow-y-auto space-y-2">
           <AnimatePresence>
             {uniqueResolved.length > 0 ? (
               uniqueResolved.map((issue, idx) => (
                 <motion.div
                   key={issue.id || idx}
-                  className="py-2 text-[10px] text-gray-400 first:pt-1 last:pb-1"
+                  className="py-2 text-[10px] text-content-secondary first:pt-1 last:pb-1"
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 8 }}
                   transition={{ delay: idx * 0.06, duration: 0.25 }}
                 >
-                  <p className="font-bold text-white flex items-center gap-1 line-clamp-1">
+                  <p className="font-bold text-content-primary flex items-center gap-1 line-clamp-1">
                     <CheckCircle className="w-3 h-3 text-status-success shrink-0" />{" "}
                     {issue.title}
                   </p>
-                  <p className="text-gray-500 mt-1 pl-4 leading-normal">
+                  <p className="text-content-primary0 mt-1 pl-4 leading-normal">
                     {issue.desc}
                   </p>
                 </motion.div>
               ))
             ) : (
               <motion.p
-                className="text-center text-[10px] text-gray-500 p-3 italic"
+                className="text-center text-[10px] text-content-primary0 p-3 italic"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >

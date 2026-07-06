@@ -27,28 +27,25 @@ export function CleansingHeader({
     <motion.div
       layout
       className={`p-5 rounded-xl border relative overflow-hidden transition-all duration-300 ${
-        isRunningAutoMap ? "shadow-[0_0_20px_rgba(16,185,129,0.2)] border-emerald-500/30" : "border-indigo-500/15"
+        isRunningAutoMap ? "shadow-[0_0_20px_rgba(16,185,129,0.2)] border-status-success/30" : "border-brand-indigo/15"
       }`}
       style={{ background: "rgba(7,10,19,0.8)" }}
     >
       {isRunningAutoMap && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.5, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="absolute inset-0 bg-emerald-500/5 pointer-events-none"
+        <div
+          className="absolute inset-0 bg-status-success/5 pointer-events-none animate-pulse"
         />
       )}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <Scissors className="w-5 h-5 text-emerald-400" />
+          <div className="w-10 h-10 rounded-xl bg-status-success/10 border border-status-success/20 flex items-center justify-center">
+            <Scissors className="w-5 h-5 text-status-success" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white">
+            <h1 className="text-sm font-bold text-content-primary">
               Interactive Splicing &amp; Mapping Workshop
             </h1>
-            <p className="text-[13px] font-medium text-white/40 mt-1">
+            <p className="text-[13px] font-medium text-content-primary/40 mt-1">
               Quarantine, fuzzy-match, and canonicalize raw BOQ line items against the Master Catalog
             </p>
           </div>
@@ -56,14 +53,14 @@ export function CleansingHeader({
         <div className="flex items-center gap-2">
           <button type="button"
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-content-secondary hover:bg-white/10 transition cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" /> Export CSV
           </button>
           <button type="button"
             onClick={handleAutoMap}
             disabled={isRunningAutoMap}
-            className="flex items-center gap-1.5 text-[11px] font-bold px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 text-[11px] font-bold px-3.5 py-2 rounded-lg bg-status-success hover:bg-status-success text-content-primary transition cursor-pointer disabled:opacity-50"
           >
             {isRunningAutoMap ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -85,8 +82,8 @@ export function CleansingHeader({
               onClick={() => setFilterStatus(s)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase font-mono transition cursor-pointer border ${
                 filterStatus === s
-                  ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
-                  : "bg-white/5 border-white/8 text-gray-500 hover:text-gray-300"
+                  ? "bg-brand-indigo/15 border-brand-indigo/40 text-indigo-300"
+                  : "bg-white/5 border-white/8 text-content-primary0 hover:text-content-secondary"
               }`}
             >
               {cfg && <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />}
@@ -94,7 +91,7 @@ export function CleansingHeader({
             </button>
           );
         })}
-        <div className="ml-auto flex items-center gap-3 text-[10px] text-gray-500">
+        <div className="ml-auto flex items-center gap-3 text-[10px] text-content-primary0">
           <span className="font-mono">Coverage</span>
           <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
             <motion.div
@@ -104,7 +101,7 @@ export function CleansingHeader({
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
           </div>
-          <span className="text-white font-bold font-mono">{coveragePercent}%</span>
+          <span className="text-content-primary font-bold font-mono">{coveragePercent}%</span>
         </div>
       </div>
     </motion.div>

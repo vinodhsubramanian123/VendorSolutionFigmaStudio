@@ -51,7 +51,7 @@ describe('CatalogTaxonomyTree Component', () => {
     );
 
     const globalNode = screen.getByText('Global Catalog').closest('button');
-    expect(globalNode).toHaveClass('bg-indigo-500/20');
+    expect(globalNode).toHaveClass('bg-brand-indigo/20');
   });
 
   it('highlights the selected path node in the tree', () => {
@@ -72,10 +72,10 @@ describe('CatalogTaxonomyTree Component', () => {
 
     // Dell node should be highlighted, Global Catalog should not
     const globalNode = screen.getByText('Global Catalog').closest('button');
-    expect(globalNode).not.toHaveClass('bg-indigo-500/20');
+    expect(globalNode).not.toHaveClass('bg-brand-indigo/20');
 
     const dellNode = screen.getByText('Dell').closest('div');
-    expect(dellNode).toHaveClass('bg-indigo-500/20');
+    expect(dellNode).toHaveClass('bg-brand-indigo/20');
   });
 
   it('calls selectPathFn when Global Catalog is clicked', () => {

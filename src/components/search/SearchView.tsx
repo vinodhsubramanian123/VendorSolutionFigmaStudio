@@ -28,7 +28,7 @@ function highlightText(text: string, query: string) {
           regex.test(part) ? (
             <mark
               key={index}
-              className="bg-amber-500/25 text-amber-300 px-0.5 rounded-sm font-semibold"
+              className="bg-status-warning/25 text-amber-300 px-0.5 rounded-sm font-semibold"
             >
               {part}
             </mark>
@@ -142,31 +142,31 @@ export function SearchView({
           }}
         >
           <div className="flex flex-col gap-1 z-10">
-            <h1 className="text-sm font-semibold text-white tracking-tight flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
+            <h1 className="text-sm font-semibold text-content-primary tracking-tight flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-brand-indigo" />
               Cognitive Sourcing Knowledge Explorer
             </h1>
-            <p className="text-[10px] text-gray-500">
+            <p className="text-[10px] text-content-primary0">
               Query unified cross-entity schemas covering Active Workflows, Sourced Parts, and Vendor partner API registries.
             </p>
           </div>
 
           <div className="flex gap-2 max-w-2xl w-full z-10">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-primary0" />
               <input
                 id="view-search-input"
                 type="text"
                 value={localInput}
                 onChange={(e) => handleSearchSubmit(e.target.value)}
                 placeholder="Type here to search parts, manufacturers, process IDs..."
-                className="w-full h-11 pl-10 pr-4 rounded-lg bg-black/40 border border-white/10 text-white text-xs placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/25 transition-all text-ellipsis"
+                className="w-full h-11 pl-10 pr-4 rounded-lg bg-surface-canvas/40 border border-white/10 text-content-primary text-xs placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus:border-brand-indigo focus:ring-1 focus:ring-indigo-400/25 transition-all text-ellipsis"
               />
             </div>
             {localInput && (
               <button type="button"
                 onClick={() => handleSearchSubmit("")}
-                className="px-4 h-11 rounded-lg bg-surface-elevated hover:bg-white/5 border border-white/10 text-gray-400 hover:text-white transition cursor-pointer text-[11px]"
+                className="px-4 h-11 rounded-lg bg-surface-elevated hover:bg-white/5 border border-white/10 text-content-secondary hover:text-content-primary transition cursor-pointer text-[11px]"
               >
                 Reset
               </button>
@@ -174,13 +174,13 @@ export function SearchView({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-1 z-10">
-            <span className="text-[10px] text-gray-500 font-medium">Suggestions:</span>
+            <span className="text-[10px] text-content-primary0 font-medium">Suggestions:</span>
             {suggestions.map((sug, idx) => (
               <button type="button"
                 key={idx}
                 onClick={() => handleSearchSubmit(sug.text)}
                 aria-label={`Search suggestion: ${sug.text}`}
-                className="px-2.5 py-1 rounded bg-surface-elevated hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 text-gray-400 hover:text-indigo-300 transition text-[10px] cursor-pointer"
+                className="px-2.5 py-1 rounded bg-surface-elevated hover:bg-brand-indigo/10 border border-white/10 hover:border-brand-indigo/20 text-content-secondary hover:text-indigo-300 transition text-[10px] cursor-pointer"
               >
                 {sug.text}
               </button>
@@ -197,7 +197,7 @@ export function SearchView({
             className="flex flex-col gap-2.5"
             id="search-column-workflows"
           >
-            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
+            <span className="text-[10px] tracking-widest text-content-primary0 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Target className="w-3.5 h-3.5 text-status-warning" /> Workflows (
               {matchedMissions.length})
             </span>
@@ -214,21 +214,21 @@ export function SearchView({
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-indigo-400 font-bold text-[10px]">
+                    <span className="font-mono text-brand-indigo font-bold text-[10px]">
                       {highlightText(m.displayId, query)}
                     </span>
-                    <ArrowUpRight className="w-3 h-3 text-gray-600" />
+                    <ArrowUpRight className="w-3 h-3 text-content-muted" />
                   </div>
-                  <p className="text-white font-bold mt-1.5 leading-tight">
+                  <p className="text-content-primary font-bold mt-1.5 leading-tight">
                     {highlightText(m.name, query)}
                   </p>
-                  <p className="text-gray-500 text-[10px] mt-1 font-mono">
+                  <p className="text-content-primary0 text-[10px] mt-1 font-mono">
                     Ref: {highlightText(m.projectRef, query)}
                   </p>
                 </button>
               ))}
               {matchedMissions.length === 0 && (
-                <p className="p-4 text-center text-gray-600 italic">
+                <p className="p-4 text-center text-content-muted italic">
                   No matching workflows found.
                 </p>
               )}
@@ -240,8 +240,8 @@ export function SearchView({
             className="flex flex-col gap-2.5"
             id="search-column-vendors"
           >
-            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
-              <Globe className="w-3.5 h-3.5 text-indigo-400" /> Connected APIs (
+            <span className="text-[10px] tracking-widest text-content-primary0 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
+              <Globe className="w-3.5 h-3.5 text-brand-indigo" /> Connected APIs (
               {matchedVendors.length})
             </span>
             <div className="flex-1 pr-1 space-y-2">
@@ -257,15 +257,15 @@ export function SearchView({
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-white uppercase text-[10px]">
+                    <span className="font-bold text-content-primary uppercase text-[10px]">
                       {highlightText(v.shortName, query)} API Router
                     </span>
-                    <ArrowUpRight className="w-3 h-3 text-gray-600" />
+                    <ArrowUpRight className="w-3 h-3 text-content-muted" />
                   </div>
-                  <p className="text-gray-300 font-medium mt-1">
+                  <p className="text-content-secondary font-medium mt-1">
                     {highlightText(v.name, query)}
                   </p>
-                  <div className="flex gap-2 text-[10px] text-gray-500 font-mono mt-2">
+                  <div className="flex gap-2 text-[10px] text-content-primary0 font-mono mt-2">
                     <span>API Vitality: {v.apiHealth}%</span>
                     <span>·</span>
                     <span>Mappable Items: {v.catalogItems}</span>
@@ -273,7 +273,7 @@ export function SearchView({
                 </button>
               ))}
               {matchedVendors.length === 0 && (
-                <p className="p-4 text-center text-gray-600 italic">
+                <p className="p-4 text-center text-content-muted italic">
                   No matching partner APIs found.
                 </p>
               )}
@@ -285,7 +285,7 @@ export function SearchView({
             className="flex flex-col gap-2.5"
             id="search-column-parts"
           >
-            <span className="text-[10px] tracking-widest text-gray-500 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
+            <span className="text-[10px] tracking-widest text-content-primary0 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Database className="w-3.5 h-3.5 text-status-success" /> Sourced Parts
               ({matchedSkus.length})
             </span>
@@ -302,15 +302,15 @@ export function SearchView({
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-indigo-400 font-bold text-[10px]">
+                    <span className="font-mono text-brand-indigo font-bold text-[10px]">
                       {highlightText(s.partNumber, query)}
                     </span>
-                    <ArrowUpRight className="w-3 h-3 text-gray-600" />
+                    <ArrowUpRight className="w-3 h-3 text-content-muted" />
                   </div>
-                  <p className="text-white font-bold mt-1.5 truncate leading-tight">
+                  <p className="text-content-primary font-bold mt-1.5 truncate leading-tight">
                     {highlightText(s.name, query)}
                   </p>
-                  <div className="flex justify-between items-center text-[10px] font-mono text-gray-500 mt-2">
+                  <div className="flex justify-between items-center text-[10px] font-mono text-content-primary0 mt-2">
                     <span className="capitalize">
                       {highlightText(s.type, query)}
                     </span>
@@ -321,7 +321,7 @@ export function SearchView({
                 </button>
               ))}
               {matchedSkus.length === 0 && (
-                <p className="p-4 text-center text-gray-600 italic">
+                <p className="p-4 text-center text-content-muted italic">
                   No matching hardware SKUs found.
                 </p>
               )}
@@ -330,13 +330,13 @@ export function SearchView({
         </div>
       ) : (
         <div
-          className="p-8 rounded-xl border border-dashed border-gray-800 flex flex-col items-center justify-center gap-2"
+          className="p-8 rounded-xl border border-dashed border-surface-elevated flex flex-col items-center justify-center gap-2"
           id="search-empty-state"
         >
-          <p className="text-gray-500 font-bold uppercase">
+          <p className="text-content-primary0 font-bold uppercase">
             No matched hardware records
           </p>
-          <p className="text-[10px] text-gray-600 text-center">
+          <p className="text-[10px] text-content-muted text-center">
             Please verify parts terminology or update lists in the catalog
             ledgers.
           </p>
@@ -347,11 +347,11 @@ export function SearchView({
           id="search-awaiting-state"
           style={{ backgroundColor: "rgba(74, 133, 253, 0.01)" }}
         >
-          <Search className="w-8 h-8 text-indigo-500/40" />
-          <p className="text-gray-400 font-semibold uppercase tracking-wider text-[10px] mt-1 text-center">
+          <Search className="w-8 h-8 text-brand-indigo/40" />
+          <p className="text-content-secondary font-semibold uppercase tracking-wider text-[10px] mt-1 text-center">
             Awaiting Sourcing Query
           </p>
-          <p className="text-[10px] text-gray-600 text-center max-w-sm leading-relaxed">
+          <p className="text-[10px] text-content-muted text-center max-w-sm leading-relaxed">
             Enter a search term above, or select one of the quick suggestions to search across active client workflows, hardware parts, and live vendor APIs.
           </p>
         </div>

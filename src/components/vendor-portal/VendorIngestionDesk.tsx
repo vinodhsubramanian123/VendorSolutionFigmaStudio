@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { UCID, PlaywrightRunResponse, CatalogSKU, SourcingRule, LearningEvent, AdviceResolution, Vendor } from "../../types";
 import { PlaywrightRunResponseSchema } from "../../types/zodSchemas";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { apiClient } from "../../services/apiClient";
 import { AdviceResolutionPanel } from "./AdviceResolutionPanel";
 import { VendorCredentialsCard, VendorConsoleLogs } from "./VendorComponents";
@@ -209,7 +209,7 @@ export function VendorIngestionDesk({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="p-4 rounded-xl border bg-surface-elevated/80 border-indigo-500/15 flex flex-col gap-4 shadow-xl"
+      className="p-4 rounded-xl border bg-surface-elevated/80 border-brand-indigo/15 flex flex-col gap-4 shadow-xl"
     >
       <VendorCredentialsCard
         selectedPortal={selectedPortal}
@@ -250,40 +250,41 @@ export function VendorIngestionDesk({
 }
 function resolvePortalConfig(selectedPortal: string, vendors: Vendor[]) {
   const vendorData = vendors.find(v => v.shortName === selectedPortal) || vendors[0] || ({} as Partial<Vendor>);
-  if (selectedPortal === "HPE") {
-    return {
+  
+  const portalConfigs: Record<string, { username: string; apiToken: string; mfaToken: string; authStatus: "authorized" | "expired"; defaultLogs: string[] }> = {
+    HPE: {
       username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",
       apiToken: vendorData.credentials?.apiToken || "HPE-S0urcing-2026!",
       mfaToken: vendorData.credentials?.mfaToken || "RO7K-9154-A24B",
-      authStatus: "authorized" as const,
+      authStatus: "authorized",
       defaultLogs: [
         "[08:34:10] [Manager] - Loading HPE Partner Ready configuration credentials...",
         "[08:34:11] [CredentialVault] - Decrypted corporate client TLS connection certificates.",
         "[08:34:12] [Daemon] - Playwright connection verified with hpe.com secure tunnel gateway.",
       ],
-    };
-  }
-  if (selectedPortal === "Dell") {
-    return {
+    },
+    Dell: {
       username: vendorData.credentials?.username || "dell_premier_procurement_lead",
       apiToken: vendorData.credentials?.apiToken || "DellAdminSecure3902!!",
       mfaToken: vendorData.credentials?.mfaToken || "DL-9824-MFA-X2",
-      authStatus: "authorized" as const,
+      authStatus: "authorized",
       defaultLogs: [
         "[09:10:02] [Manager] - Dell Premier portal authentication state valid.",
         "[09:10:05] [Scraper] - Handshake completed. 1 corporate customer account linked.",
       ],
-    };
-  }
-  return {
-    username: vendorData.credentials?.username || "cisco_commerce_workspace_api",
-    apiToken: vendorData.credentials?.apiToken || "Cisco#CCW#Tunnel99",
-    mfaToken: vendorData.credentials?.mfaToken || "CSCO-AUTH-9999",
-    authStatus: "expired" as const,
-    defaultLogs: [
-      "[10:12:05] [Manager] - CCW token detected: EXPIRED.",
-      "[10:12:06] [CCW-Gate] - Playwright browser automation requires rotating session refresh token.",
-      "[10:12:07] [MFA-Gate] - Awaiting manual MFA trigger or Playwright browser re-authentication.",
-    ],
+    },
+    Cisco: {
+      username: vendorData.credentials?.username || "cisco_commerce_workspace_api",
+      apiToken: vendorData.credentials?.apiToken || "Cisco#CCW#Tunnel99",
+      mfaToken: vendorData.credentials?.mfaToken || "CSCO-AUTH-9999",
+      authStatus: "expired",
+      defaultLogs: [
+        "[10:12:05] [Manager] - CCW token detected: EXPIRED.",
+        "[10:12:06] [CCW-Gate] - Playwright browser automation requires rotating session refresh token.",
+        "[10:12:07] [MFA-Gate] - Awaiting manual MFA trigger or Playwright browser re-authentication.",
+      ],
+    }
   };
+
+  return portalConfigs[selectedPortal] || portalConfigs["Cisco"];
 }

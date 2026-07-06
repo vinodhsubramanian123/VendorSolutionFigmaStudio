@@ -115,10 +115,10 @@ export function DataPersistenceGate({
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
         <div
-          className="w-16 h-16 rounded-2xl bg-red-500/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)] animate-pulse"
+          className="w-16 h-16 rounded-2xl bg-status-error/10 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.2)] animate-pulse"
         >
-          <Database className="w-8 h-8 text-red-400 opacity-60 absolute" />
-          <AlertCircle className="w-5 h-5 text-red-500 relative mt-4 ml-4" />
+          <Database className="w-8 h-8 text-status-error opacity-60 absolute" />
+          <AlertCircle className="w-5 h-5 text-status-error relative mt-4 ml-4" />
         </div>
 
         <motion.div
@@ -127,16 +127,16 @@ export function DataPersistenceGate({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18, duration: 0.3 }}
         >
-          <h2 className="text-lg font-bold text-white tracking-tight">
+          <h2 className="text-lg font-bold text-content-primary tracking-tight">
             Session Data Corrupted
           </h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-content-secondary">
             We detected missing or corrupted critical application state (UCIDs,
             Vendors, or Catalog). Navigation to this tab is halted to prevent
             cascading errors.
           </p>
           {schemaDrift.errors.length > 0 && (
-            <p className="text-xs font-mono text-red-400/80 bg-red-900/20 border border-red-500/15 rounded px-3 py-2 mt-2 text-left max-w-sm break-all">
+            <p className="text-xs font-mono text-status-error/80 bg-red-900/20 border border-status-error/15 rounded px-3 py-2 mt-2 text-left max-w-sm break-all">
               {schemaDrift.errors[0]}
             </p>
           )}
@@ -146,7 +146,7 @@ export function DataPersistenceGate({
           type="button"
           onClick={handleRestoreSession}
           aria-label="Attempt session restore"
-          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-white rounded-lg text-sm font-semibold transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 bg-brand-indigo/20 text-brand-indigo hover:bg-brand-indigo/30 hover:text-content-primary rounded-lg text-sm font-semibold transition-colors"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.3 }}
@@ -168,17 +168,17 @@ export function DataPersistenceGate({
 
       {/* Navigation Confirmation Dialog */}
       {isPendingAPI && requestedView && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-surface-canvas/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-elevated border border-white/10 p-6 rounded-xl shadow-2xl max-w-md w-full animate-fadeIn">
             <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0 mt-1">
-                <AlertTriangle className="w-5 h-5 text-orange-400" />
+              <div className="w-10 h-10 rounded-full bg-status-warning/20 flex items-center justify-center shrink-0 mt-1">
+                <AlertTriangle className="w-5 h-5 text-status-warning" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-white tracking-tight">
+                <h3 className="text-lg font-bold text-content-primary tracking-tight">
                   Critical Process Active
                 </h3>
-                <p className="text-sm text-gray-400 leading-relaxed">
+                <p className="text-sm text-content-secondary leading-relaxed">
                   You have an active API process or ingestion task running.
                   Navigating away to another view may disrupt the operation or
                   result in lost progress.
@@ -188,13 +188,13 @@ export function DataPersistenceGate({
             <div className="mt-8 flex justify-end gap-3">
               <button type="button"
                 onClick={onCancelNavigation}
-                className="px-4 py-2 bg-transparent text-gray-400 hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium transition"
+                className="px-4 py-2 bg-transparent text-content-secondary hover:text-content-primary hover:bg-white/5 rounded-lg text-sm font-medium transition"
               >
                 Cancel
               </button>
               <button type="button"
                 onClick={onConfirmNavigation}
-                className="px-4 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 hover:text-orange-300 border border-orange-500/20 rounded-lg text-sm font-bold transition"
+                className="px-4 py-2 bg-status-warning/20 text-status-warning hover:bg-status-warning/30 hover:text-orange-300 border border-status-warning/20 rounded-lg text-sm font-bold transition"
               >
                 Navigate Anyway
               </button>
