@@ -6,6 +6,7 @@ import type { UCID, Solution, SolutionProject } from "../../types";
 import { useCoreStore } from "../../store/coreStore";
 import { generateSolutionDisplayId, generateSolutionName } from "../../utils/solutionUtils";
 import { IngestRequestSchema } from "../../types/schemas/schemaDTO";
+import type { BoqResponsePayload } from "../../types/ingestion";
 
 // IngestRequestSchema.shape.presetType is the single source of truth for which
 // preset values server.ts's IngestRequestSchema will actually accept. JobContext
@@ -26,17 +27,6 @@ function resolvePresetType(rawSolutionId: unknown): IngestionPreset {
     `for something other than an ingestion preset; check the JobStreamer wiring that produced this job.`
   );
   return DEFAULT_PRESET;
-}
-
-export interface BoqResponsePayload {
-  ucid: string | UCID;
-  solutions?: Solution[];
-  sourceFile?: string;
-  parsedSummary?: {
-    vendorBrand: string;
-    detectedChassis: string;
-    initialConfidenceScore: number;
-  };
 }
 
 

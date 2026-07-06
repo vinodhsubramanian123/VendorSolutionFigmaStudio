@@ -15,16 +15,7 @@ import type { Solution, Config, UCID } from "../../types";
 import { motion, AnimatePresence } from "motion/react";
 
 import type { IngestionPreset } from "../../store/ingestionStore";
-
-interface BoqResponsePayload {
-  ucid: string | UCID;
-  solutions?: Solution[];
-  parsedSummary?: {
-    vendorBrand: string;
-    detectedChassis: string;
-    initialConfidenceScore: number;
-  };
-}
+import type { BoqResponsePayload } from "../../types/ingestion";
 
 function getUcidDisplayRef(ucid: string | UCID): string {
   return typeof ucid === "string" ? ucid : ucid.displayId;

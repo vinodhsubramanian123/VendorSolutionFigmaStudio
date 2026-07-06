@@ -6,20 +6,7 @@ import { useBoqIntake } from "./useBoqIntake";
 import { useBomConversion } from "./useBomConversion";
 import { usePortfolioComparison } from "./usePortfolioComparison";
 import { useIngestionStore } from "../../store/ingestionStore";
-import type { UCID, Solution } from "../../types";
-
-export interface BoqResponsePayload {
-  ucid: string | UCID;
-  solutions?: Solution[];
-  sourceFile?: string;
-  rawText?: string;
-  configsCreated?: number;
-  parsedSummary?: {
-    vendorBrand: string;
-    detectedChassis: string;
-    initialConfidenceScore: number;
-  };
-}
+import type { UCID } from "../../types";
 
 export interface IngestionLogicProps {
   ucids: UCID[];

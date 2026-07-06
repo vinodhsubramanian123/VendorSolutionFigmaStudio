@@ -1,5 +1,5 @@
 import { apiClient } from "../../../services/apiClient";
-import type { BoqResponsePayload } from "../../ingestion/useIngestionLogic";
+import type { BoqResponsePayload } from "../../../types/ingestion";
 import type { Solution } from "../../../types";
 
 export function useBoqSimulator(

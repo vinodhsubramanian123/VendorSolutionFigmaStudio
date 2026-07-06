@@ -1,11 +1,5 @@
 import { useAuditStore } from "../store/auditStore";
-
-export interface AuditLogEntry {
-  timestamp: string;
-  fromStep: string | undefined;
-  toStep: string;
-  action: string;
-}
+import type { AuditLogEntry } from "../types/audit";
 
 export function useAuditLog() {
   const logs = useAuditStore(s => s.logs);

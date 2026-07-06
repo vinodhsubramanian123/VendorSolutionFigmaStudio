@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuditLogEntry } from '../hooks/useAuditLog';
+import type { AuditLogEntry } from '../types/audit';
 
 interface AuditStoreState {
   logs: AuditLogEntry[];

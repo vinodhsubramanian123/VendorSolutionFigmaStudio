@@ -1,9 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { BoqResponsePayload } from '../components/ingestion/useIngestionLogic';
+import type { BoqResponsePayload } from '../types/ingestion';
 import type { ConstraintCheckResponse, ReconciliationResponse } from '../types';
-
-// Re-export type since it's locally defined in useIngestionLogic
 export type IngestionPreset = "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
 
 export interface IngestionState {
