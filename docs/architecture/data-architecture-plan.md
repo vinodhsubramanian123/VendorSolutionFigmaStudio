@@ -20,6 +20,8 @@ MSW / server.ts          →  latency + async-job simulation ONLY, never a secon
 
 **Rule of thumb for every future session:** if you're about to write `const X = [...]` with hand-seeded data that overlaps something `coreStore` already holds, stop — that's how we got four disconnected universes.
 
+**Second rule of thumb (added Phase 9):** if a Zustand store needs a type that's declared inside a hook or component file (rather than a neutral `src/types/*.ts` module), stop — importing it creates a circular dependency the moment that hook also imports the store (which it almost always does, to read/write the state the store owns). Domain types that a store's state shape depends on belong in a neutral types module from the start, not wherever the first consumer happened to need them.
+
 ---
 
 ## 1. Everything wrong, in one table
@@ -46,6 +48,11 @@ MSW / server.ts          →  latency + async-job simulation ONLY, never a secon
 | 18 | `apiClient.streamJob()` claims to "replace legacy HTTP polling" and "simulate SSE" but only ever fires 2 messages (1 fake + 1 real GET) — can't represent real multi-stage progress | `src/services/apiClient.ts` | 🟡 (fine for now, gap for later) |
 | 19 | `catalog.spec.ts` e2e test already exercises the live price-rollback bug (#9) but its assertion is too weak to catch it — false green in CI | `tests/e2e/catalog.spec.ts` | 🟠 |
 | 20 | 30 architecture/skill docs were deleted in the Phase 12 refactor (2026-06-27) with no replacement — decisions like this one keep needing re-discovery | `.agents/skills/`, `docs/skills/` (deleted) | 🟡 |
+| 21 | ~~Two fully-orphaned dead files (`PipelineView.tsx`, `ApiLogsView.tsx`), stale near-total duplicates of `DocumentPipelinePanel.tsx`/`ApiLogsTable.tsx` from the Phase 12 God-component refactor, never deleted~~ — **FIXED (Phase 9)**, including porting the 3 test scenarios the orphan's test file covered that the live component's test didn't | `src/components/telemetry/PipelineView.tsx`, `ApiLogsView.tsx` | 🔴→✅ |
+| 22 | ~~`BoqResponsePayload` independently declared 3 times (`useIngestionLogic.ts`, `useBoqIntake.ts`, `BoqIngestWorkbook.tsx`), each missing progressively more optional fields than the last — no compiler signal when they drift~~ — **FIXED (Phase 9)**, consolidated to one canonical type in `src/types/ingestion.ts` | was: `useIngestionLogic.ts`, `useBoqIntake.ts`, `BoqIngestWorkbook.tsx` | 🟠→✅ |
+| 23 | ~~4 circular dependencies, all one shape (a store imports a type from a hook, the hook imports the store): `useAuditLog.ts`↔`auditStore.ts`; `useIngestionLogic.ts`↔`ingestionStore.ts`; 2 further 3-way cycles through `useBoqIntake.ts`/`useBomConversion.ts`~~ — **FIXED (Phase 9)**, types extracted to neutral `src/types/ingestion.ts` / `src/types/audit.ts` modules | was: `store/ingestionStore.ts`, `store/auditStore.ts`, `components/ingestion/useIngestionLogic.ts`, `hooks/useAuditLog.ts` | 🔴→✅ |
+| 24 | ~~`App.tsx` subscribed to 12 `coreStore` bindings (solutions/vendors/catalogSkus/forensicIssues/sourcingRules/learningEvents + their setters) that are never read — leftover from before routes were decomposed into self-fetching components (Phase 12); caused needless top-level re-renders on every mutation to any of those 6 slices~~ — **FIXED (Phase 9)** | `src/App.tsx` | 🟡→✅ |
+| 25 | ~~`averagePipeline`/`recentMission` computed in `Dashboard.tsx` via `useMemo` but never rendered anywhere~~ — **FIXED (Phase 9)**, wired into `UcidPipelineCard`'s header with test coverage | `src/components/dashboard/Dashboard.tsx`, `UcidPipelineCard.tsx` | 🟡→✅ |
 
 ---
 
@@ -166,6 +173,84 @@ Building the per-file inventory Phase 6 needed (which of the ~30 remaining `apiC
 **Remaining Phase 6 call sites — deliberately not exhaustively hardened this pass:** of the 15 real-route call sites, `POST /api/jobs`'s `job_id` extraction was spot-checked across every caller and confirmed uniformly correct (simple, stable shape). The handful with fully-discarded responses (`useBomConversion.ts`'s batch-reconciliation call, `WebhookMonitor.tsx`'s fire-and-forget test utility) are lowest-priority — there's no consumption to protect. Full `parseResponse` wrapping of the remaining low-risk sites is optional polish, not a correctness gap; not doing it now was a deliberate effort/value call, not an oversight.
 
 **Verification:** all 12 patches (0001–0012) applied cleanly via `git am` against a fresh clone of `main`, in sequence, zero conflicts. Full suite on the resulting checkout: `tsc --noEmit` clean, `eslint src server.ts` shows zero newly-introduced issues (diffed line-by-line against the pristine pre-session baseline — one genuine new item, a trivial unused test import, fixed in patch 0012), 92 test files / 455 tests, 0 regressions. See `ANTIGRAVITY_HANDOFF.md` for the exact patch sequence and per-patch reasoning.
+
+### Phase 9 — Lint/duplication/circular-dependency remediation — **in progress** (patches 0001–0006 so far)
+
+Started from a full diagnostic sweep beyond just `npm run lint` (which is
+itself `tsc --noEmit` + `eslint src`): also ran `dependency-cruiser src`
+(circular/orphan/unresolvable import checks), `npx jscpd src`
+(duplicate-code detection), and `npm run check-size` (400-line file limit).
+Baseline: 109 eslint warnings / 0 errors, 456 tests passing, 5
+dependency-cruiser errors, 28 jscpd clones (2.28% duplicated tokens), 1
+check-size violation.
+
+**Methodology, worth repeating in every future lint/cleanup pass:** never
+blanket-delete anything a linter calls "unused" or "dead" without checking
+git history (`git log -S`) and cross-referencing whether the removal is
+hiding a real bug or a missing feature wire-up. This surfaced two things a
+mechanical cleanup would have missed entirely: issue #25 (a computed metric
+that should have been *displayed*, not deleted) and issue #22 (a duplicate
+type declaration that had already silently drifted in 3 places). Every new
+test added this session was verified with revert-and-confirm-fail (break
+the underlying behavior, confirm the new test actually fails, then restore)
+before being counted as done.
+
+- **0001–0002 (issue #21 + general hygiene):** retired the two orphaned
+  dead files, ported their unique test coverage first, then removed 34
+  unused imports across 14 files.
+- **0003–0005 (issues #23, #25 partial, plus a related test-coverage gap):**
+  triaged all 33 `sonarjs/no-dead-store`/`no-unused-vars` warnings in
+  `App.tsx`/`Dashboard.tsx`/`ForensicView.tsx` individually (issue #24, and
+  the `ForensicView.tsx` half of what's now folded into #23's writeup).
+  Confirmed `Dashboard.tsx`'s dead metrics needed wiring, not deletion
+  (issue #25). Re-running the audit after these fixes surfaced one further
+  dead-store warning outside the original 3-file scope — a test file with
+  an uninvoked mock callback pointing at a genuinely untested stream-error
+  code path in `useForensicAutoHeal.ts` — closed that gap too rather than
+  deferring it.
+- **0006 (issue #23 fully, issue #22):** broke all 4 circular dependencies
+  by extracting the shared types (`BoqResponsePayload`, `AuditLogEntry`)
+  each store/hook pair was cross-importing into neutral
+  `src/types/ingestion.ts` / `src/types/audit.ts` modules. Tracing this
+  surfaced issue #22 (3 independently-drifted duplicate type declarations)
+  as a bigger finding than the circular import itself.
+
+**Current state after patch 0006:** `tsc --noEmit` clean, `eslint src` 42
+warnings / 0 errors, `dependency-cruiser` 1 error (only a
+`vite/client`-triple-slash-directive false positive in the tool's config,
+not a real import issue — deferred to Phase 9i below), `jscpd` 21 clones
+(1.05% duplicated tokens), 91 test files / 458 tests passing, verified via
+`git am` on an independent fresh clone at every step.
+
+**Remaining sub-phases, not yet started:**
+- **9d** — 20 `jsx-a11y` warnings (`label-has-associated-control` ×10,
+  `no-static-element-interactions` ×4, `no-autofocus` ×2,
+  `click-events-have-key-events` ×2, 1 each of
+  `no-noninteractive-element-interactions`/`no-noninteractive-tabindex`).
+- **9e** — 5 `react-hooks/set-state-in-effect` warnings, all the same
+  derived-state-in-effect shape across `CleansingView`, `KpiCard`,
+  `AddRuleForm`, `RefineRuleOverlay`, `SourcingRulesVault` — candidates for
+  one shared fix pattern.
+- **9f** — 10 `complexity` warnings (ceiling 15), including
+  `useBomConversion.ts` (26, now safe to refactor since 9c untangled its
+  store dependency) and `resolvePortalConfig` in `VendorIngestionDesk.tsx`
+  (22).
+- **9g** — remaining jscpd clone pairs (`ucidActions.ts` self-duplicated
+  3×, `apiClient.ts` 2×, `Sidebar.tsx` 2×, `SolutionConfigCard.tsx` 2×,
+  `telemetryUtils.ts`/`types.ts` cross-file), the 4
+  `sonarjs/use-type-alias` warnings, and the unused
+  `IngestBOMRequest`/`IngestBOMResponse` types noticed in
+  `src/types/models/api.ts` while doing 9c (not yet confirmed dead beyond
+  a `grep`, needs the same git-history check as issue #21 before removal).
+- **9h** — `src/mocks/routes/workflowHandlers.ts` at 421 lines, over the
+  400-line `check-size` limit.
+- **9i** — `.dependency-cruiser.cjs` tuning so the `vite/client`
+  triple-slash-directive stops being reported as `not-to-unresolvable`.
+- Three one-off warnings not yet triaged: `no-empty` in
+  `CleansingView.tsx:108`, `no-ignored-exceptions` in
+  `SourcingRulesVault.tsx:56`, `exhaustive-deps` in `UcidPipelineCard.tsx`
+  (missing `setActiveSolution` dep — likely benign since Zustand setters
+  are referentially stable, not yet confirmed as intentional).
 
 ---
 
