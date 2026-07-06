@@ -89,4 +89,30 @@ describe('Dashboard Component', () => {
     fireEvent.click(screen.getByText('North Cluster Project'));
     expect(onNavigate).toHaveBeenCalledWith('solutions');
   });
+
+  it('surfaces average pipeline progress and the most recent mission in the header', () => {
+    // solution-design is index 2, vendor-provisioning is index 3, out of 7 steps (0-6)
+    // avg = round(((2/6*100) + (3/6*100)) / 2) = round((33.33 + 50) / 2) = 42
+    vi.mocked(useCoreStore).mockImplementation(
+      (selector: (state: CoreState) => unknown) =>
+        selector(createMockCoreState({
+          solutions: [SOLUTION_ACTIVE],
+          ucids: [
+            { id: 'u1', displayId: 'UCID-001', currentStep: 'solution-design' } as any,
+            { id: 'u2', displayId: 'UCID-002', currentStep: 'vendor-provisioning' } as any,
+          ],
+        }))
+    );
+    render(<Dashboard onNavigate={vi.fn()} />);
+    expect(screen.getByText(/Avg Progress: 42% · Latest: UCID-001/i)).toBeInTheDocument();
+  });
+
+  it('shows "No active missions" for recentMission when there are no active UCIDs', () => {
+    vi.mocked(useCoreStore).mockImplementation(
+      (selector: (state: CoreState) => unknown) =>
+        selector(createMockCoreState({ solutions: [], ucids: [], forensicIssues: [], vendors: [] }))
+    );
+    render(<Dashboard onNavigate={vi.fn()} />);
+    expect(screen.getByText(/Avg Progress: 0% · Latest: No active missions/i)).toBeInTheDocument();
+  });
 });

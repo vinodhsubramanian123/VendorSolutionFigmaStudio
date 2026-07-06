@@ -276,7 +276,7 @@ export function Dashboard({
       {/* UCID Pipeline + Vendor Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Active UCID Pipeline */}
-        <UcidPipelineCard onNavigate={onNavigate} />
+        <UcidPipelineCard onNavigate={onNavigate} averagePipeline={averagePipeline} recentMission={recentMission} />
         {/* Vendor API Status + Issues */}
         <div className="space-y-4">
           <VendorHealthList onNavigate={onNavigate} />

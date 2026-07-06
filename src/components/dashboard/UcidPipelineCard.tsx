@@ -9,9 +9,11 @@ import { useCoreStore } from "../../store/coreStore";
 
 interface UcidPipelineCardProps {
   onNavigate: (view: AppView) => void;
+  averagePipeline: number;
+  recentMission: string;
 }
 
-export function UcidPipelineCard({ onNavigate }: UcidPipelineCardProps) {
+export function UcidPipelineCard({ onNavigate, averagePipeline, recentMission }: UcidPipelineCardProps) {
   const ucids = useCoreStore(s => s.ucids);
   const solutions = useCoreStore(s => s.solutions);
   const setActiveSolution = useCoreStore(s => s.setActiveSolution);
@@ -153,9 +155,14 @@ export function UcidPipelineCard({ onNavigate }: UcidPipelineCardProps) {
         className="flex items-center justify-between px-4 py-3 border-b"
         style={{ borderColor: "rgba(74, 133, 253,0.08)" }}
       >
-        <p className="text-sm font-semibold" style={{ color: tokens.colors.text.primary }}> 
-          Solution Portfolio
-        </p>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: tokens.colors.text.primary }}> 
+            Solution Portfolio
+          </p>
+          <p className="text-[10px] mt-0.5" style={{ color: tokens.colors.text.muted }}>
+            Avg Progress: {averagePipeline}% · Latest: {recentMission}
+          </p>
+        </div>
         <button type="button"
           onClick={() => onNavigate("solutions")}
           className="flex items-center gap-1 text-xs text-brand-indigo hover:underline cursor-pointer"
