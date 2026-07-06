@@ -34,7 +34,7 @@ test.describe('26 - Taxonomy Graph Sync E2E', () => {
 
       // Check the path orchestrator tab
       const pathTab = page.getByLabel('Paths Tab').first();
-      await pathTab.click({ force: true });
+      await pathTab.click();
       await delay(500);
 
       const pathHelp = page.getByText(/Click on any primary Category Hub node/i).first();

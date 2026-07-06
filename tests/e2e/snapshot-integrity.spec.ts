@@ -48,7 +48,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     await labelInput.fill('Integrity-Snap-v1');
 
     let submitBtn = page.getByTestId('btn-confirm-snapshot').first();
-    await submitBtn.click({ force: true });
+    await submitBtn.click();
     await delay(1000);
 
     const ucidState = await page.evaluate(() => localStorage.getItem('vsip-core-storage'));

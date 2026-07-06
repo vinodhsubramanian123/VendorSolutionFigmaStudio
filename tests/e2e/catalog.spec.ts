@@ -53,7 +53,7 @@ test.describe('06 - Catalog Manager E2E', () => {
 
     // Submit
     const saveBtn = page.getByRole('button', { name: 'Add Part' });
-    await saveBtn.click({ force: true });
+    await saveBtn.click();
     await delay(800);
 
     // Verify by searching for it
@@ -69,18 +69,22 @@ test.describe('06 - Catalog Manager E2E', () => {
     await searchInput.fill('P40424-B21');
     await delay(600);
 
-    // The Edit Price button is hidden until hover (opacity-0 group-hover). Use force:true
+    // The Edit Price button is hidden until hover (opacity-0 group-hover). Let's simulate a user hover!
+    const card = page.locator('.group\\/card').first();
+    await card.hover();
+    await delay(500);
+
     const editBtn = page.locator('button[title="Edit Price"]').first();
     // Force click ignores visibility (opacity)
     await expect(editBtn).toHaveCount(1);
-    await editBtn.click({ force: true });
+    await editBtn.click();
     await delay(500);
     // Should see price input field
     const priceInput = page.locator('input.w-16').first();
     await expect(priceInput).toBeVisible();
     await priceInput.fill('9999');
     const saveBtn = page.locator('button[title="Save Price"]').first();
-    await saveBtn.click({ force: true });
+    await saveBtn.click();
     await delay(800);
 
     // Regression guard for the Catalog Manager price-rollback bug: the
