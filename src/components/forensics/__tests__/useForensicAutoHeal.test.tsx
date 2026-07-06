@@ -115,4 +115,28 @@ describe('useForensicsLogic.runAuditScanner', () => {
     expect(result.current.scanning).toBe(false);
     expect(screen.getByText(/Diagnostic scan failed/i)).toBeInTheDocument();
   });
+
+  it('reports failure and stops scanning when the stream connection itself errors (distinct from a polled status: failed message)', async () => {
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      success: true,
+      data: { job_id: 'job-forensic-4' },
+    } as any);
+
+    const { result } = renderHook(() => useForensicsLogic(), { wrapper: Wrapper });
+
+    await act(async () => {
+      result.current.runAuditScanner();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.scanning).toBe(true);
+
+    act(() => {
+      capturedOnError(new Error('stream connection lost'));
+    });
+
+    expect(result.current.scanning).toBe(false);
+    expect(screen.getByText(/Diagnostic scan failed/i)).toBeInTheDocument();
+  });
 });
