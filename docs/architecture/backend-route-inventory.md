@@ -146,7 +146,7 @@ patches this session).
 | 5 | `SystemTelemetry.tsx:26` | `GET /api/telemetry/logs` | MSW-ONLY | |
 | 6 | `SystemTelemetry.tsx:29` | `GET /api/telemetry/webhooks` | MSW-ONLY | |
 | 7 | `DocumentPipelinePanel.tsx:38` | `POST /api/pipeline/step` | MSW-ONLY | |
-| 8 | `PipelineView.tsx:32` | `POST /api/pipeline/step` | MSW-ONLY | Duplicate caller of #7 |
+| 8 | ~~`PipelineView.tsx:32`~~ | ~~`POST /api/pipeline/step`~~ | RESOLVED | Was flagged here as "Duplicate caller of #7" but never acted on. Confirmed via `git log` + diff that `PipelineView.tsx` was a stale, fully-orphaned predecessor of `DocumentPipelinePanel.tsx` (zero imports, same logic, missing a11y improvements). Its unique test coverage (invalid-file rejection, valid-file processing, 500-error fallback) was ported into `DocumentPipelinePanel.test.tsx` before deletion; both `PipelineView.tsx` and `PipelineView.test.tsx` removed. `ApiLogsView.tsx` (same pattern, no test file) removed alongside it. |
 | 9 | `ReconciliationOverview.tsx:70` | `POST /api/jobs` | REAL | Clean, traced in Phase 3b B3 |
 | 10 | `useSnapshotManagerLogic.ts:48` | `POST /api/ucids/:id/snapshots` | REAL | **Fixed, patch 0006** |
 | 11 | `useSnapshotManagerLogic.ts:107` | `DELETE /api/ucids/:id/snapshots/:id` | MSW-ONLY | |

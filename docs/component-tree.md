@@ -163,9 +163,7 @@ src/components/
 │   └── TaxonomyOrphanBox.tsx
 ├── **telemetry/**
 │   ├── ApiLogsTable.tsx
-│   ├── ApiLogsView.tsx
 │   ├── DocumentPipelinePanel.tsx
-│   ├── PipelineView.tsx
 │   ├── SystemTelemetry.tsx
 │   ├── WebhookMonitor.tsx
 │   ├── telemetryUtils.ts
