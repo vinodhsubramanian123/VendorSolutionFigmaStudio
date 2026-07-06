@@ -82,22 +82,28 @@ MSW / server.ts          →  latency + async-job simulation ONLY, never a secon
 - [x] Rewrote the two test suites that were asserting the *old buggy* behavior as correct (`src/services/__tests__/apiClient.test.ts`'s `MockCatalogApi` block literally expected `updateCatalogSku('non-existing', ...)` to throw — that's the exact bug). Now they assert the corrected contract, including an explicit regression guard: `updateCatalogSku('sku-4', ...)` (a real id the old stub never had) must succeed, not throw.
 - [x] Strengthened `tests/e2e/catalog.spec.ts`'s price-edit assertion to check the displayed price actually equals the edited value and no rollback toast appears — previously it only checked the SKU text was "still visible," which passed whether or not the edit stuck. **Not executed in this sandbox** (Playwright's Chromium download requires `cdn.playwright.dev`, which isn't reachable here) — logically verified against the actual price-rendering source (`${sku.price.toLocaleString()}`), but should be run in CI to confirm.
 
-**3b — MSW-vs-`server.ts` route collision (DEFERRED, correctly scoped, not executed):**
+**3b — MSW-vs-`server.ts` route collision — DONE, verified (executed in a later session, patches 0001–0006 of `ANTIGRAVITY_HANDOFF.md`):**
 
-Investigation found 9 routes where MSW's handler and `server.ts`'s handler both exist for the exact same path (`/api/boq/ingest`, `/api/reconciliation/compare`, `/api/taxonomy/check-constraints`, `/api/integrations/dispatch`, `/api/agents/run`, `/api/portfolio/orchestrate`, `/api/portfolio/upload-manual`, `POST /api/jobs`, `GET /api/jobs/:id`), plus a 10th collision discovered in `snapshotHandlers.ts` (`/api/ucids/:ucid/snapshots` vs `server.ts`'s `POST /api/ucids/:unit/snapshots`) not in the original audit.
+All 10 routes traced end-to-end (every real caller found, every payload diffed against `server.ts`'s actual schema/destructure). **6 of 10 had real, previously-invisible bugs** — every one silently masked because MSW doesn't enforce the same validation `server.ts` does:
 
-**Why this wasn't blindly fixed:** `server.ts` enforces strict Zod validation (`validateBody(...)`) on these routes; MSW's versions don't validate at all. Spot-checking real caller payloads against `server.ts`'s schemas found two confirmed cases where removing MSW's handler would introduce a live regression, not fix one:
-- `NLPParser.tsx` posts `{ message: userText }` to `/api/agents/run` — nothing like `PlaywrightRunRequestSchema`'s required shape (`agentName` enum, `ucidRef`, `targetPortalUrl` as a valid URL, `bypassCaptchas`). MSW tolerates it; `server.ts` would hard-reject with a 400. (This looks like `NLPParser.tsx` should actually be calling `/api/agents/semantic-map` instead — a separate, pre-existing bug outside this phase's scope.)
-- `useBoqIntake.ts` sends `presetType: (context).solution_id` — an arbitrary job-context value, not guaranteed to be one of `IngestRequestSchema`'s three enum values (`hpe-legacy`/`dell-overcharge`/`cisco-asymmetry`). MSW falls back gracefully; `server.ts` would 400 on anything else.
+| Route | Result |
+|---|---|
+| `/api/boq/ingest` | Fixed — `JobContext.solution_id` validated against `IngestRequestSchema.presetType` at the boundary instead of blind-cast (patch 0001) |
+| `/api/agents/run` | Fixed — confirmed `NLPParser.tsx` was calling the wrong endpoint entirely; removed the two calls rather than reshape them, since no backend work was actually needed there (patch 0002) |
+| `/api/reconciliation/compare` | Fixed — `triggerBatchReconciliation` sent bare UCID id strings where `ReconciliationRequestSchema` requires full solution objects (patch 0003) |
+| `/api/taxonomy/check-constraints` | Clean (this caller, `useBomConversion.ts`) — **but see Phase 8, a second caller was found broken** |
+| `/api/portfolio/orchestrate` | Fixed — empty-`ucids` fallback produced `id: undefined`, reachable via direct stepper navigation (patch 0004) |
+| `/api/portfolio/upload-manual` | Clean |
+| `POST /api/jobs` | Clean (payload; no `validateBody` on this route at all) |
+| `GET /api/jobs/:id` | Fixed via `useForensicAutoHeal.ts` — `runAuditScanner` treated the POST response as already-complete, producing a false-positive "scan complete" before any polling happened (patch 0005) |
+| `/api/integrations/dispatch` | Clean, but **zero real UI callers exist** — only a contract test exercises it |
+| `POST /api/ucids/:id/snapshots` | Fixed — two callers used opposite payload conventions; `useSnapshotManagerLogic.ts` sent the bare object where `server.ts` destructures `{snapshot}` (patch 0006) |
 
-Given 2-for-2 on real landmines from a partial spot-check, the responsible call was to **not** blanket-delete these 9 (now 10) MSW handlers this session. Properly finishing 3b requires, per route: (1) diffing the actual caller payload against `server.ts`'s Zod schema, (2) fixing the caller or relaxing the schema wherever they don't already agree, (3) only then removing the duplicate MSW handler. This is a correctly-scoped follow-up, not a skipped step — tracked here so it isn't lost.
-- [ ] Per-route caller-vs-schema audit for all 10 colliding routes (2 already found broken: `/api/agents/run` via `NLPParser.tsx`, `/api/boq/ingest` via `useBoqIntake.ts`).
-- [ ] Fix `NLPParser.tsx` to call `/api/agents/semantic-map` (its actual intended endpoint) instead of `/api/agents/run`, or update `PlaywrightRunRequestSchema`/`server.ts` if `/api/agents/run` is genuinely meant to handle both shapes.
-- [ ] Fix `useBoqIntake.ts` to send a value that's guaranteed to satisfy `IngestRequestSchema.presetType`'s enum, or relax the schema if arbitrary preset ids are legitimate.
-- [ ] Once each route's payload is verified compatible, remove the matching MSW handler so `server.ts` is reachable in dev mode (the actual point of this phase).
-- [ ] Extend `MockSnapshotApi`'s `serverState.snapshots` — same competing-array pattern as the catalog fix in 3a, discovered but not fixed this session (each `UCID.snapshots` in `coreStore` is the real data; `MockSnapshotApi` is a second, disconnected flat array).
+`NLPParser.tsx`'s `/api/agents/semantic-map` and `/api/taxonomy/rules` (its actual intended endpoints) were confirmed to have **no `server.ts` route at all** — not part of this collision list since there's nothing to collide with, but tracked in Phase 8's backend-completeness gap.
 
-Leave `/api/agents/run`'s "Simulator" framing as-is either way — it's honest about what it is; the fix here is about which layer answers the request, not about making it a real Playwright bridge.
+`MockSnapshotApi`'s disconnected flat array (a competing-array pattern like the catalog fix in 3a, originally scoped as a separate follow-up) turned out to be superseded — the real fix was correcting the payload shape crossing the boundary, not reconciling two competing mock arrays.
+
+**Still not done — deliberately left as a distinct follow-up:** actually deleting the now-safe-to-remove MSW handlers for these 10 routes. Every caller is now confirmed payload-compatible with `server.ts`, so removal is mechanical, but it wasn't bundled into the same patches — verifying "the caller sends the right shape" and "it's safe to delete the handler that made the wrong shape look fine" are different claims, and the second deserves its own explicit verification pass (re-run the full suite with each handler actually gone, one at a time) rather than being asserted alongside the fix.
 
 ### Phase 4 — Rewire Taxonomy Graph to real data (issues #13–15) — **DONE, verified**
 - [x] Replaced `GET /api/graph/solution/:ucid` with `deriveGraphFromConfig()`, a pure client-side function: one node per real BOM item (`catalog_part` if it resolves against `catalogSkus` by partNumber, `scraped_orphan` + into `unmappedIds` otherwise), one `category_hub` per distinct BOM item `type`, root `product` node for the config itself. No network round-trip, no 600ms simulated delay.
@@ -129,8 +135,8 @@ Verified: `tsc --noEmit` clean, full vitest suite green (85 files / 401 tests, 0
 - [x] Rewrote the 2 pre-existing `streamJob` tests that were locking in the old one-shot-GET behavior; added coverage proving multiple genuine polls happen and stop exactly at the terminal status.
 - [x] Found and fixed a `react-hooks/refs` lint **error** in Phase 4's own `useCatalogGraphData.ts` (reading a ref during render inside `useMemo`) — this was only caught because Phase 6 was the first time `eslint` was actually run, not just `tsc --noEmit`, across this whole effort. Refactored the overlay mechanism from a ref to real `useState`, and fixed a related `useEffect`-cascading-render warning using React's documented "adjust state during render" pattern. **Process note**: `tsc --noEmit` was run after every phase; `eslint` was not run until Phase 6. No other errors were found when finally run across Phases 0–5's code, but this was luck, not verification — recommend running full `npm run lint` (not just `tsc`) after every phase in any future work here.
 
-**Not done, scoped as an explicit follow-up (same discipline as Phase 3b):**
-- [ ] Audit the remaining ~30 `apiClient` call sites one at a time (does a matching schema exist? does the actual runtime response shape match it?) before adding `parseResponse` calls. Do NOT do this as a blind find-and-replace — `/api/boq/ingest`'s response shape divergence (found while scoping this phase) proves the "obvious" schema isn't always the right one.
+**Not done in this phase, executed later — see Phase 8:**
+- [x] Audited the remaining ~30 `apiClient` call sites (exact count settled at 39 live call sites across all methods including `postForm` and `apiClient`'s own named wrapper methods — the ~30/~35 estimates here were both undercounts from an incomplete method inventory, corrected in Phase 8's route inventory doc). Of those, 15 hit real `server.ts`-backed routes; 23 hit MSW-only routes; 1 was fully dead code. The `/api/boq/ingest` divergence flagged above was real: found and fixed as Landmine #7 (see Phase 8).
 
 Verified: `tsc --noEmit` clean, `eslint src` clean (0 errors), full vitest suite green (85 files / 401 tests, 0 regressions).
 
@@ -143,21 +149,43 @@ Verified: `tsc --noEmit` clean, `eslint src` clean (0 errors), full vitest suite
   - every `chassisRef` resolves to a real SKU id (already clean — lock it in)
   - `type` values conform to the shared enum from Phase 1
 
+### Phase 8 — Definitive backend route inventory, named anomalies, and Phase 6 kickoff findings — **DONE, verified** (patches 0007–0012)
+
+Building the per-file inventory Phase 6 needed (which of the ~30 remaining `apiClient` call sites are even worth hardening) surfaced a much bigger structural finding than expected: `server.ts` implements **exactly 13 routes total**; MSW implements **41**. **31 of those 41 have no `server.ts` backing at all**, spanning entire subsystems, not edge cases — Catalog CRUD, Solutions CRUD, Cleansing Workshop, Taxonomy Graph (server-side), Forensic Auto-Heal's actual mutation endpoint (`/api/forensics/align`), vendor sync, telemetry logs. Full route-by-route classification, and the complete 39-call-site inventory, now lives in `docs/architecture/backend-route-inventory.md` — that document is the source of truth going forward; don't re-derive it.
+
+**4 named anomalies found while building the inventory, all resolved except the one requiring product input:**
+- **Anomaly 1 (vendor routing)** — `server.ts`'s only real vendor route was a generic `/api/vendor/portal` dispatcher with zero callers; `VendorPortal.tsx` and `StepVendorProvisioning.tsx` called two separate, nonexistent routes instead. **Fixed** (patch 0009): extended `server.ts` to branch on `action` and return the fields each caller needs, added a schema pair, rerouted all 3 callers, and fixed MSW (which also didn't implement the real route) so dev/test and production agree.
+- **Anomaly 2 (dead-in-every-environment bug)** — `EdgeEditorPanel.tsx` called `apiClient.updateGraphEdge()`, hitting a route removed in Phase 4's graph-to-client-side migration and never implemented in `server.ts`. Broken in local dev too, not just production. **Fixed** (patch 0008): migrated to the same client-side overlay pattern every sibling graph mutation already uses.
+- **Anomaly 3 (dead code)** — 6 `apiClient` wrapper methods with zero callers anywhere, leftover from the same Phase 4 migration. **Removed** (patch 0008).
+- **Anomaly 4 (`/api/integrations/dispatch` has no real caller)** — fully implemented and schema-clean on both sides, but no UI feature dispatches a webhook. **Not fixed, flagged only** — this is a product-completeness gap (build the feature?), not a bug with an obvious fix.
+
+**2 additional landmines found while starting Phase 6's real call-site hardening** — validated the whole premise of Phase 6: checking response shapes, not just request shapes, catches real bugs the same way Phase 3b did:
+- **Landmine #7** — `server.ts`'s real `/api/boq/ingest` response nests `solutions` under a full `ucid` object; MSW additionally duplicates it as a top-level convenience field. Both `useBoqIntake.ts` and `StepBoqIntake.tsx` read the top-level field only — against the real server this was always `undefined`, so BOQ-to-UCID provisioning was a silent no-op in one caller and the entire Mission Control BOQ intake step did nothing in the other, despite both API calls succeeding with 200. **Fixed** (patch 0010), with a real-server-shaped regression test added to each (neither had any prior coverage of this assumption).
+- **Landmine #8** — `TaxonomyGraphSidebar.tsx`'s second caller of `/api/taxonomy/check-constraints` used entirely wrong field names (`chassisSku`/`cpuSku`/`ramQty`/`psuWatts` vs. the schema's `chassisSKU`/`cpuSKU`/`ramQuantity`/`psuWattsCount`) — invisible under MSW, whose handler for this route never reads the request body at all. `useBomConversion.ts`'s call to the same route was confirmed correct back in Phase 3b, but this second caller was never checked. **Fixed** (patch 0011).
+
+**Remaining Phase 6 call sites — deliberately not exhaustively hardened this pass:** of the 15 real-route call sites, `POST /api/jobs`'s `job_id` extraction was spot-checked across every caller and confirmed uniformly correct (simple, stable shape). The handful with fully-discarded responses (`useBomConversion.ts`'s batch-reconciliation call, `WebhookMonitor.tsx`'s fire-and-forget test utility) are lowest-priority — there's no consumption to protect. Full `parseResponse` wrapping of the remaining low-risk sites is optional polish, not a correctness gap; not doing it now was a deliberate effort/value call, not an oversight.
+
+**Verification:** all 12 patches (0001–0012) applied cleanly via `git am` against a fresh clone of `main`, in sequence, zero conflicts. Full suite on the resulting checkout: `tsc --noEmit` clean, `eslint src server.ts` shows zero newly-introduced issues (diffed line-by-line against the pristine pre-session baseline — one genuine new item, a trivial unused test import, fixed in patch 0012), 92 test files / 455 tests, 0 regressions. See `ANTIGRAVITY_HANDOFF.md` for the exact patch sequence and per-patch reasoning.
+
 ---
 
 ## 3. Open decisions still needed from you
 
-All major open questions from this investigation have now been resolved through our discussion — captured here for the record:
+All major open questions from the original investigation were resolved through discussion — captured here for the record, plus new ones surfaced by Phase 8:
 - **Taxonomy graph intent** → resolved: it should be a real, editable reflection of the catalog (Phase 4).
 - **`server.ts` vs. MSW** → resolved: `server.ts` is the intended future backend seam; MSW should stop duplicating its routes (Phase 3).
 - **Relationship to the HPE OCA Playwright certification suite** → resolved: separate codebase, not currently integrated; `server.ts`'s `/api/agents/run` is an honest simulator, not a real bridge.
+- **The 31 MSW-only routes (Phase 8)** → **open, needs your call.** Which subsystems get real `server.ts` implementations, and in what order? By apparent product importance: Catalog CRUD and Forensic Auto-Heal's actual mutation endpoint (`/api/forensics/align`) look highest-value; Telemetry logs/webhooks look lowest (likely fine to stay simulated indefinitely). See `docs/architecture/backend-route-inventory.md` Section G for the full list.
+- **Anomaly 4 (`/api/integrations/dispatch` has no UI caller)** → **open.** Build a webhook-dispatch feature to use the already-complete backend, or leave it as unused infrastructure?
+- **MSW handler deletion for the 10 now-safe Phase 3b routes** → **open, mechanical but not yet done.** Every caller is confirmed payload-compatible; removal just hasn't been executed and re-verified as its own explicit step.
 
-Nothing is currently blocked on you — Phases 0–7 above are ready to execute in order.
+Nothing above is blocking further work — Phases 0–8 are all executed except where explicitly marked open.
 
 ---
 
 ## 4. Suggested execution order
 
-Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 7 (tests) → Phase 5 → Phase 6
+Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 7 (tests) → Phase 5 → Phase 6 → Phase 8
 
-Rationale: lock the rule in writing first so nothing drifts again while fixing it; fix data correctness before architecture (cheap, isolated, no regression risk per the earlier test audit); close the two live bypasses next (small, contained); then the two bigger consolidations (backend layer, taxonomy graph) which are the highest-value, highest-effort items; harden tests immediately after so the fixes are locked in by CI; persistence and backend-readiness are lower-urgency polish that can trail.
+Rationale: lock the rule in writing first so nothing drifts again while fixing it; fix data correctness before architecture (cheap, isolated, no regression risk per the earlier test audit); close the two live bypasses next (small, contained); then the two bigger consolidations (backend layer, taxonomy graph) which are the highest-value, highest-effort items; harden tests immediately after so the fixes are locked in by CI; persistence and backend-readiness are lower-urgency polish that can trail; Phase 8's inventory work naturally comes last since it depends on Phase 3b and Phase 6 both being underway to know what's worth auditing.
+
