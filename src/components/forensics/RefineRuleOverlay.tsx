@@ -285,7 +285,7 @@ export function RefineRuleOverlay({
                 
                 <div className="divide-y divide-white/5 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
                   {remedyOptions.map((opt) => (
-                      <label key={opt.sku} htmlFor={`remedy-${opt.sku}`} className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none">
+                      <label key={opt.sku} htmlFor={`remedy-${opt.sku}`} aria-label={`${opt.sku} - ${opt.desc}`} className="flex items-start gap-2.5 py-2 hover:bg-white/2 cursor-pointer transition select-none">
                       <input
                         id={`remedy-${opt.sku}`}
                         type="checkbox"

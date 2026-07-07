@@ -35,6 +35,30 @@ describe('AdviceFileIngestion', () => {
     expect(screen.getByText('Drag & drop CLIC Validation Advice sheet')).toBeInTheDocument();
   });
 
+  it('opens the file picker via keyboard (Enter) on the dropzone', () => {
+    renderComponent();
+
+    const input = screen.getByLabelText('Browse Files') as HTMLInputElement;
+    const clickSpy = vi.spyOn(input, 'click');
+
+    const dropzone = screen.getByRole('button', { name: /Upload CLIC Validation Advice sheet/i });
+    fireEvent.keyDown(dropzone, { key: 'Enter' });
+
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it('opens the file picker via click on the dropzone, without double-triggering from the nested Browse Files label', () => {
+    renderComponent();
+
+    const input = screen.getByLabelText('Browse Files') as HTMLInputElement;
+    const clickSpy = vi.spyOn(input, 'click');
+
+    const dropzone = screen.getByRole('button', { name: /Upload CLIC Validation Advice sheet/i });
+    fireEvent.click(dropzone);
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('handles file upload and calls apiClient', async () => {
     vi.mocked(apiClient.postForm).mockResolvedValueOnce({
       success: true,

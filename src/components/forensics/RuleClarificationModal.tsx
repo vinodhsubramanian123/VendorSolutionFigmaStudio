@@ -46,7 +46,7 @@ export function RuleClarificationModal({
           <div className="space-y-2">
             <div className="text-[10px] font-bold text-content-primary0 uppercase">Apply this intelligence to:</div>
             <div className="space-y-2">
-              <label htmlFor="scope-global" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Global" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
+              <label htmlFor="scope-global" aria-label="Global Portfolio - Apply across all vendors and models globally (High Blast Radius)" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Global" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-global" type="radio" checked={scope === "Global"} onChange={() => setScope("Global")} className="mt-1" />
                 <div>
                   <div className="text-xs font-bold text-content-primary">Global Portfolio</div>
@@ -54,7 +54,7 @@ export function RuleClarificationModal({
                 </div>
               </label>
               
-              <label htmlFor="scope-brand" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Brand" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
+              <label htmlFor="scope-brand" aria-label={`Specific Brand (${proposedVendor}) - Restrict logic to only ${proposedVendor} BOM submissions`} className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Brand" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-brand" type="radio" checked={scope === "Brand"} onChange={() => setScope("Brand")} className="mt-1" />
                 <div>
                   <div className="text-xs font-bold text-content-primary">Specific Brand ({proposedVendor})</div>
@@ -62,7 +62,7 @@ export function RuleClarificationModal({
                 </div>
               </label>
 
-              <label htmlFor="scope-exact" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Exact" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
+              <label htmlFor="scope-exact" aria-label="Exact SKU Match Only - Safest, limit substitution to exactly this part number" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Exact" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-exact" type="radio" checked={scope === "Exact"} onChange={() => setScope("Exact")} className="mt-1" />
                 <div>
                   <div className="text-xs font-bold text-content-primary">Exact SKU Match Only</div>

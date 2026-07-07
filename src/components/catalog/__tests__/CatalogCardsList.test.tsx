@@ -101,6 +101,7 @@ describe('CatalogCardsList', () => {
     render(<CatalogCardsList {...defaultProps} editingSkuId="1" editedPrice="1500" />);
     const input = screen.getByDisplayValue('1500');
     expect(input).toBeInTheDocument();
+    expect(input).toHaveFocus();
 
     fireEvent.change(input, { target: { value: '1600' } });
     expect(defaultProps.setEditedPrice).toHaveBeenCalledWith('1600');

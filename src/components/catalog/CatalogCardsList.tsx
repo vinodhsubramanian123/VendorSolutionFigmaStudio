@@ -1,5 +1,5 @@
 import { tokens } from "../../styles/tokens";
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, Edit2, Check, X, Server, Cpu, Layers, HardDrive, Network, Sliders } from 'lucide-react';
 import { motion } from 'motion/react';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -47,6 +47,13 @@ export function CatalogCardsList({
 }: CatalogCardsListProps) {
   const [listHeight, setListHeight] = useState(600);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const priceInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingSkuId) {
+      priceInputRef.current?.focus();
+    }
+  }, [editingSkuId]);
   
   useEffect(() => {
     if (!containerRef.current) return;
@@ -121,11 +128,11 @@ export function CatalogCardsList({
                       <div className="flex items-center gap-1 justify-end">
                         <span className="text-content-secondary font-mono font-bold">$</span>
                         <input
+                          ref={priceInputRef}
                           type="text"
                           value={editedPrice}
                           onChange={(e) => setEditedPrice(e.target.value)}
                           className="w-16 p-1 h-6 text-right bg-surface-header text-status-success font-mono border rounded border-status-success/35 text-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
-                          autoFocus
                         />
                         <button type="button" onClick={() => savePrice(sku.id)} aria-label="Save Price" className="p-0.5 rounded hover:bg-status-success/20 text-status-success cursor-pointer" title="Save Price">
                           <Check className="w-3.5 h-3.5" />

@@ -59,6 +59,24 @@ describe('CleansingEditorRow', () => {
     expect(screen.getByText('10')).toBeInTheDocument();
   });
 
+  it('enters edit mode via keyboard (Enter) and focuses the quantity input', () => {
+    render(<CleansingEditorRow item={mockItem} onUpdateQuantity={vi.fn()} onRemove={vi.fn()} />);
+
+    fireEvent.keyDown(screen.getByText('10'), { key: 'Enter' });
+
+    const input = screen.getByRole('spinbutton');
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveFocus();
+  });
+
+  it('does not enter edit mode via keyboard when the row is marked removed', () => {
+    render(<CleansingEditorRow item={mockItem} isRemoved onUpdateQuantity={vi.fn()} onRemove={vi.fn()} />);
+
+    fireEvent.keyDown(screen.getByText('10'), { key: 'Enter' });
+
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+  });
+
   it('handles remove click', () => {
     const onRemoveMock = vi.fn();
     render(<CleansingEditorRow item={mockItem} onUpdateQuantity={vi.fn()} onRemove={onRemoveMock} />);

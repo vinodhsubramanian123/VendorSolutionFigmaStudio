@@ -19,26 +19,8 @@ export const SKUCard: React.FC<SKUCardProps> = ({
   const isEol = sku.status === "eol";
   const [isHovered, setIsHovered] = useState(false);
 
-  const interactiveProps = onClick ? {
-    role: "button",
-    tabIndex: 0,
-    onKeyDown: (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onClick();
-      }
-    },
-    onClick
-  } : {};
-
-  return (
-    <div
-      {...interactiveProps}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`bg-surface-elevated border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${onClick ? "cursor-pointer hover:border-brand-indigo/50 transition-all" : ""} ${className}`}
-      style={isHovered && onClick ? { backgroundColor: "rgba(74, 133, 253, 0.1)" } : undefined}
-    >
+  const cardBody = (
+    <>
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono text-brand-indigo font-bold bg-brand-indigo/10 border border-brand-indigo/20 px-1.5 py-0.5 rounded uppercase">
@@ -64,6 +46,36 @@ export const SKUCard: React.FC<SKUCardProps> = ({
           <div className="text-[9px] text-content-muted font-medium">{sku.leadTimeDays}d ETA</div>
         </div>
       </div>
+    </>
+  );
+
+  const baseClassName = `bg-surface-elevated border ${isEol ? "border-status-error/30" : "border-white/5"} rounded-xl p-4.5 group ${className}`;
+
+  if (onClick) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`${baseClassName} cursor-pointer hover:border-brand-indigo/50 transition-all`}
+        style={isHovered ? { backgroundColor: "rgba(74, 133, 253, 0.1)" } : undefined}
+      >
+        {cardBody}
+      </div>
+    );
+  }
+
+  return (
+    <div className={baseClassName}>
+      {cardBody}
     </div>
   );
 };

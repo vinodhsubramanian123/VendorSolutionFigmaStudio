@@ -120,7 +120,15 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                     filteredCatalog.map(sku => (
                       <div 
                         key={sku.id} 
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setSelectedSkuId(sku.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedSkuId(sku.id);
+                          }
+                        }}
                         className={`p-3 border-b border-white/5 flex flex-col cursor-pointer transition-colors ${
                           selectedSkuId === sku.id ? "bg-brand-indigo/10 border-brand-indigo/30" : "hover:bg-white/5"
                         }`}
@@ -139,8 +147,9 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
               {selectedSkuId && (
                 <div className="flex items-center gap-4 pt-4 border-t border-white/5">
                   <div className="flex-1">
-                    <label className="block text-xs text-content-primary0 mb-1">Quantity to Add</label>
+                    <label htmlFor="boq-add-catalog-qty" className="block text-xs text-content-primary0 mb-1">Quantity to Add</label>
                     <input
+                      id="boq-add-catalog-qty"
                       type="number"
                       min="1"
                       value={catalogQty}
@@ -165,8 +174,9 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-1">
-                  <label className="block text-xs text-content-primary0 mb-1">Part Number (SKU)</label>
+                  <label htmlFor="boq-custom-part-number" className="block text-xs text-content-primary0 mb-1">Part Number (SKU)</label>
                   <input
+                    id="boq-custom-part-number"
                     type="text"
                     value={customPart}
                     onChange={(e) => setCustomPart(e.target.value)}
@@ -175,8 +185,9 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs text-content-primary0 mb-1">Asset Type</label>
+                  <label htmlFor="boq-custom-asset-type" className="block text-xs text-content-primary0 mb-1">Asset Type</label>
                   <input
+                    id="boq-custom-asset-type"
                     type="text"
                     value={customType}
                     onChange={(e) => setCustomType(e.target.value)}
@@ -185,8 +196,9 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs text-content-primary0 mb-1">Description</label>
+                  <label htmlFor="boq-custom-description" className="block text-xs text-content-primary0 mb-1">Description</label>
                   <input
+                    id="boq-custom-description"
                     type="text"
                     value={customDesc}
                     onChange={(e) => setCustomDesc(e.target.value)}
@@ -195,8 +207,9 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs text-content-primary0 mb-1">Quantity</label>
+                  <label htmlFor="boq-custom-qty" className="block text-xs text-content-primary0 mb-1">Quantity</label>
                   <input
+                    id="boq-custom-qty"
                     type="number"
                     min="1"
                     value={customQty}

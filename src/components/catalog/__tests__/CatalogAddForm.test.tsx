@@ -67,4 +67,14 @@ describe('CatalogAddForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('calls onClose when Escape is pressed', () => {
+    const onAddSku = vi.fn();
+    const onClose = vi.fn();
+
+    render(<CatalogAddForm onAddSku={onAddSku} onClose={onClose} />);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
 });

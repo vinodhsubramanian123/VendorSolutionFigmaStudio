@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Upload, FileSpreadsheet, AlertCircle, ListFilter, FileText, Check, ArrowUpRight } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 
@@ -39,6 +39,7 @@ export function AdviceFileIngestion({
   setIgnoredSheets
 }: AdviceFileIngestionProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileSubTab, setFileSubTab] = useState<"advice" | "bom" | "config">("advice");
   const handleDrag = (e: React.DragEvent) => {
@@ -101,11 +102,16 @@ export function AdviceFileIngestion({
     <div className="p-4 flex flex-col gap-4 max-h-[380px] overflow-y-auto custom-scrollbar flex-1">
       {!uploadSuccess ? (
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Upload CLIC Validation Advice sheet"
+          onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
           onDragLeave={handleDrag}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-xl p-8 text-center flex flex-col items-center justify-center gap-3 transition-colors ${
+          className={`border-2 border-dashed rounded-xl p-8 text-center flex flex-col items-center justify-center gap-3 transition-colors cursor-pointer ${
             isDragging 
               ? "border-brand-indigo bg-brand-indigo/10 text-content-primary" 
               : "border-white/10 hover:border-white/20 bg-white/2 text-content-secondary"
@@ -117,11 +123,15 @@ export function AdviceFileIngestion({
             <p className="text-[10px] text-content-primary0">Supports .xlsx or .csv files containing multiple sheets (Validation, BOM, Config)</p>
           </div>
           
-          <label className="mt-2 px-3 py-1.5 bg-brand-indigo text-content-primary text-[10px] font-bold rounded-lg cursor-pointer hover:bg-brand-indigo transition uppercase tracking-wide">
+          <label
+            className="mt-2 px-3 py-1.5 bg-brand-indigo text-content-primary text-[10px] font-bold rounded-lg cursor-pointer hover:bg-brand-indigo transition uppercase tracking-wide"
+          >
             Browse Files
             <input
+              ref={fileInputRef}
               type="file"
               accept=".xlsx,.xls,.csv"
+              onClick={(e) => e.stopPropagation()}
               onChange={handleFileSelect}
               className="hidden"
             />

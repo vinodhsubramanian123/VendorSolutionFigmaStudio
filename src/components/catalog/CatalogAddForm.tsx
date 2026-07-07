@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { tokens } from "../../styles/tokens";
 import { Database, X } from 'lucide-react';
 import { Select } from '../shared/Select';
@@ -46,12 +46,17 @@ export function CatalogAddForm({
     onAddSku(data);
   };
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   return (
     <div 
       className="fixed inset-0 z-[100] bg-surface-canvas/65 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none leading-normal"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
-      tabIndex={0}
       role="dialog"
       aria-modal="true"
       aria-labelledby="catalog-add-form-title"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Edit2, Check, X, Trash2 } from "lucide-react";
 import type { BOMItem } from "../../types";
@@ -14,6 +14,13 @@ interface CleansingEditorRowProps {
 export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved, parentMultiplier }: CleansingEditorRowProps) {
   const [isEditingQty, setIsEditingQty] = useState(false);
   const [draftQty, setDraftQty] = useState(item.quantity.toString());
+  const qtyInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingQty) {
+      qtyInputRef.current?.focus();
+    }
+  }, [isEditingQty]);
 
   const handleSaveQty = () => {
     const parsed = parseInt(draftQty, 10);
@@ -62,7 +69,7 @@ export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved
         {isEditingQty ? (
           <div className="flex items-center gap-2 bg-surface-canvas/40 rounded-md border border-brand-indigo/50 p-1">
             <input
-              autoFocus
+              ref={qtyInputRef}
               type="number"
               min="0"
               value={draftQty}
@@ -79,7 +86,15 @@ export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved
           </div>
         ) : (
           <div 
+            role="button"
+            tabIndex={isRemoved ? -1 : 0}
             onClick={() => !isRemoved && setIsEditingQty(true)}
+            onKeyDown={(e) => {
+              if (!isRemoved && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                setIsEditingQty(true);
+              }
+            }}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md border border-transparent font-mono text-sm cursor-pointer transition-colors ${
               isRemoved ? "text-content-primary0" : "text-content-primary hover:border-white/10 hover:bg-white/5 group-hover:text-indigo-300"
             }`}

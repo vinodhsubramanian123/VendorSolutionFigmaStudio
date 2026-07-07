@@ -66,8 +66,9 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
 
         {/* Name Input */}
         <div className="px-6 py-4 border-b border-white/5 bg-surface-canvas/20 flex items-center gap-4">
-          <label className="text-sm text-content-secondary">New Destination Config Name:</label>
+          <label htmlFor="split-config-dest-name" className="text-sm text-content-secondary">New Destination Config Name:</label>
           <input
+            id="split-config-dest-name"
             type="text"
             value={destName}
             onChange={e => setDestName(e.target.value)}
