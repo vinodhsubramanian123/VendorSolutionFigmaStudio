@@ -3,12 +3,16 @@ import { Upload, FileSpreadsheet, AlertCircle, ListFilter, FileText, Check, Arro
 import { apiClient } from "../../services/apiClient";
 
 import { motion, AnimatePresence } from "motion/react";
+
+export type AdviceSeverity = "critical" | "warning" | "info";
+type BomRowValue = string | number | boolean | null;
+
 export interface AdviceTriageItem {
   id: string;
   ruleNumber: string | number;
   productNumber: string;
   adviceText: string;
-  severity: "critical" | "warning" | "info";
+  severity: AdviceSeverity;
   vendor: string;
   drafted?: boolean;
 }
@@ -16,10 +20,10 @@ interface AdviceFileIngestionProps {
   onDraftAdviceRule: (item: AdviceTriageItem) => void;
   adviceItems: AdviceTriageItem[];
   setAdviceItems: React.Dispatch<React.SetStateAction<AdviceTriageItem[]>>;
-  bomItems: Record<string, string | number | boolean | null>[];
-  setBomItems: React.Dispatch<React.SetStateAction<Record<string, string | number | boolean | null>[]>>;
-  configRows: Record<string, string | number | boolean | null>[];
-  setConfigRows: React.Dispatch<React.SetStateAction<Record<string, string | number | boolean | null>[]>>;
+  bomItems: Record<string, BomRowValue>[];
+  setBomItems: React.Dispatch<React.SetStateAction<Record<string, BomRowValue>[]>>;
+  configRows: Record<string, BomRowValue>[];
+  setConfigRows: React.Dispatch<React.SetStateAction<Record<string, BomRowValue>[]>>;
   uploadSuccess: boolean;
   setUploadSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   ignoredSheets: string[];
@@ -74,8 +78,8 @@ export function AdviceFileIngestion({
     try {
       const res = await apiClient.postForm<{
         adviceItems: AdviceTriageItem[];
-        bomItems: Record<string, string | number | boolean | null>[];
-        configRows: Record<string, string | number | boolean | null>[];
+        bomItems: Record<string, BomRowValue>[];
+        configRows: Record<string, BomRowValue>[];
         ignoredSheets: string[];
       }>("/api/agents/parse-advice-file", formData);
       if (res.success && res.data) {

@@ -2,8 +2,13 @@ import React from "react";
 import { Activity } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import type { UCID } from "../../types";
+
+type ManualBOMStatus = "pending" | "partial" | "complete";
+type TableRowStatus = "pending" | "partial" | "complete" | "syncing";
+type TableRowVariant = "success" | "warning" | "default" | "info";
+
 interface ConsolidatedStatusBoardProps {
-  manualBOMStatus: "pending" | "partial" | "complete";
+  manualBOMStatus: ManualBOMStatus;
   hpeSyncedConfigs: number;
   ciscoSyncedConfigs: number;
   projectRefString: string;
@@ -22,8 +27,8 @@ function TableRowNode({
   ucid: string;
   name: string;
   channel: string;
-  status: "pending" | "partial" | "complete" | "syncing";
-  variant: "success" | "warning" | "default" | "info";
+  status: TableRowStatus;
+  variant: TableRowVariant;
   message: React.ReactNode;
   valuation: string;
 }) {
@@ -47,7 +52,7 @@ function StatusMessageNode({
   projectRefString,
   isPortfolioActive
 }: {
-  manualBOMStatus: "pending" | "partial" | "complete";
+  manualBOMStatus: ManualBOMStatus;
   hpeSyncedConfigs: number;
   ciscoSyncedConfigs: number;
   projectRefString: string;
@@ -65,8 +70,8 @@ function StatusMessageNode({
   return <span>💡 Start the hybrid pipeline to test parallel automated bots alongside custom manual upload streams.</span>;
 }
 
-function getDellRowData(status: "pending" | "partial" | "complete", ucid: string) {
-  let variant: "success" | "warning" | "default" | "info" = "default";
+function getDellRowData(status: ManualBOMStatus, ucid: string) {
+  let variant: TableRowVariant = "default";
   let message = <span>Awaiting custom partner .xlsx document</span>;
   let valuation = "$392,400";
 
@@ -85,8 +90,8 @@ function getDellRowData(status: "pending" | "partial" | "complete", ucid: string
 }
 
 function getHpeRowData(syncedConfigs: number, ucid: string) {
-  let status: "pending" | "partial" | "complete" | "syncing" = "pending";
-  let variant: "success" | "warning" | "default" | "info" = "default";
+  let status: TableRowStatus = "pending";
+  let variant: TableRowVariant = "default";
   let message = <span>{syncedConfigs} of 4 configurations synced in sequence</span>;
 
   if (syncedConfigs === 4) {
@@ -102,8 +107,8 @@ function getHpeRowData(syncedConfigs: number, ucid: string) {
 }
 
 function getCiscoRowData(syncedConfigs: number, ucid: string) {
-  let status: "pending" | "partial" | "complete" | "syncing" = "pending";
-  let variant: "success" | "warning" | "default" | "info" = "default";
+  let status: TableRowStatus = "pending";
+  let variant: TableRowVariant = "default";
   let message = <span>{syncedConfigs} of 4 configurations synced in sequence</span>;
 
   if (syncedConfigs === 4) {

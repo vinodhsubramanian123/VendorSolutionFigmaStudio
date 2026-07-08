@@ -69,6 +69,7 @@ export function SourcingRulesVault({
       setIsAddingRule(false);
       triggerToast("Intelligence Policy Created & Continuous Feed Repopulated!", "success");
     } catch (error) {
+      console.error("Failed to save Sourcing Rule:", error);
       triggerToast("Failed to save Sourcing Rule to the server.", "warn");
     }
   };

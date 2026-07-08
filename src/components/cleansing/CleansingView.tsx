@@ -111,7 +111,14 @@ export function CleansingView() {
         ruleType: "substitution",
         explanation: "Batch auto-cleansing run",
       });
-    } catch {}
+    } catch (err) {
+      // Best-effort audit-log call -- the auto-map heuristic below runs
+      // locally regardless of whether this side-channel logging call
+      // succeeds, so a failure here shouldn't block the user-facing
+      // auto-map action. Still log it rather than swallowing silently,
+      // matching this codebase's convention for other best-effort calls.
+      console.error("Failed to record auto-map audit entry:", err);
+    }
     setEntries((prev) =>
       prev.map((e) => {
         if (e.matchStatus === "fuzzy" && e.confidence >= 70) {

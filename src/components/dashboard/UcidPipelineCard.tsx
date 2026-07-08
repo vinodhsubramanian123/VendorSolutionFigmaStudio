@@ -141,7 +141,7 @@ export function UcidPipelineCard({ onNavigate, averagePipeline, recentMission }:
           })}
         </AnimatePresence>
       );
-  }, [ucids, solutions, onNavigate]);
+  }, [ucids, solutions, onNavigate, setActiveSolution]);
 
   return (
     <div
