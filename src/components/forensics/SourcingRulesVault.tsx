@@ -31,9 +31,24 @@ export function SourcingRulesVault({
     existingRule: SourcingRule;
     proposedRule: SourcingRule;
   } | null>(null);
-  useEffect(() => {
+
+  // A new prefillRule should latch the form open and keep it open even after
+  // the parent clears prefillRule back to null once consumed (see the effect
+  // below). Adjusting state directly during render -- rather than in a
+  // useEffect -- is the pattern React's own docs recommend for "adjusting
+  // state when a prop changes": it avoids the extra render pass a
+  // setState-in-effect would cause, since React applies this update before
+  // committing the current render to the screen.
+  const [lastSeenPrefillRule, setLastSeenPrefillRule] = useState<Partial<SourcingRule> | null>(null);
+  if (prefillRule !== lastSeenPrefillRule) {
+    setLastSeenPrefillRule(prefillRule);
     if (prefillRule) {
       setIsAddingRule(true);
+    }
+  }
+
+  useEffect(() => {
+    if (prefillRule) {
       onPrefillConsumed();
       triggerToast("Override parameters prefilled! Review and save the rule at the bottom.", "success");
       requestAnimationFrame(() => {

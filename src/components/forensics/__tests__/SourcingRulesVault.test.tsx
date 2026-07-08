@@ -44,6 +44,44 @@ vi.mock("../../shared/ToastContext", async () => {
 });
 
 describe("SourcingRulesVault", () => {
+  it("opens the add-rule form when a prefillRule is provided, and consumes it", () => {
+    const onPrefillConsumed = vi.fn();
+    const triggerToast = vi.fn();
+    const prefillRule = { partNumber: "P-999", ruleType: "substitution" as const };
+
+    render(
+      <ToastProvider>
+        <SourcingRulesVault triggerToast={triggerToast} prefillRule={prefillRule} onPrefillConsumed={onPrefillConsumed} />
+      </ToastProvider>
+    );
+
+    expect(screen.getByTestId("add-rule-form")).toBeInTheDocument();
+    expect(onPrefillConsumed).toHaveBeenCalled();
+    expect(triggerToast).toHaveBeenCalledWith(expect.stringContaining("prefilled"), "success");
+  });
+
+  it("keeps the add-rule form open after the parent clears prefillRule back to null", () => {
+    const onPrefillConsumed = vi.fn();
+    const prefillRule = { partNumber: "P-999", ruleType: "substitution" as const };
+
+    const { rerender } = render(
+      <ToastProvider>
+        <SourcingRulesVault triggerToast={vi.fn()} prefillRule={prefillRule} onPrefillConsumed={onPrefillConsumed} />
+      </ToastProvider>
+    );
+
+    expect(screen.getByTestId("add-rule-form")).toBeInTheDocument();
+
+    // Simulate the parent responding to onPrefillConsumed by clearing prefillRule
+    rerender(
+      <ToastProvider>
+        <SourcingRulesVault triggerToast={vi.fn()} prefillRule={null} onPrefillConsumed={onPrefillConsumed} />
+      </ToastProvider>
+    );
+
+    expect(screen.getByTestId("add-rule-form")).toBeInTheDocument();
+  });
+
   it("renders correctly with rules table", () => {
     render(
       <ToastProvider>

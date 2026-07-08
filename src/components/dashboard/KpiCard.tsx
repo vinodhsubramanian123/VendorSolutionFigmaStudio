@@ -18,6 +18,14 @@ interface KpiCardProps {
   onClick: () => void;
 }
 
+// Extract numeric part like "$1.2m" -> prefix "$", num 1.2, suffix "m".
+// Handles commas correctly (e.g. "1,200"). Returns null when the value has
+// no animatable numeric portion.
+function parseNumericValue(value: string) {
+  const cleanStr = value.replace(/,/g, '');
+  return cleanStr.match(/^(\D*)(\d+(?:\.\d+)?)(\D*)$/);
+}
+
 export function KpiCard({
   id,
   label,
@@ -32,40 +40,45 @@ export function KpiCard({
   onMouseLeave,
   onClick,
 }: KpiCardProps) {
-  const [displayValue, setDisplayValue] = useState(value);
+  const [animatedValue, setAnimatedValue] = useState<string | null>(null);
 
   useEffect(() => {
-    // Extract numeric part like "$1.2m" -> prefix "$", num 1.2, suffix "m"
-    // Handle commas correctly (e.g. "1,200")
-    const cleanStr = value.replace(/,/g, '');
-    const numMatch = cleanStr.match(/^(\D*)(\d+(?:\.\d+)?)(\D*)$/);
-    
-    if (numMatch) {
-      const prefix = numMatch[1] || '';
-      const num = parseFloat(numMatch[2]);
-      const suffix = numMatch[3] || '';
-      const hasDecimals = numMatch[2].includes('.');
-      
-      const controls = animate(0, num, {
-        duration: 0.8,
-        ease: "easeOut",
-        onUpdate: (currentVal) => {
-          let formattedVal = currentVal.toFixed(hasDecimals ? 1 : 0);
-          if (!hasDecimals && num >= 1000) {
-             formattedVal = parseInt(formattedVal, 10).toLocaleString();
-          }
-          setDisplayValue(`${prefix}${formattedVal}${suffix}`);
-        },
-        onComplete: () => {
-          setDisplayValue(value);
-        }
-      });
-      
-      return controls.stop;
-    } else {
-      setDisplayValue(value);
+    const numMatch = parseNumericValue(value);
+
+    if (!numMatch) {
+      // Non-numeric values (e.g. "N/A") have nothing to animate -- render
+      // `value` directly at the call site below instead of calling
+      // setState synchronously here.
+      return;
     }
+
+    const prefix = numMatch[1] || '';
+    const num = parseFloat(numMatch[2]);
+    const suffix = numMatch[3] || '';
+    const hasDecimals = numMatch[2].includes('.');
+
+    const controls = animate(0, num, {
+      duration: 0.8,
+      ease: "easeOut",
+      onUpdate: (currentVal) => {
+        let formattedVal = currentVal.toFixed(hasDecimals ? 1 : 0);
+        if (!hasDecimals && num >= 1000) {
+           formattedVal = parseInt(formattedVal, 10).toLocaleString();
+        }
+        setAnimatedValue(`${prefix}${formattedVal}${suffix}`);
+      },
+      onComplete: () => {
+        setAnimatedValue(value);
+      }
+    });
+
+    return controls.stop;
   }, [value]);
+
+  // Non-numeric values render directly (no animation, no state involved).
+  // Numeric values render the in-progress/most recent animated frame, with
+  // `value` itself as the fallback before the animation's first tick.
+  const displayValue = parseNumericValue(value) ? (animatedValue ?? value) : value;
 
   return (
     <motion.button

@@ -55,6 +55,25 @@ describe('RefineRuleOverlay', () => {
     expect(defaultProps.setRefiningItem).toHaveBeenCalledWith(null);
   });
 
+  it('re-parses fields when refiningItem changes to a new item while already open', () => {
+    const { rerender } = renderComponent();
+    expect(screen.getByDisplayValue('PN-TARGET')).toBeInTheDocument();
+
+    const secondItem: AdviceTriageItem = {
+      id: '2',
+      ruleNumber: '200',
+      productNumber: 'PN-OTHER',
+      adviceText: 'Warning about PN-OTHER needing PN-COMPANION',
+      severity: 'critical',
+      vendor: 'Dell'
+    };
+
+    rerender(<RefineRuleOverlay {...defaultProps} refiningItem={secondItem} />);
+
+    expect(screen.getByDisplayValue('PN-OTHER')).toBeInTheDocument();
+    expect(screen.getByText('Refine Sourcing Policy (Rule 200)')).toBeInTheDocument();
+  });
+
   it('closes when cancel is clicked', () => {
     renderComponent();
     const cancelBtn = screen.getByText('Cancel');

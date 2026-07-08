@@ -3,18 +3,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { BrainCircuit, X, Check } from "lucide-react";
 import type { SourcingRule } from "../../types";
 import type { AdviceTriageItem } from "./AdviceFileIngestion";
+import { deriveRefinementFromItem, type RemedyOption } from "./refinementParsing";
 
 interface RefineRuleOverlayProps {
   refiningItem: AdviceTriageItem | null;
   setRefiningItem: (item: AdviceTriageItem | null) => void;
   onRuleDrafted: (rule: SourcingRule) => void;
   setAdviceItems: React.Dispatch<React.SetStateAction<AdviceTriageItem[]>>;
-}
-
-interface RemedyOption {
-  sku: string;
-  desc: string;
-  checked: boolean;
 }
 
 export function RefineRuleOverlay({
@@ -34,71 +29,32 @@ export function RefineRuleOverlay({
   const [remedyOptions, setRemedyOptions] = useState<RemedyOption[]>([]);
   const [combinationOperator, setCombinationOperator] = useState<"AND" | "OR">("OR");
 
-  useEffect(() => {
+  // Re-derive all refinement fields when a new refiningItem arrives -- this
+  // component stays permanently mounted (it renders null internally when
+  // refiningItem is null), so refiningItem can change to a new item many
+  // times over the component's lifetime, not just once at mount. Adjusting
+  // state directly during render (rather than in a useEffect) is React's
+  // own documented pattern for "adjusting state when a prop changes": it
+  // avoids the extra render pass a setState-in-effect would cause. All the
+  // actual parsing logic lives in the pure deriveRefinementFromItem helper
+  // above, so this stays a simple, low-complexity assignment block.
+  const [lastSeenRefiningItem, setLastSeenRefiningItem] = useState<AdviceTriageItem | null>(null);
+  if (refiningItem !== lastSeenRefiningItem) {
+    setLastSeenRefiningItem(refiningItem);
     if (refiningItem) {
-      setRefineTargetSku(refiningItem.productNumber);
-      setRefineSeverity(refiningItem.severity);
-      
-      let ruleType: SourcingRule["ruleType"] = "substitution";
-      if (refiningItem.adviceText.toLowerCase().includes("license") || refiningItem.adviceText.toLowerCase().includes("software") || refiningItem.adviceText.toLowerCase().includes("os")) {
-        ruleType = "api_gateway";
-      } else if (refiningItem.adviceText.toLowerCase().includes("symmetry") || refiningItem.adviceText.toLowerCase().includes("balance")) {
-        ruleType = "symmetry";
-      }
-      setRefineRuleType(ruleType);
-      
-      // Extract candidates flat list
-      const skuRegex = /[a-zA-Z0-9]{5,8}-[a-zA-Z0-9]{3,4}/g;
-      const matches = refiningItem.adviceText.match(skuRegex) || [];
-      const candidates = Array.from(new Set(matches)).filter(
-        sku => sku !== refiningItem.productNumber && sku !== "DL380-Gen12"
-      );
-      setSuggestedSkus(candidates);
-
-      // Extract options with descriptions from lines
-      const lines = refiningItem.adviceText.split("\n");
-      const options: RemedyOption[] = [];
-      
-      lines.forEach(line => {
-        const skuMatch = line.match(/([a-zA-Z0-9]{5,8}-[a-zA-Z0-9]{3,4})/);
-        if (skuMatch) {
-          const foundSku = skuMatch[1];
-          if (foundSku !== refiningItem.productNumber && !foundSku.includes("DL380") && !foundSku.includes("Gen12")) {
-            // Extract description
-            const parts = line.split(foundSku);
-            const remainder = parts[1] || "";
-            const cleanDesc = remainder
-              .replace(/\t/g, " ")
-              .replace(/\bFIO\b/i, "")
-              .replace(/\b0D1\b/i, "")
-              .replace(/^\s*[-:]?\s*/, "")
-              .trim();
-              
-            if (!options.some(o => o.sku === foundSku)) {
-              options.push({
-                sku: foundSku,
-                desc: cleanDesc || "Companion SKU option",
-                checked: false
-              });
-            }
-          }
-        }
-      });
-
-      setRemedyOptions(options);
+      const derived = deriveRefinementFromItem(refiningItem);
+      setRefineTargetSku(derived.targetSku);
+      setRefineSeverity(derived.severity);
+      setRefineRuleType(derived.ruleType);
+      setSuggestedSkus(derived.suggestedSkus);
+      setRemedyOptions(derived.remedyOptions);
       setRefineAssociatedSkus("");
       setRefineCliScript("");
       setRefineNotes("");
       setRefineScope("Exact SKU Match Only");
-
-      // Heuristically set operator
-      if (refiningItem.adviceText.toLowerCase().includes("minimum and maximum 1") || refiningItem.adviceText.toLowerCase().includes("one of the") || refiningItem.adviceText.toLowerCase().includes("select other")) {
-        setCombinationOperator("OR");
-      } else {
-        setCombinationOperator("AND");
-      }
+      setCombinationOperator(derived.combinationOperator);
     }
-  }, [refiningItem]);
+  }
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {

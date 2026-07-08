@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Plus, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import type { SourcingRule } from "../../types";
@@ -8,6 +8,27 @@ interface AddRuleFormProps {
   onSubmit: (rule: SourcingRule) => Promise<void>;
   prefillRule: Partial<SourcingRule> | null;
   triggerToast: (message: string, type: "success" | "warn") => void;
+}
+
+interface PrefilledFields {
+  ruleType?: SourcingRule["ruleType"];
+  partNumber?: string;
+  mappedOutput?: string;
+  label?: string;
+  vendor?: string;
+}
+
+// Pure helper so the component's own render logic stays simple: just picks
+// out whichever fields the prefill actually supplied, leaving the rest
+// undefined so the caller can leave those form fields untouched.
+function derivePrefilledFields(prefillRule: Partial<SourcingRule>): PrefilledFields {
+  return {
+    ruleType: prefillRule.ruleType,
+    partNumber: prefillRule.partNumber,
+    mappedOutput: prefillRule.mappedOutput,
+    label: prefillRule.label,
+    vendor: prefillRule.vendor,
+  };
 }
 
 export function AddRuleForm({
@@ -24,16 +45,25 @@ export function AddRuleForm({
   const [newStatus, setNewStatus] = useState<SourcingRule["status"]>("active");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  // Sync form fields when a new prefillRule arrives -- including a second
+  // prefill while this form is already open, e.g. the user triggers another
+  // "quick fix" suggestion without closing the panel first. Adjusting state
+  // directly during render (rather than in a useEffect) is React's own
+  // documented pattern for "adjusting state when a prop changes": it avoids
+  // the extra render pass a setState-in-effect would cause.
+  const [lastSeenPrefillRule, setLastSeenPrefillRule] = useState<Partial<SourcingRule> | null>(null);
+  if (prefillRule !== lastSeenPrefillRule) {
+    setLastSeenPrefillRule(prefillRule);
     if (prefillRule) {
-      if (prefillRule.ruleType) setNewRuleType(prefillRule.ruleType);
-      if (prefillRule.partNumber) setNewPartNumber(prefillRule.partNumber);
-      if (prefillRule.mappedOutput) setNewMappedOutput(prefillRule.mappedOutput);
-      if (prefillRule.label) setNewLabel(prefillRule.label);
-      if (prefillRule.vendor) setNewVendor(prefillRule.vendor);
+      const fields = derivePrefilledFields(prefillRule);
+      setNewRuleType(fields.ruleType ?? newRuleType);
+      setNewPartNumber(fields.partNumber ?? newPartNumber);
+      setNewMappedOutput(fields.mappedOutput ?? newMappedOutput);
+      setNewLabel(fields.label ?? newLabel);
+      setNewVendor(fields.vendor ?? newVendor);
       setNewStatus("active");
     }
-  }, [prefillRule]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

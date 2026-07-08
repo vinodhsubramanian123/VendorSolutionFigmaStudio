@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -29,18 +29,28 @@ export function CleansingView() {
 
   const [entries, setEntries] = useState<CleansingEntry[]>(() => baselineEntries);
 
-  useEffect(() => {
-    // Merge the fresh catalog-derived baseline in, but never clobber an entry
-    // the user has already reviewed (mapped, quarantined, or auto-map-promoted)
-    // — reviewedAt is the signal that this entry has diverged from the pristine
-    // auto-detected state and should be preserved rather than regenerated.
+  // Merge the fresh catalog-derived baseline in whenever it changes, but
+  // never clobber an entry the user has already reviewed (mapped,
+  // quarantined, or auto-map-promoted) -- reviewedAt is the signal that this
+  // entry has diverged from the pristine auto-detected state and should be
+  // preserved rather than regenerated. Adjusting state directly during
+  // render (rather than in a useEffect) is React's own documented pattern
+  // for "adjusting state when a prop/dependency changes": it avoids the
+  // extra render pass a setState-in-effect would cause. The functional
+  // setEntries((prev) => ...) form is still needed here (not just a plain
+  // useMemo) because the merge genuinely depends on the entries' own prior
+  // state -- specifically, which entries the user has already reviewed --
+  // not solely on catalogSkus.
+  const [lastSeenBaselineEntries, setLastSeenBaselineEntries] = useState(baselineEntries);
+  if (baselineEntries !== lastSeenBaselineEntries) {
+    setLastSeenBaselineEntries(baselineEntries);
     setEntries((prev) =>
       baselineEntries.map((fresh) => {
         const existing = prev.find((e) => e.id === fresh.id);
         return existing?.reviewedAt ? existing : fresh;
       })
     );
-  }, [baselineEntries]);
+  }
   
   // Toggles between standard auto-mapping and the deep BOQ editor
   const [viewMode, setViewMode] = useState<"auto-map" | "deep-editor">("auto-map");
