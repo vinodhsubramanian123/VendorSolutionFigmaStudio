@@ -1,5 +1,5 @@
 import { useToast } from "../shared/ToastContext";
-import type { UCID, Snapshot } from "../../types";
+import type { UCID, Snapshot, VendorSubmission } from "../../types";
 import { apiClient } from "../../services/apiClient";
 export function useSnapshotManagerLogic(
   activeUCID: UCID | undefined,
@@ -138,11 +138,23 @@ export function buildSnapshot(activeUCID: UCID, newLabel: string, newWinner: str
   };
 }
 
-function getSnapshotBaseData(activeUCID: UCID, newWinner: string) {
-  const currentTotalValue = activeUCID.solutions?.[0]?.vendorSubmissions?.[0]?.totalPrice || 0;
-  const chosenSubmission = activeUCID.solutions?.[0]?.vendorSubmissions?.find(
-    (vs) => vs.label === newWinner || vs.vendor === newWinner
-  ) || activeUCID.solutions?.[0]?.vendorSubmissions?.[0];
+// Safely reaches into the active UCID's first solution's vendor submissions,
+// which every branch of getSnapshotBaseData below needs. Extracted first
+// since each further ?. in a chain adds to the enclosing function's
+// complexity score, and this chain was repeated (with slight variations)
+// three times inline.
+export function getFirstSolutionSubmissions(activeUCID: UCID): VendorSubmission[] {
+  return activeUCID.solutions?.[0]?.vendorSubmissions || [];
+}
+
+export function findChosenSubmission(submissions: VendorSubmission[], newWinner: string): VendorSubmission | undefined {
+  return submissions.find((vs) => vs.label === newWinner || vs.vendor === newWinner) || submissions[0];
+}
+
+export function getSnapshotBaseData(activeUCID: UCID, newWinner: string) {
+  const submissions = getFirstSolutionSubmissions(activeUCID);
+  const currentTotalValue = submissions[0]?.totalPrice || 0;
+  const chosenSubmission = findChosenSubmission(submissions, newWinner);
   const bomConfigs = chosenSubmission?.configs || [];
   const nextVersion = (activeUCID.snapshots?.length || 0) + 1;
   return { currentTotalValue, bomConfigs, nextVersion };

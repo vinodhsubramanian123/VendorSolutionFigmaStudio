@@ -248,14 +248,35 @@ export function VendorIngestionDesk({
     </motion.div>
   );
 }
+interface PortalCredentialDefaults {
+  username: string;
+  apiToken: string;
+  mfaToken: string;
+}
+
+// Merges real vendor credentials (when present) with known-fallback demo
+// values. Extracted so resolvePortalConfig's three near-identical vendor
+// blocks each collapse to one call instead of three separate `||` chains,
+// which is what was inflating that function's cognitive complexity score
+// (the underlying logic here is simple defaulting, not real branching).
+function resolvePortalCredentials(vendorData: Partial<Vendor>, fallback: PortalCredentialDefaults): PortalCredentialDefaults {
+  return {
+    username: vendorData.credentials?.username || fallback.username,
+    apiToken: vendorData.credentials?.apiToken || fallback.apiToken,
+    mfaToken: vendorData.credentials?.mfaToken || fallback.mfaToken,
+  };
+}
+
 function resolvePortalConfig(selectedPortal: string, vendors: Vendor[]) {
   const vendorData = vendors.find(v => v.shortName === selectedPortal) || vendors[0] || ({} as Partial<Vendor>);
   
   const portalConfigs: Record<string, { username: string; apiToken: string; mfaToken: string; authStatus: "authorized" | "expired"; defaultLogs: string[] }> = {
     HPE: {
-      username: vendorData.credentials?.username || "enterprise_sourcing_hpe_prod",
-      apiToken: vendorData.credentials?.apiToken || "HPE-S0urcing-2026!",
-      mfaToken: vendorData.credentials?.mfaToken || "RO7K-9154-A24B",
+      ...resolvePortalCredentials(vendorData, {
+        username: "enterprise_sourcing_hpe_prod",
+        apiToken: "HPE-S0urcing-2026!",
+        mfaToken: "RO7K-9154-A24B",
+      }),
       authStatus: "authorized",
       defaultLogs: [
         "[08:34:10] [Manager] - Loading HPE Partner Ready configuration credentials...",
@@ -264,9 +285,11 @@ function resolvePortalConfig(selectedPortal: string, vendors: Vendor[]) {
       ],
     },
     Dell: {
-      username: vendorData.credentials?.username || "dell_premier_procurement_lead",
-      apiToken: vendorData.credentials?.apiToken || "DellAdminSecure3902!!",
-      mfaToken: vendorData.credentials?.mfaToken || "DL-9824-MFA-X2",
+      ...resolvePortalCredentials(vendorData, {
+        username: "dell_premier_procurement_lead",
+        apiToken: "DellAdminSecure3902!!",
+        mfaToken: "DL-9824-MFA-X2",
+      }),
       authStatus: "authorized",
       defaultLogs: [
         "[09:10:02] [Manager] - Dell Premier portal authentication state valid.",
@@ -274,9 +297,11 @@ function resolvePortalConfig(selectedPortal: string, vendors: Vendor[]) {
       ],
     },
     Cisco: {
-      username: vendorData.credentials?.username || "cisco_commerce_workspace_api",
-      apiToken: vendorData.credentials?.apiToken || "Cisco#CCW#Tunnel99",
-      mfaToken: vendorData.credentials?.mfaToken || "CSCO-AUTH-9999",
+      ...resolvePortalCredentials(vendorData, {
+        username: "cisco_commerce_workspace_api",
+        apiToken: "Cisco#CCW#Tunnel99",
+        mfaToken: "CSCO-AUTH-9999",
+      }),
       authStatus: "expired",
       defaultLogs: [
         "[10:12:05] [Manager] - CCW token detected: EXPIRED.",

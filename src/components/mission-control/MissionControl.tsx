@@ -25,7 +25,31 @@ import { useMissionControlWorkflow } from "./useMissionControlWorkflow";
 import { PRIORITY_COLOR } from "../../lib/constants";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { JobStreamer } from "../shared/JobStreamer";
-import { getSolutionName, getStepState } from "./missionControlUtils";
+import { getSolutionName, getStepState, formatUcidDisplayName, getSyncStatusVariant } from "./missionControlUtils";
+
+// Pure helper for the top-level solution status badge, extracted so the
+// nested ternary doesn't count toward MissionControl's own complexity.
+function deriveSolutionState(completeCount: number, totalCount: number, ucids: UCID[]): "planning" | "active" | "complete" {
+  if (completeCount === totalCount) return "complete";
+  return ucids.some((u) => u.currentStep !== "boq-intake") ? "active" : "planning";
+}
+
+// Applies a partial update to the single UCID matching selectedId, leaving
+// every other UCID untouched. Extracted since the same
+// prev.map(u => u.id === selectedId ? {...u, ...patch} : u) shape was
+// repeated for both onUpdateSolutions and onUpdateBOM.
+function updateUcidById<T extends { id: string }>(list: T[], id: string, patch: Partial<T>): T[] {
+  return list.map((u) => (u.id === id ? { ...u, ...patch } : u));
+}
+
+function toggleButtonClassName(isActive: boolean): string {
+  return `flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
+    isActive
+      ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/25"
+      : "text-content-secondary hover:text-content-primary hover:bg-white/5"
+  }`;
+}
+
 interface MissionControlProps {
   selectedId?: string;
   onSelectId: (id: string | undefined) => void;
@@ -82,6 +106,15 @@ export const MissionControl = React.memo(function MissionControl({
   const selected = ucids.find((u) => u.id === selectedId) ?? ucids[0];
   const activeStep = viewStep ?? (selected?.currentStep || "boq-intake");
 
+  // Used both for the toolbar's "(N sheets)" count and as the actual
+  // campaignUcids prop passed to CampaignConsolidationHub -- previously
+  // computed via two separate, identical .filter() calls inline.
+  const campaignSiblingUcids = React.useMemo(() => {
+    if (!selected) return [];
+    const selectedSolutionName = getSolutionName(selected, solutions);
+    return ucids.filter((u) => getSolutionName(u, solutions) === selectedSolutionName);
+  }, [ucids, solutions, selected]);
+
   // Auto-sync activeSolutionId whenever the selected UCID changes — keeps Taxonomy Graph
   // and Solutions screen defaulting to the correct parent without prop drilling.
   useEffect(() => {
@@ -93,12 +126,7 @@ export const MissionControl = React.memo(function MissionControl({
   const completeCount = ucids.filter(
     (u) => u.currentStep === "snapshot",
   ).length;
-  const solutionState: "planning" | "active" | "complete" =
-    completeCount === ucids.length
-      ? "complete"
-      : ucids.some((u) => u.currentStep !== "boq-intake")
-        ? "active"
-        : "planning";
+  const solutionState = deriveSolutionState(completeCount, ucids.length, ucids);
   const {
     runningIntel,
     intelProgress,
@@ -180,11 +208,7 @@ export const MissionControl = React.memo(function MissionControl({
               aria-label="Switch to UCID Worksheet Pipeline Tracker"
               aria-pressed={workspaceMode === "individual"}
               onClick={() => setWorkspaceMode("individual")}
-              className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
-                workspaceMode === "individual"
-                  ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/25"
-                  : "text-content-secondary hover:text-content-primary hover:bg-white/5"
-              }`}
+              className={toggleButtonClassName(workspaceMode === "individual")}
             >
               <Activity className="w-3.5 h-3.5 animate-pulse" />
               <span>UCID Worksheet Pipeline Tracker</span>
@@ -194,20 +218,12 @@ export const MissionControl = React.memo(function MissionControl({
               aria-label="Switch to Campaign Consolidation Hub"
               aria-pressed={workspaceMode === "consolidation"}
               onClick={() => setWorkspaceMode("consolidation")}
-              className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer font-mono transition-all flex items-center justify-center gap-2 ${
-                workspaceMode === "consolidation"
-                  ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/25"
-                  : "text-content-secondary hover:text-content-primary hover:bg-white/5"
-              }`}
+              className={toggleButtonClassName(workspaceMode === "consolidation")}
             >
               <GitCompare className="w-3.5 h-3.5" />
               <span>
                 Campaign Consolidation Hub (
-                {
-                  ucids.filter(
-                    (u) => getSolutionName(u, solutions) === getSolutionName(selected, solutions),
-                  ).length
-                }{" "}
+                {campaignSiblingUcids.length}{" "}
                 sheets)
               </span>
             </button>
@@ -216,9 +232,7 @@ export const MissionControl = React.memo(function MissionControl({
             {workspaceMode === "consolidation" ? (
               <CampaignConsolidationHub
                 campaignName={getSolutionName(selected, solutions)}
-                campaignUcids={ucids.filter(
-                  (u) => getSolutionName(u, solutions) === getSolutionName(selected, solutions),
-                )}
+                campaignUcids={campaignSiblingUcids}
                 ucids={ucids}
                 setUcids={setUcids}
                 campaignSigner={campaignSigner}
@@ -239,7 +253,7 @@ export const MissionControl = React.memo(function MissionControl({
                         </span>
                         <StatusBadge
                           status={selected.syncStatus || "Pending"}
-                          variant={selected.syncStatus === "Synced" ? "success" : selected.syncStatus === "Out-of-Sync" ? "warning" : "info"}
+                          variant={getSyncStatusVariant(selected.syncStatus)}
                           size="sm"
                         />
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-indigo/15 border border-brand-indigo/20 text-brand-indigo font-semibold select-none">
@@ -263,9 +277,7 @@ export const MissionControl = React.memo(function MissionControl({
                         </span>
                       </div>
                       <h2 className="text-base text-content-primary font-semibold mt-1">
-                        {selected.name.includes(" — ")
-                          ? selected.name.split(" — ").slice(1).join(" — ")
-                          : selected.name}
+                        {formatUcidDisplayName(selected.name)}
                       </h2>
                     </div>
                     <div className="flex items-center gap-2 self-start md:self-auto">
@@ -299,22 +311,10 @@ export const MissionControl = React.memo(function MissionControl({
                         appendLogEvent(selected.id, level, msg)
                       }
                       onUpdateSolutions={(sols) => {
-                        setUcids((prev) =>
-                          prev.map((u) =>
-                            u.id === selected.id
-                              ? { ...u, solutions: sols }
-                              : u,
-                          ),
-                        );
+                        setUcids((prev) => updateUcidById(prev, selected.id, { solutions: sols }));
                       }}
                       onUpdateBOM={(bomText) => {
-                        setUcids((prev) =>
-                          prev.map((u) =>
-                            u.id === selected.id
-                              ? { ...u, rawBOM: bomText }
-                              : u,
-                          ),
-                        );
+                        setUcids((prev) => updateUcidById(prev, selected.id, { rawBOM: bomText }));
                       }}
                       onShowToast={(msg, type) =>
                         toast(msg, type)

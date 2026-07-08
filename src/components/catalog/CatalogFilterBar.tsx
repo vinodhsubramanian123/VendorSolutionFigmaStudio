@@ -12,6 +12,20 @@ interface CatalogFilterBarProps {
   setTypeFilter: (val: string) => void;
 }
 
+// Renders a ">" separator + value for one breadcrumb level, or nothing when
+// that level is unset ("all"). Extracted because the same
+// {condition && (<li/><li/>)} shape was repeated 4 times inline, each
+// counting as a separate branch toward CatalogFilterBar's own complexity.
+function BreadcrumbSegment({ value, displayAs }: { value?: string; displayAs?: string }) {
+  if (!value || value === "all") return null;
+  return (
+    <>
+      <li aria-hidden="true" className="select-none text-content-secondary px-1">&gt;</li>
+      <li>{displayAs ?? value}</li>
+    </>
+  );
+}
+
 export function CatalogFilterBar({
   searchTerm,
   setSearchTerm,
@@ -53,30 +67,10 @@ export function CatalogFilterBar({
             <li>
               {selectedPath?.vendor === "all" ? "All Vendors" : selectedPath?.vendor}
             </li>
-            {selectedPath?.solution !== "all" && (
-              <>
-                <li aria-hidden="true" className="select-none text-content-secondary px-1">&gt;</li>
-                <li>{selectedPath?.solution}</li>
-              </>
-            )}
-            {selectedPath?.product !== "all" && (
-              <>
-                <li aria-hidden="true" className="select-none text-content-secondary px-1">&gt;</li>
-                <li>{selectedPath?.product}</li>
-              </>
-            )}
-            {selectedPath?.generation !== "all" && (
-              <>
-                <li aria-hidden="true" className="select-none text-content-secondary px-1">&gt;</li>
-                <li>{selectedPath?.generation}</li>
-              </>
-            )}
-            {selectedPath?.chassis !== "all" && (
-              <>
-                <li aria-hidden="true" className="select-none text-content-secondary px-1">&gt;</li>
-                <li>CHASSIS</li>
-              </>
-            )}
+            <BreadcrumbSegment value={selectedPath?.solution} />
+            <BreadcrumbSegment value={selectedPath?.product} />
+            <BreadcrumbSegment value={selectedPath?.generation} />
+            <BreadcrumbSegment value={selectedPath?.chassis} displayAs="CHASSIS" />
           </ol>
         </nav>
         {(selectedPath?.vendor !== "all" ||

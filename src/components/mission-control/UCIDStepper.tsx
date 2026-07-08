@@ -14,6 +14,7 @@ import type { UCID, UCIDStep } from "../../types";
 import { STEP_ORDER } from "../../lib/mockData";
 import { tokens } from "../../styles/tokens";
 import { motion } from "motion/react";
+import type { StepState } from "./missionControlUtils";
 
 const STEP_ICONS: Record<UCIDStep, React.ElementType> = {
   "boq-intake": Upload,
@@ -76,9 +77,27 @@ interface UCIDStepperProps {
   ucid: UCID;
   activeStep: UCIDStep;
   setViewStep: (step: UCIDStep) => void;
-  getStepState: (u: UCID, stepId: UCIDStep) => "upcoming" | "active" | "complete";
+  getStepState: (u: UCID, stepId: UCIDStep) => StepState;
 }
 
+// Derives the step node's background/border styling from its completion
+// state and whether it's the currently-viewed step. Extracted since both
+// were near-identical nested ternaries with the same two conditions.
+function deriveStepNodeStyle(state: StepState, isCurrentViewing: boolean): { bgStyle: string; borderStyle: string } {
+  if (isCurrentViewing) {
+    return { bgStyle: "transparent", borderStyle: "none" };
+  }
+  if (state === "complete") {
+    return {
+      bgStyle: "rgba(0,212,160,0.1)",
+      borderStyle: `1.5px solid ${tokens.colors.status.success}`,
+    };
+  }
+  return {
+    bgStyle: "rgba(74, 133, 253,0.03)",
+    borderStyle: "1.5px solid rgba(74, 133, 253,0.12)",
+  };
+}
 
 function StepItem({
   step,
@@ -92,23 +111,13 @@ function StepItem({
   step: typeof STEPS_DATA[0];
   idx: number;
   isLast: boolean;
-  state: "upcoming" | "active" | "complete";
+  state: StepState;
   isCurrentViewing: boolean;
   completionTime: string | null;
   setViewStep: (step: UCIDStep) => void;
 }) {
   const IconComponent = STEP_ICONS[step.id as UCIDStep] || HelpCircle;
-  const bgStyle = state === "complete" && !isCurrentViewing
-    ? "rgba(0,212,160,0.1)"
-    : !isCurrentViewing
-      ? "rgba(74, 133, 253,0.03)"
-      : "transparent";
-
-  const borderStyle = state === "complete" && !isCurrentViewing
-    ? `1.5px solid ${tokens.colors.status.success}`
-    : !isCurrentViewing
-      ? "1.5px solid rgba(74, 133, 253,0.12)"
-      : "none";
+  const { bgStyle, borderStyle } = deriveStepNodeStyle(state, isCurrentViewing);
 
   return (
     <div key={step.id} className="flex items-center flex-1 min-w-[70px]">

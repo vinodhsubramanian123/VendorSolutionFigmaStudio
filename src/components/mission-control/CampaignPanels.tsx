@@ -104,11 +104,23 @@ interface CampaignReconciliationMatrixProps {
   completedPipes: number;
 }
 
+import { formatUcidDisplayName } from "./missionControlUtils";
+
+// Finds a submission for a specific vendor, falling back to the first
+// submission when that vendor hasn't submitted. Extracted since the same
+// pattern was repeated for HPE and Dell inline.
+export function findVendorSubmission(
+  submissions: UCID["solutions"][number]["vendorSubmissions"] | undefined,
+  vendor: string
+) {
+  return submissions?.find((x) => x.vendor === vendor) ?? submissions?.[0];
+}
+
 function CampaignReconciliationMatrixRow({ u, getVariant }: { u: UCID, getVariant: (s: string) => any }) {
   const masterSolution = u.solutions[0];
   const currentSelected = masterSolution?.vendorSubmissions?.[0];
-  const hpeS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "HPE") ?? masterSolution?.vendorSubmissions?.[0];
-  const dellS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "Dell") ?? masterSolution?.vendorSubmissions?.[0];
+  const hpeS = findVendorSubmission(masterSolution?.vendorSubmissions, "HPE");
+  const dellS = findVendorSubmission(masterSolution?.vendorSubmissions, "Dell");
 
   return (
     <motion.tr 
@@ -124,7 +136,7 @@ function CampaignReconciliationMatrixRow({ u, getVariant }: { u: UCID, getVarian
           <p className="font-bold text-content-primary leading-none flex items-center gap-1.5">
             <span className="text-[8.5px] text-content-primary0 font-mono tracking-wider">{u.displayId}</span>
             <span className="truncate max-w-[150px] font-sans text-[10px]">
-              {u.name.includes(" — ") ? u.name.split(" — ").slice(1).join(" — ") : u.name}
+              {formatUcidDisplayName(u.name)}
             </span>
           </p>
           <p className="text-[8.5px] text-content-primary0 font-mono">Ref: {u.projectRef}</p>

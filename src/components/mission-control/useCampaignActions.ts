@@ -1,4 +1,55 @@
 import { UCID, Snapshot, VendorSubmission } from "../../types";
+import { findVendorSubmission } from "./CampaignPanels";
+
+// Builds the Snapshot record for a campaign certification lock, given the
+// UCID being certified and who signed it. Extracted from the setUcids map
+// callback in handleCertifyCampaign, which was independently the single
+// biggest contributor to that callback's complexity.
+export function buildCertificationSnapshot(u: UCID, campaignSigner: string): Snapshot {
+  const winningSol = u.solutions[0]?.vendorSubmissions?.[0] ?? {
+    vendor: "Multi-vendor",
+    label: "Consolidated solution",
+    totalPrice: 240000,
+  };
+  const now = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+  return {
+    id: `snap-${crypto.randomUUID()}`,
+    label: `Campaign Master Covenant Lock - Sourced via ${winningSol.vendor}`,
+    committedAt: now,
+    winnerSolution: winningSol.vendor,
+    totalValue: winningSol.totalPrice,
+    notes: `Master digital covenant locked by ${campaignSigner}. Cryptographic compliance checksum generated successfully.`,
+    version: u.snapshots.length + 1,
+    timestamp: now,
+    locked: true,
+    bomSnapshot: (winningSol as VendorSubmission).configs || [],
+  };
+}
+
+// Applies the certification transform to a single UCID: seals a snapshot
+// (unless one already exists), advances it to the "snapshot" step, and logs
+// the covenant-lock event. Also extracted from the map callback for the
+// same reason as buildCertificationSnapshot above.
+export function certifyUcid(u: UCID, campaignSigner: string): UCID {
+  const hasSnapshot = u.snapshots.length > 0;
+  const newSnapshot = buildCertificationSnapshot(u, campaignSigner);
+
+  return {
+    ...u,
+    currentStep: "snapshot" as const,
+    completedSteps: Array.from(new Set([...u.completedSteps, "snapshot" as const])),
+    snapshots: hasSnapshot ? u.snapshots : [newSnapshot],
+    events: [
+      ...u.events,
+      {
+        timestamp: new Date().toISOString(),
+        level: "ok" as const,
+        msg: `Covenant Lock: Master Snapshot sealed by ${campaignSigner}. SECURE SHA-256 generated.`,
+      },
+    ],
+  };
+}
 
 export function useCampaignActions(
   campaignName: string,
@@ -87,43 +138,7 @@ export function useCampaignActions(
       prev.map((u) => {
         const matchName = getSolutionName(u);
         if (matchName !== campaignName) return u;
-        const winningSol = u.solutions[0]?.vendorSubmissions?.[0] ?? {
-          vendor: "Multi-vendor",
-          label: "Consolidated solution",
-          totalPrice: 240000,
-        };
-        const hasSnapshot = u.snapshots.length > 0;
-        const newSnapshot: Snapshot = {
-          id: `snap-${crypto.randomUUID()}`,
-          label: `Campaign Master Covenant Lock - Sourced via ${winningSol.vendor}`,
-          committedAt: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-          winnerSolution: winningSol.vendor,
-          totalValue: winningSol.totalPrice,
-          notes: `Master digital covenant locked by ${campaignSigner}. Cryptographic compliance checksum generated successfully.`,
-          version: u.snapshots.length + 1,
-          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-          locked: true,
-          bomSnapshot: (winningSol as VendorSubmission).configs || []
-        };
-        return {
-          ...u,
-          currentStep: "snapshot" as const,
-          completedSteps: Array.from(
-            new Set([...u.completedSteps, "snapshot" as const]),
-          ),
-          snapshots: hasSnapshot ? u.snapshots : [newSnapshot],
-          events: [
-            ...u.events,
-            {
-              timestamp: new Date().toISOString(),
-              level: "ok" as const,
-              msg: `Covenant Lock: Master Snapshot sealed by ${campaignSigner}. SECURE SHA-256 generated.`,
-            },
-          ],
-        };
+        return certifyUcid(u, campaignSigner);
       }),
     );
   }
@@ -133,8 +148,8 @@ export function useCampaignActions(
     campaignUcids.forEach(u => {
       const masterSolution = u.solutions[0];
       const currentSelected = masterSolution?.vendorSubmissions?.[0];
-      const hpeS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "HPE") ?? masterSolution?.vendorSubmissions?.[0];
-      const dellS = masterSolution?.vendorSubmissions?.find((x) => x.vendor === "Dell") ?? masterSolution?.vendorSubmissions?.[0];
+      const hpeS = findVendorSubmission(masterSolution?.vendorSubmissions, "HPE");
+      const dellS = findVendorSubmission(masterSolution?.vendorSubmissions, "Dell");
       csv += `"${u.displayId} - ${u.name}","${currentSelected?.vendor || 'Unassigned'}","${currentSelected?.totalPrice || 0}","${hpeS?.totalPrice || 0}","${dellS?.totalPrice || 0}","${u.currentStep}"\n`;
     });
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

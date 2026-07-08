@@ -5,6 +5,48 @@ import { apiClient } from "../../services/apiClient";
 import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
 import { ConstraintCheckResponseSchema, ReconciliationResponseSchema } from "../../types/zodSchemas";
 
+// Extracts a human-readable message from a thrown API error, which can
+// arrive in a few different shapes (a real Error, an apiClient error
+// envelope with a nested `.error.message`, or a plain object with a
+// top-level `.message`). Kept as a standalone helper so
+// useBomConversion's own triggerBOMParse stays under the cognitive
+// complexity limit.
+export function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  if (err && typeof err === "object") {
+    if ("error" in err && err.error && typeof err.error === "object" && "message" in err.error) {
+      return String(err.error.message);
+    }
+    if ("message" in err) {
+      return String(err.message);
+    }
+  }
+  return "Backend Verification Failed.";
+}
+
+interface BomConstraintDefaults {
+  chassisSKU: string;
+  cpuSKU: string;
+  ramQuantity: number;
+}
+
+// Pulls the chassis/CPU/RAM values used to seed the constraint-check API
+// call out of the target UCID's first solution/submission/config, falling
+// back to known-good defaults when a given item type isn't present yet.
+export function extractBomConstraintDefaults(targetUcid: UCID): BomConstraintDefaults {
+  const configItems =
+    targetUcid.solutions[0]?.vendorSubmissions?.[0]?.configs?.flatMap(
+      (c) => c.items,
+    ) || [];
+  return {
+    chassisSKU: configItems.find((i) => i.type === "Chassis")?.partNumber || "P40411-B21",
+    cpuSKU: configItems.find((i) => i.type === "Processor")?.partNumber || "815100-B21",
+    ramQuantity: configItems.find((i) => i.type === "Memory")?.quantity || 5,
+  };
+}
+
 export function useBomConversion(
   ucids: UCID[],
   setUcids: React.Dispatch<React.SetStateAction<UCID[]>>,
@@ -45,13 +87,7 @@ export function useBomConversion(
     setBomReconResult(null);
 
     try {
-      const configItems =
-        targetUcid.solutions[0]?.vendorSubmissions?.[0]?.configs?.flatMap(
-          (c) => c.items,
-        ) || [];
-      const chassisSKU = configItems.find((i) => i.type === "Chassis")?.partNumber || "P40411-B21";
-      const cpuSKU = configItems.find((i) => i.type === "Processor")?.partNumber || "815100-B21";
-      const ramQuantity = configItems.find((i) => i.type === "Memory")?.quantity || 5;
+      const { chassisSKU, cpuSKU, ramQuantity } = extractBomConstraintDefaults(targetUcid);
 
       const constraintsRes = await apiClient.post<ConstraintCheckResponse>("/api/taxonomy/check-constraints", {
         chassisSKU,
@@ -88,17 +124,7 @@ export function useBomConversion(
       setIsBOMIngesting(false);
       setIsPendingAPI(false);
     } catch (err: unknown) {
-      let errorMessage = "Backend Verification Failed.";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (err && typeof err === "object") {
-        if ("error" in err && err.error && typeof err.error === "object" && "message" in err.error) {
-          errorMessage = String(err.error.message);
-        } else if ("message" in err) {
-          errorMessage = String(err.message);
-        }
-      }
-      toast(errorMessage, "error");
+      toast(extractErrorMessage(err), "error");
       setIsBOMIngesting(false);
       setIsPendingAPI(false);
     }

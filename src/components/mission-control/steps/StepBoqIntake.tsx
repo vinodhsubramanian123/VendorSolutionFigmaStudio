@@ -2,6 +2,7 @@ import React from "react";
 import { UploadCloud, Sparkles, ArrowRight } from "lucide-react";
 import type { UCID, Solution } from "../../../types";
 import { useBoqSimulator } from "./useBoqSimulator";
+import type { IngestionPreset } from "../../../store/ingestionStore";
 
 interface StepBoqIntakeProps {
   ucid: UCID;
@@ -11,6 +12,81 @@ interface StepBoqIntakeProps {
   onShowToast: (msg: string, type: "success" | "warn" | "error") => void;
   onAdvance: () => void;
   onNavigate: (view: import("../../../types").AppView) => void;
+}
+
+interface BoqPreset {
+  fileName: string;
+  preset: IngestionPreset;
+  colorClass: string;
+  label: string;
+  desc: string;
+}
+
+const BOQ_PRESETS: BoqPreset[] = [
+  {
+    fileName: "HPE_PARTNER_QUOTE_6130_EOL.xlsx",
+    preset: "hpe-legacy",
+    colorClass: "bg-status-warning/10 hover:bg-status-warning/15 border border-status-warning/20 text-status-warning",
+    label: "● HPE EOL SKU",
+    desc: "6130 Legacy CPU",
+  },
+  {
+    fileName: "DELL_PREMIER_QUOTE_DRAFT.csv",
+    preset: "dell-overcharge",
+    colorClass: "bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400",
+    label: "● Dell Markup",
+    desc: "Overprice storage",
+  },
+  {
+    fileName: "CISCO_UCS_AS_SYMMETRICAL.csv",
+    preset: "cisco-asymmetry",
+    colorClass: "bg-brand-violet/10 hover:bg-brand-violet/15 border border-brand-violet/20 text-brand-violet",
+    label: "● Cisco Symmetry",
+    desc: "Asymmetric RAM",
+  },
+];
+
+function PresetButton({ preset, onSelect }: { preset: BoqPreset; onSelect: (fileName: string, preset: IngestionPreset) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(preset.fileName, preset.preset)}
+      className={`p-1.5 rounded text-left font-mono text-[9px] cursor-pointer transition flex flex-col justify-between h-14 ${preset.colorClass}`}
+    >
+      <span className="font-extrabold uppercase text-[7.5px] mb-0.5">
+        {preset.label}
+      </span>
+      <span className="text-content-secondary text-[8px] truncate max-w-full">
+        {preset.desc}
+      </span>
+    </button>
+  );
+}
+
+interface ParsedSpecsSummary {
+  hasParsedSolutions: boolean;
+  linkedDesignsCount: number;
+  parsedItemsCount: number;
+}
+
+// Pulls the "Estimated Specs Extracted" panel's three derived values out of
+// a single pure function, rather than three separate expressions inline in
+// StepBoqIntake's own body -- moving these into an actual separate function
+// (not just top-level consts in the same function) is what actually reduces
+// StepBoqIntake's own complexity score.
+export function deriveParsedSpecsSummary(ucid: UCID): ParsedSpecsSummary {
+  const firstSubmission = ucid.solutions[0]?.vendorSubmissions;
+  const linkedDesignsCount = firstSubmission?.length ?? 0;
+  const parsedItemsCount =
+    firstSubmission?.[0]?.configs
+      ?.flatMap((c) => c.items)
+      ?.reduce((s, it) => s + it.quantity, 0) || 0;
+
+  return {
+    hasParsedSolutions: linkedDesignsCount > 0,
+    linkedDesignsCount,
+    parsedItemsCount,
+  };
 }
 
 export function StepBoqIntake({
@@ -23,6 +99,8 @@ export function StepBoqIntake({
   onNavigate,
 }: StepBoqIntakeProps) {
   const { handleSimulateIntake } = useBoqSimulator(onUpdateBOM, onUpdateSolutions, appendLogEvent, onShowToast);
+  const hasNoContent = !ucid.rawBOM.trim() && ucid.solutions.length === 0;
+  const { hasParsedSolutions, linkedDesignsCount, parsedItemsCount } = deriveParsedSpecsSummary(ucid);
   return (
     <div className="space-y-4">
       {/* Unified Pipeline Active Banner */}
@@ -89,57 +167,9 @@ export function StepBoqIntake({
               standard pre-configured baseline models:
             </p>
             <div className="grid grid-cols-3 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() =>
-                  handleSimulateIntake(
-                    "HPE_PARTNER_QUOTE_6130_EOL.xlsx",
-                    "hpe-legacy",
-                  )
-                }
-                className="p-1.5 rounded bg-status-warning/10 hover:bg-status-warning/15 border border-status-warning/20 text-status-warning text-left font-mono text-[9px] cursor-pointer transition flex flex-col justify-between h-14"
-              >
-                <span className="font-extrabold uppercase text-[7.5px] text-status-warning mb-0.5">
-                  ● HPE EOL SKU
-                </span>
-                <span className="text-content-secondary text-[8px] truncate max-w-full">
-                  6130 Legacy CPU
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleSimulateIntake(
-                    "DELL_PREMIER_QUOTE_DRAFT.csv",
-                    "dell-overcharge",
-                  )
-                }
-                className="p-1.5 rounded bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400 text-left font-mono text-[9px] cursor-pointer transition flex flex-col justify-between h-14"
-              >
-                <span className="font-extrabold uppercase text-[7.5px] text-rose-500 mb-0.5">
-                  ● Dell Markup
-                </span>
-                <span className="text-content-secondary text-[8px] truncate max-w-full">
-                  Overprice storage
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleSimulateIntake(
-                    "CISCO_UCS_AS_SYMMETRICAL.csv",
-                    "cisco-asymmetry",
-                  )
-                }
-                className="p-1.5 rounded bg-brand-violet/10 hover:bg-brand-violet/15 border border-brand-violet/20 text-brand-violet text-left font-mono text-[9px] cursor-pointer transition flex flex-col justify-between h-14"
-              >
-                <span className="font-extrabold uppercase text-[7.5px] text-brand-violet mb-0.5">
-                  ● Cisco Symmetry
-                </span>
-                <span className="text-content-secondary text-[8px] truncate max-w-full">
-                  Asymmetric RAM
-                </span>
-              </button>
+              {BOQ_PRESETS.map((preset) => (
+                <PresetButton key={preset.preset} preset={preset} onSelect={handleSimulateIntake} />
+              ))}
             </div>
           </div>
         </div>
@@ -163,22 +193,19 @@ export function StepBoqIntake({
           <p className="text-[10.5px] font-bold text-content-primary uppercase tracking-wider">
             Estimated Specs Extracted
           </p>
-          {ucid.solutions &&
-          ucid.solutions[0]?.vendorSubmissions?.length > 0 ? (
+          {hasParsedSolutions ? (
             <div className="text-[11px] text-brand-indigo space-y-0.5 font-mono">
               <p>
                 ✓ Active solutions linked:{" "}
                 <span className="text-content-primary font-bold">
-                  {ucid.solutions[0]?.vendorSubmissions?.length ?? 0}{" "}
+                  {linkedDesignsCount}{" "}
                   alternative designs
                 </span>
               </p>
               <p>
                 ✓ Current parsed items count:{" "}
                 <span className="text-content-primary font-bold">
-                  {ucid.solutions[0]?.vendorSubmissions?.[0]?.configs
-                    ?.flatMap((c) => c.items)
-                    ?.reduce((s, it) => s + it.quantity, 0) || 0}{" "}
+                  {parsedItemsCount}{" "}
                   hardware components
                 </span>
               </p>
@@ -197,7 +224,7 @@ export function StepBoqIntake({
           )}
         </div>
         <div className="flex flex-col justify-end gap-1">
-          {(!ucid.rawBOM.trim() && ucid.solutions.length === 0) && (
+          {hasNoContent && (
             <p className="text-[10px] text-status-warning font-semibold text-right flex items-center justify-end gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-status-warning shrink-0" />
               Load a preset or paste specification text to continue.
@@ -207,7 +234,7 @@ export function StepBoqIntake({
             id="btn-advance-to-scan"
             type="button"
             onClick={onAdvance}
-            disabled={!ucid.rawBOM.trim() && ucid.solutions.length === 0}
+            disabled={hasNoContent}
             className="w-full md:w-auto self-end flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg transition-all cursor-pointer shadow-lg shadow-indigo-500/10 uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed bg-brand-indigo text-content-primary hover:bg-brand-indigo"
           >
             Launch Intelligence Scan{" "}

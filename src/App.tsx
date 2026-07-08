@@ -10,8 +10,9 @@ import { BreadcrumbNav } from "./components/layout/BreadcrumbNav";
 import { GlobalApiErrorListener } from "./components/shared/GlobalApiErrorListener";
 import { useCoreStore } from "./store/coreStore";
 import { ShimmerBlock } from "./components/shared/ShimmerBlock";
-import type { AppView, Config } from "./types";
+import type { AppView } from "./types";
 import { useForensicSync } from "./hooks/useForensicSync";
+import { migrateAllUcidSnapshots } from "./snapshotMigration";
 
 // Lazy-loaded Views
 const Dashboard = React.lazy(() => import("./components/dashboard/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -51,53 +52,9 @@ export default function App() {
   useEffect(() => {
     if (hasMigratedSnapshots.current) return;
     setUcids((prevUcids) => {
-      let migrated = false;
-      const nextUcids = prevUcids.map((u) => {
-        let uMigrated = false;
-        const nextSnaps = (u.snapshots || []).map((s, idx) => {
-          const fallbackVersion = s.version ?? (idx + 1);
-          const fallbackTimestamp = s.timestamp ?? s.committedAt ?? new Date().toISOString();
-          const fallbackLocked = s.locked ?? true;
-          
-          let fallbackBom: Config[] = s.bomSnapshot as Config[];
-          if (!fallbackBom) {
-            if (s.payload && Array.isArray(s.payload)) {
-              fallbackBom = s.payload[0]?.vendorSubmissions?.[0]?.configs || [];
-            } else {
-              fallbackBom = [];
-            }
-          }
-
-          if (
-            s.version !== fallbackVersion ||
-            s.timestamp !== fallbackTimestamp ||
-            s.locked !== fallbackLocked ||
-            s.bomSnapshot === undefined
-          ) {
-            uMigrated = true;
-            return {
-              ...s,
-              version: fallbackVersion,
-              timestamp: fallbackTimestamp,
-              locked: fallbackLocked,
-              bomSnapshot: fallbackBom,
-            };
-          }
-          return s;
-        });
-
-        if (uMigrated) {
-          migrated = true;
-          return {
-            ...u,
-            snapshots: nextSnaps,
-          };
-        }
-        return u;
-      });
-
+      const result = migrateAllUcidSnapshots(prevUcids);
       hasMigratedSnapshots.current = true;
-      return migrated ? nextUcids : prevUcids;
+      return result.migrated ? result.ucids : prevUcids;
     });
   }, [setUcids]);
 
