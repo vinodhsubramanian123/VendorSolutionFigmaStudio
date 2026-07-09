@@ -27,6 +27,77 @@ interface SidebarProps {
   activeMissionId?: string;
   onSelectMission: (id: string) => void;
 }
+
+interface NavItem {
+  path: string;
+  label: string;
+  icon: React.ElementType;
+  iconColor?: string;
+  badge?: number | string;
+  badgeColor?: string;
+  badgeTextColor?: string;
+}
+
+// Renders one nav row for either the Pipeline or Tools group. Extracted
+// since the two groups' .map() blocks were fully identical apart from the
+// framer-motion layoutId used for the active-indicator animation.
+function NavItemButton({
+  item,
+  activePath,
+  collapsed,
+  layoutId,
+  onNavigate,
+}: {
+  item: NavItem;
+  activePath: string;
+  collapsed: boolean;
+  layoutId: string;
+  onNavigate: (path: string) => void;
+}) {
+  const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
+  const IconComponent = item.icon;
+  return (
+    <button type="button"
+      id={`nav-${item.path.replace(/\//g, '') || 'dashboard'}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onNavigate(item.path);
+      }}
+      className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
+      style={{
+        backgroundColor: isActive ? "rgba(74, 133, 253,0.08)" : "transparent",
+        color: isActive ? tokens.colors.text.primary : tokens.colors.text.secondary,
+      }}
+    >
+      {isActive && (
+        <motion.div
+          layoutId={layoutId}
+          className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-brand-indigo"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
+      <IconComponent
+        className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+        style={{ color: isActive ? tokens.colors.accent.indigo : item.iconColor ?? tokens.colors.text.muted }}
+      />
+      {!collapsed && <span className="flex-1 truncate hidden lg:inline">{item.label}</span>}
+      {item.badge && !collapsed && (
+        <span
+          className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 hidden lg:inline-block"
+          style={{ backgroundColor: item.badgeColor, color: item.badgeTextColor }}
+        >
+          {item.badge}
+        </span>
+      )}
+      {collapsed && (
+        <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-content-primary text-[10px] rounded border border-brand-indigo/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
+          {item.label}
+        </div>
+      )}
+    </button>
+  );
+}
+
 export function Sidebar({
   collapsed,
   onToggle,
@@ -150,52 +221,19 @@ export function Sidebar({
             Pipeline
           </p>
         )}
-        {pipelineItems.map((item) => {
-          const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
-          const IconComponent = item.icon;
-          return (
-            <button type="button"
-              id={`nav-${item.path.replace(/\//g, '') || 'dashboard'}`}
-              key={item.path}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(item.path);
-                if (collapsed) onToggle();
-              }}
-              className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
-              style={{
-                backgroundColor: isActive ? "rgba(74, 133, 253,0.08)" : "transparent",
-                color: isActive ? tokens.colors.text.primary : tokens.colors.text.secondary,
-              }}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active-indicator"
-                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-brand-indigo"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-              <IconComponent
-                className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
-                style={{ color: isActive ? tokens.colors.accent.indigo : item.iconColor ?? tokens.colors.text.muted }}
-              />
-              {!collapsed && <span className="flex-1 truncate hidden lg:inline">{item.label}</span>}
-              {item.badge && !collapsed && (
-                <span
-                  className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 hidden lg:inline-block"
-                  style={{ backgroundColor: item.badgeColor, color: item.badgeTextColor }}
-                >
-                  {item.badge}
-                </span>
-              )}
-              {collapsed && (
-                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-content-primary text-[10px] rounded border border-brand-indigo/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
-                  {item.label}
-                </div>
-              )}
-            </button>
-          );
-        })}
+        {pipelineItems.map((item) => (
+          <NavItemButton
+            key={item.path}
+            item={item}
+            activePath={activePath}
+            collapsed={collapsed}
+            layoutId="sidebar-active-indicator"
+            onNavigate={(path) => {
+              navigate(path);
+              if (collapsed) onToggle();
+            }}
+          />
+        ))}
         {/* Tools group divider + label */}
         <div className="pt-2 pb-0.5">
           <div className="border-t" style={{ borderColor: "rgba(74,133,253,0.08)" }} />
@@ -205,52 +243,19 @@ export function Sidebar({
             </p>
           )}
         </div>
-        {toolItems.map((item) => {
-          const isActive = activePath === item.path || (item.path !== "/" && activePath.startsWith(item.path));
-          const IconComponent = item.icon;
-          return (
-            <button type="button"
-              id={`nav-${item.path.replace(/\//g, '') || 'dashboard'}`}
-              key={item.path}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(item.path);
-                if (collapsed) onToggle();
-              }}
-              className={`w-full flex items-center ${collapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 rounded-lg text-left text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer relative group`}
-              style={{
-                backgroundColor: isActive ? "rgba(74, 133, 253,0.08)" : "transparent",
-                color: isActive ? tokens.colors.text.primary : tokens.colors.text.secondary,
-              }}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active-indicator-tools"
-                  className="absolute left-0 top-2 bottom-2 w-1 rounded-r-md bg-brand-indigo"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-              <IconComponent
-                className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
-                style={{ color: isActive ? tokens.colors.accent.indigo : item.iconColor ?? tokens.colors.text.muted }}
-              />
-              {!collapsed && <span className="flex-1 truncate hidden lg:inline">{item.label}</span>}
-              {item.badge && !collapsed && (
-                <span
-                  className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 hidden lg:inline-block"
-                  style={{ backgroundColor: item.badgeColor, color: item.badgeTextColor }}
-                >
-                  {item.badge}
-                </span>
-              )}
-              {collapsed && (
-                <div className="absolute left-16 px-2 py-1 bg-surface-elevated text-content-primary text-[10px] rounded border border-brand-indigo/20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
-                  {item.label}
-                </div>
-              )}
-            </button>
-          );
-        })}
+        {toolItems.map((item) => (
+          <NavItemButton
+            key={item.path}
+            item={item}
+            activePath={activePath}
+            collapsed={collapsed}
+            layoutId="sidebar-active-indicator-tools"
+            onNavigate={(path) => {
+              navigate(path);
+              if (collapsed) onToggle();
+            }}
+          />
+        ))}
       </div>
 
 

@@ -22,15 +22,13 @@ export function SolutionConfigCard({
   index,
   onUpdate,
 }: SolutionConfigCardProps) {
-  function handleQtyChange(itemId: string, newQty: number) {
-    if (newQty < 1) return;
-
-    // deeply update the quantity inside the specific config
+  // Recomputes a config's totalPrice/originalPrice/savings after its items
+  // list changes, then re-derives the submission-level totals and submits
+  // via onUpdate. Extracted since handleQtyChange and handleDeleteItem were
+  // identical apart from how they transformed each config's items array.
+  function applyItemsTransform(transformItems: (items: typeof submission.configs[number]["items"]) => typeof submission.configs[number]["items"]) {
     const nextConfigs = (submission.configs || []).map((cfg) => {
-      const nextItems = cfg.items.map((item) => {
-        if (item.id === itemId) return { ...item, quantity: newQty };
-        return item;
-      });
+      const nextItems = transformItems(cfg.items);
       const cfgTotalValue = nextItems.reduce(
         (acc, current) => acc + current.quantity * current.unitPrice,
         0,
@@ -57,34 +55,15 @@ export function SolutionConfigCard({
     });
   }
 
+  function handleQtyChange(itemId: string, newQty: number) {
+    if (newQty < 1) return;
+    applyItemsTransform((items) =>
+      items.map((item) => (item.id === itemId ? { ...item, quantity: newQty } : item))
+    );
+  }
+
   function handleDeleteItem(itemId: string) {
-    // deeply filter out the specific item inside the configs
-    const nextConfigs = (submission.configs || []).map((cfg) => {
-      const nextItems = cfg.items.filter((item) => item.id !== itemId);
-      const cfgTotalValue = nextItems.reduce(
-        (acc, current) => acc + current.quantity * current.unitPrice,
-        0,
-      );
-      const diff = cfg.originalPrice - cfg.totalPrice;
-      return {
-        ...cfg,
-        items: nextItems,
-        totalPrice: cfgTotalValue,
-        originalPrice: cfgTotalValue + diff,
-        savings: diff,
-      };
-    });
-
-    const vTotalPrice = nextConfigs.reduce((s, c) => s + c.totalPrice, 0);
-    const vOrgPrice = nextConfigs.reduce((s, c) => s + c.originalPrice, 0);
-
-    onUpdate({
-      ...submission,
-      configs: nextConfigs,
-      totalPrice: vTotalPrice,
-      originalPrice: vOrgPrice,
-      savings: vOrgPrice - vTotalPrice,
-    });
+    applyItemsTransform((items) => items.filter((item) => item.id !== itemId));
   }
 
   const allItems = (submission.configs || []).flatMap((c) => c.items);

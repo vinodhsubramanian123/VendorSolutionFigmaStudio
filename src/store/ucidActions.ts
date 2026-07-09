@@ -47,6 +47,26 @@ function applyPatch(ucidId: string, patch: Partial<UCID>, setUcids: SetUcids): v
   );
 }
 
+// Shared entry guard for advanceUcidStep/regressUcidStep/deleteUcid: finds
+// the UCID and blocks the action if it has a locked (certified) snapshot.
+// Each caller supplies its own action-specific block message. Returns
+// either an early UcidActionResult (when the guard fails) or the resolved
+// UCID (when it's safe to proceed).
+function guardUcidAction(
+  ucidId: string,
+  ucids: UCID[],
+  lockedMessage: (ucid: UCID) => string
+): { blocked: true; result: UcidActionResult } | { blocked: false; ucid: UCID } {
+  const ucid = findUcid(ucidId, ucids);
+  if (!ucid) {
+    return { blocked: true, result: { success: false, reason: `UCID ${ucidId} not found.` } };
+  }
+  if (hasLockedSnapshot(ucid)) {
+    return { blocked: true, result: { success: false, reason: lockedMessage(ucid) } };
+  }
+  return { blocked: false, ucid };
+}
+
 // ---------------------------------------------------------------------------
 // Public actions
 // ---------------------------------------------------------------------------
@@ -61,16 +81,13 @@ export function advanceUcidStep(
   ucids: UCID[],
   setUcids: SetUcids
 ): UcidActionResult {
-  const ucid = findUcid(ucidId, ucids);
-  if (!ucid) return { success: false, reason: `UCID ${ucidId} not found.` };
-
-  if (hasLockedSnapshot(ucid)) {
-    return {
-      success: false,
-      reason: `${ucid.displayId} has a certified locked snapshot — advance is blocked to protect data integrity.`,
-    };
-  }
-
+  const guard = guardUcidAction(
+    ucidId,
+    ucids,
+    (u) => `${u.displayId} has a certified locked snapshot — advance is blocked to protect data integrity.`
+  );
+  if (guard.blocked) return guard.result;
+  const ucid = guard.ucid;
   const currentIdx = STEP_ORDER.indexOf(ucid.currentStep as UCIDStep);
   const nextStep = STEP_ORDER[currentIdx + 1];
   if (!nextStep) {
@@ -108,15 +125,13 @@ export function regressUcidStep(
   ucids: UCID[],
   setUcids: SetUcids
 ): UcidActionResult {
-  const ucid = findUcid(ucidId, ucids);
-  if (!ucid) return { success: false, reason: `UCID ${ucidId} not found.` };
-
-  if (hasLockedSnapshot(ucid)) {
-    return {
-      success: false,
-      reason: `${ucid.displayId} has a certified locked snapshot — regression is blocked to protect data integrity.`,
-    };
-  }
+  const guard = guardUcidAction(
+    ucidId,
+    ucids,
+    (u) => `${u.displayId} has a certified locked snapshot — regression is blocked to protect data integrity.`
+  );
+  if (guard.blocked) return guard.result;
+  const ucid = guard.ucid;
 
   const currentIdx = STEP_ORDER.indexOf(ucid.currentStep as UCIDStep);
   if (currentIdx <= 0) {
@@ -198,15 +213,12 @@ export function deleteUcid(
   ucids: UCID[],
   setUcids: SetUcids
 ): UcidActionResult {
-  const ucid = findUcid(ucidId, ucids);
-  if (!ucid) return { success: false, reason: `UCID ${ucidId} not found.` };
-
-  if (hasLockedSnapshot(ucid)) {
-    return {
-      success: false,
-      reason: `${ucid.displayId} has a certified locked snapshot and cannot be deleted. Archive the parent Solution instead.`,
-    };
-  }
+  const guard = guardUcidAction(
+    ucidId,
+    ucids,
+    (u) => `${u.displayId} has a certified locked snapshot and cannot be deleted. Archive the parent Solution instead.`
+  );
+  if (guard.blocked) return guard.result;
 
   setUcids((prev) => prev.filter((u) => u.id !== ucidId));
   return { success: true };

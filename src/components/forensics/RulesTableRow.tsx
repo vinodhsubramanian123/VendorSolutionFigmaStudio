@@ -31,11 +31,11 @@ export interface RuleTableRowProps {
   simulatingRuleId: string | null;
 }
 
-function EditingRuleRow(props: RuleTableRowProps) {
-  const { rule, editPartNumber, setEditPartNumber, editMappedOutput, setEditMappedOutput, editLabel, setEditLabel, editVendor, setEditVendor, editStatus, setEditStatus, editAssociatedSkus, setEditAssociatedSkus, editCliScript, setEditCliScript, editNotes, setEditNotes, handleSaveEdit, setEditingRuleId } = props;
-  const isDraft = rule.status === "draft";
+// Wraps both EditingRuleRow and ViewingRuleRow's <motion.tr>, which were
+// using byte-for-byte identical layout/animation props and className logic.
+function RuleRowShell({ isDraft, children }: { isDraft: boolean; children: React.ReactNode }) {
   return (
-    <motion.tr 
+    <motion.tr
       layout
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -43,6 +43,25 @@ function EditingRuleRow(props: RuleTableRowProps) {
       transition={{ duration: 0.2 }}
       className={`transition-colors ${isDraft ? 'bg-status-warning/5 border-l-2 border-l-amber-500' : 'hover:bg-white/2'}`}
     >
+      {children}
+    </motion.tr>
+  );
+}
+
+// The ruleType badge's color scheme was duplicated identically between
+// EditingRuleRow and ViewingRuleRow.
+function getRuleTypeBadgeClassName(ruleType: SourcingRule["ruleType"]): string {
+  if (ruleType === "substitution") return "bg-brand-violet/15 text-purple-300 border border-brand-violet/20";
+  if (ruleType === "price_cap") return "bg-status-success/15 text-emerald-300 border border-status-success/20";
+  if (ruleType === "symmetry") return "bg-status-warning/15 text-amber-300 border border-status-warning/20";
+  return "bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/20";
+}
+
+function EditingRuleRow(props: RuleTableRowProps) {
+  const { rule, editPartNumber, setEditPartNumber, editMappedOutput, setEditMappedOutput, editLabel, setEditLabel, editVendor, setEditVendor, editStatus, setEditStatus, editAssociatedSkus, setEditAssociatedSkus, editCliScript, setEditCliScript, editNotes, setEditNotes, handleSaveEdit, setEditingRuleId } = props;
+  const isDraft = rule.status === "draft";
+  return (
+    <RuleRowShell isDraft={isDraft}>
       <td className="p-3 font-mono font-bold text-content-primary whitespace-nowrap">
         <input
           type="text"
@@ -52,12 +71,8 @@ function EditingRuleRow(props: RuleTableRowProps) {
         />
       </td>
       <td className="p-3 font-medium whitespace-nowrap">
-        <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${
-          rule.ruleType === "substitution" ? "bg-brand-violet/15 text-purple-300 border border-brand-violet/20" :
-          rule.ruleType === "price_cap" ? "bg-status-success/15 text-emerald-300 border border-status-success/20" :
-          rule.ruleType === "symmetry" ? "bg-status-warning/15 text-amber-300 border border-status-warning/20" :
-          "bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/20"
-        }`}>
+        <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${getRuleTypeBadgeClassName(rule.ruleType)}`}>
+
           {rule.ruleType}
         </span>
       </td>
@@ -165,7 +180,7 @@ function EditingRuleRow(props: RuleTableRowProps) {
           </button>
         </div>
       </td>
-    </motion.tr>
+    </RuleRowShell>
   );
 }
 
@@ -173,22 +188,10 @@ function ViewingRuleRow(props: RuleTableRowProps) {
   const { rule, handleStartEdit, handleDeleteRule, onSimulateAndPromote, simulatingRuleId } = props;
   const isDraft = rule.status === "draft";
   return (
-    <motion.tr 
-      layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
-      className={`transition-colors ${isDraft ? 'bg-status-warning/5 border-l-2 border-l-amber-500' : 'hover:bg-white/2'}`}
-    >
+    <RuleRowShell isDraft={isDraft}>
       <td className="p-3 font-mono font-bold text-content-primary whitespace-nowrap">{rule.partNumber}</td>
       <td className="p-3 font-medium whitespace-nowrap">
-        <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${
-          rule.ruleType === "substitution" ? "bg-brand-violet/15 text-purple-300 border border-brand-violet/20" :
-          rule.ruleType === "price_cap" ? "bg-status-success/15 text-emerald-300 border border-status-success/20" :
-          rule.ruleType === "symmetry" ? "bg-status-warning/15 text-amber-300 border border-status-warning/20" :
-          "bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/20"
-        }`}>
+        <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${getRuleTypeBadgeClassName(rule.ruleType)}`}>
           {rule.ruleType}
         </span>
       </td>
@@ -238,7 +241,7 @@ function ViewingRuleRow(props: RuleTableRowProps) {
           </button>
         </div>
       </td>
-    </motion.tr>
+    </RuleRowShell>
   );
 }
 

@@ -80,11 +80,16 @@ class ApiClient {
     }
   }
 
-  async post<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<ApiResponse<T>> {
+  private async sendJson<T>(
+    method: "POST" | "PUT",
+    endpoint: string,
+    body: unknown,
+    options?: RequestInit,
+  ): Promise<ApiResponse<T>> {
     try {
       const res = await this.fetchWithTimeout(endpoint, {
         ...options,
-        method: "POST",
+        method,
         headers: {
           "Content-Type": "application/json",
           ...options?.headers
@@ -96,6 +101,10 @@ class ApiClient {
     } catch (e: unknown) {
       throw this.handleError(e);
     }
+  }
+
+  async post<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<ApiResponse<T>> {
+    return this.sendJson<T>("POST", endpoint, body, options);
   }
 
   async postForm<T>(endpoint: string, formData: FormData, options?: RequestInit): Promise<ApiResponse<T>> {
@@ -117,21 +126,7 @@ class ApiClient {
     body: Record<string, unknown>,
     options?: RequestInit,
   ): Promise<ApiResponse<T>> {
-    try {
-      const res = await this.fetchWithTimeout(endpoint, {
-        ...options,
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...options?.headers
-        },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      return data as ApiResponse<T>;
-    } catch (e: unknown) {
-      throw this.handleError(e);
-    }
+    return this.sendJson<T>("PUT", endpoint, body, options);
   }
 
   async delete<T>(

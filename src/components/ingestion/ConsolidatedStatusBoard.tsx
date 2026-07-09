@@ -89,7 +89,7 @@ function getDellRowData(status: ManualBOMStatus, ucid: string) {
   return { ucid, name: "Dell", channel: "Manual Upload", status, variant, message, valuation };
 }
 
-function getHpeRowData(syncedConfigs: number, ucid: string) {
+function getParallelCrawlerRowData(vendorName: string, pricePerConfig: number, syncedConfigs: number, ucid: string) {
   let status: TableRowStatus = "pending";
   let variant: TableRowVariant = "default";
   let message = <span>{syncedConfigs} of 4 configurations synced in sequence</span>;
@@ -103,24 +103,15 @@ function getHpeRowData(syncedConfigs: number, ucid: string) {
     variant = "info";
   }
 
-  return { ucid, name: "HPE", channel: "Parallel Crawler", status, variant, message, valuation: `$${(syncedConfigs * 105450).toLocaleString()}` };
+  return { ucid, name: vendorName, channel: "Parallel Crawler", status, variant, message, valuation: `$${(syncedConfigs * pricePerConfig).toLocaleString()}` };
+}
+
+function getHpeRowData(syncedConfigs: number, ucid: string) {
+  return getParallelCrawlerRowData("HPE", 105450, syncedConfigs, ucid);
 }
 
 function getCiscoRowData(syncedConfigs: number, ucid: string) {
-  let status: TableRowStatus = "pending";
-  let variant: TableRowVariant = "default";
-  let message = <span>{syncedConfigs} of 4 configurations synced in sequence</span>;
-
-  if (syncedConfigs === 4) {
-    status = "complete";
-    variant = "success";
-    message = <span className="text-status-success font-medium">All 4 catalog configurations tracked, aligned and verified</span>;
-  } else if (syncedConfigs > 0) {
-    status = "syncing";
-    variant = "info";
-  }
-
-  return { ucid, name: "Cisco", channel: "Parallel Crawler", status, variant, message, valuation: `$${(syncedConfigs * 108875).toLocaleString()}` };
+  return getParallelCrawlerRowData("Cisco", 108875, syncedConfigs, ucid);
 }
 
 function getBoardUcids(ucids: UCID[]) {
