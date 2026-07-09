@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { Target, Check } from "lucide-react";
 
 interface RuleClarificationModalProps {
@@ -16,13 +17,7 @@ export function RuleClarificationModal({
 }: RuleClarificationModalProps) {
   const [scope, setScope] = useState<"Global" | "Brand" | "Exact">("Exact");
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onCancel]);
+  useEscapeKey(onCancel);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-canvas/60 backdrop-blur-sm p-4">

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, ArrowRight, Save, LayoutTemplate } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Config } from "../../types";
+import { ModalBackdrop } from "../shared/ModalBackdrop";
 
 interface SplitConfigWizardProps {
   isOpen: boolean;
@@ -34,13 +35,7 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
     <AnimatePresence>
       {isOpen && sourceConfig && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-surface-canvas/80 backdrop-blur-sm"
-            onClick={onClose}
-          />
+          <ModalBackdrop onClick={onClose} />
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

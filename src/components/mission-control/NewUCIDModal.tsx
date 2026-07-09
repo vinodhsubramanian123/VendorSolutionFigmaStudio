@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { Radio, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UCID } from "../../types";
@@ -39,13 +40,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
   const solutions = useCoreStore(s => s.solutions);
   const activeSolution = solutions.find(s => s.id === activeSolutionId);
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   const onSubmit = (data: FormValues) => {
     const newUCID: UCID = {

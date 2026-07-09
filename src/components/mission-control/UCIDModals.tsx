@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { Edit2, X, AlertTriangle } from "lucide-react";
 import type { UCID } from "../../types";
 import { motion } from "motion/react";
@@ -10,13 +11,7 @@ interface UCIDEditModalProps {
 }
 
 export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEditModalProps) {
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setEditingUcid(null);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [setEditingUcid]);
+  useEscapeKey(() => setEditingUcid(null));
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-[60] select-none leading-normal">
@@ -137,13 +132,7 @@ export function UCIDDeleteConfirmModal({
   selectedId,
   onSelectId,
 }: UCIDDeleteConfirmModalProps) {
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setConfirmDeleteUcid(null);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [setConfirmDeleteUcid]);
+  useEscapeKey(() => setConfirmDeleteUcid(null));
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-[60] select-none leading-normal">

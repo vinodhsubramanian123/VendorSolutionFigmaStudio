@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { motion } from "motion/react";
 import {
   GitCompare,
@@ -40,13 +41,7 @@ export function SnapshotDiffModal({
     setExpandedDiffSheets((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   const { diffConfigs, diffSummary } = useDiffConfigs(
     isOpen,

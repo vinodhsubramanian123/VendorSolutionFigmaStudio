@@ -57,6 +57,29 @@ function getRuleTypeBadgeClassName(ruleType: SourcingRule["ruleType"]): string {
   return "bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/20";
 }
 
+// The "Auto-Learned" / "Manual" badge cell was identical between
+// EditingRuleRow and ViewingRuleRow.
+function AutoLearnedBadgeCell({ rule }: { rule: SourcingRule }) {
+  return (
+    <td className="p-3 whitespace-nowrap">
+      {rule.isAutoLearned ? (
+        <div className="flex flex-col gap-1">
+          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-300 bg-brand-indigo/10 border border-brand-indigo/20 px-2 py-0.5 rounded font-mono uppercase">
+            🧠 Auto-Learned
+          </span>
+          {rule.learnedAt && (
+            <span className="text-[8px] text-content-muted font-mono">{new Date(rule.learnedAt).toLocaleString()}</span>
+          )}
+        </div>
+      ) : (
+        <span className="inline-flex items-center gap-1 text-[9px] font-bold text-content-secondary bg-white/5 border border-white/10 px-2 py-0.5 rounded font-mono uppercase">
+          ✍️ Manual
+        </span>
+      )}
+    </td>
+  );
+}
+
 function EditingRuleRow(props: RuleTableRowProps) {
   const { rule, editPartNumber, setEditPartNumber, editMappedOutput, setEditMappedOutput, editLabel, setEditLabel, editVendor, setEditVendor, editStatus, setEditStatus, editAssociatedSkus, setEditAssociatedSkus, editCliScript, setEditCliScript, editNotes, setEditNotes, handleSaveEdit, setEditingRuleId } = props;
   const isDraft = rule.status === "draft";
@@ -144,22 +167,7 @@ function EditingRuleRow(props: RuleTableRowProps) {
           <option value="Juniper">Juniper</option>
         </select>
       </td>
-      <td className="p-3 whitespace-nowrap">
-        {rule.isAutoLearned ? (
-          <div className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-300 bg-brand-indigo/10 border border-brand-indigo/20 px-2 py-0.5 rounded font-mono uppercase">
-              🧠 Auto-Learned
-            </span>
-            {rule.learnedAt && (
-              <span className="text-[8px] text-content-muted font-mono">{new Date(rule.learnedAt).toLocaleString()}</span>
-            )}
-          </div>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-content-secondary bg-white/5 border border-white/10 px-2 py-0.5 rounded font-mono uppercase">
-            ✍️ Manual
-          </span>
-        )}
-      </td>
+      <AutoLearnedBadgeCell rule={rule} />
       <td className="p-3 whitespace-nowrap">
         <select
           value={editStatus}
@@ -204,22 +212,7 @@ function ViewingRuleRow(props: RuleTableRowProps) {
         <ViewingRuleRowDetails rule={rule} />
       </td>
       <td className="p-3 font-bold text-content-primary">{rule.vendor}</td>
-      <td className="p-3 whitespace-nowrap">
-        {rule.isAutoLearned ? (
-          <div className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-300 bg-brand-indigo/10 border border-brand-indigo/20 px-2 py-0.5 rounded font-mono uppercase">
-              🧠 Auto-Learned
-            </span>
-            {rule.learnedAt && (
-              <span className="text-[8px] text-content-muted font-mono">{new Date(rule.learnedAt).toLocaleString()}</span>
-            )}
-          </div>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-[9px] font-bold text-content-secondary bg-white/5 border border-white/10 px-2 py-0.5 rounded font-mono uppercase">
-            ✍️ Manual
-          </span>
-        )}
-      </td>
+      <AutoLearnedBadgeCell rule={rule} />
       <td className="p-3 whitespace-nowrap">
         <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9.5px] ${rule.status === "active" ? "text-status-success" : "text-content-primary0 animate-pulse"}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${rule.status === "active" ? "bg-status-success" : "bg-gray-500"}`} />

@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { tokens } from "../../styles/tokens";
 import { Database, X } from 'lucide-react';
 import { Select } from '../shared/Select';
@@ -46,13 +47,7 @@ export function CatalogAddForm({
     onAddSku(data);
   };
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   return (
     <div 

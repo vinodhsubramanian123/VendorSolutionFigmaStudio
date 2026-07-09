@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertOctagon, ArrowRight, ShieldAlert, Check } from "lucide-react";
 import type { RuleConflict, SourcingRule } from "../../types";
@@ -11,13 +12,7 @@ interface RuleConflictModalProps {
 }
 
 export function RuleConflictModal({ conflict, existingRule, onResolve, onCancel }: RuleConflictModalProps) {
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onCancel]);
+  useEscapeKey(onCancel);
 
   if (!conflict || !existingRule) return null;
 

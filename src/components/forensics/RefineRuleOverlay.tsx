@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { motion, AnimatePresence } from "motion/react";
 import { BrainCircuit, X, Check } from "lucide-react";
 import type { SourcingRule } from "../../types";
@@ -56,13 +57,7 @@ export function RefineRuleOverlay({
     }
   }
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setRefiningItem(null);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [setRefiningItem]);
+  useEscapeKey(() => setRefiningItem(null));
 
   const handleToggleRemedyOption = (sku: string) => {
     const updated = remedyOptions.map(o => o.sku === sku ? { ...o, checked: !o.checked } : o);
