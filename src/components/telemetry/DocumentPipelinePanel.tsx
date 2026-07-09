@@ -10,10 +10,8 @@ import {
 } from "lucide-react";
 import { useToast } from "../shared/ToastContext";
 import { apiClient } from "../../services/apiClient";
+import type { DocStatus, DocIngestionJob } from "./types";
 import {
-  DocStatus,
-  
-  DocIngestionJob,
   getCategory,
   formatBytes,
   DOC_ICON,

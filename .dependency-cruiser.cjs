@@ -43,7 +43,19 @@ module.exports = {
       severity: 'error',
       from: {},
       to: {
-        couldNotResolve: true
+        couldNotResolve: true,
+        // src/main.tsx's `/// <reference types="vite/client" />` is a
+        // TypeScript triple-slash type-reference directive, not a real
+        // import -- vite's own client.d.ts resolves correctly via tsc
+        // (confirmed: `tsc --noEmit` is clean), but dependency-cruiser's
+        // dependency walker doesn't follow triple-slash directives the way
+        // it does ordinary imports, so it reported this as couldNotResolve
+        // even though nothing was actually broken. Excluded by the literal
+        // specifier text ("vite/client") rather than by file, so a
+        // genuinely missing/typo'd import anywhere in the project,
+        // including any future real import added to main.tsx itself, is
+        // still caught by this rule.
+        pathNot: '^vite/client$'
       }
     },
     {

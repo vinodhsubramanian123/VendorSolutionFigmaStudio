@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import type { CatalogSKU } from "../../types";
-import { CleansingEntry, MatchStatus } from "./cleansingTypes";
+import { CleansingEntry, MatchStatus } from "./types";
 import { apiClient } from "../../services/apiClient";
 import { useToast } from "../shared/ToastContext";
 

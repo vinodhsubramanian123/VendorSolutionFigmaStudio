@@ -1,7 +1,8 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, X, Link2, CheckCircle2, Search, ArrowRight, Eye } from "lucide-react";
-import { CleansingEntry, STATUS_CONFIG } from "./cleansingTypes";
+import { CleansingEntry } from "./types";
+import { STATUS_CONFIG } from "./constants";
 import type { CatalogSKU } from "../../types";
 
 interface CleansingMappingPanelProps {

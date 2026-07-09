@@ -1,7 +1,8 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, X, Filter, ArrowRight } from "lucide-react";
-import { CleansingEntry, STATUS_CONFIG } from "./cleansingTypes";
+import { CleansingEntry } from "./types";
+import { STATUS_CONFIG } from "./constants";
 
 interface CleansingEntryListProps {
   filteredEntries: CleansingEntry[];
