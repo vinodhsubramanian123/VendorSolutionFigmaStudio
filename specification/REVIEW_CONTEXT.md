@@ -110,7 +110,12 @@ Below is an exhaustive breakdown of the functional scope, user interactions, and
 ### 2.11 State Consistency Debugger (`/src/components/shared/DataPersistenceGate.tsx`)
 - **Visuals**: Floating inspector that lets developers browse and debug granular UCID storage, catalog variables, and memory-sync offsets in real-time.
 
-### 2.12 Premium Showcase & Reporting Hub (`/src/components/search/SearchView.tsx`)
+### 2.12 Active Solutions Portfolio (`/src/components/solution-builder/SolutionManager.tsx` and `SolutionDetail.tsx`)
+- **Visuals**: Portfolio-level list of deployed solutions and their detailed drill-down views showing multi-vendor BOM architecture.
+- **Atomic Actions**:
+  - *View Solution Detail*: Opens the specific solution to review its aggregated cost, configuration mapping, and vendor submissions.
+
+### 2.13 Premium Showcase & Reporting Hub (`/src/components/search/SearchView.tsx`)
 - **Visuals**: Omnibar-powered global queries across vendors, hardware, and configurations with advanced analytical report exporting functionality (utilizing powerful charts).
 
 ---

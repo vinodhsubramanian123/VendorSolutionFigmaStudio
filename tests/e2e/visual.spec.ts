@@ -117,7 +117,7 @@ test.describe('04 - Visual Regression Tests', () => {
     const reconNav = page.locator('#nav-reconciliation');
     if (await reconNav.isVisible()) {
       await reconNav.click();
-      await settleVisualView(page, 'BOM DRIFT RECONCILIATION · FIRST CLASS SUITE');
+      await settleVisualView(page, 'BOM DRIFT RECONCILIATION');
       await expect(page).toHaveScreenshot('reconciliation-default.png', {
         fullPage: false,
         animations: 'disabled',

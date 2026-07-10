@@ -91,10 +91,13 @@ The platform is structured into twelve unified navigation views, preserving a co
 #### 3.9 Playwright Web-Automation Scraper Agents (Vendor Portal)
 *   **Objective**: Spin up headless cloud browsers acting like human users to fetch real-time vendor supply data directly from non-API legacy supplier sites.
 
-#### 3.10 System Telemetry & Gateways
+#### 3.10 Active Solutions Portfolio (Solution Manager & Detail)
+*   **Objective**: Manage actively deployed combinations of UCIDs representing a complete customer quotation. Supports routing to `/solutions` for a high-level portfolio overview and `/solutions/:id` for deep-dive financials and component-level deployment architectures.
+
+#### 3.11 System Telemetry & Gateways
 *   **Objective**: Real-time display of backend logs, webhooks to central CRM/ERP structures, dispatch payload histories, and Playwright log trailing inside the applet environment.
 
-#### 3.11 State Consistency Monitor (Debugger)
+#### 3.12 State Consistency Monitor (Debugger)
 *   **Objective**: An overlaid interactive debugger providing structural oversight of the application state (UCID memories), serving as a crucial tool for developers to diagnose tree misalignments and memory drift.
 
 #### 3.12 Premium Showcase & Reporting Hub (Global Search & Analytics)

@@ -6,6 +6,7 @@ interface DriftFilterBarProps {
     matched: number;
     missing: number;
     added: number;
+    equivalent: number;
     spec: number;
     qty: number;
   };
@@ -25,6 +26,7 @@ export const DriftFilterBar = React.memo(function DriftFilterBar({
         { label: `${stats.matched} Matched`, count: "Matched" },
         { label: `${stats.missing} Missing`, count: "Missing" },
         { label: `${stats.added} Added`, count: "Added" },
+        { label: `${stats.equivalent} Equivalent`, count: "Equivalent" },
         { label: `${stats.spec} Spec !=`, count: "Spec !=" },
         { label: `${stats.qty} Qty Delta`, count: "Qty Delta" },
       ].map((pill) => {

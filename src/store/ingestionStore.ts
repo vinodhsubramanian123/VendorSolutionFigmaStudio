@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { BoqResponsePayload } from '../types/ingestion';
 import type { ConstraintCheckResponse, ReconciliationResponse } from '../types';
-export type IngestionPreset = "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry";
+export type IngestionPreset = "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry" | "divergence-split";
 
 export interface IngestionState {
   selectedUcidId: string;

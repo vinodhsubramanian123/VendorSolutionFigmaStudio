@@ -4,12 +4,14 @@ import type { UCID, Solution} from "../../../types";
 import { StatusBadge } from "../../shared/StatusBadge";
 import { SourcingReconciliationDiff } from "../SourcingReconciliationDiff";
 import { tokens } from "../../../styles/tokens";
+import { AppView } from "../../../types";
 interface StepComparisonProps {
   ucid: UCID;
   committingSnapshot: boolean;
   onCommitSnapshot: () => void;
   onUpdateSolutions: (sols: Solution[]) => void;
   appendLogEvent: (level: "info" | "warn" | "ok" | "err", msg: string) => void;
+  onNavigate?: (view: AppView) => void;
 }
 export function StepComparison({
   ucid,
@@ -17,6 +19,7 @@ export function StepComparison({
   onCommitSnapshot,
   onUpdateSolutions,
   appendLogEvent,
+  onNavigate,
 }: StepComparisonProps) {
   return (
     <div className="space-y-4">
@@ -117,7 +120,26 @@ export function StepComparison({
             submissions={ucid.solutions[0].vendorSubmissions}
           />
         )}
-      <div className="border-t pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-brand-indigo/10 text-left">
+      {/* Mission Control bridge to full Reconciliation view */}
+      <div className="border-t border-brand-indigo/10 pt-4 mt-6">
+        <div className="bg-gradient-to-r from-brand-indigo/10 to-transparent border border-brand-indigo/20 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="text-left space-y-1">
+            <h4 className="text-sm font-bold text-brand-indigo uppercase tracking-wider font-mono">Deep Dive Reconciliation</h4>
+            <p className="text-xs text-content-secondary max-w-md">
+              Compare the customer's original BOQ line items against your configured BOM. Add engineer annotations, verify part substitutions, and lock the final sourced BOM.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("reconciliation")}
+            className="flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-lg bg-surface-canvas/50 hover:bg-brand-indigo/20 text-brand-indigo border border-brand-indigo/30 transition-all cursor-pointer whitespace-nowrap"
+          >
+            Open BOM Reconciliation Diff →
+          </button>
+        </div>
+      </div>
+
+      <div className="border-t pt-4 mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-brand-indigo/10 text-left">
         <span className="text-xs text-content-primary0">
           Choosing the winner will generate a final digital snap PO for sign-off.
         </span>

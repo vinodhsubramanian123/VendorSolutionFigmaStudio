@@ -3,13 +3,16 @@ import { motion } from 'motion/react';
 import { AlertTriangle, Zap } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { TableRow as TableRowType } from "../../types/data";
+import { AnnotationCell } from './AnnotationCell';
 
 export const DriftTableRow = React.memo(function DriftTableRow({
   row,
   handleAutoHeal,
+  onAnnotate,
 }: {
   row: TableRowType & { hasAlert: boolean; alertId: string; alertTitle: string };
   handleAutoHeal: (id: string) => void;
+  onAnnotate?: (id: string, text: string) => void;
 }) {
   return (
     <motion.tr
@@ -56,8 +59,14 @@ export const DriftTableRow = React.memo(function DriftTableRow({
       <td className="py-3 px-2 text-right font-mono text-content-primary0">
         {row.unitPrice !== "—" ? `$${row.unitPrice}` : "—"}
       </td>
-      <td className="py-3 px-4 text-right font-mono font-bold text-status-success">
+      <td className="py-3 px-3 text-right font-mono font-bold text-status-success">
         {row.totalPrice !== "—" ? `$${row.totalPrice}` : "—"}
+      </td>
+      <td className="py-2 px-3 align-middle max-w-[150px]">
+        <AnnotationCell 
+          initialValue={row.annotation || ""} 
+          onSave={(text) => onAnnotate?.(row.id, text)} 
+        />
       </td>
     </motion.tr>
   );
@@ -80,6 +89,9 @@ function getPartColorClass(boqPart: string, bomPart: string) {
 function getStatusVariant(status: string) {
   if (status === "Matched") return "success";
   if (status === "Missing") return "error";
-  if (status === "Spec !=") return "warning";
+  if (status === "Added") return "success";
+  if (status === "Equivalent") return "warning";
+  if (status === "Price Delta") return "warning";
+  if (status === "Qty Delta") return "warning";
   return "info";
 }

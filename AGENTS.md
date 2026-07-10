@@ -3,6 +3,9 @@
 > [!CAUTION]
 > **MANDATORY PRE-FLIGHT CHECKS**: You MUST execute `npm run lint`, `tsc --noEmit --skipLibCheck`, `npm run build`, and all tests (`vitest` & `playwright`) before declaring any task complete. Skipping static analysis will result in rejected changes and broken pipelines. See Section 9 for full details.
 
+> [!IMPORTANT]
+> **DEV SERVER PORT IS 3000 — NOT 5173.** `npm run dev` runs `tsx server.ts` (an Express + Vite middleware stack), which binds to **http://localhost:3000**. This is NOT a standard Vite dev server. Vite's default port 5173 is never used — the Vite instance is embedded inside Express as `middlewareMode: true`. Any browser automation, Playwright tests, API calls, or agent navigation MUST use `http://localhost:3000`. Using port 5173 will result in `ERR_CONNECTION_REFUSED`.
+
 Welcome, AI Coding Agent. This document outlines the critical architectural patterns, data contract boundaries, UI/UX guidelines, and lesson milestones of the **Vendor Solution Intelligence & Procurement Integrity (VSIP) Platform**. Adherence to these guidelines is strictly mandatory to prevent regressions, state mismatch, compilation failures, or layout defects.
 
 ---

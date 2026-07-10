@@ -13,6 +13,10 @@ vi.mock('../../src/store/coreStore', () => ({
   useCoreStore: vi.fn(),
 }));
 
+vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ search: '' }),
+}));
+
 const server = setupServer(
   http.post('http://localhost:3000/api/forensics/align', () => {
     return HttpResponse.json({

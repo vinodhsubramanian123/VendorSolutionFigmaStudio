@@ -122,6 +122,7 @@ export function StepContentPanel({
           onCommitSnapshot={onCommitSnapshot}
           onUpdateSolutions={onUpdateSolutions}
           appendLogEvent={appendLogEvent}
+          onNavigate={onNavigate}
         />
       );
 

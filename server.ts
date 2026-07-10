@@ -156,6 +156,27 @@ async function startServer() {
           ]
         }
       ];
+    } else if (presetType === "divergence-split") {
+      vendor = "HPE";
+      detectedChassis = "P40411-B21 DL380 Gen11 NC SFF (Split Config)";
+      confidence = 94;
+      solutions = [
+        {
+          id: "sol-api-split-demo",
+          vendor: "HPE",
+          label: `HPE Split Solution (Validated Ingestion: ${fileName})`,
+          totalPrice: 198000,
+          originalPrice: 205000,
+          savings: 7000,
+          complianceScore: 100,
+          items: [
+            { id: "item-api-sp1", partNumber: "P40411-B21", name: "HPE ProLiant DL380 Gen11 CTO Chassis", type: "Chassis", quantity: 22, unitPrice: 3400 },
+            { id: "item-api-sp2", partNumber: "P40424-B21", name: "Intel Xeon Gold 6430 32-Core CPU", type: "Processor", quantity: 44, unitPrice: 2100 },
+            { id: "item-api-sp3", partNumber: "P38454-B21", name: "HPE 64GB DDR5 memory module RDIMM", type: "Memory", quantity: 176, unitPrice: 580 },
+            { id: "item-api-sp4", partNumber: "J9151E", name: "HPE Aruba 10G SFP+ LC LR 10km SMF Transceiver [Config Delta]", type: "Network", quantity: 10, unitPrice: 850 }
+          ]
+        }
+      ];
     } else {
       vendor = "Cisco";
       detectedChassis = "UCSC-C240-M7S UCS C240 M7 Rack";

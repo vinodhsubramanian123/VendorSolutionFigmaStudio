@@ -2,6 +2,7 @@ import React from "react";
 import { Database, RefreshCw } from "lucide-react";
 import type { UCID } from "../../types";
 import { JobStreamer } from "../shared/JobStreamer";
+import { useCoreStore } from "../../store/coreStore";
 
 interface ReconciliationHeaderProps {
   activeUCID: UCID | undefined;
@@ -14,6 +15,7 @@ interface ReconciliationHeaderProps {
   triggerReconJob: () => void;
   onReconSuccess: (result: unknown, context: unknown) => void;
   onReconError: (error: string, context: unknown) => void;
+  stats?: { all: number; matched: number; missing: number; added: number; equivalent: number; spec: number; qty: number };
 }
 
 export function ReconciliationHeader({
@@ -27,7 +29,12 @@ export function ReconciliationHeader({
   triggerReconJob,
   onReconSuccess,
   onReconError,
+  stats,
 }: ReconciliationHeaderProps) {
+  const solutions = useCoreStore((s) => s.solutions);
+  const activeSolution = solutions.find(s => s.id === activeUCID?.solutionId);
+  const boqSourceFile = activeSolution?.boqSourceFile || "Unknown";
+
   return (
     <>
       <div className="lg:col-span-4 bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"> 
@@ -40,15 +47,55 @@ export function ReconciliationHeader({
               <h2 className="text-sm font-black text-content-primary font-mono uppercase tracking-wider">
                 {activeUCID?.displayId || "No Active UCID"}
               </h2>
-              {missingItems > 0 && (
-              <span className="text-[9.5px] bg-status-error/10 text-status-error border border-status-error/20 px-1.5 py-0.5 rounded font-black uppercase font-mono animate-pulse">
-                Sourcing Warnings
-              </span>
+              {activeUCID?.solutions?.[0]?.vendorSubmissions?.[0]?.vendor && (
+                <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase font-mono border ${
+                  activeUCID.solutions[0].vendorSubmissions[0].vendor === "HPE" ? "bg-[#00A59B]/10 text-[#00A59B] border-[#00A59B]/20" :
+                  activeUCID.solutions[0].vendorSubmissions[0].vendor === "Dell" ? "bg-[#007DB8]/10 text-[#007DB8] border-[#007DB8]/20" :
+                  activeUCID.solutions[0].vendorSubmissions[0].vendor === "Cisco" ? "bg-[#049FD9]/10 text-[#049FD9] border-[#049FD9]/20" :
+                  "bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20"
+                }`}>
+                  {activeUCID.solutions[0].vendorSubmissions[0].vendor}
+                </span>
+              )}
+              {stats?.missing ? (
+                <span className="text-[9.5px] bg-status-error/10 text-status-error border border-status-error/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
+                  {stats.missing} Missing
+                </span>
+              ) : null}
+              {stats?.added ? (
+                <span className="text-[9.5px] bg-[#00d4a0]/10 text-[#00d4a0] border border-[#00d4a0]/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
+                  {stats.added} Added
+                </span>
+              ) : null}
+              {stats?.qty ? (
+                <span className="text-[9.5px] bg-[#ff9b36]/10 text-[#ff9b36] border border-[#ff9b36]/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
+                  {stats.qty} Qty Δ
+                </span>
+              ) : null}
+              {stats?.spec ? (
+                <span className="text-[9.5px] bg-[#4a85fd]/10 text-[#4a85fd] border border-[#4a85fd]/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
+                  {stats.spec} Price Δ
+                </span>
+              ) : null}
+              {stats?.equivalent ? (
+                <span className="text-[9.5px] bg-purple-500/10 text-purple-500 border border-purple-500/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
+                  {stats.equivalent} Equiv
+                </span>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-[10.5px] text-content-secondary font-medium">
+                {activeUCID?.name || "DCX Corp — Enterprise Server Refresh Ph.1"}
+              </p>
+              {activeUCID?.solutionDisplayId && (
+                <>
+                  <span className="text-content-muted text-[10px]">•</span>
+                  <p className="text-[10.5px] text-content-muted font-mono">
+                    BOQ Source: {activeUCID.solutionDisplayId} ({boqSourceFile})
+                  </p>
+                </>
               )}
             </div>
-            <p className="text-[10.5px] text-content-secondary font-medium mt-0.5">
-              {activeUCID?.name || "DCX Corp — Enterprise Server Refresh Ph.1"}
-            </p>
           </div>
         </div>
 

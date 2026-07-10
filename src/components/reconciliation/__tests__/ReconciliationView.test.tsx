@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { ReconciliationView } from "../ReconciliationView";
 import { ToastProvider } from "../../shared/ToastContext";
 import { describe, it, expect, vi } from "vitest";
@@ -98,20 +99,24 @@ describe("ReconciliationView", () => {
     vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: syncedUcids })));
 
     render(
-      <ToastProvider>
-        <ReconciliationView />
-      </ToastProvider>
+      <MemoryRouter>
+        <ToastProvider>
+          <ReconciliationView />
+        </ToastProvider>
+      </MemoryRouter>
     );
-    expect(screen.getByText("No Reconciliation Discrepancies")).toBeInTheDocument();
+    expect(screen.getByText(/No configurations ready to compare yet/i)).toBeInTheDocument();
   });
 
   it("renders overview when there is drift", () => {
     vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: mockUcids })));
 
     render(
-      <ToastProvider>
-        <ReconciliationView />
-      </ToastProvider>
+      <MemoryRouter>
+        <ToastProvider>
+          <ReconciliationView />
+        </ToastProvider>
+      </MemoryRouter>
     );
     expect(screen.getByText(/BOM DRIFT RECONCILIATION/i)).toBeInTheDocument();
     
@@ -123,9 +128,11 @@ describe("ReconciliationView", () => {
     vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: mockUcids })));
 
     render(
-      <ToastProvider>
-        <ReconciliationView />
-      </ToastProvider>
+      <MemoryRouter>
+        <ToastProvider>
+          <ReconciliationView />
+        </ToastProvider>
+      </MemoryRouter>
     );
     
     const snapshotsBtn = screen.getByText(/Version Snapshots/i);

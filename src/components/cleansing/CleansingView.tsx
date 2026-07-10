@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
   ArrowRight,
@@ -16,6 +16,7 @@ import type { MatchStatus, CleansingEntry } from "./types";
 import { generateMockEntries } from "./mockData";
 import { useCoreStore } from "../../store/coreStore";
 import { DeepCleansingEditor } from "./DeepCleansingEditor";
+import { CleansingEventLedger } from "./CleansingEventLedger";
 
 export function CleansingView() {
   const catalogSkus = useCoreStore((s) => s.catalogSkus);
@@ -142,6 +143,17 @@ export function CleansingView() {
       })
     );
     setIsRunningAutoMap(false);
+    
+    // Dispatch event
+    window.dispatchEvent(new CustomEvent("vsip_cleansing_event", {
+      detail: {
+        id: crypto.randomUUID(),
+        type: "auto_map",
+        description: `Auto-mapping completed. ${stats.fuzzy} fuzzy entries resolved.`,
+        timestamp: new Date().toISOString()
+      }
+    }));
+    
     toast(`Auto-mapping complete! ${stats.fuzzy} fuzzy entries resolved.`, "success");
   }, [catalogSkus, stats.fuzzy, toast]);
 
@@ -160,9 +172,20 @@ export function CleansingView() {
               reviewedAt: new Date().toISOString(),
             }
           : e
-      )
+        )
     );
     setSelectedEntryId(null);
+    
+    // Dispatch event
+    window.dispatchEvent(new CustomEvent("vsip_cleansing_event", {
+      detail: {
+        id: crypto.randomUUID(),
+        type: "manual_map",
+        description: `Manually mapped entry ${entryId.split('-').pop()} to SKU ${sku.partNumber}`,
+        timestamp: new Date().toISOString()
+      }
+    }));
+    
     toast(`Mapped to ${sku.partNumber} — ${sku.name}`, "success");
   }, [toast]);
 
@@ -174,12 +197,41 @@ export function CleansingView() {
           : e
       )
     );
+    
+    // Dispatch event
+    window.dispatchEvent(new CustomEvent("vsip_cleansing_event", {
+      detail: {
+        id: crypto.randomUUID(),
+        type: "quarantine",
+        description: `Quarantined entry ${entryId.split('-').pop()} for manual review`,
+        timestamp: new Date().toISOString()
+      }
+    }));
+    
     toast("Entry quarantined for manual review.", "warn");
   }, [toast]);
 
   const handleExportCSV = useCallback(() => {
-    toast("Cleansed mapping exported as CSV.", "success");
-  }, [toast]);
+    toast("Generating Cleansed Mapping CSV...", "success");
+    const headers = "Part Number,Detected Part,Match Status,Confidence\n";
+    const csvContent = entries
+      .map(
+        (e) =>
+          `"${e.rawValue.replace(/"/g, '""')}","${
+            e.mappedOutput || e.matchedPartNumber || e.detectedPartNumber || ""
+          }","${e.matchStatus}","${e.confidence}%"`
+      )
+      .join("\n");
+      
+    const blob = new Blob([headers + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "cleansed_mapping_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [entries, toast]);
 
 
   // --- End Auto-Map Logic ---
@@ -294,7 +346,7 @@ export function CleansingView() {
                 )}
               </div>
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 flex flex-col gap-4">
               <MappingPanel
                 selectedEntry={selectedEntry}
                 setSelectedEntryId={setSelectedEntryId}
@@ -304,6 +356,9 @@ export function CleansingView() {
                 catalogSuggestions={catalogSuggestions}
                 handleManualMap={handleManualMap}
               />
+              <div className="flex-1 min-h-[250px]">
+                <CleansingEventLedger />
+              </div>
             </div>
           </div>
         </div>

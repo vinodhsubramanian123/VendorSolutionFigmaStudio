@@ -42,3 +42,14 @@ export type CleansingEvent =
   | AddItemEvent 
   | RemoveItemEvent 
   | SplitConfigEvent;
+
+// ─── UI Audit Ledger Event (separate from backend domain events above) ─────────
+// These are emitted by CleansingView via window.dispatchEvent('vsip_cleansing_event')
+// and consumed by CleansingEventLedger.tsx. They capture user-facing actions
+// (auto_map, manual_map, quarantine, split) at the UI interaction layer.
+export interface CleansingAuditEntry {
+  id: string;
+  type: 'manual_map' | 'auto_map' | 'quarantine' | 'split';
+  description: string;
+  timestamp: string;
+}

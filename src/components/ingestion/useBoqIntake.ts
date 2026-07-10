@@ -113,7 +113,7 @@ export function useBoqIntake(
 
   const triggerBOQParse = async (
     fileName: string,
-    preset: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry",
+    preset: IngestionPreset,
   ) => {
     setIsBOQIngesting(true);
     setBoqProgress(10);

@@ -14,6 +14,10 @@ vi.mock('../../../store/coreStore', () => ({
   useCoreStore: vi.fn(),
 }));
 
+vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ search: '' }),
+}));
+
 // Do not mock ForensicIssueCard or RuleClarificationModal so we can test the interaction
 vi.mock("../SourcingRulesVault", () => ({
   SourcingRulesVault: () => <div data-testid="sourcing-rules-vault">Vault</div>

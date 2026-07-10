@@ -4,7 +4,7 @@ import { StatusBadge } from "../shared/StatusBadge";
 import { ReconciliationEmpty } from "./ReconciliationEmpty";
 import { ReconciliationOverview } from "./ReconciliationOverview";
 import { ReconciliationDrillDown } from "./ReconciliationDrillDown";
-import { Camera } from "lucide-react";
+import { Camera, ChevronDown } from "lucide-react";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { SnapshotsPanel } from "./SnapshotsPanel";
 import { useCoreStore } from "../../store/coreStore";
@@ -25,13 +25,23 @@ export function ReconciliationView() {
       (u.solutions && u.solutions.length > 0)
     ), [ucids]);
   const [isSnapshotPanelOpen, setIsSnapshotPanelOpen] = useState(false);
-  // Memoized stats on UCIDs and catalog list calculations to satisfy performance baseline guidelines
+  const [selectedUcidId, setSelectedUcidId] = useState<string | null>(() => {
+    const active = ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
+      ucids?.find((u) => u.solutions?.length > 0) ||
+      ucids?.[0];
+    return active?.id || null;
+  });
 
   const activeUCID = useMemo(() => {
+    if (selectedUcidId) {
+      const found = ucids.find(u => u.id === selectedUcidId);
+      if (found) return found;
+    }
     return ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
       ucids?.find((u) => u.solutions?.length > 0) ||
       ucids?.[0];
-  }, [ucids]);
+  }, [ucids, selectedUcidId]);
+
   // BOM Reconciliation state
   const [selectedConfigSheet, setSelectedConfigSheet] = useState<string | null>(
     null,
@@ -49,15 +59,39 @@ export function ReconciliationView() {
       >
       {/* VENDORIQ • PREMIUM UI COMPONENTS header bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-surface-header border border-white/5 py-2 px-4 rounded-xl"> 
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-status-error" />
-            <span className="w-2.5 h-2.5 rounded-full bg-status-warning" /> 
-            <span className="w-2.5 h-2.5 rounded-full bg-status-success" />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-status-error" />
+              <span className="w-2.5 h-2.5 rounded-full bg-status-warning" /> 
+              <span className="w-2.5 h-2.5 rounded-full bg-status-success" />
+            </div>
+            <span className="font-mono text-[10px] uppercase font-black tracking-widest text-brand-violet">
+              BOM DRIFT RECONCILIATION
+            </span>
           </div>
-          <span className="font-mono text-[10px] uppercase font-black tracking-widest text-brand-violet">
-            BOM DRIFT RECONCILIATION · FIRST CLASS SUITE
-          </span>
+
+          <div className="h-4 w-px bg-white/10 hidden sm:block" />
+
+          {/* UCID Selector */}
+          <div className="relative flex items-center">
+            <select
+              className="appearance-none bg-surface-canvas/20 border border-white/10 rounded px-3 py-1 text-xs text-content-primary font-medium hover:bg-surface-canvas/40 focus:outline-none focus:ring-1 focus:ring-brand-indigo transition-colors pr-8"
+              value={selectedUcidId || ""}
+              onChange={(e) => setSelectedUcidId(e.target.value)}
+            >
+              {ucids.filter(u => u.solutions?.length > 0 || u.currentStep !== 'boq-intake').map(u => {
+                // Determine vendor for badge
+                const v = u.solutions?.[0]?.vendorSubmissions?.[0]?.vendor || "Unknown";
+                return (
+                  <option key={u.id} value={u.id}>
+                    {u.displayId} ({v}) — {u.name}
+                  </option>
+                );
+              })}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-content-secondary absolute right-2 pointer-events-none" />
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -77,7 +111,7 @@ export function ReconciliationView() {
           <div className="flex items-center gap-1">
             <StatusBadge 
               status="Dual Sourced Synced API" 
-              icon={<span className="text-content-primary0 font-mono">INTEGRATION:</span>}
+              icon={<span className="text-content-primary font-mono">INTEGRATION:</span>}
               variant="info" 
             />
           </div>

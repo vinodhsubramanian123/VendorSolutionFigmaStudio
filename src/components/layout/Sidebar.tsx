@@ -166,7 +166,7 @@ export function Sidebar({
       badgeColor: "rgba(0,212,160,0.1)",
       badgeTextColor: tokens.colors.status.success,
     },
-    { path: "/search", label: "Semantic NLP Search", icon: Search, iconColor: tokens.colors.accent.emerald },
+    { path: "/search", label: "Semantic Search", icon: Search, iconColor: tokens.colors.accent.emerald },
     { path: "/telemetry", label: "System Telemetry", icon: Radio, iconColor: tokens.colors.accent.violet },
   ];
   return (
@@ -294,11 +294,15 @@ export function Sidebar({
                       {ucid.displayId}
                     </span>
                     <span className="text-[9px] text-status-warning font-medium">
-                      {ucid.currentStep === "boq-intake"
-                        ? "Intake"
-                        : ucid.currentStep === "pre-intelligence"
-                          ? "Pre-Intel"
-                          : "Configuring"}
+                      {{
+                        "boq-intake": "Intake",
+                        "pre-intelligence": "Pre-Intel",
+                        "solution-design": "Sol Design",
+                        "vendor-provisioning": "Vendor API",
+                        "post-intelligence": "Forensics",
+                        "comparison": "Comparison",
+                        "snapshot": "✓ Locked",
+                      }[ucid.currentStep] || "Configuring"}
                     </span>
                   </div>
                   <span className="text-[10px] text-content-secondary truncate mt-0.5 font-normal group-hover:text-content-primary transition-colors">

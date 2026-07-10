@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileDiff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function ReconciliationEmpty() {
   return (
@@ -7,10 +8,16 @@ export function ReconciliationEmpty() {
       <div className="w-16 h-16 rounded-full bg-status-success/10 flex items-center justify-center mb-6 border border-status-success/20">
         <FileDiff className="w-8 h-8 text-status-success" />
       </div>
-      <h2 className="text-xl font-bold text-content-primary mb-2">No Reconciliation Discrepancies</h2>
-      <p className="text-content-muted text-sm max-w-md">
-        Sourced configurations match baseline parameters perfectly.
+      <h2 className="text-xl font-bold text-content-primary mb-2">No configurations ready to compare yet</h2>
+      <p className="text-content-muted text-sm max-w-md mb-6">
+        Configurations must reach the Solution Design phase before they can be reconciled against the original BOM. Complete Mission Control steps 1–5 first.
       </p>
+      <Link 
+        to="/" 
+        className="px-4 py-2 bg-brand-indigo text-white rounded font-medium hover:bg-brand-indigo/90 transition-colors"
+      >
+        Go to Mission Control
+      </Link>
     </div>
   );
 }

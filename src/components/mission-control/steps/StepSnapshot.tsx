@@ -1,5 +1,5 @@
 import React from "react";
-import { FileSpreadsheet, Download } from "lucide-react";
+import { FileSpreadsheet, Download, Info } from "lucide-react";
 import type { UCID } from "../../../types";
 import { SnapshotHeader } from './SnapshotHeader';
 import { SnapshotTimeline } from './SnapshotTimeline';
@@ -15,6 +15,13 @@ export function StepSnapshot({
 }: StepSnapshotProps) {
   return (
     <div className="space-y-4">
+      <div className="flex items-start gap-3 p-3 bg-brand-indigo/10 border border-brand-indigo/20 rounded-lg text-content-primary">
+        <Info className="w-5 h-5 text-brand-indigo mt-0.5 shrink-0" />
+        <div className="text-sm">
+          <p className="font-semibold text-brand-indigo">Immutable Version History</p>
+          <p className="text-content-secondary mt-0.5">Snapshots capture the state of a solution at a point in time. They can also be viewed, compared, and restored from the <span className="font-bold text-content-primary">BOM Drift Reconciliation</span> view.</p>
+        </div>
+      </div>
       <div className="p-4 border border-status-success/20 bg-status-success/5 rounded-xl space-y-3">
         <SnapshotHeader />
         <SnapshotTimeline snapshots={ucid.snapshots} />

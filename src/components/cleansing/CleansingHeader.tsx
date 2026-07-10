@@ -26,7 +26,7 @@ export function CleansingHeader({
   return (
     <motion.div
       layout
-      className={`p-5 rounded-xl border relative overflow-hidden transition-all duration-300 ${
+      className={`shrink-0 p-5 rounded-xl border relative overflow-hidden transition-all duration-300 ${
         isRunningAutoMap ? "shadow-[0_0_20px_rgba(16,185,129,0.2)] border-status-success/30" : "border-brand-indigo/15"
       }`}
       style={{ background: "rgba(7,10,19,0.8)" }}

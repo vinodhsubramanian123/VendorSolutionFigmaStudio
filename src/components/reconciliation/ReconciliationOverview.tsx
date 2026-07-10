@@ -8,6 +8,7 @@ import type { UCID, CatalogSKU, Snapshot } from '../../types';
 import { ReconciliationHeader } from './ReconciliationHeader';
 import { ConfigSheetCard } from './ConfigSheetCard';
 import { SparesPoolCard } from './SparesPoolCard';
+import { parseRawBOM, processReconciliationItem } from './useReconciliationLogic';
 
 interface ReconciliationOverviewProps {
   setSelectedConfigSheet: (sheet: string | null) => void;
@@ -39,18 +40,35 @@ export function ReconciliationOverview({
   }, [activeUCID]);
 
   const totalConfigs = useMemo(() => dynamicConfigs.length, [dynamicConfigs]);
-  const totalItems = useMemo(() => dynamicConfigs.reduce((acc, c) => acc + c.items.length, 0), [dynamicConfigs]);
 
-  const matchedTotal = useMemo(() => {
-    return dynamicConfigs.reduce((acc, cfg) => 
-      acc + cfg.items.filter(it => 
-         catalogSkus?.some(sku => sku.partNumber === it.partNumber) || !it.name.includes("Simulated")
-      ).length
-    , 0);
-  }, [dynamicConfigs, catalogSkus]);
+  const stats = useMemo(() => {
+    let all = 0, matched = 0, missing = 0, added = 0, equivalent = 0, spec = 0, qty = 0;
+    if (!activeUCID) return { all, matched, missing, added, equivalent, spec, qty };
+    dynamicConfigs.forEach(cfg => {
+      const parsedBOQ = parseRawBOM(activeUCID.rawBOM, cfg.items);
+      cfg.items.forEach((item, idx) => {
+        all++;
+        const row = processReconciliationItem(item, idx, parsedBOQ, catalogSkus, []);
+        if (row.status === "Matched") matched++;
+        if (row.status === "Missing") missing++;
+        if (row.status === "Added") added++;
+        if (row.status === "Equivalent") equivalent++;
+        if (row.status === "Price Delta") spec++;
+        if (row.status === "Qty Delta") qty++;
+      });
+      // missing logic from BOQ
+      parsedBOQ.forEach(boqItem => {
+        const foundInBOM = cfg.items.some(item => item.partNumber === boqItem.partNumber || item.type === boqItem.type && item.name !== boqItem.name);
+        if (!foundInBOM) {
+          all++;
+          missing++;
+        }
+      });
+    });
+    return { all, matched, missing, added, equivalent, spec, qty };
+  }, [dynamicConfigs, activeUCID, catalogSkus]);
 
-  const missingItems = useMemo(() => totalItems - matchedTotal, [totalItems, matchedTotal]);
-  const matchPercentage = useMemo(() => totalItems ? Math.round((matchedTotal / totalItems) * 100) : 0, [totalItems, matchedTotal]);
+  const matchPercentage = useMemo(() => stats.all ? Math.round((stats.matched / stats.all) * 100) : 0, [stats]);
   
   const estValue = useMemo(() => dynamicConfigs.reduce((acc, c) => acc + c.totalPrice, 0), [dynamicConfigs]);
 
@@ -181,15 +199,16 @@ export function ReconciliationOverview({
     >
       <ReconciliationHeader
         activeUCID={activeUCID}
-        missingItems={missingItems}
+        missingItems={stats.missing}
         totalConfigs={totalConfigs}
-        totalItems={totalItems}
+        totalItems={stats.all}
         matchPercentage={matchPercentage}
         estValue={estValue}
         reconJobId={reconJobId}
         triggerReconJob={triggerReconJob}
         onReconSuccess={onReconSuccess}
         onReconError={onReconError}
+        stats={stats}
       />
 
       {/* Left hand column: Dynamic derived config items listed */}

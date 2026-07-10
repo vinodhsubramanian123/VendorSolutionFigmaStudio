@@ -10,6 +10,7 @@ interface VendorDifferencesTableProps {
   toggleGroup: (name: string) => void;
   reconciliationFilter: string;
   handleAutoHeal: (id: string) => void;
+  onAnnotate?: (id: string, text: string) => void;
 }
 
 export const VendorDifferencesTable = React.memo(function VendorDifferencesTable({
@@ -17,12 +18,19 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
   collapsedGroups,
   toggleGroup,
   reconciliationFilter,
-  handleAutoHeal
+  handleAutoHeal,
+  onAnnotate
 }: VendorDifferencesTableProps) {
   return (
     <div className="overflow-x-auto border border-white/5 rounded-xl bg-surface-canvas/10">
       <table className="min-w-[1050px] w-full text-left border-collapse">
         <thead>
+          <tr className="bg-surface-canvas/20 border-b border-white/5 text-[10px] font-mono tracking-widest text-content-secondary select-none">
+            <th colSpan={3} className="py-2 px-4 text-left font-black uppercase text-brand-indigo/80">← Customer BOQ (Original Request)</th>
+            <th className="py-2 px-3 text-center uppercase font-black">Drift Status</th>
+            <th colSpan={4} className="py-2 px-2 text-left font-black uppercase text-status-success/80">Our Configured BOM (Quote Back) →</th>
+            <th className="py-2 px-3 text-left font-black uppercase text-brand-violet/80">Annotations</th>
+          </tr>
           <tr className="bg-surface-canvas/40 border-b border-white/5 text-[10.5px] font-mono uppercase tracking-wider text-content-secondary select-none">
             <th className="py-3 px-4 text-left">BOQ Item Description</th>
             <th className="py-3 px-2 text-left">BOQ Part #</th>
@@ -32,7 +40,8 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
             <th className="py-3 px-4 text-left">Sourced BOM Part Name</th>
             <th className="py-3 px-2 text-center">QTY</th>
             <th className="py-3 px-2 text-right">Unit $</th>
-            <th className="py-3 px-4 text-right">Total Sourced</th>
+            <th className="py-3 px-3 text-right">Total Sourced</th>
+            <th className="py-3 px-3 text-left">Engineer Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -54,7 +63,7 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
                   onClick={() => toggleGroup(group.name)}
                   className="bg-surface-canvas/70 border-b border-white/5 cursor-pointer hover:bg-surface-card/60 transition-colors select-none font-bold text-xs"
                 >
-                  <td colSpan={9} className="py-2.5 px-4 font-semibold text-left">
+                  <td colSpan={10} className="py-2.5 px-4 font-semibold text-left">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
@@ -93,6 +102,7 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
                         key={row.id} 
                         row={row as TableRowType & { hasAlert: boolean; alertId: string; alertTitle: string }} 
                         handleAutoHeal={handleAutoHeal} 
+                        onAnnotate={onAnnotate}
                       />
                     ))}
                 </AnimatePresence>

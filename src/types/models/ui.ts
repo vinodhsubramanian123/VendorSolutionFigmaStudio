@@ -46,7 +46,7 @@ export interface TableRow {
   boqItem: string;
   boqPart: string;
   boqQty: string | number;
-  status: "Matched" | "Missing" | "Spec !=" | "Qty Delta" | "Added";
+  status: "Matched" | "Missing" | "Price Delta" | "Qty Delta" | "Added" | "Equivalent";
   bomPart: string;
   bomItem: string;
   bomQty: string | number;
@@ -59,6 +59,7 @@ export interface TableRow {
   hasAlert: boolean;
   alertId: string;
   alertTitle: string;
+  annotation?: string;
 }
 export interface TableGroup {
   name: string;

@@ -62,7 +62,8 @@ export function ActiveIssuesList({ onNavigate }: ActiveIssuesListProps) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
                 key={issue.id}
-                className="px-4 py-2.5 flex items-start gap-2"
+                onClick={() => onNavigate(`forensic?issueId=${issue.id}` as AppView)}
+                className="px-4 py-2.5 flex items-start gap-2 cursor-pointer hover:bg-surface-canvas/20 transition-colors"
               >
                 <div
                   className="mt-1 w-1.5 h-1.5 rounded-full shrink-0"

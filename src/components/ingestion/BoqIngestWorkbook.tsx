@@ -63,6 +63,11 @@ export function BoqIngestWorkbook({
       label: "Cisco Symmetrical Layout (.xls)",
       file: "CISCO_UCS_M7S_ASYMMETRY.xls",
     },
+    {
+      key: "divergence-split",
+      label: "YLNG Split Config Demo (.csv)",
+      file: "YLNG_BALHAF_2026_SPLIT_REQ.csv",
+    },
   ];
 
   const handleDragOver = (e: React.DragEvent) => {

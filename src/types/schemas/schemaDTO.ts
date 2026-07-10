@@ -3,7 +3,7 @@ import { BOMItemSchema } from "./schemaCatalog";
 import { UCIDSchema, SolutionSchema} from "./schemaUCID";
 export const IngestRequestSchema = z.object({
   fileName: z.string().min(1, "File name cannot be empty"),
-  presetType: z.enum(["hpe-legacy", "dell-overcharge", "cisco-asymmetry"]),
+  presetType: z.enum(["hpe-legacy", "dell-overcharge", "cisco-asymmetry", "divergence-split"]),
   rawText: z.string().optional(),
 });
 export const IngestResponseSchema = z.object({

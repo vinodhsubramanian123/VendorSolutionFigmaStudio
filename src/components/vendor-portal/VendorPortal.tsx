@@ -11,6 +11,7 @@ import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { AnimatedViewWrapper } from "../shared/AnimatedViewWrapper";
 import { apiClient } from "../../services/apiClient";
 import { useCoreStore } from "../../store/coreStore";
+import { PlaywrightConsole } from "./PlaywrightConsole";
 
 
 
@@ -182,6 +183,7 @@ export const VendorPortal = React.memo(function VendorPortal() {
             setLearningEvents={setLearningEvents}
             vendors={vendors}
           />
+          <PlaywrightConsole />
         </div>
       </div>
     </AnimatedViewWrapper>

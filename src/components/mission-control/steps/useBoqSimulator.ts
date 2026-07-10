@@ -1,6 +1,7 @@
 import { apiClient } from "../../../services/apiClient";
 import type { BoqResponsePayload } from "../../../types/ingestion";
 import type { Solution } from "../../../types";
+import type { IngestionPreset } from "../../../store/ingestionStore";
 
 export function useBoqSimulator(
   onUpdateBOM: (rawText: string) => void,
@@ -10,7 +11,7 @@ export function useBoqSimulator(
 ) {
   const handleSimulateIntake = async (
     fileName: string,
-    presetType: "hpe-legacy" | "dell-overcharge" | "cisco-asymmetry"
+    presetType: IngestionPreset
   ) => {
     const rawText = "";
     try {
