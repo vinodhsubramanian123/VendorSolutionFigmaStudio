@@ -26,3 +26,39 @@ export function repairBomItem(it: BOMItem, vendor?: string): BOMItem {
   }
   return it;
 }
+
+export function recalculateRepairedSolutions(solutions: any[]) {
+  return solutions.map((sol) => {
+    const repairedSubmissions =
+      sol.vendorSubmissions?.map((vs: any) => {
+        const repairedConfigs =
+          vs.configs?.map((c: any) => {
+            const repairedItems =
+              c.items?.map((it: any) => repairBomItem(it, vs.vendor)) || [];
+            const newConfigSum = repairedItems.reduce(
+              (acc: number, curr: any) => acc + curr.unitPrice * curr.quantity,
+              0,
+            );
+            return {
+              ...c,
+              items: repairedItems,
+              totalPrice: newConfigSum,
+              savings: Math.max(0, c.originalPrice - newConfigSum),
+            };
+          }) || [];
+        const newVsSum = repairedConfigs.reduce((acc: number, c: any) => acc + c.totalPrice, 0);
+        return {
+          ...vs,
+          configs: repairedConfigs,
+          totalPrice: newVsSum,
+          savings: Math.max(0, vs.originalPrice - newVsSum),
+          complianceScore: 100,
+        };
+      }) || [];
+
+    return {
+      ...sol,
+      vendorSubmissions: repairedSubmissions,
+    };
+  });
+}

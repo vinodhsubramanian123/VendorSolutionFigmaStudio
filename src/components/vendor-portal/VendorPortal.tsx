@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { motion } from "motion/react";
 import {
   Globe,
   RefreshCw,
@@ -9,6 +8,7 @@ import { useToast } from "../shared/ToastContext";
 import { VendorIngestionDesk } from "./VendorIngestionDesk";
 import { VendorGateways } from "./VendorGateways";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { AnimatedViewWrapper } from "../shared/AnimatedViewWrapper";
 import { apiClient } from "../../services/apiClient";
 import { useCoreStore } from "../../store/coreStore";
 
@@ -122,13 +122,7 @@ export const VendorPortal = React.memo(function VendorPortal() {
   }
 
   return (
-    <ErrorBoundary>
-      <motion.div 
-        className="flex flex-col gap-4"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
-      >
+    <AnimatedViewWrapper>
       {/* Overview Head */}
       <div
         className="p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4"
@@ -190,7 +184,6 @@ export const VendorPortal = React.memo(function VendorPortal() {
           />
         </div>
       </div>
-    </motion.div>
-    </ErrorBoundary>
+    </AnimatedViewWrapper>
   );
 });

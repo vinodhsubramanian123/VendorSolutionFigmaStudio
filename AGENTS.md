@@ -412,18 +412,20 @@ These learnings are concrete operational rules, not aspirational guidelines.
     3. Never leave baseline PNGs as untracked files — an untracked baseline is invisible
        to CI and will cause the same failure on every subsequent run.
 *   **Note**: `--update-snapshots` only writes new files for platforms without a baseline;
-    it re-certifies existing ones. It is safe to run without fear of deleting valid baselines.
+    it re-certifies existing ones. It is safe to run without fear.
 
-### 16.4 `jscpd` exit code 1 at 4 clones is expected — do not treat as a blocker
+### 16.4 `jscpd` exit code 1 at 1 clone is the intentional floor — do not regress
 *   **Issue**: `.jscpd.json` sets `"threshold": 0`, meaning any clone at all causes a
-    non-zero exit. After Phase 9 reduced the clone count from 28 to 4 (0.15% duplicated
-    tokens), `npm run lint:clones` still exits with code 1 and prints `"Found 4 clones"`.
+    non-zero exit. After Phase 9 reduced the clone count from 28 to 4 (0.15%), and a
+    follow-up session (Phase 9 Clone Elimination) reduced it further to 1 (0.03%),
+    `npm run lint:clones` still exits with code 1.
 *   **Rule**: The authoritative metric is the **clone count in the jscpd summary table**,
-    not the exit code. A count of 4 (0.15%) is the current approved floor after Phase 9.
-    Do not treat a non-zero exit as a blocker unless the clone count has *increased* from
-    the last known good baseline. Document the current baseline in this file if the count
-    changes deliberately.
-*   **Current approved baseline** (post Phase 9): 4 clones, 0.15% duplicated tokens.
+    not the exit code. A count of **1** (the intentional Cleansing boundary sync, see §16.6)
+    is the current approved floor. Do not treat a non-zero exit as a blocker unless the
+    clone count has *increased* from this baseline.
+*   **Current approved baseline** (post Phase 9 Clone Elimination): **1 clone, 0.03%** duplicated tokens.
+    The surviving clone is the Cleansing match-status algorithm intentionally duplicated
+    across `mockData.ts` and `graphHandlers.ts` (see §16.6).
 
 ### 16.5 Never delete exported types without `git log -S` proof they are dead
 *   **Issue**: `IngestBOMRequest` and `IngestBOMResponse` in `src/types/models/api.ts`
@@ -452,3 +454,35 @@ These learnings are concrete operational rules, not aspirational guidelines.
     - [`src/components/cleansing/mockData.ts`](file:///home/vinodh/FigmaUxDesign/VendorSolutionFigmaStudio/src/components/cleansing/mockData.ts)
     - [`src/mocks/routes/graphHandlers.ts`](file:///home/vinodh/FigmaUxDesign/VendorSolutionFigmaStudio/src/mocks/routes/graphHandlers.ts)
 
+
+### 16.7 Clone Elimination Patterns: shared components and utilities, not wrappers
+*   **Context**: Phase 9 Clone Elimination (follow-up to §16.4 baseline) identified 4
+    actionable clones via `npm run lint:clones` (`jscpd`). The investigation revealed three
+    categories of duplication:
+    1. **Structural view boilerplate** (`ErrorBoundary` + `motion.div` wrapper): Eliminated
+       by creating `AnimatedViewWrapper.tsx` in `src/components/shared/`. Both `ForensicView`
+       and `VendorPortal` now delegate their outer animated wrapper to this shared component,
+       removing `motion` imports from those files entirely.
+    2. **Vendor-specific workspace card UI**: `CiscoWorkspaceNode` and `HpeWorkspaceNode`
+       shared 14+ identical JSX lines for status badges, sequential execution lists, and
+       progress tracker bars. Extracted into `WorkspaceNodeCard.tsx` in
+       `src/components/ingestion/`. Each vendor node now passes its config array, synced
+       count, subtitle, and value multiplier as props.
+    3. **Deep-nested BOM repair map/reduce logic**: `useBomConversion.ts` and
+       `useDrillDownAutoHeal.ts` both contained the exact same 34-line loop to call
+       `repairBomItem`, recalculate `totalPrice`, and derive `savings` across all
+       vendor submissions and configs. Extracted as `recalculateRepairedSolutions()` into
+       `src/utils/bomRepairUtils.ts`, co-located with `repairBomItem`.
+*   **Rule**: When `jscpd` reports clones, classify them before acting:
+    - **Cross-boundary intentional clones** (UI layer vs MSW/mock layer): Do NOT unify —
+      keep in sync via discipline (§16.6). Unifying would violate the MSW stateless boundary.
+    - **Same-layer structural clones** (two view components share a JSX wrapper): Extract
+      into a shared component in `src/components/shared/`.
+    - **Same-layer logic clones** (two hooks share a helper function): Extract into the
+      nearest logical utility module (e.g., `src/utils/`), not into the hook itself.
+*   **Anti-pattern**: Do NOT resolve logic clones by importing one hook into another hook.
+    Pure helper functions belong in `src/utils/`, not in `src/components/*/`.
+*   **Unused import cleanup**: When removing inline implementations and replacing with a
+    shared utility call, all previously required local imports (types, sub-utilities) become
+    unused. Always clean them up immediately — ESLint's `sonarjs/unused-import` rule will
+    catch any stragglers and cause lint failures if not addressed in the same commit.

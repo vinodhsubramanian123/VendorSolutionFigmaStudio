@@ -1,6 +1,6 @@
 
 import type { UCID, ForensicIssue } from "../../types";
-import { repairBomItem } from "../../utils/bomRepairUtils";
+import { recalculateRepairedSolutions } from "../../utils/bomRepairUtils";
 
 export function useDrillDownAutoHeal(
   activeUCID: UCID | undefined,
@@ -32,42 +32,7 @@ export function useDrillDownAutoHeal(
     setUcids((prev) =>
       prev.map((u) => {
         if (u.id === activeUCID.id) {
-          const nextSolutions = u.solutions.map((sol) => {
-            const repairedSubmissions =
-              sol.vendorSubmissions?.map((vs) => {
-                const repairedConfigs =
-                  vs.configs?.map((c) => {
-                    const repairedItems =
-                      c.items?.map((it) => repairBomItem(it, vs.vendor)) || [];
-                    const newConfigSum = repairedItems.reduce(
-                      (acc, curr) => acc + curr.unitPrice * curr.quantity,
-                      0,
-                    );
-                    return {
-                      ...c,
-                      items: repairedItems,
-                      totalPrice: newConfigSum,
-                      savings: Math.max(0, c.originalPrice - newConfigSum),
-                    };
-                  }) || [];
-                const newVsSum = repairedConfigs.reduce(
-                  (acc, c) => acc + c.totalPrice,
-                  0,
-                );
-                return {
-                  ...vs,
-                  configs: repairedConfigs,
-                  totalPrice: newVsSum,
-                  savings: Math.max(0, vs.originalPrice - newVsSum),
-                  complianceScore: 100,
-                };
-              }) || [];
-
-            return {
-              ...sol,
-              vendorSubmissions: repairedSubmissions,
-            };
-          });
+          const nextSolutions = recalculateRepairedSolutions(u.solutions);
 
           return {
             ...u,

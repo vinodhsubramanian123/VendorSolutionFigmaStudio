@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "motion/react";
 import { ShieldCheck, Search } from "lucide-react";
 import type { AppView } from "../../types";
 import { ForensicHeader } from "./ForensicHeader";
@@ -8,7 +7,7 @@ import { ForensicIssueCard } from "./ForensicIssueCard";
 import { ForensicSidebar } from "./ForensicSidebar";
 import { SourcingRulesVault } from "./SourcingRulesVault";
 import { LearningLoopFeed } from "./LearningLoopFeed";
-import { ErrorBoundary } from "../shared/ErrorBoundary";
+import { AnimatedViewWrapper } from "../shared/AnimatedViewWrapper";
 import { ActiveSourcingRules } from "../../config/sourcingRules";
 import { RuleClarificationModal } from "./RuleClarificationModal";
 import { useForensicsLogic } from "./useForensicAutoHeal";
@@ -66,13 +65,7 @@ export function ForensicView(props: ForensicViewProps) {
   }
 
   return (
-    <ErrorBoundary>
-      <motion.div 
-        className="flex flex-col gap-4"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut", staggerChildren: 0.1 }}
-      >
+    <AnimatedViewWrapper>
 
       <ForensicHeader
         currUcid={currUcid}
@@ -162,7 +155,6 @@ export function ForensicView(props: ForensicViewProps) {
           onCancel={() => setPendingHealIssueId(null)}
         />
       )}
-      </motion.div>
-    </ErrorBoundary>
+    </AnimatedViewWrapper>
   );
 }
