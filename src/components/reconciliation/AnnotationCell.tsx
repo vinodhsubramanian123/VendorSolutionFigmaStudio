@@ -53,8 +53,10 @@ export const AnnotationCell = React.memo(function AnnotationCell({
     <div className="relative w-full h-full min-h-[40px] flex flex-col justify-center">
       {isEditing ? (
         <div 
+          role="presentation"
           className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 bg-surface-elevated border border-brand-indigo/40 rounded-lg shadow-xl shadow-black/50 p-2 flex flex-col gap-2 min-w-[200px]"
           onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.stopPropagation()}
         >
           <textarea
             ref={textareaRef}
@@ -83,11 +85,21 @@ export const AnnotationCell = React.memo(function AnnotationCell({
         </div>
       ) : (
         <div 
+          role="button"
+          tabIndex={0}
+          aria-label={value ? `Edit annotation: ${value}` : 'Add engineer annotation'}
           onClick={(e) => {
             e.stopPropagation();
             setIsEditing(true);
           }}
-          className="group cursor-text flex items-start w-full min-h-[32px] p-1.5 rounded hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsEditing(true);
+            }
+          }}
+          className="group cursor-text flex items-start w-full min-h-[32px] p-1.5 rounded hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 focus:outline-none focus:border-brand-indigo/50"
         >
           {value ? (
             <div className="flex gap-2 w-full">

@@ -4,6 +4,89 @@ import type { UCID } from "../../types";
 import { JobStreamer } from "../shared/JobStreamer";
 import { useCoreStore } from "../../store/coreStore";
 
+const VENDOR_BADGE_CLASSES: Record<string, string> = {
+  HPE: "bg-[#00A59B]/10 text-[#00A59B] border-[#00A59B]/20",
+  Dell: "bg-[#007DB8]/10 text-[#007DB8] border-[#007DB8]/20",
+  Cisco: "bg-[#049FD9]/10 text-[#049FD9] border-[#049FD9]/20",
+};
+const DEFAULT_VENDOR_BADGE_CLASSES = "bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20";
+
+function getVendorBadgeClasses(vendor: string | undefined): string {
+  return (vendor && VENDOR_BADGE_CLASSES[vendor]) || DEFAULT_VENDOR_BADGE_CLASSES;
+}
+
+type ReconciliationHeaderStats = { all: number; matched: number; missing: number; added: number; equivalent: number; spec: number; qty: number };
+
+const DRIFT_BADGES: Array<{ key: keyof ReconciliationHeaderStats; label: (n: number) => string; classes: string }> = [
+  { key: "missing", label: (n) => `${n} Missing`, classes: "bg-status-error/10 text-status-error border-status-error/20" },
+  { key: "added", label: (n) => `${n} Added`, classes: "bg-[#00d4a0]/10 text-[#00d4a0] border-[#00d4a0]/20" },
+  { key: "qty", label: (n) => `${n} Qty Δ`, classes: "bg-[#ff9b36]/10 text-[#ff9b36] border-[#ff9b36]/20" },
+  { key: "spec", label: (n) => `${n} Price Δ`, classes: "bg-[#4a85fd]/10 text-[#4a85fd] border-[#4a85fd]/20" },
+  { key: "equivalent", label: (n) => `${n} Equiv`, classes: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
+];
+
+function DriftStatBadges({ stats }: { stats?: ReconciliationHeaderStats }) {
+  if (!stats) return null;
+  return (
+    <>
+      {DRIFT_BADGES.filter(b => stats[b.key]).map(b => (
+        <span
+          key={b.key}
+          className={`text-[9.5px] px-1.5 py-0.5 rounded font-black uppercase font-mono border ${b.classes}`}
+        >
+          {b.label(stats[b.key])}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function ReconciliationIdentityBlock({
+  activeUCID,
+  vendorSubmission,
+  boqSourceFile,
+  stats,
+}: {
+  activeUCID: UCID | undefined;
+  vendorSubmission: { vendor: string } | undefined;
+  boqSourceFile: string;
+  stats?: ReconciliationHeaderStats;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-brand-indigo/10 border border-brand-indigo/25 flex items-center justify-center text-brand-indigo">
+        <Database className="w-5 h-5 animate-pulse" />
+      </div>
+      <div>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-black text-content-primary font-mono uppercase tracking-wider">
+            {activeUCID?.displayId || "No Active UCID"}
+          </h2>
+          {vendorSubmission?.vendor && (
+            <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase font-mono border ${getVendorBadgeClasses(vendorSubmission.vendor)}`}>
+              {vendorSubmission.vendor}
+            </span>
+          )}
+          <DriftStatBadges stats={stats} />
+        </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <p className="text-[10.5px] text-content-secondary font-medium">
+            {activeUCID?.name || "DCX Corp — Enterprise Server Refresh Ph.1"}
+          </p>
+          {activeUCID?.solutionDisplayId && (
+            <>
+              <span className="text-content-muted text-[10px]">•</span>
+              <p className="text-[10.5px] text-content-muted font-mono">
+                BOQ Source: {activeUCID.solutionDisplayId} ({boqSourceFile})
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface ReconciliationHeaderProps {
   activeUCID: UCID | undefined;
   missingItems: number;
@@ -34,70 +117,17 @@ export function ReconciliationHeader({
   const solutions = useCoreStore((s) => s.solutions);
   const activeSolution = solutions.find(s => s.id === activeUCID?.solutionId);
   const boqSourceFile = activeSolution?.boqSourceFile || "Unknown";
+  const vendorSubmission = activeUCID?.solutions?.[0]?.vendorSubmissions?.[0];
 
   return (
     <>
       <div className="lg:col-span-4 bg-surface-elevated border border-white/5 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"> 
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-indigo/10 border border-brand-indigo/25 flex items-center justify-center text-brand-indigo">
-            <Database className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-black text-content-primary font-mono uppercase tracking-wider">
-                {activeUCID?.displayId || "No Active UCID"}
-              </h2>
-              {activeUCID?.solutions?.[0]?.vendorSubmissions?.[0]?.vendor && (
-                <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase font-mono border ${
-                  activeUCID.solutions[0].vendorSubmissions[0].vendor === "HPE" ? "bg-[#00A59B]/10 text-[#00A59B] border-[#00A59B]/20" :
-                  activeUCID.solutions[0].vendorSubmissions[0].vendor === "Dell" ? "bg-[#007DB8]/10 text-[#007DB8] border-[#007DB8]/20" :
-                  activeUCID.solutions[0].vendorSubmissions[0].vendor === "Cisco" ? "bg-[#049FD9]/10 text-[#049FD9] border-[#049FD9]/20" :
-                  "bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20"
-                }`}>
-                  {activeUCID.solutions[0].vendorSubmissions[0].vendor}
-                </span>
-              )}
-              {stats?.missing ? (
-                <span className="text-[9.5px] bg-status-error/10 text-status-error border border-status-error/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
-                  {stats.missing} Missing
-                </span>
-              ) : null}
-              {stats?.added ? (
-                <span className="text-[9.5px] bg-[#00d4a0]/10 text-[#00d4a0] border border-[#00d4a0]/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
-                  {stats.added} Added
-                </span>
-              ) : null}
-              {stats?.qty ? (
-                <span className="text-[9.5px] bg-[#ff9b36]/10 text-[#ff9b36] border border-[#ff9b36]/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
-                  {stats.qty} Qty Δ
-                </span>
-              ) : null}
-              {stats?.spec ? (
-                <span className="text-[9.5px] bg-[#4a85fd]/10 text-[#4a85fd] border border-[#4a85fd]/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
-                  {stats.spec} Price Δ
-                </span>
-              ) : null}
-              {stats?.equivalent ? (
-                <span className="text-[9.5px] bg-purple-500/10 text-purple-500 border border-purple-500/20 px-1.5 py-0.5 rounded font-black uppercase font-mono">
-                  {stats.equivalent} Equiv
-                </span>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[10.5px] text-content-secondary font-medium">
-                {activeUCID?.name || "DCX Corp — Enterprise Server Refresh Ph.1"}
-              </p>
-              {activeUCID?.solutionDisplayId && (
-                <>
-                  <span className="text-content-muted text-[10px]">•</span>
-                  <p className="text-[10.5px] text-content-muted font-mono">
-                    BOQ Source: {activeUCID.solutionDisplayId} ({boqSourceFile})
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <ReconciliationIdentityBlock
+          activeUCID={activeUCID}
+          vendorSubmission={vendorSubmission}
+          boqSourceFile={boqSourceFile}
+          stats={stats}
+        />
 
         {/* Metrics Blocks */}
         <div className="flex flex-wrap items-center gap-6 text-left w-full md:w-auto">

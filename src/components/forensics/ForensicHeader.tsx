@@ -97,7 +97,7 @@ export function ForensicHeader({
         ) : (
           <div className="flex items-center justify-between w-full animate-pulse flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-700 shrink-0" />
+              <div className="w-2.5 h-2.5 rounded-full bg-content-muted shrink-0" />
               <div className="h-4 w-48 bg-surface-elevated rounded max-w-full" />
             </div>
             <div className="h-8 w-full sm:w-64 bg-surface-elevated rounded" />

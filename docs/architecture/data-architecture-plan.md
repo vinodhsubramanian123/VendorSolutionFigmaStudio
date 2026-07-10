@@ -4,6 +4,36 @@
 
 ---
 
+## Session log (most recent first)
+
+### 2026-07-10 — Post-Phase-9 lint/token audit (fresh-clone verified)
+Two contained patches, both verified via `git am` on independent fresh clones,
+full suite green after each (tsc/eslint/dependency-cruiser/vitest 556/556):
+- **`fix(reconciliation)`**: resolved 9 new ESLint warnings introduced by that
+  day's separate reconciliation-feature push (`c14840a`/`f062ce1`) — 1 real a11y
+  fix (keyboard-inaccessible click-to-edit trigger in `AnnotationCell.tsx`),
+  1 missing `useMemo` dep, 2 swallowed exceptions, 1 complexity-31 function
+  broken into a helper component + lookup tables.
+- **`fix(design-tokens)`**: closed out the cosmic-slate remediation
+  (`b92c2a9`, 2026-07-06) — 7 remaining hardcoded-color call sites, plus one
+  real bug the regex script introduced (`disabled:text-content-primary0`, an
+  invalid class silently no-op'd by Tailwind, leaving the vendor-portal NLP
+  chat's disabled Send button unstyled). Full detail in
+  `docs/architecture/ui-ux-audit.md`.
+
+Route/nav coverage checked: every `App.tsx` route has a `Sidebar.tsx` entry
+(except `/solutions/:id`, correctly reached only via drill-down) and vice versa
+— no dead links, no orphaned routes.
+
+**Not done — needs a browser-capable environment:** Playwright e2e / visual
+regression (`visual.spec.ts` snapshots) could not run in this sandbox
+(`cdn.playwright.dev` not in egress allowlist, confirmed via direct install
+failure). Code-level audit only; live/visual UI validation is still open.
+
+---
+
+
+
 ## 0. The governing principle (read this first, every session)
 
 > **`coreStore.ts` (Zustand) is the ONLY owner of entity data.**

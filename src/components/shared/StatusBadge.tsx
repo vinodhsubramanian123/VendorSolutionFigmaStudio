@@ -14,7 +14,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   warning: "border-status-warning/30 bg-status-warning/10 text-status-warning",
   error: "border-status-error/30 bg-status-error/10 text-status-error",
   info: "border-brand-indigo/30 bg-brand-indigo/10 text-brand-indigo",
-  default: "border-content-muted/30 bg-gray-500/10 text-content-secondary",
+  default: "border-content-muted/30 bg-content-muted/10 text-content-secondary",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {

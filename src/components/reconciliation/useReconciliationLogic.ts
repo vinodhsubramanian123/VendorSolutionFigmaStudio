@@ -18,8 +18,8 @@ export function parseRawBOM(rawBOM: string, configItems: BOMItem[]): ParsedBOQIt
   try {
     const parsed = JSON.parse(rawBOM);
     if (Array.isArray(parsed)) return parsed;
-  } catch (e) {
-    // not JSON
+  } catch {
+    // not JSON — falls through to the text-heuristic path below
   }
 
   // Fallback heuristic: If rawBOM is unstructured text, it's very hard to parse exact parts.
@@ -53,6 +53,74 @@ export function parseRawBOM(rawBOM: string, configItems: BOMItem[]): ParsedBOQIt
   return boqItems;
 }
 
+function findActiveUCID(ucids?: UCID[]): UCID | undefined {
+  return (
+    ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
+    ucids?.find((u) => u.solutions?.length > 0) ||
+    ucids?.[0]
+  );
+}
+
+function buildMatchedRows(
+  config: BOMItem[],
+  parsedBOQ: ParsedBOQItem[],
+  catalogSkus: CatalogSKU[] | undefined,
+  forensicIssues: ForensicIssue[] | undefined,
+  annotations: Record<string, string>,
+  grouped: Map<string, TableRowType[]>
+) {
+  config.forEach((item, idx) => {
+    const type = item.type || "Misc";
+    if (!grouped.has(type)) grouped.set(type, []);
+
+    const row = processReconciliationItem(item, idx, parsedBOQ, catalogSkus, forensicIssues);
+    // apply local annotations
+    if (annotations[row.id]) {
+      row.annotation = annotations[row.id];
+    }
+    grouped.get(type)!.push(row);
+  });
+}
+
+function isBoqItemInBOM(boqItem: ParsedBOQItem, configItems: BOMItem[]): boolean {
+  return configItems.some(item => item.partNumber === boqItem.partNumber || (item.type === boqItem.type && item.name !== boqItem.name));
+}
+
+function appendMissingBoqRows(
+  parsedBOQ: ParsedBOQItem[],
+  configItems: BOMItem[],
+  annotations: Record<string, string>,
+  grouped: Map<string, TableRowType[]>
+) {
+  // Also check for Missing items (in BOQ but not in BOM)
+  parsedBOQ.forEach((boqItem, idx) => {
+    if (isBoqItemInBOM(boqItem, configItems)) return;
+
+    const type = boqItem.type || "Misc";
+    if (!grouped.has(type)) grouped.set(type, []);
+    grouped.get(type)!.push({
+      id: `boq-missing-${idx}`,
+      boqItem: boqItem.name,
+      boqPart: boqItem.partNumber,
+      boqQty: boqItem.quantity,
+      status: "Missing",
+      bomPart: "—",
+      bomItem: "Not provisioned",
+      bomQty: "—",
+      unitPrice: "—",
+      totalPrice: "—",
+      rawPartNumber: boqItem.partNumber,
+      rawQty: boqItem.quantity,
+      rawType: type,
+      rawPrice: boqItem.unitPrice,
+      hasAlert: false,
+      alertId: "",
+      alertTitle: "",
+      annotation: annotations[`boq-missing-${idx}`] || ""
+    });
+  });
+}
+
 export function useReconciliationLogic(
   selectedConfigSheet: string | null,
   ucids?: UCID[],
@@ -74,61 +142,19 @@ export function useReconciliationLogic(
     setAnnotations(prev => ({ ...prev, [rowId]: text }));
   }, []);
   const { driftTableData, configName, totalPrice, activeUCID } = useMemo(() => {
-    const activeUCID =
-      ucids?.find((u) => u.currentStep === "post-intelligence" || u.currentStep === "comparison" || u.currentStep === "snapshot") ||
-      ucids?.find((u) => u.solutions?.length > 0) ||
-      ucids?.[0];
+    const activeUCID = findActiveUCID(ucids);
     const dynamicConfigs =
       activeUCID?.solutions?.[0]?.vendorSubmissions?.[0]?.configs || [];
-      
+
     const config = dynamicConfigs.find(c => c.id === selectedConfigSheet);
-    
+
     if (!config) return { driftTableData: [], configName: selectedConfigSheet || "", totalPrice: 0, activeUCID };
-    
+
     const grouped = new Map<string, TableRowType[]>();
-    
     const parsedBOQ = parseRawBOM(activeUCID?.rawBOM || "", config.items);
 
-    config.items.forEach((item, idx) => {
-      const type = item.type || "Misc";
-      if (!grouped.has(type)) grouped.set(type, []);
-      
-      const row = processReconciliationItem(item, idx, parsedBOQ, catalogSkus, forensicIssues);
-      // apply local annotations
-      if (annotations[row.id]) {
-        row.annotation = annotations[row.id];
-      }
-      grouped.get(type)!.push(row);
-    });
-
-    // Also check for Missing items (in BOQ but not in BOM)
-    parsedBOQ.forEach((boqItem, idx) => {
-      const foundInBOM = config.items.some(item => item.partNumber === boqItem.partNumber || item.type === boqItem.type && item.name !== boqItem.name); // basic match check
-      if (!foundInBOM) {
-        const type = boqItem.type || "Misc";
-        if (!grouped.has(type)) grouped.set(type, []);
-        grouped.get(type)!.push({
-          id: `boq-missing-${idx}`,
-          boqItem: boqItem.name,
-          boqPart: boqItem.partNumber,
-          boqQty: boqItem.quantity,
-          status: "Missing",
-          bomPart: "—",
-          bomItem: "Not provisioned",
-          bomQty: "—",
-          unitPrice: "—",
-          totalPrice: "—",
-          rawPartNumber: boqItem.partNumber,
-          rawQty: boqItem.quantity,
-          rawType: type,
-          rawPrice: boqItem.unitPrice,
-          hasAlert: false,
-          alertId: "",
-          alertTitle: "",
-          annotation: annotations[`boq-missing-${idx}`] || ""
-        });
-      }
-    });
+    buildMatchedRows(config.items, parsedBOQ, catalogSkus, forensicIssues, annotations, grouped);
+    appendMissingBoqRows(parsedBOQ, config.items, annotations, grouped);
 
     const groups: TableGroup[] = Array.from(grouped.entries()).map(([type, rows]) => ({
       name: type,
@@ -157,7 +183,7 @@ export function useReconciliationLogic(
       });
     });
     return { all, matched, missing, added, equivalent, spec, qty };
-  }, [driftTableData]);
+  }, [driftTableData, activeUCID]);
   const handleExport = () => {
     try {
       // Generate CSV content from driftTableData
@@ -197,6 +223,7 @@ export function useReconciliationLogic(
       URL.revokeObjectURL(url);
       toast.success("Reconciliation CSV exported successfully.");
     } catch (e) {
+      console.error("Reconciliation CSV export failed:", e);
       toast.error("Failed to generate CSV export");
     }
   };

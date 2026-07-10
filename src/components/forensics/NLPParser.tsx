@@ -207,7 +207,7 @@ export function NLPParser({ onRuleDrafted }: NLPParserProps) {
         <button type="button" 
           onClick={handleSend}
           disabled={!inputValue.trim() || state === "parsing" || state === "drafting"}
-          className="p-2 rounded-lg bg-brand-indigo hover:bg-brand-indigo disabled:bg-gray-700 disabled:text-content-primary0 text-content-primary transition cursor-pointer"
+          className="p-2 rounded-lg bg-brand-indigo hover:bg-brand-indigo disabled:bg-surface-elevated disabled:text-content-muted text-content-primary transition cursor-pointer"
         >
           <Send className="w-4 h-4" />
         </button>

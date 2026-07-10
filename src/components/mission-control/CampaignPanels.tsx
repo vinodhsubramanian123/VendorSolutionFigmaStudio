@@ -89,7 +89,7 @@ export function SourcingStrategyPanel({
               <span className="font-mono font-bold text-content-primary">${dellTotal.toLocaleString()}</span>
             </div>
             <button type="button" disabled={isLocked} onClick={() => onApplySingleVendor("Dell")}
-              className="w-full py-1.5 rounded bg-brand-indigo hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed text-content-primary font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer">
+              className="w-full py-1.5 rounded bg-brand-indigo hover:bg-brand-indigo disabled:opacity-30 disabled:cursor-not-allowed text-content-primary font-bold font-mono text-[9px] uppercase tracking-wider transition cursor-pointer">
               Force All Dell proposals
             </button>
           </div>

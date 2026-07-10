@@ -215,7 +215,7 @@ function ViewingRuleRow(props: RuleTableRowProps) {
       <AutoLearnedBadgeCell rule={rule} />
       <td className="p-3 whitespace-nowrap">
         <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9.5px] ${rule.status === "active" ? "text-status-success" : "text-content-primary0 animate-pulse"}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${rule.status === "active" ? "bg-status-success" : "bg-gray-500"}`} />
+          <span className={`w-1.5 h-1.5 rounded-full ${rule.status === "active" ? "bg-status-success" : "bg-content-muted"}`} />
           {rule.status}
         </span>
       </td>

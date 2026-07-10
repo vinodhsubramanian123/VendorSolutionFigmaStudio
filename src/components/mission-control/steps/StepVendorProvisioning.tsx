@@ -57,7 +57,7 @@ export function StepVendorProvisioning({
         <div className="space-y-3 py-2">
           {[1, 2].map((n) => (
             <div key={n} className="p-4 rounded-xl border border-white/5 bg-surface-card animate-pulse space-y-2">
-              <div className="h-3 w-1/3 bg-gray-700 rounded" />
+              <div className="h-3 w-1/3 bg-surface-elevated rounded" />
               <div className="h-4 w-2/3 bg-surface-elevated rounded" />
               <div className="h-3 w-1/2 bg-surface-elevated rounded" />
             </div>

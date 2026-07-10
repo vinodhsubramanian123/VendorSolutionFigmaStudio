@@ -65,12 +65,12 @@ const ScrapedOrphanNode = ({ data }: { data: GraphNode }) => {
 const CategoryHubNode = ({ data }: { data: GraphNode }) => {
   return (
     <div className={`bg-surface-elevated border-2 ${data.data?.isPathActive ? 'border-status-success/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'border-content-muted shadow-xl'} rounded-lg p-3 min-w-[150px] hover:border-content-secondary transition-all cursor-pointer`}>
-      <Handle type="target" position={Position.Top} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-gray-500'} border-2 border-black`} />
+      <Handle type="target" position={Position.Top} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-content-muted'} border-2 border-black`} />
       <div className="flex items-center justify-center gap-2">
         <Box className={`w-4 h-4 ${data.data?.isPathActive ? 'text-status-success' : 'text-content-secondary'}`} />
         <span className="text-sm font-bold text-content-primary">{data.label}</span>
       </div>
-      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-gray-500'} border-2 border-black`} />
+      <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-content-muted'} border-2 border-black`} />
     </div>
   );
 };
