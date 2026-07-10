@@ -53,6 +53,10 @@ MSW / server.ts          →  latency + async-job simulation ONLY, never a secon
 | 23 | ~~4 circular dependencies, all one shape (a store imports a type from a hook, the hook imports the store): `useAuditLog.ts`↔`auditStore.ts`; `useIngestionLogic.ts`↔`ingestionStore.ts`; 2 further 3-way cycles through `useBoqIntake.ts`/`useBomConversion.ts`~~ — **FIXED (Phase 9)**, types extracted to neutral `src/types/ingestion.ts` / `src/types/audit.ts` modules | was: `store/ingestionStore.ts`, `store/auditStore.ts`, `components/ingestion/useIngestionLogic.ts`, `hooks/useAuditLog.ts` | 🔴→✅ |
 | 24 | ~~`App.tsx` subscribed to 12 `coreStore` bindings (solutions/vendors/catalogSkus/forensicIssues/sourcingRules/learningEvents + their setters) that are never read — leftover from before routes were decomposed into self-fetching components (Phase 12); caused needless top-level re-renders on every mutation to any of those 6 slices~~ — **FIXED (Phase 9)** | `src/App.tsx` | 🟡→✅ |
 | 25 | ~~`averagePipeline`/`recentMission` computed in `Dashboard.tsx` via `useMemo` but never rendered anywhere~~ — **FIXED (Phase 9)**, wired into `UcidPipelineCard`'s header with test coverage | `src/components/dashboard/Dashboard.tsx`, `UcidPipelineCard.tsx` | 🟡→✅ |
+| 26 | ~~Three independently-declared `BoqResponsePayload`-style type files (`cleansingTypes.ts`/`types.ts`/`constants.ts` in `cleansing/`; `telemetryUtils.ts`/`types.ts` in `telemetry/`) — the same disconnected-source-of-truth pattern as issue #22, found while chasing jscpd duplication rather than circular deps this time~~ — **FIXED (Phase 9)**, both consolidated onto their respective canonical `types.ts` | was: `cleansing/cleansingTypes.ts`, `telemetry/telemetryUtils.ts` | 🟠→✅ |
+| 27 | ~~A second orphaned duplicate component, same root cause as issue #21 (the Phase 12 God-component refactor): `CleansingMappingPanel.tsx`, zero importers anywhere including tests, functionally superseded by `MappingPanel.tsx`~~ — **FIXED (Phase 9)** | was: `src/components/cleansing/CleansingMappingPanel.tsx` | 🔴→✅ |
+| 28 | ~~The window-keydown Escape-to-close effect was independently duplicated at 8 call sites across 7 modal/overlay components — jscpd's pairwise matching only ever flagged 2 of them~~ — **FIXED (Phase 9)**, consolidated into `src/hooks/useEscapeKey.ts` | was: `CatalogAddForm.tsx`, `SnapshotDiffModal.tsx`, `UCIDModals.tsx` ×2, `NewUCIDModal.tsx`, `RuleConflictModal.tsx`, `RuleClarificationModal.tsx`, `RefineRuleOverlay.tsx` | 🟡→✅ |
+| 29 | Cleansing mock seed data (`mockData.ts` / `graphHandlers.ts`'s MSW handler) had identical raw seed rows but the downstream match-status *computation* logic had already diverged (one cross-references real `catalogSkus`, the other uses a simpler heuristic) — only the raw rows were deduplicated (Phase 9); unifying the two computation strategies is a real behavior decision, left open | `src/mocks/cleansingSeedData.ts` (new), `components/cleansing/mockData.ts`, `mocks/routes/graphHandlers.ts` | 🟡 |
 
 ---
 
@@ -214,43 +218,77 @@ before being counted as done.
   `src/types/ingestion.ts` / `src/types/audit.ts` modules. Tracing this
   surfaced issue #22 (3 independently-drifted duplicate type declarations)
   as a bigger finding than the circular import itself.
+- **0008 (9d):** all 20 `jsx-a11y` warnings. Matched this codebase's own
+  established conventions rather than inventing new patterns — e.g. the
+  window-level Escape-key-listener pattern already used by most modals,
+  and the `role="button"`+`tabIndex`+`onKeyDown` pattern already used by
+  other interactive divs. One real behavior change: removed
+  `CatalogAddForm.tsx`'s backdrop-click-to-close, since it was the only
+  modal in the codebase with that feature (every other modal relies on
+  an explicit close button + Escape only) — a new test covers the
+  Escape-still-closes-it behavior.
+- **0009 (9e):** all 5 `react-hooks/set-state-in-effect` warnings, using
+  React's own documented "adjust state during render" pattern instead of
+  effects for every prop-driven sync case. Caught and fixed a real bug in
+  this pattern's first application (`SourcingRulesVault.tsx`): initializing
+  the "last seen" comparison state to the prop itself meant an
+  already-truthy prop at mount time was never detected as changed —
+  caught via a new test that failed, verified via revert-and-confirm-fail.
+- **0010:** the remaining one-off warnings (`no-empty`, `no-ignored-exceptions`,
+  `exhaustive-deps`) plus all `sonarjs/use-type-alias` warnings — fixing
+  the first few of these surfaced further un-aliased occurrences of the
+  same union shapes the original audit hadn't listed; replaced every
+  occurrence, not just the originally-flagged lines.
+- **0011 (9f):** all 10 `complexity` warnings. General approach: extract
+  branching logic to genuinely separate pure functions (confirmed
+  empirically that moving expressions to top-level consts in the *same*
+  function does not reduce its score — only extraction to a separate
+  function does). `App.tsx`'s snapshot-migration logic and
+  `useBomConversion.ts`'s error/constraint-default helpers had zero test
+  coverage before this patch; both now have direct unit tests against the
+  real exported functions.
+- **0012 (9h, 9i, part of 9g):** split `workflowHandlers.ts` (421 lines)
+  into itself (236 lines) plus the new `vendorAgentHandlers.ts` (189
+  lines); fixed the `vite/client` dependency-cruiser false positive with
+  a surgically-scoped exclusion on the literal specifier text (not a
+  file-wide exclusion); deleted the duplicate `cleansingTypes.ts` (3-way
+  duplicate with `types.ts` and `constants.ts`) and consolidated
+  `telemetryUtils.ts`'s duplicated type declarations onto `types.ts`.
+- **0013 (9g):** all 7 self-duplicated jscpd clone clusters
+  (`apiClient.ts`, `ucidActions.ts`, `ConsolidatedStatusBoard.tsx`,
+  `Sidebar.tsx`, `SolutionConfigCard.tsx`, `RulesTableRow.tsx` ×2).
+- **0014–0015 (9g):** cross-file jscpd clones — a `useEscapeKey` hook
+  consolidating a pattern independently duplicated across **8 call sites
+  in 7 files** (found by grepping for the pattern directly, since jscpd's
+  pairwise matching only ever flags the single closest pair, not every
+  instance); a shared `ModalBackdrop` component; deleted a second orphaned
+  duplicate component (`CleansingMappingPanel.tsx`, same root cause as
+  issue #21 — the Phase 12 "God component refactor" commit); deduplicated
+  cleansing mock seed data between `mockData.ts` and an MSW handler
+  (their downstream match-status *computation* had already diverged, so
+  only the raw seed rows were deduplicated, not the two different
+  computation strategies — unifying those would be a real behavior
+  decision outside a duplication cleanup's scope).
 
-**Current state after patch 0006:** `tsc --noEmit` clean, `eslint src` 42
-warnings / 0 errors, `dependency-cruiser` 1 error (only a
-`vite/client`-triple-slash-directive false positive in the tool's config,
-not a real import issue — deferred to Phase 9i below), `jscpd` 21 clones
-(1.05% duplicated tokens), 91 test files / 458 tests passing, verified via
-`git am` on an independent fresh clone at every step.
+**Final state after patch 0015 — Phase 9 complete:** `tsc --noEmit`
+clean, `eslint src` **0 warnings, 0 errors** (every one of the original
+109 resolved), `dependency-cruiser` **0 violations** (down from 5),
+`check-size` **all files under 400 lines** (down from 1 violation),
+`jscpd` **4 clones, 0.2% duplicated tokens** (down from 28 clones, 2.28%
+— remaining clones are small, cosmetic, cross-component patterns not
+worth the risk/effort tradeoff of further consolidation), **102 test
+files / 541 tests passing** (up from 92 files / 456 tests at the start
+of Phase 9). All 15 patches verified via `git am` on a single, complete,
+independent fresh clone in sequence — not just incrementally.
 
-**Remaining sub-phases, not yet started:**
-- **9d** — 20 `jsx-a11y` warnings (`label-has-associated-control` ×10,
-  `no-static-element-interactions` ×4, `no-autofocus` ×2,
-  `click-events-have-key-events` ×2, 1 each of
-  `no-noninteractive-element-interactions`/`no-noninteractive-tabindex`).
-- **9e** — 5 `react-hooks/set-state-in-effect` warnings, all the same
-  derived-state-in-effect shape across `CleansingView`, `KpiCard`,
-  `AddRuleForm`, `RefineRuleOverlay`, `SourcingRulesVault` — candidates for
-  one shared fix pattern.
-- **9f** — 10 `complexity` warnings (ceiling 15), including
-  `useBomConversion.ts` (26, now safe to refactor since 9c untangled its
-  store dependency) and `resolvePortalConfig` in `VendorIngestionDesk.tsx`
-  (22).
-- **9g** — remaining jscpd clone pairs (`ucidActions.ts` self-duplicated
-  3×, `apiClient.ts` 2×, `Sidebar.tsx` 2×, `SolutionConfigCard.tsx` 2×,
-  `telemetryUtils.ts`/`types.ts` cross-file), the 4
-  `sonarjs/use-type-alias` warnings, and the unused
-  `IngestBOMRequest`/`IngestBOMResponse` types noticed in
-  `src/types/models/api.ts` while doing 9c (not yet confirmed dead beyond
-  a `grep`, needs the same git-history check as issue #21 before removal).
-- **9h** — `src/mocks/routes/workflowHandlers.ts` at 421 lines, over the
-  400-line `check-size` limit.
-- **9i** — `.dependency-cruiser.cjs` tuning so the `vite/client`
-  triple-slash-directive stops being reported as `not-to-unresolvable`.
-- Three one-off warnings not yet triaged: `no-empty` in
-  `CleansingView.tsx:108`, `no-ignored-exceptions` in
-  `SourcingRulesVault.tsx:56`, `exhaustive-deps` in `UcidPipelineCard.tsx`
-  (missing `setActiveSolution` dep — likely benign since Zustand setters
-  are referentially stable, not yet confirmed as intentional).
+No sub-phases remain open. Two items were surfaced but deliberately left
+unfixed, documented rather than silently dropped: `IngestBOMRequest`/
+`IngestBOMResponse` in `src/types/models/api.ts` still look unused
+(noticed during patch 0006, never confirmed dead via the same
+git-history diligence issue #21 got — low priority, not blocking); and
+the cleansing mock-data computation divergence noted in patch
+0014–0015's summary above (also low priority — it's existing, working,
+if inconsistent mock behavior, not a regression this session introduced).
 
 ---
 
