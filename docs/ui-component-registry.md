@@ -15,12 +15,15 @@ This registry links all UI/UX components and views within the Vendor BOM Engine 
 
 ## Decomposed Sub-Components Map
 - `SourcingRulesVault` -> `AddRuleForm`, `RulesTable`
-- `CleansingView` -> `MappingPanel`, `CleansingHeader`, `QualityMetrics`
+- `CleansingView` -> `MappingPanel`, `CleansingHeader`, `QualityMetrics`, `CleansingEventLedger` (cryptographic audit trail — emits `vsip_cleansing_event` window events)
 - `SystemTelemetry` -> `DocumentPipelinePanel`, `ApiLogsTable`, `WebhookMonitor`
 - `TaxonomyGraphSidebar` -> `TaxonomyGraphPanels` (MechanicalConstraints, OrphanWorkshop, PathOrchestrator)
 - `BomReconciliationPanel` -> `BomSummaryHeader`, `VendorDifferencesTable`
-- `Dashboard` -> `UcidPipelineCard`
+- `Dashboard` -> `UcidPipelineCard`, `ActiveIssuesList` (issues link to Forensic View with `?issueId=<id>` deep-link)
 - `CampaignConsolidationHub` -> `CampaignHeader`, `ProcurementEvents`, `CostSavingMetrics`
+- `VendorPortal` -> `VendorGateways`, `VendorIngestionDesk`, `PlaywrightConsole` (live Playwright automation terminal trace)
+- `MissionControl` -> `UCIDStepper`, `StepContentPanel` → `StepSnapshot` (includes immutable version history banner linking to BOM Reconciliation Diff)
+- `ForensicView` -> `ForensicHeader`, `ScannerOutput`, `ForensicIssueCard` (scroll-to via `?issueId` deep-link), `ForensicSidebar`, `SourcingRulesVault`, `LearningLoopFeed`, `RuleClarificationModal`
 
 ---
  | :

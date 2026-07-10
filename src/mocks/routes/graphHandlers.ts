@@ -221,5 +221,14 @@ export const graphHandlers = [
     if (process.env.NODE_ENV !== 'test') await delay(800);
     const body = (await request.json()) as { selectedPathId: string };
     return HttpResponse.json(wrapSuccess({ success: true, confirmedSelection: body.selectedPathId }));
-  })
+  }),
+  // POST /api/cleansing/events
+  // Persists UI-layer audit entries from CleansingEventLedger.tsx.
+  // These are CleansingAuditEntry objects (auto_map / manual_map / quarantine / split)
+  // distinct from the backend domain CleansingEvent (QUANTITY_UPDATE, ADD_ITEM, etc.).
+  http.post('/api/cleansing/events', async ({ request }) => {
+    if (process.env.NODE_ENV !== 'test') await delay(100);
+    const body = await request.json();
+    return HttpResponse.json(wrapSuccess({ committed: true, eventId: (body as { id?: string }).id ?? 'unknown' }));
+  }),
 ];

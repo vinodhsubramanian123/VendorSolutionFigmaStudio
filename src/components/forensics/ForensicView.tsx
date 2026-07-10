@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { ShieldCheck, Search } from "lucide-react";
 import type { AppView } from "../../types";
 import { ForensicHeader } from "./ForensicHeader";
@@ -8,7 +9,6 @@ import { ForensicSidebar } from "./ForensicSidebar";
 import { SourcingRulesVault } from "./SourcingRulesVault";
 import { LearningLoopFeed } from "./LearningLoopFeed";
 import { AnimatedViewWrapper } from "../shared/AnimatedViewWrapper";
-import { ActiveSourcingRules } from "../../config/sourcingRules";
 import { RuleClarificationModal } from "./RuleClarificationModal";
 import { useForensicsLogic } from "./useForensicAutoHeal";
 import { useCoreStore } from "../../store/coreStore";
@@ -39,6 +39,21 @@ export function ForensicView(props: ForensicViewProps) {
     pendingHealIssueId,
     setPendingHealIssueId,
   } = useForensicsLogic();
+
+  const location = useLocation();
+  const issueRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const issueId = params.get('issueId');
+    if (issueId && issueRefs.current[issueId]) {
+      // Small delay to allow render
+      setTimeout(() => {
+        issueRefs.current[issueId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Optional: We can add a brief flash effect or just rely on the scroll
+      }, 100);
+    }
+  }, [location.search, openIssues]);
 
   if (ucids.length === 0) {
     return (
@@ -94,12 +109,13 @@ export function ForensicView(props: ForensicViewProps) {
           <div className="pr-1 space-y-3">
             {openIssues.length > 0 ? (
               openIssues.map((iss) => (
-                <ForensicIssueCard
-                  key={iss.id}
-                  issue={iss}
-                  onAutoHeal={() => requestAutoHeal(iss.id)}
-                  onManualPromote={() => handleManualPromote(iss)}
-                />
+                <div key={iss.id} ref={el => { issueRefs.current[iss.id] = el; }}>
+                  <ForensicIssueCard
+                    issue={iss}
+                    onAutoHeal={() => requestAutoHeal(iss.id)}
+                    onManualPromote={() => handleManualPromote(iss)}
+                  />
+                </div>
               ))
             ) : (
               <div className="p-12 rounded-xl border border-dashed border-surface-elevated bg-surface-canvas/20 flex flex-col items-center justify-center gap-2 text-center h-full">
@@ -110,8 +126,17 @@ export function ForensicView(props: ForensicViewProps) {
                   Audit Trail Clean
                 </h3>
                 <p className="text-sm text-content-muted max-w-sm">
-                  No forensic anomalies or compliance violations detected.
+                  No forensic anomalies or compliance violations detected. Your configurations are fully compliant.
                 </p>
+                {props.onNavigate && (
+                  <button
+                    type="button"
+                    onClick={() => props.onNavigate?.("reconciliation")}
+                    className="mt-4 px-5 py-2.5 rounded-lg bg-status-success/10 hover:bg-status-success/20 text-status-success font-bold text-xs border border-status-success/20 cursor-pointer transition-colors"
+                  >
+                    Proceed to Comparison Matrix →
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -142,14 +167,10 @@ export function ForensicView(props: ForensicViewProps) {
       {pendingHealIssueId && (
         <RuleClarificationModal
           proposedVendor={
-            pendingHealIssueId === "iss-1" ? "HPE" :
-            pendingHealIssueId === "iss-2" ? "Dell" :
-            pendingHealIssueId === "iss-3" ? "Cisco" : "Juniper"
+            openIssues.find(i => i.id === pendingHealIssueId)?.vendor ?? "Unknown"
           }
           proposedPart={
-            pendingHealIssueId === "iss-1" ? ActiveSourcingRules.legacySKUs[0] :
-            pendingHealIssueId === "iss-2" ? "400-BPSB" :
-            pendingHealIssueId === "iss-3" ? "Memory" : "Juniper API"
+            openIssues.find(i => i.id === pendingHealIssueId)?.description.match(/[A-Z0-9]{4,20}-[A-Z0-9]{1,20}/)?.[0] ?? "Unknown Part"
           }
           onConfirm={confirmAutoHeal}
           onCancel={() => setPendingHealIssueId(null)}

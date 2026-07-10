@@ -24,3 +24,13 @@ export const CleansingEntrySchema = z.object({
   suggestedResolutions: z.array(ResolutionSuggestionSchema).optional(),
   sourceEvidenceUrl: z.string().url().optional(),
 });
+
+// ─── UI Audit Ledger Event Schema ────────────────────────────────────────────
+// Matches the CleansingAuditEntry interface in src/types/models/cleansing.ts.
+// Used for validating POST /api/cleansing/events payloads.
+export const CleansingAuditEntrySchema = z.object({
+  id: z.string().uuid(),
+  type: z.enum(["manual_map", "auto_map", "quarantine", "split"]),
+  description: z.string().min(1),
+  timestamp: z.string().datetime(),
+});

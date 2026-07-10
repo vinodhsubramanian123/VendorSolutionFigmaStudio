@@ -89,4 +89,28 @@ test.describe('12 - Deep Link Routing E2E', () => {
       await expect(page.locator('body')).toBeVisible();
     }
   });
+
+  test('direct URL /forensic?issueId=iss-1 loads ForensicView without crashing', async ({ page }) => {
+    // Category 15 — Deep-link with query param for Dashboard → Forensic scroll-to
+    await page.goto('/forensic?issueId=iss-1');
+    await expect(page.locator('body')).toBeVisible();
+    // The ForensicView should render its main heading
+    const heading = page.getByText(/Sourcing Intelligence|Forensic|Anomalies/i).first();
+    await expect(heading).toBeVisible({ timeout: 10000 });
+    // The app must not crash — body text must be substantial
+    const bodyText = await page.locator('body').innerText();
+    expect(bodyText.length).toBeGreaterThan(50);
+  });
+
+  test('Dashboard "View All Open Anomalies" link navigates to /forensic', async ({ page }) => {
+    // Category 15 — Dashboard → Forensic navigation (no issueId)
+    await page.goto('/');
+    // Click the "View All" link on Active Issues panel if present
+    const viewAllLink = page.getByRole('button', { name: /View All/i }).first();
+    if (await viewAllLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await viewAllLink.click();
+      await expect(page.getByText(/Sourcing Intelligence|Forensic|Anomalies/i).first()).toBeVisible({ timeout: 10000 });
+      expect(page.url()).toContain('/forensic');
+    }
+  });
 });

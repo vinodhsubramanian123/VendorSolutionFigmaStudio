@@ -15,7 +15,7 @@ This document is the complete, authoritative testing specification for VSIP. Imp
 |---|---|
 | **Project** | VSIP — Vendor Solutions Intelligence Platform |
 | **Domain** | Multi-vendor BOQ/BOM engineering (HPE, Dell, Lenovo, Cisco, Juniper) |
-| **Stack** | React 18 + TypeScript + Vite + Tailwind CSS |
+| **Stack** | React 19 + TypeScript + Vite + Tailwind CSS (see AGENTS.md §5.4 for React 19 ESM/CJS compatibility notes) |
 | **Unit / Component Runner** | Vitest |
 | **Component Testing** | React Testing Library (RTL) |
 | **API Mocking** | MSW v2 (Mock Service Worker) |
