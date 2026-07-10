@@ -3,6 +3,7 @@ import { CatalogSKU, Config, Solution, VendorSubmission, BOMItem, SourcingRule, 
 import { CleansingEntry } from '../../components/cleansing/types';
 import { makeMockApiLogs, makeMockWebhooks } from '../../components/telemetry/telemetryUtils';
 import { wrapSuccess } from './sharedState';
+import { CLEANSING_SEED_ROWS } from '../cleansingSeedData';
 export const graphHandlers = [
   http.post('/api/forensics/align', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
@@ -83,20 +84,7 @@ export const graphHandlers = [
   // GET /api/cleansing/entries
   http.get('/api/cleansing/entries', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(600);
-    const raws = [
-      { raw: "32-Core CPU HPE Gen11", part: "P40424-B21", vendor: "HPE" },
-      { raw: "Intel Xeon 6130 16-core legacy proc", part: "815100-B21", vendor: "HPE" },
-      { raw: "dell 3.84tb nvme ssd sff", part: "400-BPSB", vendor: "Dell" },
-      { raw: "Cisco UCS 64GB DDR5 memory dimm", part: "UCS-MR-64G1XS-E", vendor: "Cisco" },
-      { raw: "8x2.5 HDD SAS drive cage", part: undefined, vendor: "HPE" },
-      { raw: "Juniper QFX5120-48Y switch 1U", part: undefined, vendor: "Juniper" },
-      { raw: "P40424B21", part: "P40424-B21", vendor: "HPE" },
-      { raw: "400 BPSB 3.84TB", part: "400-BPSB", vendor: "Dell" },
-      { raw: "Xeon Gold 6430 Processor", part: "P40424-B21", vendor: "HPE" },
-      { raw: "HPE Gen 11 redundant power supply 800W", part: undefined, vendor: "HPE" },
-      { raw: "Cisco 9300-24UX Switch", part: undefined, vendor: "Cisco" },
-      { raw: "Dell PowerEdge RAID H755 controller", part: undefined, vendor: "Dell" },
-    ];
+    const raws = CLEANSING_SEED_ROWS;
     
     // Simplistic mock implementation for UI loading
     const entries = raws.map((r, idx) => {
