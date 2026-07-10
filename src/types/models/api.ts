@@ -16,21 +16,11 @@ import {
   PortalErrorItemSchema
 } from '../zodSchemas';
 
-export interface IngestBOMRequest {
-  fileName: string;
-  rawContent: string;
-  source: "manual" | "api" | "email";
-}
-
-export interface IngestBOMResponse {
-  success: boolean;
-  ucid: UCID;
-  matchMetrics: {
-    totalItems: number;
-    matchedItems: number;
-    confidenceScore: number;
-  };
-}
+// NOTE: IngestBOMRequest / IngestBOMResponse (scaffold-era manual interfaces)
+// were removed — they were superseded by the Zod-derived IngestRequest /
+// IngestResponse types below when zodSchemas.ts was introduced and never
+// referenced outside this file. The Zod-derived pair is the canonical
+// contract used by both server.ts (/api/boq/ingest) and useBoqIntake.ts.
 
 export interface GetUCIDDetailRequest {
   ucidId: string;

@@ -2,6 +2,11 @@ import { CatalogSKU } from "../../types";
 import { CleansingEntry, MatchStatus } from "./types";
 import { CLEANSING_SEED_ROWS } from "../../mocks/cleansingSeedData";
 
+// Computes match status by cross-referencing seed rows against real catalogSkus.
+// The GET /api/cleansing/entries MSW handler in graphHandlers.ts uses the same
+// algorithm so that the simulated backend response matches what this UI function
+// produces. Any change to the matching logic here MUST be mirrored there
+// (see AGENTS.md §16.6). The shared raw seed rows live in cleansingSeedData.ts.
 export function generateMockEntries(catalogSkus: CatalogSKU[]): CleansingEntry[] {
   const raws = CLEANSING_SEED_ROWS;
 

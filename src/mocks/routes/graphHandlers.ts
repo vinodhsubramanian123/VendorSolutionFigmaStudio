@@ -4,6 +4,7 @@ import { CleansingEntry } from '../../components/cleansing/types';
 import { makeMockApiLogs, makeMockWebhooks } from '../../components/telemetry/telemetryUtils';
 import { wrapSuccess } from './sharedState';
 import { CLEANSING_SEED_ROWS } from '../cleansingSeedData';
+import { CATALOG_SKUS } from '../../lib/mockData/catalog';
 export const graphHandlers = [
   http.post('/api/forensics/align', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
@@ -85,34 +86,49 @@ export const graphHandlers = [
   http.get('/api/cleansing/entries', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(600);
     const raws = CLEANSING_SEED_ROWS;
-    
-    // Simplistic mock implementation for UI loading
-    const entries = raws.map((r, idx) => {
-      let status;
-      let confidence;
-      if (r.part && idx % 2 !== 0) {
-        status = "fuzzy";
+
+    // Uses the same catalog cross-reference algorithm as mockData.ts's
+    // generateMockEntries() so that the MSW response mirrors what a real
+    // backend lookup would return. Both computation sites must stay in sync
+    // (see AGENTS.md §16.6). Static CATALOG_SKUS import is permitted by
+    // §13.6 (never-mutated reference constant).
+    const computeEntry = (r: (typeof CLEANSING_SEED_ROWS)[0], idx: number): CleansingEntry => {
+      const catalogMatch = CATALOG_SKUS.find(
+        (sku: CatalogSKU) => sku.partNumber === r.part && sku.vendor === r.vendor
+      );
+
+      let status: CleansingEntry['matchStatus'];
+      let confidence: number;
+
+      if (catalogMatch && r.raw.toLowerCase().includes(r.part?.replace(/-/g, '').toLowerCase() ?? '')) {
+        status = 'matched';
+        confidence = 98;
+      } else if (catalogMatch) {
+        status = 'fuzzy';
         confidence = 85;
       } else if (r.part) {
-        status = "matched";
-        confidence = 98;
+        status = 'unmatched';
+        confidence = 45;
       } else {
-        status = idx % 3 === 0 ? "quarantined" : "unmatched";
+        status = idx % 3 === 0 ? 'quarantined' : 'unmatched';
         confidence = 20;
       }
+
       return {
         id: `entry-${idx + 1}`,
         rawValue: r.raw,
         detectedPartNumber: r.part,
-        normalizedName: r.part ? `Mocked Catalog Name for ${r.part}` : undefined,
+        normalizedName: catalogMatch?.name,
         matchStatus: status,
         confidence,
-        matchedSkuId: r.part ? `sku-${idx}` : undefined,
-        matchedPartNumber: r.part,
+        matchedSkuId: catalogMatch?.id,
+        matchedPartNumber: catalogMatch?.partNumber,
         vendor: r.vendor,
-        flagReason: status === "quarantined" ? "No SKU pattern detected — manual mapping required" : undefined,
+        flagReason: status === 'quarantined' ? 'No SKU pattern detected — manual mapping required' : undefined,
       };
-    });
+    };
+
+    const entries = raws.map(computeEntry);
     return HttpResponse.json(wrapSuccess(entries));
   }),
   // POST /api/cleansing/fuzzy-match
