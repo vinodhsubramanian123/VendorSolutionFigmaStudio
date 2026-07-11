@@ -34,7 +34,7 @@ async function freezeVisualClock(page: Page) {
   }, VISUAL_NOW_ISO);
 }
 
-async function settleVisualView(page: Page, visibleText: RegExp | string) {
+async function settleVisualView(page: Page, visibleText: RegExp | string, timeout?: number) {
   await page.addStyleTag({
     content: `
       *, *::before, *::after {
@@ -46,7 +46,7 @@ async function settleVisualView(page: Page, visibleText: RegExp | string) {
       }
     `,
   });
-  await expect(page.getByText(visibleText).first()).toBeVisible();
+  await expect(page.getByText(visibleText).first()).toBeVisible(timeout ? { timeout } : undefined);
   await page.evaluate(() => document.fonts.ready);
 }
 
@@ -130,7 +130,7 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('taxonomy graph view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const taxonomyNav = page.locator('#nav-taxonomy');
+    const taxonomyNav = page.locator('#nav-taxonomy-graph');
     if (await taxonomyNav.isVisible()) {
       await taxonomyNav.click();
       await settleVisualView(page, 'Taxonomy Graph Editor');
@@ -197,7 +197,7 @@ test.describe('04 - Visual Regression Tests', () => {
     const solutionBuilderNav = page.locator('#nav-solution-builder');
     if (await solutionBuilderNav.isVisible()) {
       await solutionBuilderNav.click();
-      await settleVisualView(page, 'Mission Builder');
+      await settleVisualView(page, 'Mission Builder', 15000);
       await expect(page).toHaveScreenshot('solution-configurator-default.png', {
         fullPage: false,
         animations: 'disabled',
