@@ -41,10 +41,21 @@ lesson about trusting "0 diffs" in `docs/architecture/ui-ux-100-checklist.md`
 (old and new) needs to be regenerated and visually sanity-checked locally**
 before being trusted again.
 
+**Resolved 2026-07-11:** Vinodh ran `--update-snapshots` locally after the
+`isVisible()` guard removal — 20 baseline files now cover all 13/13 nav
+views (7 pre-existing views ×2 platforms + 6 newly-fixed views ×1 platform).
+Spot-checked `taxonomy-graph` and `cleansing-workshop` baselines directly:
+muted text renders with real dim color, no layout breakage. Full verification
+suite (fresh install, tsc, eslint, dependency-cruiser, vitest) green.
+Checklist item #1 (`ui-ux-100-checklist.md`) is fully closed.
+
 **Not done — needs a browser-capable environment:** Playwright e2e / visual
-regression (`visual.spec.ts` snapshots) could not run in this sandbox
+regression (`visual.spec.ts` snapshots) could not be *run* from this sandbox
 (`cdn.playwright.dev` not in egress allowlist, confirmed via direct install
-failure). Code-level audit only; live/visual UI validation is still open.
+failure) — all execution happened on Vinodh's machine per the established
+apply → run → commit → confirm loop. Live/interactive UI validation beyond
+the automated snapshot suite (manual click-through, screen reader testing,
+cross-browser) is still open.
 
 ---
 

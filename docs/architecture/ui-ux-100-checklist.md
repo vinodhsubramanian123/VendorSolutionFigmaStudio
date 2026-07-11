@@ -83,7 +83,7 @@ the number match." Treat every *first* baseline-establishing run
 
 | Item | Status | Detail |
 |---|---|---|
-| Visual regression snapshots | 🟡→🔴 **see warning below** | 8 of 13 views had snapshots; 5 new tests added 2026-07-10 for Cleansing Workshop, Solution Configurator, Solutions Portfolio, Search, Telemetry — bringing coverage to 13/13. **But all 8 existing baselines are now known-stale** (see §0 below) and the 5 new ones have no baseline yet. None of the 13 can be trusted as ground truth until regenerated locally and visually confirmed. |
+| Visual regression snapshots | ✅ **Done 2026-07-11** | 13/13 nav views covered, 20 baseline files (7 views ×2 platforms + 6 ×1 platform), all regenerated post-fix and visually spot-checked (dashboard, taxonomy-graph, cleansing-workshop). Root cause of the 3-view gap: `isVisible()` guards silently no-op'ing (see session log) — removed entirely, tests now fail loudly instead of lying about coverage. |
 | Cross-browser E2E coverage | 🔴 | `playwright.config.ts` only defines a `chromium` project — no Firefox/WebKit. Fine if the target audience is Chrome-only; otherwise a real gap. |
 | Responsive breakpoint coverage | 🟡 | `responsive.spec.ts` checks 375/768/1024/1280px, but focused on sidebar/table containment — not per-view. |
 | Automated a11y test coverage | 🔴 | See §2 — effectively 1–2 components out of dozens. |
@@ -133,16 +133,16 @@ session; the 🔒 items above cannot.
 
 ## Suggested order of attack
 
-1. ✅ **Done 2026-07-10.** Closed the visual-snapshot gap (5 missing views) —
-   and in the process found item §0 above, which turned out to be the
-   highest-value find of the whole audit so far. This is exactly why #1 was
-   ranked first: closing test-coverage gaps surfaces real bugs, cheaply.
-2. Regenerate all 13 baselines locally, **visually confirm each one** (don't
-   just accept "test passed"), commit them.
-3. Expand automated `axe` coverage to at least one render per nav-level view.
-4. Sweep for the optimistic-UI-mismatch bug class across all "edit and save"
+1. ✅ **Done 2026-07-11.** Closed the visual-snapshot gap fully: 13/13 nav
+   views covered, root cause of the 3-view no-op found and fixed
+   (`isVisible()` guards silently swallowing test assertions — removed),
+   the 310-site invalid-class bug found and fixed, baselines regenerated
+   and visually confirmed. This is exactly why #1 was ranked first:
+   closing test-coverage gaps surfaces real bugs, cheaply.
+2. Expand automated `axe` coverage to at least one render per nav-level view.
+3. Sweep for the optimistic-UI-mismatch bug class across all "edit and save"
    components (catalog was one instance; check cleansing, forensics, taxonomy).
-5. Typography/spacing/contrast pass — now more meaningful than before, since
+4. Typography/spacing/contrast pass — now more meaningful than before, since
    muted text is actually rendering with a real color for the first time.
-6. Everything else in this list, prioritized by whatever Vinodh's manual
+5. Everything else in this list, prioritized by whatever Vinodh's manual
    click-through surfaces as actually broken.
