@@ -67,7 +67,7 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
-                          <ChevronRight className="w-4 h-4 text-content-primary0" />
+                          <ChevronRight className="w-4 h-4 text-content-muted" />
                         ) : (
                           <ChevronDown className="w-4 h-4 text-brand-indigo" />
                         )}
@@ -111,7 +111,7 @@ export const VendorDifferencesTable = React.memo(function VendorDifferencesTable
           })}
           {driftTableData.length === 0 && (
             <tr>
-              <td colSpan={9} className="p-8 text-center text-[11px] text-content-primary0 font-mono">
+              <td colSpan={9} className="p-8 text-center text-[11px] text-content-muted font-mono">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <span className="text-xl">✅</span>
                   <p>All active configuration categories matched perfectly.</p>

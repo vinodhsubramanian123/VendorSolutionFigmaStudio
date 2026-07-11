@@ -71,7 +71,7 @@ export function IngestionHub({
               <span className="text-[10px] font-mono text-status-success font-bold block">
                 Status: Synchronized
               </span>
-              <span className="text-[9px] text-content-primary0 font-sans block mt-0.5 animate-fadeIn">
+              <span className="text-[9px] text-content-muted font-sans block mt-0.5 animate-fadeIn">
                 Active opportunities: {ucids.length}
               </span>
             </div>

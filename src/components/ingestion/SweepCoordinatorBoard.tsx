@@ -134,7 +134,7 @@ export function SweepCoordinatorBoard({
                   <p className="text-[10px] text-content-secondary font-semibold truncate mt-0.5">
                     {u.name}
                   </p>
-                  <p className="text-[9px] text-content-primary0 font-mono">
+                  <p className="text-[9px] text-content-muted font-mono">
                     {u.solutions?.[0]?.vendorSubmissions?.[0]?.vendor ||
                       "Offline"}{" "}
                     Config

@@ -59,7 +59,7 @@ export function StepIntakeDropzone({
           <p className="font-semibold text-content-primary">
             Successfully Analyzed "{uploadedFileName}"
           </p>
-          <p className="text-[10px] text-content-primary0">
+          <p className="text-[10px] text-content-muted">
             Extracted and normalized configuration options matched
             with active enterprise contracts.
           </p>
@@ -83,7 +83,7 @@ export function StepIntakeDropzone({
           <p className="font-semibold text-content-primary">
             Drag &amp; Drop or Upload Customer BOQ Spreadsheet
           </p>
-          <p className="text-[10px] text-content-primary0">
+          <p className="text-[10px] text-content-muted">
             Supports multi-vendor, multi-tab equipment configuration
             sheets
           </p>

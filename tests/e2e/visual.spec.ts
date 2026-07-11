@@ -172,4 +172,84 @@ test.describe('04 - Visual Regression Tests', () => {
       });
     }
   });
+
+  // -------------------------------------------------------------------------
+  // Cleansing Workshop View
+  // -------------------------------------------------------------------------
+  test('cleansing workshop view matches approved baseline snapshot', async ({ page }) => {
+    await page.goto('/');
+    const cleansingNav = page.locator('#nav-cleansing');
+    if (await cleansingNav.isVisible()) {
+      await cleansingNav.click();
+      await settleVisualView(page, 'Interactive Splicing Workshop');
+      await expect(page).toHaveScreenshot('cleansing-workshop-default.png', {
+        fullPage: false,
+        animations: 'disabled',
+      });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Solution Configurator View
+  // -------------------------------------------------------------------------
+  test('solution configurator view matches approved baseline snapshot', async ({ page }) => {
+    await page.goto('/');
+    const solutionBuilderNav = page.locator('#nav-solution-builder');
+    if (await solutionBuilderNav.isVisible()) {
+      await solutionBuilderNav.click();
+      await settleVisualView(page, 'Mission Builder');
+      await expect(page).toHaveScreenshot('solution-configurator-default.png', {
+        fullPage: false,
+        animations: 'disabled',
+      });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Solutions Portfolio View
+  // -------------------------------------------------------------------------
+  test('solutions portfolio view matches approved baseline snapshot', async ({ page }) => {
+    await page.goto('/');
+    const solutionsNav = page.locator('#nav-solutions');
+    if (await solutionsNav.isVisible()) {
+      await solutionsNav.click();
+      await settleVisualView(page, 'Solution Portfolio');
+      await expect(page).toHaveScreenshot('solutions-portfolio-default.png', {
+        fullPage: false,
+        animations: 'disabled',
+      });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Search View
+  // -------------------------------------------------------------------------
+  test('search view matches approved baseline snapshot', async ({ page }) => {
+    await page.goto('/');
+    const searchNav = page.locator('#nav-search');
+    if (await searchNav.isVisible()) {
+      await searchNav.click();
+      await settleVisualView(page, 'Cognitive Sourcing Knowledge Explorer');
+      await expect(page).toHaveScreenshot('search-default.png', {
+        fullPage: false,
+        animations: 'disabled',
+      });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Telemetry View
+  // -------------------------------------------------------------------------
+  test('telemetry view matches approved baseline snapshot', async ({ page }) => {
+    await page.goto('/');
+    const telemetryNav = page.locator('#nav-telemetry');
+    if (await telemetryNav.isVisible()) {
+      await telemetryNav.click();
+      await settleVisualView(page, /System Telemetry/);
+      await expect(page).toHaveScreenshot('telemetry-default.png', {
+        fullPage: false,
+        animations: 'disabled',
+      });
+    }
+  });
 });

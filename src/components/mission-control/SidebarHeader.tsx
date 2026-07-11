@@ -31,7 +31,7 @@ export function SidebarHeader({
 
       <div className="px-1">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-content-primary0 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-content-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}

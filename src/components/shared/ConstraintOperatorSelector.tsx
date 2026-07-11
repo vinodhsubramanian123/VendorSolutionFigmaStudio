@@ -21,7 +21,7 @@ export function ConstraintOperatorSelector({
           <Settings2 className="w-4 h-4 text-brand-indigo" />
           <h4 className="text-xs font-bold text-content-primary uppercase tracking-wider">Combinatorics Operator</h4>
         </div>
-        <span className="text-[10px] text-content-primary0 font-mono">
+        <span className="text-[10px] text-content-muted font-mono">
           {selectedSkusCount} SKU{selectedSkusCount !== 1 && 's'} selected
         </span>
       </div>

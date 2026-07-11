@@ -167,7 +167,7 @@ export function GroupedUcidList({
                         {isDone ? (
                           <StatusBadge status="Locked" variant="success" size="sm" />
                         ) : (
-                          <span className="text-[9.5px] text-content-primary0 font-semibold">
+                          <span className="text-[9.5px] text-content-muted font-semibold">
                             {pct}% Complete
                           </span>
                         )}
@@ -181,7 +181,7 @@ export function GroupedUcidList({
                             e.stopPropagation();
                             setActiveMenuUcidId(activeMenuUcidId === u.id ? null : u.id);
                           }}
-                          className="nested-action absolute right-0 top-1/2 -translate-y-1/2 p-1 text-content-primary0 hover:text-content-primary hover:bg-white/10 rounded cursor-pointer transition z-20"
+                          className="nested-action absolute right-0 top-1/2 -translate-y-1/2 p-1 text-content-muted hover:text-content-primary hover:bg-white/10 rounded cursor-pointer transition z-20"
                           title="Actions"
                         >
                           <MoreVertical className="w-3.5 h-3.5" />
@@ -252,7 +252,7 @@ export function GroupedUcidList({
 
                       {u.solutions && u.solutions.length > 0 && (
                         <div className="mt-3 pt-2 border-t border-white/5 space-y-1.5 select-none text-left">
-                          <div className="flex items-center justify-between text-[8px] text-content-primary0 font-mono">
+                          <div className="flex items-center justify-between text-[8px] text-content-muted font-mono">
                             <span>CONFIG SEQUENCE</span>
                             <span className="text-content-secondary font-bold uppercase">
                               {(() => {

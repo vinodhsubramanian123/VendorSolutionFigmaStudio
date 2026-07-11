@@ -32,7 +32,7 @@ export function SolutionDetail() {
 
   if (!solution) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-content-primary0">
+      <div className="flex flex-col items-center justify-center h-full text-content-muted">
         <h2 className="text-xl font-bold mb-2 text-content-primary">Solution Not Found</h2>
         <p>The specified solution could not be located in the active context.</p>
         <button type="button" onClick={() => navigate('/solutions')} className="mt-4 text-brand-indigo hover:underline">
@@ -194,15 +194,15 @@ export function SolutionDetail() {
             </h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-content-primary0">Source File</span>
+                <span className="text-content-muted">Source File</span>
                 <span className="text-content-primary font-mono">{solution.boqSourceFile}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-content-primary0">Display ID</span>
+                <span className="text-content-muted">Display ID</span>
                 <span className="text-content-primary font-mono">{solution.displayId}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-content-primary0">Cross-Vendor</span>
+                <span className="text-content-muted">Cross-Vendor</span>
                 <span className="text-content-primary">{solution.crossVendorEnabled ? "Enabled" : "Disabled"}</span>
               </div>
             </div>
@@ -213,7 +213,7 @@ export function SolutionDetail() {
               Vendor Assignments
             </h3>
             {solution.vendorAssignments.length === 0 ? (
-              <p className="text-xs text-content-primary0">No vendor assignments configured.</p>
+              <p className="text-xs text-content-muted">No vendor assignments configured.</p>
             ) : (
               <div className="space-y-3">
                 {solution.vendorAssignments.map((va: VendorAssignment) => (
@@ -239,7 +239,7 @@ export function SolutionDetail() {
               Configuration Components ({solutionUcids.length} UCIDs)
             </h3>
             {solutionUcids.length === 0 ? (
-              <p className="text-sm text-content-primary0 py-8 text-center">No configurations instantiated yet.</p>
+              <p className="text-sm text-content-muted py-8 text-center">No configurations instantiated yet.</p>
             ) : (
               <div className="space-y-4">
                 {solutionUcids.map(u => (
@@ -247,7 +247,7 @@ export function SolutionDetail() {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-mono text-[10px] text-content-primary0">{u.displayId}</span>
+                          <span className="font-mono text-[10px] text-content-muted">{u.displayId}</span>
                           <StatusBadge status={u.syncStatus || 'Pending'} />
                           {(u.snapshots ?? []).some(s => s.locked) && (
                             <span className="text-[9px] uppercase bg-status-warning/20 text-status-warning px-1.5 py-0.5 rounded font-bold">Locked</span>
@@ -257,7 +257,7 @@ export function SolutionDetail() {
                         <p className="text-xs text-content-secondary mt-1 truncate max-w-md">{(u.rawBOM || '').split('\n')[0]}</p>
                       </div>
                       <div className="text-right flex flex-col items-end gap-1">
-                        <span className="text-[10px] font-bold uppercase text-content-primary0">Step</span>
+                        <span className="text-[10px] font-bold uppercase text-content-muted">Step</span>
                         <span className="text-xs font-mono" style={{ color: tokens.colors.accent.indigo }}>{u.currentStep}</span>
                       </div>
                     </div>

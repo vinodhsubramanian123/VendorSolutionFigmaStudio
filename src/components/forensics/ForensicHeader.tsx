@@ -69,13 +69,13 @@ export function ForensicHeader({
                 <strong className="text-content-primary font-mono font-bold bg-surface-canvas/45 px-1.5 py-0.5 rounded border border-white/5">
                   {currUcid.displayId}
                 </strong>
-                <span className="text-content-primary0 font-medium ml-1.5 truncate hidden md:inline col-span-2">
+                <span className="text-content-muted font-medium ml-1.5 truncate hidden md:inline col-span-2">
                   — {currUcid.name}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-64">
-              <span className="text-[10px] text-content-primary0 font-bold uppercase tracking-wider whitespace-nowrap">
+              <span className="text-[10px] text-content-muted font-bold uppercase tracking-wider whitespace-nowrap">
                 Switch Context:
               </span>
               <Select

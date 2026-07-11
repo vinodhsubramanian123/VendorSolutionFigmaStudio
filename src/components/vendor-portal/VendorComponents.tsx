@@ -67,7 +67,7 @@ export function VendorCredentialsCard({
       </div>
 
       <div className="space-y-1" role="group" aria-labelledby="partner-portal-label">
-        <div id="partner-portal-label" className="text-[10px] font-bold text-content-primary0 uppercase tracking-wide">
+        <div id="partner-portal-label" className="text-[10px] font-bold text-content-muted uppercase tracking-wide">
           Select Partner Portal
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -104,7 +104,7 @@ export function VendorCredentialsCard({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="partner-username" className="text-[9px] font-bold text-content-primary0 uppercase">Partner Username</label>
+          <label htmlFor="partner-username" className="text-[9px] font-bold text-content-muted uppercase">Partner Username</label>
           <div className="relative">
             <input
               id="partner-username"
@@ -118,7 +118,7 @@ export function VendorCredentialsCard({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="partner-apiToken" className="text-[9px] font-bold text-content-primary0 uppercase">Secure Client Password</label>
+          <label htmlFor="partner-apiToken" className="text-[9px] font-bold text-content-muted uppercase">Secure Client Password</label>
           <div className="relative">
             <input
               id="partner-apiToken"
@@ -131,7 +131,7 @@ export function VendorCredentialsCard({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-2 text-content-primary0 hover:text-content-primary"
+              className="absolute right-2 top-2 text-content-muted hover:text-content-primary"
             >
               {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             </button>
@@ -139,7 +139,7 @@ export function VendorCredentialsCard({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="partner-mfa" className="text-[9px] font-bold text-content-primary0 uppercase flex items-center justify-between">
+          <label htmlFor="partner-mfa" className="text-[9px] font-bold text-content-muted uppercase flex items-center justify-between">
             <span>MFA Secret Token Seed (TOTP)</span>
             <span className="text-[8px] text-brand-indigo lowercase font-mono">Bypasses MFA hurdles</span>
           </label>
@@ -154,7 +154,7 @@ export function VendorCredentialsCard({
         </div>
 
         <div className="flex items-center justify-between pt-1 font-mono text-[9.5px] border-t border-white/5">
-          <span className="text-content-primary0">Corporate SSL Cert:</span>
+          <span className="text-content-muted">Corporate SSL Cert:</span>
           <button
             type="button"
             onClick={() => {
@@ -205,11 +205,11 @@ export function VendorConsoleLogs({ lastTested, consoleLogs }: VendorConsoleLogs
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Terminal className="w-3.5 h-3.5 text-brand-indigo" />
-          <span className="text-[10px] font-bold text-content-primary0 uppercase tracking-wide">
+          <span className="text-[10px] font-bold text-content-muted uppercase tracking-wide">
             Daemon Playwright Pipe
           </span>
         </div>
-        <span className="text-[9px] font-mono text-content-primary0">
+        <span className="text-[9px] font-mono text-content-muted">
           Last Handshake: {lastTested}
         </span>
       </div>

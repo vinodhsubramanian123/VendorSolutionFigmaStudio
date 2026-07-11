@@ -98,7 +98,7 @@ export function BoqIngestWorkbook({
               <h3 className="text-sm font-semibold text-content-primary mt-1.5 animate-fadeIn">
                 File Intake & Structural Splitting
               </h3>
-              <p className="text-[11px] text-content-primary0 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-content-muted mt-0.5 leading-relaxed">
                 Upload the main spreadsheet containing hardware requirements. It
                 will be mapped directly via active contract price catalogs.
               </p>
@@ -233,7 +233,7 @@ export function BoqIngestWorkbook({
               >
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="p-3 rounded-lg bg-surface-card border border-white/5">
-                    <p className="text-[9px] text-content-primary0 font-mono lowercase">
+                    <p className="text-[9px] text-content-muted font-mono lowercase">
                       vendor brand
                     </p>
                     <p className="text-xs font-bold text-content-primary mt-1">
@@ -241,7 +241,7 @@ export function BoqIngestWorkbook({
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-surface-card border border-white/5 col-span-2">
-                    <p className="text-[9px] text-content-primary0 font-mono lowercase">
+                    <p className="text-[9px] text-content-muted font-mono lowercase">
                       detected key chassis sku
                     </p>
                     <p className="text-xs font-bold text-content-primary mt-1 truncate">
@@ -249,7 +249,7 @@ export function BoqIngestWorkbook({
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-surface-card border border-white/5">
-                    <p className="text-[9px] text-content-primary0 font-mono lowercase">
+                    <p className="text-[9px] text-content-muted font-mono lowercase">
                       initial integrity confidence
                     </p>
                     <p className="text-xs font-mono font-bold text-status-success mt-1">
@@ -259,7 +259,7 @@ export function BoqIngestWorkbook({
                 </div>
 
                 <div className="bg-surface-canvas/25 rounded-lg border border-white/5 p-4 space-y-2">
-                  <p className="text-[10px] text-content-primary0 uppercase tracking-widest font-black">
+                  <p className="text-[10px] text-content-muted uppercase tracking-widest font-black">
                     extricated pipeline configs list
                   </p>
                 <div className="space-y-2 pt-1">
@@ -283,7 +283,7 @@ export function BoqIngestWorkbook({
                               <p className="text-xs font-bold text-content-primary">
                                 {firstVs?.label || sol.name}
                               </p>
-                              <p className="text-[10px] text-content-primary0 font-mono mt-0.5">
+                              <p className="text-[10px] text-content-muted font-mono mt-0.5">
                                 {items.length} hardware items mapped natively
                               </p>
                             </div>
@@ -348,7 +348,7 @@ export function BoqIngestWorkbook({
                 <span className="font-semibold text-content-primary text-xs">
                   Strict Vendor Decoupling
                 </span>
-                <p className="text-content-primary0 text-[10px] mt-0.5">
+                <p className="text-content-muted text-[10px] mt-0.5">
                   Configs are programmatically split by supplier types so they
                   never taint or interfere with each other during procurement
                   comparisons.
@@ -363,7 +363,7 @@ export function BoqIngestWorkbook({
                 <span className="font-semibold text-content-primary text-xs">
                   Live Sourced Verification
                 </span>
-                <p className="text-content-primary0 text-[10px] mt-0.5">
+                <p className="text-content-muted text-[10px] mt-0.5">
                   Immediately registers active sessions via real REST APIs,
                   saving developers from manually injecting complex data frames.
                 </p>

@@ -230,7 +230,7 @@ export function UCIDStepper({ ucid, activeStep, setViewStep, getStepState }: UCI
           Step {STEP_ORDER.indexOf(activeStep) + 1}:{" "}
           {STEPS_DATA.find((s) => s.id === activeStep)?.label}
         </p>
-        <p className="text-content-primary0 mt-0.5">
+        <p className="text-content-muted mt-0.5">
           {STEPS_DATA.find((s) => s.id === activeStep)?.desc}
         </p>
       </div>

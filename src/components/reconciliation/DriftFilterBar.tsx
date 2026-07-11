@@ -38,7 +38,7 @@ export const DriftFilterBar = React.memo(function DriftFilterBar({
             className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
               isActive
                 ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/10"
-                : "text-content-primary0 hover:text-content-secondary hover:bg-white/5"
+                : "text-content-muted hover:text-content-secondary hover:bg-white/5"
             }`}
           >
             {pill.label}

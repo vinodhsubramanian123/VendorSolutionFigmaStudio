@@ -53,7 +53,7 @@ export function StepIntake({
             <span className="text-[10px] font-mono text-status-success font-bold block">
               Active Sync
             </span>
-            <span className="text-[9px] text-content-primary0 font-sans block mt-0.5 animate-fadeIn">
+            <span className="text-[9px] text-content-muted font-sans block mt-0.5 animate-fadeIn">
               Active Accounts: {activeUcidsCount}
             </span>
           </div>
@@ -113,7 +113,7 @@ export function StepIntake({
 
             {/* Raw Text Input Section */}
             <div className="pt-4 space-y-2">
-              <label htmlFor="rawBoqText" className="text-[10px] uppercase font-bold text-content-primary0 tracking-wider">
+              <label htmlFor="rawBoqText" className="text-[10px] uppercase font-bold text-content-muted tracking-wider">
                 Or Paste Raw BOQ Text
               </label>
               <textarea
@@ -144,7 +144,7 @@ export function StepIntake({
               <p className="text-xs font-bold text-content-secondary">
                 Have active configurations in memory?
               </p>
-              <p className="text-[10px] text-content-primary0 mt-0.5">
+              <p className="text-[10px] text-content-muted mt-0.5">
                 We detected {activeUcidsCount} active tracking UCID container(s)
                 pre-loaded.
               </p>

@@ -26,7 +26,7 @@ export function TargetWorkspacePanel({
       <h3 className="text-xs font-bold uppercase tracking-widest text-sky-400">
         Target Workspace
       </h3>
-      <p className="text-content-primary0 text-[11px] leading-relaxed">
+      <p className="text-content-muted text-[11px] leading-relaxed">
         Select the active target UCID container where the technical supplier
         bill of materials belongs.
       </p>
@@ -56,7 +56,7 @@ export function TargetWorkspacePanel({
 
       {targetUcid && (
         <div className="p-3.5 rounded-lg bg-surface-card border border-white/5 space-y-2 font-sans text-left">
-          <span className="text-[9px] text-content-primary0 block uppercase tracking-wider font-semibold">
+          <span className="text-[9px] text-content-muted block uppercase tracking-wider font-semibold">
             Active Design Scope
           </span>
           <p className="text-xs font-bold text-content-primary truncate">

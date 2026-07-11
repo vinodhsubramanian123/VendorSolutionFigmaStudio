@@ -53,7 +53,7 @@ export function SnapshotListItem({
             </div>
 
             <div className="flex items-center gap-2 mt-0.5 text-[9px] text-content-secondary font-mono flex-wrap">
-              <div className="flex items-center gap-0.5 text-content-primary0">
+              <div className="flex items-center gap-0.5 text-content-muted">
                 <Calendar className="w-3 h-3" />
                 <span>{snap.timestamp || snap.committedAt}</span>
               </div>
@@ -97,7 +97,7 @@ export function SnapshotListItem({
             className={`p-1 px-1.5 rounded transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shrink-0 ${
               snap.locked
                 ? "text-gray-750 cursor-not-allowed opacity-35 hover:bg-transparent"
-                : "hover:bg-status-error/10 text-content-primary0 hover:text-status-error cursor-pointer"
+                : "hover:bg-status-error/10 text-content-muted hover:text-status-error cursor-pointer"
             }`}
             title={snap.locked ? "Unlock snapshot to permit deletion" : "Remove Snapshot Version"}
             disabled={snap.locked}
@@ -112,7 +112,7 @@ export function SnapshotListItem({
 
       {/* Audit notes if present */}
       {snap.notes && (
-        <div className="mt-2 text-[9px] text-content-primary0 italic bg-surface-canvas/10 rounded p-1.5 border border-white/2 max-h-16 overflow-y-auto leading-normal">
+        <div className="mt-2 text-[9px] text-content-muted italic bg-surface-canvas/10 rounded p-1.5 border border-white/2 max-h-16 overflow-y-auto leading-normal">
           💡 <span className="font-mono">{snap.notes}</span>
         </div>
       )}
@@ -172,7 +172,7 @@ export function SnapshotListItem({
                             <span className="truncate max-w-[200px]" title={`${it.partNumber} - ${it.name}`}>
                               {it.quantity}x <b className="text-content-secondary">{it.partNumber}</b> ({it.name})
                             </span>
-                            <span className="text-content-primary0 shrink-0 font-bold">
+                            <span className="text-content-muted shrink-0 font-bold">
                               ${((it.unitPrice || 0) * (it.quantity || 1)).toLocaleString()}
                             </span>
                           </div>

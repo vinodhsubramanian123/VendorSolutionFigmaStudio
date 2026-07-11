@@ -46,7 +46,7 @@ function SocketAlignmentPanel({ socketMatch }: { socketMatch: ConstraintCheckRes
         <p className="text-content-primary font-bold">
           {socketMatch?.chassisSocket} Sockets matched.
         </p>
-        <p className="text-content-primary0 leading-normal">
+        <p className="text-content-muted leading-normal">
           {socketMatch?.description}
         </p>
       </div>
@@ -69,7 +69,7 @@ function PowerLimitPanel({ powerLimitTest }: { powerLimitTest: ConstraintCheckRe
         <p className="text-content-primary font-bold">
           Estimated: {powerLimitTest?.estimatedTdpWatts} Watts
         </p>
-        <p className="text-content-primary0">
+        <p className="text-content-muted">
           Max limit: {powerLimitTest?.maxSupportedWatts}W
         </p>
         <p className="text-status-success">
@@ -95,7 +95,7 @@ function MemoryBalancePanel({ memoryBalanceCheck }: { memoryBalanceCheck: Constr
         <p className="text-content-primary font-bold">
           DDR5 Lanes Count: {memoryBalanceCheck?.quantity}
         </p>
-        <p className="text-content-primary0">
+        <p className="text-content-muted">
           Optimal Layout: {memoryBalanceCheck?.optimalLayoutSymmetry}
         </p>
         <p className="text-status-warning text-[9.5px] leading-tight">
@@ -146,7 +146,7 @@ export function BomReconstructionMatrix({ bomReconResult }: BomReconstructionMat
               <DollarSign className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[9px] text-content-primary0 uppercase tracking-tight">reconciled savings value</p>
+              <p className="text-[9px] text-content-muted uppercase tracking-tight">reconciled savings value</p>
               <p className="text-sm font-black font-mono text-status-success">${bomReconResult.metrics?.totalSavingsUSD?.toLocaleString()}</p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export function BomReconstructionMatrix({ bomReconResult }: BomReconstructionMat
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[9px] text-content-primary0 uppercase tracking-tight">rebuild latency impact</p>
+              <p className="text-[9px] text-content-muted uppercase tracking-tight">rebuild latency impact</p>
               <p className="text-sm font-black font-mono">{bomReconResult.matrix[0]?.leadTimeBottleneckDays || 45} days</p>
             </div>
           </div>
@@ -166,17 +166,17 @@ export function BomReconstructionMatrix({ bomReconResult }: BomReconstructionMat
               <CheckCircle className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[9px] text-content-primary0 uppercase tracking-tight">Compliance Score verified</p>
+              <p className="text-[9px] text-content-muted uppercase tracking-tight">Compliance Score verified</p>
               <p className="text-sm font-black font-mono text-sky-300">{bomReconResult.matrix[0]?.deliveryConfidenceRating || 100}%</p>
             </div>
           </div>
         </div>
 
         <div className="bg-surface-canvas/20 rounded-lg border border-white/5 p-4 text-left overflow-x-auto">
-          <p className="text-[9px] text-content-primary0 uppercase tracking-widest font-black block mb-2">Cost variance matrix check</p>
+          <p className="text-[9px] text-content-muted uppercase tracking-widest font-black block mb-2">Cost variance matrix check</p>
           <table className="w-full text-left border-collapse text-[10px] min-w-[500px]">
             <thead>
-              <tr className="border-b border-white/5 text-content-primary0 font-mono">
+              <tr className="border-b border-white/5 text-content-muted font-mono">
                 <th className="pb-2">SPEC SOLUTION ID</th>
                 <th className="pb-2">SUPPLIER</th>
                 <th className="pb-2">BASE LIST VALUE</th>

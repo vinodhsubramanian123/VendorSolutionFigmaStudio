@@ -52,7 +52,7 @@ export function SystemTelemetry() {
               <h1 className="text-sm font-bold text-content-primary">
                 System Telemetry &amp; Intelligence Pipeline
               </h1>
-              <p className="text-[11px] text-content-primary0 mt-0.5">
+              <p className="text-[11px] text-content-muted mt-0.5">
                 Document upload queue · API logs · Webhook monitor · HMAC validation
               </p>
             </div>
@@ -105,7 +105,7 @@ export function SystemTelemetry() {
               className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-[11px] font-bold transition cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20"
-                  : "text-content-primary0 hover:text-content-secondary"
+                  : "text-content-muted hover:text-content-secondary"
               }`}
             >
               <tab.icon className="w-3.5 h-3.5" />

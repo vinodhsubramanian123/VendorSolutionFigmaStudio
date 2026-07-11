@@ -56,7 +56,7 @@ export const DriftTableRow = React.memo(function DriftTableRow({
       <td className={`py-3 px-2 font-mono text-left ${getPartColorClass(row.boqPart, row.bomPart)}`}>{row.bomPart}</td>
       <td className="py-3 px-4 text-content-primary font-semibold truncate max-w-xs text-left">{row.bomItem}</td>
       <td className={`py-3 px-2 text-center font-mono ${getQtyColorClass(row.boqQty, row.bomQty, false)}`}>{row.bomQty}</td>
-      <td className="py-3 px-2 text-right font-mono text-content-primary0">
+      <td className="py-3 px-2 text-right font-mono text-content-muted">
         {row.unitPrice !== "—" ? `$${row.unitPrice}` : "—"}
       </td>
       <td className="py-3 px-3 text-right font-mono font-bold text-status-success">

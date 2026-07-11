@@ -65,14 +65,14 @@ export function ForensicIssueCard({ issue, onAutoHeal, onManualPromote }: Forens
         </div>
 
         <div className="p-2.5 rounded text-[11px] space-y-1 bg-surface-canvas/30 border border-white/5 text-indigo-300">
-          <span className="font-bold uppercase text-[9px] text-content-primary0 tracking-wider flex items-center gap-1">
+          <span className="font-bold uppercase text-[9px] text-content-muted tracking-wider flex items-center gap-1">
             <Zap className="w-3 h-3 text-brand-indigo" /> Suggested Sourcing Alignment Action:
           </span>
           <p className="text-content-secondary leading-normal font-medium">{issue.suggestedAction}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-2 border-t border-white/5 gap-2">
-          <div className="text-[10px] text-content-primary0 font-mono">
+          <div className="text-[10px] text-content-muted font-mono">
             Affected Manufacturer:{" "}
             <span className="text-brand-indigo font-bold">{issue.vendor}</span>{" "}
             · Line Item Details:{" "}

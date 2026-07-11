@@ -65,7 +65,7 @@ export function ConfigLibraryItem({
       </h4>
 
       {/* Configuration items detail */}
-      <div className="mt-2 text-[10px] text-content-primary0 line-clamp-1">
+      <div className="mt-2 text-[10px] text-content-muted line-clamp-1">
         {cfg.items
           .map((i) => `${i.quantity}x ${i.type}`)
           .join(", ")}

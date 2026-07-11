@@ -86,7 +86,7 @@ export function AdviceResolutionPanel({
               {advice.length} pending
             </span>
           </h3>
-          <p className="text-[11px] text-content-primary0 mt-0.5">
+          <p className="text-[11px] text-content-muted mt-0.5">
             Validation sheet parsing returned warnings. Resolve logic constraints targeting the Active BOM.
           </p>
         </div>
@@ -164,7 +164,7 @@ export function AdviceResolutionPanel({
                     >
                       {/* Search bar */}
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-canvas/30 border border-white/5">
-                        <Search className="w-3.5 h-3.5 text-content-primary0 shrink-0" />
+                        <Search className="w-3.5 h-3.5 text-content-muted shrink-0" />
                         <input
                           type="text"
                           placeholder={`Search replacement for constraints...`}
@@ -176,7 +176,7 @@ export function AdviceResolutionPanel({
                       {/* Suggested alternates */}
                       {candidates.length > 0 ? (
                         <div className="space-y-1.5">
-                          <p className="text-[9px] text-content-primary0 uppercase font-mono tracking-wider">
+                          <p className="text-[9px] text-content-muted uppercase font-mono tracking-wider">
                             Catalog Alternates ({candidates.length})
                           </p>
                           {candidates.map((sku) => (
@@ -187,7 +187,7 @@ export function AdviceResolutionPanel({
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-[11px] font-bold text-indigo-200 font-mono">{sku.partNumber}</span>
-                                  <span className="text-[9px] text-content-primary0">{sku.type}</span>
+                                  <span className="text-[9px] text-content-muted">{sku.type}</span>
                                   <span className="text-[9px] text-status-success font-mono">${sku.price.toLocaleString()}</span>
                                   <span className="text-[9px] text-content-muted">{sku.leadTimeDays}d lead</span>
                                 </div>
@@ -208,7 +208,7 @@ export function AdviceResolutionPanel({
                           ))}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-surface-canvas/20 border border-white/5 text-[10px] text-content-primary0">
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-surface-canvas/20 border border-white/5 text-[10px] text-content-muted">
                           <RefreshCw className="w-3 h-3" />
                           No active catalog alternatives found. Try broadening your search term above.
                         </div>

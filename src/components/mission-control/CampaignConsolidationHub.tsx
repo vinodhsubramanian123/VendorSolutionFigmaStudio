@@ -93,7 +93,7 @@ export function CampaignConsolidationHub({
         <div className="flex flex-col items-center justify-center p-12 text-center bg-surface-card border border-white/5 rounded-xl h-full min-h-[400px]">
           <Layers className="w-12 h-12 text-brand-indigo/30 mb-4" />
           <h3 className="text-sm font-bold text-content-primary uppercase tracking-wider">No Active Campaigns</h3>
-          <p className="text-xs text-content-primary0 mt-2 max-w-md leading-relaxed">
+          <p className="text-xs text-content-muted mt-2 max-w-md leading-relaxed">
             There are currently no active spreadsheet pipelines assigned to this campaign portfolio. Ingest configurations via the Hub to activate the consolidation ledger.
           </p>
         </div>
@@ -117,7 +117,7 @@ export function CampaignConsolidationHub({
               <span className="text-[9px] uppercase font-mono tracking-wider text-brand-indigo font-bold bg-brand-indigo/10 border border-brand-indigo/20 px-2 py-0.5 rounded">
                 Portfolio Group Dashboard
               </span>
-              <span className="text-[9px] uppercase font-mono text-content-primary0 font-bold">
+              <span className="text-[9px] uppercase font-mono text-content-muted font-bold">
                 {campaignUcids.length} Parallel Worksheets
               </span>
             </div>
@@ -141,7 +141,7 @@ export function CampaignConsolidationHub({
         {/* Global Financial metrics card row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 relative z-10">
           <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-            <p className="text-[9px] text-content-primary0 font-bold uppercase font-mono">
+            <p className="text-[9px] text-content-muted font-bold uppercase font-mono">
               Original Baseline sum
             </p>
             <p className="text-sm font-bold text-content-secondary mt-1">

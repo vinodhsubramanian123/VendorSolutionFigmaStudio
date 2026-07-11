@@ -122,7 +122,7 @@ export function RulesTable({
           </AnimatePresence>
           {sourcingRules.length === 0 && (
             <tr>
-              <td colSpan={8} className="p-8 text-center text-[11px] text-content-primary0 font-mono">
+              <td colSpan={8} className="p-8 text-center text-[11px] text-content-muted font-mono">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <span className="text-xl">📭</span>
                   <p>No custom sourcing rules configured yet.</p>

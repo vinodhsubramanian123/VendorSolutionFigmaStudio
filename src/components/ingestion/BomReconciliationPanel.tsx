@@ -116,19 +116,19 @@ export function BomReconciliationPanel({
                 <p className="text-xs font-black text-emerald-300">
                   {activeBOMFile || "supplier-bom.xlsx"}
                 </p>
-                <p className="text-[9px] text-content-primary0 font-mono mt-0.5 uppercase">
+                <p className="text-[9px] text-content-muted font-mono mt-0.5 uppercase">
                   Reconciliation audit successfully synthesized
                 </p>
               </div>
             </div>
           ) : (
             <div className="space-y-2 flex flex-col items-center text-content-secondary hover:text-content-primary">
-              <Upload className="w-9 h-9 text-content-primary0 hover:text-sky-400 transition-colors" />
+              <Upload className="w-9 h-9 text-content-muted hover:text-sky-400 transition-colors" />
               <div>
                 <p className="text-xs font-bold text-content-secondary">
                   Drag & Drop BOM spreadsheet here, or click to browse
                 </p>
-                <p className="text-[9px] text-content-primary0 mt-0.5 uppercase">
+                <p className="text-[9px] text-content-muted mt-0.5 uppercase">
                   Runs compliance verification and vendor cost variance
                   matrix checks
                 </p>

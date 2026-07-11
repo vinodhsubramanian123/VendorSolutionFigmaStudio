@@ -110,7 +110,7 @@ function EditingRuleRow(props: RuleTableRowProps) {
       <td className="p-3 text-content-secondary">
         <div className="space-y-2 max-w-[280px]">
           <div>
-            <label htmlFor={`edit-label-${rule.id}`} className="block text-[8px] text-content-primary0 uppercase font-mono mb-0.5">Label Narrative</label>
+            <label htmlFor={`edit-label-${rule.id}`} className="block text-[8px] text-content-muted uppercase font-mono mb-0.5">Label Narrative</label>
             <input
               id={`edit-label-${rule.id}`}
               type="text"
@@ -121,7 +121,7 @@ function EditingRuleRow(props: RuleTableRowProps) {
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             <div>
-              <label htmlFor={`edit-combo-${rule.id}`} className="block text-[8px] text-content-primary0 uppercase font-mono mb-0.5">Combo SKUs</label>
+              <label htmlFor={`edit-combo-${rule.id}`} className="block text-[8px] text-content-muted uppercase font-mono mb-0.5">Combo SKUs</label>
               <input
                 id={`edit-combo-${rule.id}`}
                 type="text"
@@ -132,7 +132,7 @@ function EditingRuleRow(props: RuleTableRowProps) {
               />
             </div>
             <div>
-              <label htmlFor={`edit-cli-${rule.id}`} className="block text-[8px] text-content-primary0 uppercase font-mono mb-0.5">CLI Command</label>
+              <label htmlFor={`edit-cli-${rule.id}`} className="block text-[8px] text-content-muted uppercase font-mono mb-0.5">CLI Command</label>
               <input
                 id={`edit-cli-${rule.id}`}
                 type="text"
@@ -144,7 +144,7 @@ function EditingRuleRow(props: RuleTableRowProps) {
             </div>
           </div>
           <div>
-            <label htmlFor={`edit-notes-${rule.id}`} className="block text-[8px] text-content-primary0 uppercase font-mono mb-0.5">Human Notes</label>
+            <label htmlFor={`edit-notes-${rule.id}`} className="block text-[8px] text-content-muted uppercase font-mono mb-0.5">Human Notes</label>
             <textarea
               id={`edit-notes-${rule.id}`}
               value={editNotes}
@@ -214,7 +214,7 @@ function ViewingRuleRow(props: RuleTableRowProps) {
       <td className="p-3 font-bold text-content-primary">{rule.vendor}</td>
       <AutoLearnedBadgeCell rule={rule} />
       <td className="p-3 whitespace-nowrap">
-        <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9.5px] ${rule.status === "active" ? "text-status-success" : "text-content-primary0 animate-pulse"}`}>
+        <span className={`inline-flex items-center gap-1.5 font-bold uppercase text-[9.5px] ${rule.status === "active" ? "text-status-success" : "text-content-muted animate-pulse"}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${rule.status === "active" ? "bg-status-success" : "bg-content-muted"}`} />
           {rule.status}
         </span>
@@ -253,19 +253,19 @@ function ViewingRuleRowDetails({ rule }: { rule: SourcingRule }) {
         <div className="mt-1.5 p-2 rounded bg-surface-canvas/30 border border-white/5 space-y-1.5 text-[10px] max-w-[280px]">
           {rule.associatedSkus && (
             <div className="flex flex-col gap-0.5">
-              <span className="text-content-primary0 font-mono text-[9px] uppercase">Combo/Accessory SKUs:</span>
+              <span className="text-content-muted font-mono text-[9px] uppercase">Combo/Accessory SKUs:</span>
               <span className="text-indigo-300 font-mono font-bold break-all bg-brand-indigo/10 px-1.5 py-0.5 rounded border border-brand-indigo/20 w-fit">{rule.associatedSkus}</span>
             </div>
           )}
           {rule.cliScript && (
             <div className="flex flex-col gap-0.5">
-              <span className="text-content-primary0 font-mono text-[9px] uppercase">CLI Automation Command:</span>
+              <span className="text-content-muted font-mono text-[9px] uppercase">CLI Automation Command:</span>
               <code className="bg-surface-canvas/45 text-status-warning px-1.5 py-0.5 rounded border border-white/5 font-mono select-all break-all">{rule.cliScript}</code>
             </div>
           )}
           {rule.notes && (
             <div className="flex flex-col gap-0.5">
-              <span className="text-content-primary0 font-mono text-[9px] uppercase">Remedy Notes:</span>
+              <span className="text-content-muted font-mono text-[9px] uppercase">Remedy Notes:</span>
               <span className="text-content-secondary italic bg-white/2 px-1.5 py-0.5 rounded border border-white/5 leading-relaxed">{rule.notes}</span>
             </div>
           )}

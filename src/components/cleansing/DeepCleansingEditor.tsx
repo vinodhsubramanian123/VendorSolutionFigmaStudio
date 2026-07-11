@@ -117,7 +117,7 @@ export function DeepCleansingEditor() {
       {/* Editor Grid */}
       <div className="flex-1 border border-white/10 rounded-xl overflow-hidden bg-surface-canvas/20 flex flex-col mb-6">
         {/* Grid Header */}
-        <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-white/10 bg-surface-canvas/40 text-xs font-semibold text-content-primary0 uppercase tracking-wider shrink-0">
+        <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-white/10 bg-surface-canvas/40 text-xs font-semibold text-content-muted uppercase tracking-wider shrink-0">
           <div className="col-span-2">Part Number</div>
           <div className="col-span-4">Description</div>
           <div className="col-span-3">Quantity</div>
@@ -157,7 +157,7 @@ export function DeepCleansingEditor() {
               {splitConfigs.map(cfg => (
                 <div key={cfg.id} className="min-w-[300px] p-4 bg-brand-indigo/5 border border-brand-indigo/20 rounded-xl">
                   <div className="font-medium text-indigo-300 mb-1">{cfg.name}</div>
-                  <div className="text-xs text-content-primary0 mb-3">{cfg.items.length} Component Types</div>
+                  <div className="text-xs text-content-muted mb-3">{cfg.items.length} Component Types</div>
                   <div className="space-y-1">
                     {cfg.items.slice(0, 3).map(i => (
                       <div key={i.id} className="flex justify-between text-xs">

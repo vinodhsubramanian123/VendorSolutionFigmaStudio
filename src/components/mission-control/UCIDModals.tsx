@@ -36,7 +36,7 @@ export function UCIDEditModal({ editingUcid, setEditingUcid, setUcids }: UCIDEdi
             type="button"
             aria-label="Close edit modal"
             onClick={() => setEditingUcid(null)}
-            className="text-content-primary0 hover:text-content-primary cursor-pointer"
+            className="text-content-muted hover:text-content-primary cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -174,7 +174,7 @@ export function UCIDDeleteConfirmModal({
             </div>
           )}
 
-          <p className="text-content-primary0 text-[10px]">
+          <p className="text-content-muted text-[10px]">
             This action cannot be undone. All related log events and design proposals will be lost.
           </p>
         </div>

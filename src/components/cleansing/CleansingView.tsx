@@ -285,7 +285,7 @@ export function CleansingView() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3 flex flex-col gap-3">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-surface-canvas/20 border-white/5">
-                <Search className="w-3.5 h-3.5 text-content-primary0 shrink-0" />
+                <Search className="w-3.5 h-3.5 text-content-muted shrink-0" />
                 <input
                   type="text"
                   placeholder="Search raw values, part numbers..."
@@ -341,7 +341,7 @@ export function CleansingView() {
                 {filteredEntries.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
                     <Filter className="w-8 h-8 text-gray-700" />
-                    <p className="text-sm text-content-primary0">No entries match the current filter</p>
+                    <p className="text-sm text-content-muted">No entries match the current filter</p>
                   </div>
                 )}
               </div>

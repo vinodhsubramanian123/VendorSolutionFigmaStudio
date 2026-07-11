@@ -20,7 +20,7 @@ export function WorkspaceHeader({
     <div className="col-span-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-elevated border border-white/5 p-4 rounded-xl">
       {/* Editable Solution Name */}
       <div className="space-y-1 w-full md:w-96">
-        <span className="text-[9px] text-content-primary0 font-mono font-bold uppercase block">
+        <span className="text-[9px] text-content-muted font-mono font-bold uppercase block">
           Active Campaign Context name
         </span>
         <input

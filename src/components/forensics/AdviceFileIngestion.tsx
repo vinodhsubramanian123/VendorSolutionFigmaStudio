@@ -124,7 +124,7 @@ export function AdviceFileIngestion({
           <Upload className="w-8 h-8 text-brand-indigo" />
           <div className="space-y-1">
             <p className="text-xs font-semibold text-content-primary">Drag & drop CLIC Validation Advice sheet</p>
-            <p className="text-[10px] text-content-primary0">Supports .xlsx or .csv files containing multiple sheets (Validation, BOM, Config)</p>
+            <p className="text-[10px] text-content-muted">Supports .xlsx or .csv files containing multiple sheets (Validation, BOM, Config)</p>
           </div>
           
           <label
@@ -249,7 +249,7 @@ export function AdviceFileIngestion({
                                </span>
                               )}
                             </div>
-                            <span className="text-[9px] text-content-primary0 font-mono">
+                            <span className="text-[9px] text-content-muted font-mono">
                               Rule ID: {item.ruleNumber}
                             </span>
                           </div>
@@ -257,7 +257,7 @@ export function AdviceFileIngestion({
                             {item.adviceText}
                           </p>
                           <div className="flex justify-between items-center pt-2 border-t border-white/5 mt-1">
-                            <span className="text-[9.5px] text-content-primary0 font-mono">
+                            <span className="text-[9.5px] text-content-muted font-mono">
                               Vendor Class: <span className="text-brand-indigo font-bold">{item.vendor}</span>
                             </span>
                             
@@ -287,7 +287,7 @@ export function AdviceFileIngestion({
                     </AnimatePresence>
                   </motion.div>
                 ) : (
-                  <div className="text-center py-6 text-xs text-content-primary0 italic">
+                  <div className="text-center py-6 text-xs text-content-muted italic">
                     No validation issues discovered in sheet.
                   </div>
                 )}
@@ -298,7 +298,7 @@ export function AdviceFileIngestion({
                 {bomItems.length > 0 ? (
                   <table className="w-full border-collapse text-[10px]">
                     <thead>
-                      <tr className="bg-surface-canvas/30 text-content-primary0 uppercase font-mono border-b border-white/5 select-none">
+                      <tr className="bg-surface-canvas/30 text-content-muted uppercase font-mono border-b border-white/5 select-none">
                         <th className="p-2">Part Number</th>
                         <th className="p-2">Description</th>
                         <th className="p-2 text-center">Qty</th>
@@ -333,7 +333,7 @@ export function AdviceFileIngestion({
                     </tbody>
                   </table>
                 ) : (
-                  <div className="text-center py-6 text-xs text-content-primary0 italic">
+                  <div className="text-center py-6 text-xs text-content-muted italic">
                     No BOM configuration items discovered.
                   </div>
                 )}
@@ -356,7 +356,7 @@ export function AdviceFileIngestion({
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-xs text-content-primary0 italic">
+                  <div className="text-center py-6 text-xs text-content-muted italic">
                     No configuration track history discovered.
                   </div>
                 )}

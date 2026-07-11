@@ -137,7 +137,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
             </h2>
             <StatusBadge status={`${activeUCID?.displayId} - ${configName}`} variant="info" />
           </div>
-          <p className="text-[11px] text-content-primary0 mt-1">
+          <p className="text-[11px] text-content-muted mt-1">
             BOQ vs Validated BOM Configuration — {stats.all} line items across {driftTableData.length} component groups
           </p>
         </div>
@@ -190,7 +190,7 @@ export const ReconciliationDrillDown = React.memo(function ReconciliationDrillDo
             <p className="font-bold text-content-primary">
               Sourcing Discrepancies detected automatically
             </p>
-            <p className="text-content-primary0">
+            <p className="text-content-muted">
               One or more items in the sourced configuration have active forensic sourcing alerts. 
               Review the highlighted rows in the table above to auto-align or substitute parts.
             </p>

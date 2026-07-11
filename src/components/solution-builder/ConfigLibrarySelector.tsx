@@ -39,7 +39,7 @@ export function ConfigLibrarySelector({
           <span className="text-xs text-content-primary font-bold uppercase tracking-wider">
             Config Library ({configs.length})
           </span>
-          <span className="font-mono text-[10px] text-content-primary0 font-semibold">
+          <span className="font-mono text-[10px] text-content-muted font-semibold">
             Sheets Extracted
           </span>
         </div>
@@ -123,7 +123,7 @@ export function ConfigLibrarySelector({
                     <p className="font-bold font-mono text-content-primary">
                       {item.quantity} Qty
                     </p>
-                    <p className="text-[9px] font-mono font-semibold text-content-primary0">
+                    <p className="text-[9px] font-mono font-semibold text-content-muted">
                       ${item.unitPrice.toLocaleString()}/ea
                       {isContractPriceAligned && (
                         <span className="text-brand-indigo">

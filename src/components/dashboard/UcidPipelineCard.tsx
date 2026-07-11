@@ -21,14 +21,14 @@ export function UcidPipelineCard({ onNavigate, averagePipeline, recentMission }:
   const renderedSolutions = useMemo(() => {
     if (solutions.length === 0) {
       return (
-        <div className="p-10 flex flex-col items-center justify-center text-center text-content-primary0 animate-fadeIn h-[200px]">
+        <div className="p-10 flex flex-col items-center justify-center text-center text-content-muted animate-fadeIn h-[200px]">
           <div className="w-12 h-12 rounded-full bg-brand-indigo/10 flex items-center justify-center mb-4">
             <Target className="w-6 h-6 text-brand-indigo opacity-80" />
           </div>
           <p className="text-sm font-bold text-content-secondary">
             No Active Mission Workflows
           </p>
-          <p className="text-[11px] text-content-primary0 mt-2 max-w-xs m-auto leading-relaxed">
+          <p className="text-[11px] text-content-muted mt-2 max-w-xs m-auto leading-relaxed">
             Upload a Bill of Quantities workbook inside Ingestion Hub or
             use Solution Builder to spin up dual-sourcing cards.
           </p>

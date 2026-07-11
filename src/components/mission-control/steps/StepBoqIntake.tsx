@@ -120,7 +120,7 @@ export function StepBoqIntake({
           <span className="text-[10px] font-mono text-status-success font-bold block">
             ID: {ucid.displayId}
           </span>
-          <span className="text-[9px] text-content-primary0 font-sans block mt-0.5">
+          <span className="text-[9px] text-content-muted font-sans block mt-0.5">
             Status: Synchronized
           </span>
         </div>
@@ -211,7 +211,7 @@ export function StepBoqIntake({
               </p>
             </div>
           ) : (
-            <ul className="text-[11px] text-content-primary0 space-y-1">
+            <ul className="text-[11px] text-content-muted space-y-1">
               <li>
                 • Awaiting workbook drop or pasted specification file to parse
                 hardware matrix items

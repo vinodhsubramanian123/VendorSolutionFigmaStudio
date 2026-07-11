@@ -61,7 +61,7 @@ export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved
         <span className="text-sm font-medium text-content-primary truncate" title={item.name}>
           {item.name}
         </span>
-        <span className="text-xs text-content-primary0">{item.type}</span>
+        <span className="text-xs text-content-muted">{item.type}</span>
       </div>
       
       {/* Quantity Column - Interactive */}
@@ -96,7 +96,7 @@ export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved
               }
             }}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md border border-transparent font-mono text-sm cursor-pointer transition-colors ${
-              isRemoved ? "text-content-primary0" : "text-content-primary hover:border-white/10 hover:bg-white/5 group-hover:text-indigo-300"
+              isRemoved ? "text-content-muted" : "text-content-primary hover:border-white/10 hover:bg-white/5 group-hover:text-indigo-300"
             }`}
             title={isRemoved ? "" : "Click to edit quantity"}
           >
@@ -111,7 +111,7 @@ export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved
             ) : (
               <span>{item.quantity}</span>
             )}
-            {!isRemoved && <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-content-primary0" />}
+            {!isRemoved && <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-content-muted" />}
           </div>
         )}
       </div>
@@ -124,7 +124,7 @@ export function CleansingEditorRow({ item, onUpdateQuantity, onRemove, isRemoved
         {!isRemoved && (
           <button 
             onClick={() => onRemove(item.partNumber)}
-            className="p-2 rounded hover:bg-status-error/10 text-content-primary0 hover:text-status-error transition-colors"
+            className="p-2 rounded hover:bg-status-error/10 text-content-muted hover:text-status-error transition-colors"
             title="Mark for Removal"
           >
             <Trash2 className="w-4 h-4" />

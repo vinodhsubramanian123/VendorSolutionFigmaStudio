@@ -90,7 +90,7 @@ export function SolutionBanner({
                 />
                 <button type="button"
                   onClick={onClearDeployed}
-                  className="text-[9px] text-content-primary0 hover:text-content-primary underline font-mono cursor-pointer bg-transparent border-none p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                  className="text-[9px] text-content-muted hover:text-content-primary underline font-mono cursor-pointer bg-transparent border-none p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                 >
                   Reset Banner
                 </button>
@@ -98,7 +98,7 @@ export function SolutionBanner({
             </div>
           ) : (
             <div className="space-y-1">
-              <p className="text-[10px] text-content-primary0 tracking-wider font-bold uppercase leading-none">
+              <p className="text-[10px] text-content-muted tracking-wider font-bold uppercase leading-none">
                 Global Campaign Status
               </p>
               <div className="flex items-center gap-1.5">
@@ -117,7 +117,7 @@ export function SolutionBanner({
 
       <div className="flex items-center gap-6 shrink-0">
         <div className="flex flex-col">
-          <span className="text-[9px] text-content-primary0 tracking-wider font-bold uppercase leading-none">
+          <span className="text-[9px] text-content-muted tracking-wider font-bold uppercase leading-none">
             Sync Pipeline
           </span>
           <span className="text-xs font-semibold text-content-primary mt-1.5">
@@ -126,7 +126,7 @@ export function SolutionBanner({
         </div>
         <div className="w-px h-8 bg-white/5" />
         <div className="flex flex-col">
-          <span className="text-[9px] text-content-primary0 tracking-wider font-bold uppercase leading-none">
+          <span className="text-[9px] text-content-muted tracking-wider font-bold uppercase leading-none">
             Committed Budget Val
           </span>
           <span className="text-xs font-bold text-status-success mt-1.5">

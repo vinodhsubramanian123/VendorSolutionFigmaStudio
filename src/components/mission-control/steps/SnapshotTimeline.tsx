@@ -43,7 +43,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                 <span className="text-content-primary font-semibold font-sans">
                   {snap.label}
                 </span>
-                <span className="text-content-primary0 font-mono text-[9px] bg-white/5 px-1.5 py-0.5 rounded">
+                <span className="text-content-muted font-mono text-[9px] bg-white/5 px-1.5 py-0.5 rounded">
                   {snap.id.substring(0, 14)}...
                 </span>
               </div>
@@ -61,7 +61,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                     ${snap.totalValue.toLocaleString()}
                   </span>
                 </p>
-                <p className="text-content-primary0 italic text-[10px] flex items-center gap-1">
+                <p className="text-content-muted italic text-[10px] flex items-center gap-1">
                   <Layers className="w-3 h-3" /> {snap.notes}
                 </p>
               </div>
@@ -96,7 +96,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                         <div className="overflow-x-auto">
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="border-b border-white/10 text-[9px] text-content-primary0 uppercase font-mono">
+                              <tr className="border-b border-white/10 text-[9px] text-content-muted uppercase font-mono">
                                 <th className="py-1 px-2 font-normal">Part Number</th>
                                 <th className="py-1 px-2 font-normal">Type</th>
                                 <th className="py-1 px-2 font-normal">Description</th>
@@ -117,7 +117,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                                 </tr>
                               ))}
                               {(!cfg.items || cfg.items.length === 0) && (
-                                <tr><td colSpan={6} className="py-4 text-center text-content-primary0 text-[10px] italic">No items found in this config.</td></tr>
+                                <tr><td colSpan={6} className="py-4 text-center text-content-muted text-[10px] italic">No items found in this config.</td></tr>
                               )}
                             </tbody>
                           </table>
@@ -138,7 +138,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                             <div className="overflow-x-auto">
                               <table className="w-full text-left border-collapse">
                                 <thead>
-                                  <tr className="border-b border-white/10 text-[9px] text-content-primary0 uppercase font-mono">
+                                  <tr className="border-b border-white/10 text-[9px] text-content-muted uppercase font-mono">
                                     <th className="py-1 px-2 font-normal">Part Number</th>
                                     <th className="py-1 px-2 font-normal">Type</th>
                                     <th className="py-1 px-2 font-normal">Description</th>
@@ -160,7 +160,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                                   ))}
                                   {(!vs.configs || vs.configs.length === 0) && (
                                     <tr>
-                                      <td colSpan={6} className="py-4 text-center text-content-primary0 text-[10px] italic">No items found in this payload.</td>
+                                      <td colSpan={6} className="py-4 text-center text-content-muted text-[10px] italic">No items found in this payload.</td>
                                     </tr>
                                   )}
                                 </tbody>
@@ -172,7 +172,7 @@ export function SnapshotTimeline({ snapshots }: SnapshotTimelineProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-content-primary0 bg-white/5 border border-dashed border-white/10 rounded-lg">
+                  <div className="flex flex-col items-center justify-center py-6 text-content-muted bg-white/5 border border-dashed border-white/10 rounded-lg">
                     <CheckCircle className="w-6 h-6 mb-2 opacity-50" />
                     <span className="text-[10px]">Baseline snapshot stored without full BOM payload (Legacy Format).</span>
                   </div>

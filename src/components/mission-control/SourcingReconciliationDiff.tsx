@@ -29,7 +29,7 @@ export function SourcingReconciliationDiff({
             <GitCompare className="w-4 h-4 text-brand-indigo" />
             Component Specs Alignment & Reconciliation Diff
           </h4>
-          <p className="text-[9.5px] text-content-primary0 mt-0.5">
+          <p className="text-[9.5px] text-content-muted mt-0.5">
             Hardware equivalents direct audit. Highlight cheapest elements
             dynamically.
           </p>
@@ -42,7 +42,7 @@ export function SourcingReconciliationDiff({
       <div className="overflow-x-auto">
         <table className="w-full text-left font-sans text-[10px] border-collapse min-w-[500px]">
           <thead>
-            <tr className="border-b border-white/5 font-mono text-[8px] text-content-primary0 uppercase tracking-wider">
+            <tr className="border-b border-white/5 font-mono text-[8px] text-content-muted uppercase tracking-wider">
               <th className="pb-2 font-bold w-24">Category</th>
               <th className="pb-2 font-bold text-status-success">
                 {solA.vendor} Proposal
@@ -120,7 +120,7 @@ export function SourcingReconciliationDiff({
                   <td className="py-2.5 font-mono text-right font-bold text-[10px] whitespace-nowrap">
                     {itemA && itemB ? (
                       diff === 0 ? (
-                        <span className="text-content-primary0 bg-white/5 px-1.5 py-0.5 rounded text-[8.5px]">
+                        <span className="text-content-muted bg-white/5 px-1.5 py-0.5 rounded text-[8.5px]">
                           PARITY
                         </span>
                       ) : diff < 0 ? (
@@ -133,7 +133,7 @@ export function SourcingReconciliationDiff({
                         </span>
                       )
                     ) : (
-                      <span className="text-content-primary0">-</span>
+                      <span className="text-content-muted">-</span>
                     )}
                   </td>
                 </tr>

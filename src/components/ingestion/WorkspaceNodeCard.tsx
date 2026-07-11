@@ -53,7 +53,7 @@ export function WorkspaceNodeCard({
             <p className="text-xs font-bold text-content-primary">
               ${(syncedConfigs * valueMultiplier).toLocaleString()}
             </p>
-            <p className="text-[9px] text-content-primary0 font-mono">
+            <p className="text-[9px] text-content-muted font-mono">
               tracked value
             </p>
           </div>
@@ -78,7 +78,7 @@ export function WorkspaceNodeCard({
                       Synced
                     </span>
                   ) : (
-                    <span className="text-content-primary0 uppercase text-[8px]">
+                    <span className="text-content-muted uppercase text-[8px]">
                       Pending bot
                     </span>
                   )}
@@ -89,7 +89,7 @@ export function WorkspaceNodeCard({
         </div>
       </div>
       <div className="pt-4 border-t border-white/5 text-left">
-        <span className="text-[9px] text-content-primary0 uppercase font-mono block">
+        <span className="text-[9px] text-content-muted uppercase font-mono block">
           Automated Tracker:
         </span>
         <div className="flex items-center gap-2 mt-2 font-mono">

@@ -43,12 +43,12 @@ export function ActiveIssuesList({ onNavigate }: ActiveIssuesListProps) {
         style={{ borderColor: "rgba(74, 133, 253,0.06)" }}
       >
         {activeIssues.length === 0 ? (
-          <div className="p-8 flex flex-col items-center justify-center text-center text-content-primary0 animate-fadeIn">
+          <div className="p-8 flex flex-col items-center justify-center text-center text-content-muted animate-fadeIn">
             <div className="w-10 h-10 rounded-full bg-status-success/10 flex items-center justify-center mb-3">
               <CheckCircle className="w-5 h-5 text-status-success" />
             </div>
             <p className="text-xs font-bold text-content-secondary">All Systems Nominal</p>
-            <p className="text-[10px] mt-1 text-content-primary0 max-w-[200px] leading-relaxed">
+            <p className="text-[10px] mt-1 text-content-muted max-w-[200px] leading-relaxed">
               No pending active issues. Sourcing ecosystem is healthy.
             </p>
           </div>

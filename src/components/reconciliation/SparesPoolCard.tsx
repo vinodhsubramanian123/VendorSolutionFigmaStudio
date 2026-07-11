@@ -28,7 +28,7 @@ export function SparesPoolCard({
         />
       </div>
 
-      <p className="text-[10.5px] text-content-primary0 leading-normal font-medium text-left">
+      <p className="text-[10.5px] text-content-muted leading-normal font-medium text-left">
         BOQ items not consumed by any configuration—assign or leave as
         default
       </p>
@@ -40,7 +40,7 @@ export function SparesPoolCard({
         </span>
 
         {unassignedSpares.length === 0 ? (
-          <p className="text-[9px] text-content-primary0 italic">
+          <p className="text-[9px] text-content-muted italic">
             No unassigned spares
           </p>
         ) : (
@@ -60,7 +60,7 @@ export function SparesPoolCard({
                   <span className="text-content-primary font-mono font-bold block truncate">
                     {un.part}
                   </span>
-                  <span className="text-[9px] text-content-primary0 truncate block">
+                  <span className="text-[9px] text-content-muted truncate block">
                     {un.name}
                   </span>
                 </div>
@@ -90,7 +90,7 @@ export function SparesPoolCard({
         </span>
 
         {assignedSpares.length === 0 ? (
-          <p className="text-[9px] text-content-primary0 italic">
+          <p className="text-[9px] text-content-muted italic">
             No spares matched
           </p>
         ) : (
@@ -116,7 +116,7 @@ export function SparesPoolCard({
                 </div>
                 <button type="button"
                   onClick={() => deleteAssignedSpare(asp.part)}
-                  className="p-1 rounded hover:bg-status-error/10 text-content-primary0 hover:text-status-error transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                  className="p-1 rounded hover:bg-status-error/10 text-content-muted hover:text-status-error transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                   title="Trash Linkage"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

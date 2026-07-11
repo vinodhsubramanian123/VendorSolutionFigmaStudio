@@ -31,7 +31,7 @@ export function StepSolutionDesign({
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-content-primary uppercase tracking-wider">No designs prepared</h4>
-            <p className="text-xs text-content-primary0 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs text-content-muted max-w-sm mx-auto leading-relaxed">
               Before you can customize solution configurations, our Catalog Intelligence engine must parse the BOQ intake constraints.
             </p>
           </div>

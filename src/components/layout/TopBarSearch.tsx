@@ -103,7 +103,7 @@ export function TopBarSearch({
     <div className="relative w-32 sm:w-60 md:w-80" ref={dropdownRef}>
       <button type="button"
         onClick={() => inputRef.current?.focus()}
-        className="absolute inset-y-0 left-3 flex items-center text-content-primary0 hover:text-brand-indigo transition-colors z-10"
+        className="absolute inset-y-0 left-3 flex items-center text-content-muted hover:text-brand-indigo transition-colors z-10"
         title="Focus Search Input"
       >
         <Search className="w-4 h-4" />
@@ -145,7 +145,7 @@ export function TopBarSearch({
             <div className="flex flex-col gap-2.5 max-h-72 overflow-y-auto scrollbar-thin pr-0.5">
               {matchedMissions.length > 0 && (
                 <div className="flex flex-col gap-1">
-                  <div className="text-[9px] uppercase font-bold text-content-primary0 flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
+                  <div className="text-[9px] uppercase font-bold text-content-muted flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
                     <Target className="w-3.5 h-3.5 text-status-warning" />
                     <span>Active Tracks ({matchedMissions.length})</span>
                   </div>
@@ -173,7 +173,7 @@ export function TopBarSearch({
 
               {matchedVendors.length > 0 && (
                 <div className="flex flex-col gap-1">
-                  <div className="text-[9px] uppercase font-bold text-content-primary0 flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
+                  <div className="text-[9px] uppercase font-bold text-content-muted flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
                     <Globe className="w-3.5 h-3.5 text-status-success" />
                     <span>Vendor Partners ({matchedVendors.length})</span>
                   </div>
@@ -201,7 +201,7 @@ export function TopBarSearch({
 
               {matchedSkus.length > 0 && (
                 <div className="flex flex-col gap-1">
-                  <div className="text-[9px] uppercase font-bold text-content-primary0 flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
+                  <div className="text-[9px] uppercase font-bold text-content-muted flex items-center gap-1.5 px-2 pb-0.5 border-b border-white/5">
                     <Database className="w-3.5 h-3.5 text-brand-indigo" />
                     <span>Inventory SKUs ({matchedSkus.length})</span>
                   </div>
@@ -228,7 +228,7 @@ export function TopBarSearch({
               )}
             </div>
           ) : (
-            <div className="text-center py-4 text-content-primary0">
+            <div className="text-center py-4 text-content-muted">
               No direct quick matches. Press Enter ↵ to trigger comprehensive Sourcing Query.
             </div>
           )}

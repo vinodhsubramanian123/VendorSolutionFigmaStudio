@@ -72,7 +72,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
                   <h3 className="text-xs text-content-primary font-bold truncate">
                     {vendor.name}
                   </h3>
-                  <p className="text-[9px] text-content-primary0 font-mono font-bold uppercase truncate">
+                  <p className="text-[9px] text-content-muted font-mono font-bold uppercase truncate">
                     {vendor.shortName} CONTRACT SYSTEM
                   </p>
                 </div>
@@ -92,7 +92,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
             {/* API Specs */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-2.5 rounded bg-surface-canvas/20 space-y-0.5 border border-white/5">
-                <span className="text-content-primary0 font-medium text-[9.5px]">
+                <span className="text-content-muted font-medium text-[9.5px]">
                   Synced SKUs
                 </span>
                 <p className="text-content-primary font-bold font-mono text-[13px]">
@@ -100,7 +100,7 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
                 </p>
               </div>
               <div className="p-2.5 rounded bg-surface-canvas/20 space-y-0.5 border border-white/5">
-                <span className="text-content-primary0 font-medium text-[9.5px]">
+                <span className="text-content-muted font-medium text-[9.5px]">
                   Channel Health
                 </span>
                 <p
@@ -113,11 +113,11 @@ export function VendorGateways({ vendors, handleToggleStatus }: VendorGatewaysPr
 
             {/* REST details */}
             <div className="text-[10px] space-y-1 bg-surface-canvas/10 p-2.5 rounded-lg font-mono">
-              <p className="text-content-primary0 truncate">
+              <p className="text-content-muted truncate">
                 <span className="text-brand-indigo">Endpoint:</span>{" "}
                 {vendor.apiEndpoint}
               </p>
-              <div className="flex justify-between text-content-primary0">
+              <div className="flex justify-between text-content-muted">
                 <p>
                   Interval:{" "}
                   <span className="text-content-secondary">{vendor.syncInterval}</span>

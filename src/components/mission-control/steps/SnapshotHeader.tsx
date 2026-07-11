@@ -11,7 +11,7 @@ export function SnapshotHeader() {
         <p className="text-xs text-content-primary font-bold uppercase">
           Locked PO & Sourcing Ledger Committed
         </p>
-        <p className="text-[10px] text-content-primary0">
+        <p className="text-[10px] text-content-muted">
           This UCID transaction pipeline is fully synced and archived.
         </p>
       </div>

@@ -77,7 +77,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
           <button
             onClick={() => setActiveTab("catalog")}
             className={`py-3 px-4 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "catalog" ? "border-brand-indigo text-indigo-300" : "border-transparent text-content-primary0 hover:text-content-secondary"
+              activeTab === "catalog" ? "border-brand-indigo text-indigo-300" : "border-transparent text-content-muted hover:text-content-secondary"
             }`}
           >
             Search Catalog
@@ -85,7 +85,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
           <button
             onClick={() => setActiveTab("custom")}
             className={`py-3 px-4 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "custom" ? "border-brand-indigo text-indigo-300" : "border-transparent text-content-primary0 hover:text-content-secondary"
+              activeTab === "custom" ? "border-brand-indigo text-indigo-300" : "border-transparent text-content-muted hover:text-content-secondary"
             }`}
           >
             Custom Part (Fallback)
@@ -97,7 +97,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
           {activeTab === "catalog" ? (
             <div className="space-y-4">
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-5 h-5 text-content-primary0" />
+                <Search className="absolute left-3 top-2.5 w-5 h-5 text-content-muted" />
                 <input
                   type="text"
                   placeholder="Search by SKU or Description..."
@@ -110,7 +110,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
               <div className="border border-white/5 rounded-lg overflow-hidden bg-surface-canvas/20">
                 <div className="max-h-64 overflow-y-auto">
                   {filteredCatalog.length === 0 ? (
-                    <div className="p-8 text-center text-content-primary0 text-sm">No parts found matching "{searchTerm}"</div>
+                    <div className="p-8 text-center text-content-muted text-sm">No parts found matching "{searchTerm}"</div>
                   ) : (
                     filteredCatalog.map(sku => (
                       <div 
@@ -130,7 +130,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                       >
                         <div className="flex justify-between items-start">
                           <span className="font-mono text-sm text-indigo-300">{sku.partNumber}</span>
-                          <span className="text-xs text-content-primary0">{sku.type}</span>
+                          <span className="text-xs text-content-muted">{sku.type}</span>
                         </div>
                         <span className="text-sm text-content-secondary mt-1">{sku.name}</span>
                       </div>
@@ -142,7 +142,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
               {selectedSkuId && (
                 <div className="flex items-center gap-4 pt-4 border-t border-white/5">
                   <div className="flex-1">
-                    <label htmlFor="boq-add-catalog-qty" className="block text-xs text-content-primary0 mb-1">Quantity to Add</label>
+                    <label htmlFor="boq-add-catalog-qty" className="block text-xs text-content-muted mb-1">Quantity to Add</label>
                     <input
                       id="boq-add-catalog-qty"
                       type="number"
@@ -169,7 +169,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-1">
-                  <label htmlFor="boq-custom-part-number" className="block text-xs text-content-primary0 mb-1">Part Number (SKU)</label>
+                  <label htmlFor="boq-custom-part-number" className="block text-xs text-content-muted mb-1">Part Number (SKU)</label>
                   <input
                     id="boq-custom-part-number"
                     type="text"
@@ -180,7 +180,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                   />
                 </div>
                 <div className="col-span-1">
-                  <label htmlFor="boq-custom-asset-type" className="block text-xs text-content-primary0 mb-1">Asset Type</label>
+                  <label htmlFor="boq-custom-asset-type" className="block text-xs text-content-muted mb-1">Asset Type</label>
                   <input
                     id="boq-custom-asset-type"
                     type="text"
@@ -191,7 +191,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                   />
                 </div>
                 <div className="col-span-2">
-                  <label htmlFor="boq-custom-description" className="block text-xs text-content-primary0 mb-1">Description</label>
+                  <label htmlFor="boq-custom-description" className="block text-xs text-content-muted mb-1">Description</label>
                   <input
                     id="boq-custom-description"
                     type="text"
@@ -202,7 +202,7 @@ export function AddBOQPartModal({ isOpen, onClose, onAddPart }: AddBOQPartModalP
                   />
                 </div>
                 <div className="col-span-1">
-                  <label htmlFor="boq-custom-qty" className="block text-xs text-content-primary0 mb-1">Quantity</label>
+                  <label htmlFor="boq-custom-qty" className="block text-xs text-content-muted mb-1">Quantity</label>
                   <input
                     id="boq-custom-qty"
                     type="number"

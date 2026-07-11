@@ -40,7 +40,7 @@ export function PortfolioMetricsHeader({
             disabled={isPortfolioActive}
             className={`px-5 py-3 rounded-lg font-bold transition flex items-center gap-2 text-xs shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
               isPortfolioActive
-                ? "bg-surface-canvas/30 border border-white/5 text-content-primary0 cursor-not-allowed"
+                ? "bg-surface-canvas/30 border border-white/5 text-content-muted cursor-not-allowed"
                 : "bg-brand-indigo hover:bg-brand-indigo text-content-primary shadow-indigo-600/25 border-0 cursor-pointer text-glow"
             }`}
           >

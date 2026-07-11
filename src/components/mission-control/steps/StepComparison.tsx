@@ -55,7 +55,7 @@ export function StepComparison({
                   <p className="text-lg font-bold text-content-primary">
                     ${sol.totalPrice.toLocaleString()}
                   </p>
-                  <p className="text-[10px] text-content-primary0">
+                  <p className="text-[10px] text-content-muted">
                     Original price:{" "}
                     <span className="line-through">
                       ${sol.originalPrice.toLocaleString()}
@@ -140,7 +140,7 @@ export function StepComparison({
       </div>
 
       <div className="border-t pt-4 mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-brand-indigo/10 text-left">
-        <span className="text-xs text-content-primary0">
+        <span className="text-xs text-content-muted">
           Choosing the winner will generate a final digital snap PO for sign-off.
         </span>
         {committingSnapshot ? (

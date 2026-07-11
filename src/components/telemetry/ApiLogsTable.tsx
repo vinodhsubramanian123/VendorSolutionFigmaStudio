@@ -29,7 +29,7 @@ export function ApiLogsTable({ apiLogs }: ApiLogsTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-[10px]">
           <thead>
-            <tr className="bg-surface-canvas/30 border-b border-white/5 text-content-primary0 font-mono text-[9px] uppercase tracking-wider">
+            <tr className="bg-surface-canvas/30 border-b border-white/5 text-content-muted font-mono text-[9px] uppercase tracking-wider">
               <th className="p-2.5 font-normal">Time</th>
               <th className="p-2.5 font-normal">Method</th>
               <th className="p-2.5 font-normal">Endpoint</th>
@@ -49,7 +49,7 @@ export function ApiLogsTable({ apiLogs }: ApiLogsTableProps) {
                   key={log.id}
                   className="hover:bg-white/[0.015] transition-colors"
                 >
-                  <td className="p-2.5 text-content-primary0 font-mono whitespace-nowrap">
+                  <td className="p-2.5 text-content-muted font-mono whitespace-nowrap">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </td>
                   <td className="p-2.5">
@@ -65,7 +65,7 @@ export function ApiLogsTable({ apiLogs }: ApiLogsTableProps) {
                       {log.statusCode}
                     </span>
                   </td>
-                  <td className="p-2.5 text-right text-content-primary0 font-mono">{log.durationMs}ms</td>
+                  <td className="p-2.5 text-right text-content-muted font-mono">{log.durationMs}ms</td>
                 </motion.tr>
               ))}
             </AnimatePresence>

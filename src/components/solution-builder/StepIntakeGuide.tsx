@@ -53,7 +53,7 @@ export function StepIntakeGuide({
         <h4 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
           What is Solution Sourcing?
         </h4>
-        <p className="text-content-primary0 leading-relaxed text-[11px]">
+        <p className="text-content-muted leading-relaxed text-[11px]">
           Instead of working with independent fragment spreadsheets, the
           platform compiles multi-vendor contracts under a single{" "}
           <strong>Unified Solution Context (UCID)</strong>.
@@ -68,7 +68,7 @@ export function StepIntakeGuide({
               <p className="font-semibold text-content-primary">
                 Integrated Pricing Engines
               </p>
-              <p className="text-content-primary0 text-[10px] mt-0.5">
+              <p className="text-content-muted text-[10px] mt-0.5">
                 Live direct partner price validation instantly against EOL
                 and grey market margins.
               </p>
@@ -82,7 +82,7 @@ export function StepIntakeGuide({
               <p className="font-semibold text-content-primary">
                 Symmetry Verification
               </p>
-              <p className="text-content-primary0 text-[10px] mt-0.5">
+              <p className="text-content-muted text-[10px] mt-0.5">
                 Automatic technical validation check for dual-socket
                 limits, power envelopes, and CPU lines.
               </p>

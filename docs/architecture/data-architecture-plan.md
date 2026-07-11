@@ -25,6 +25,22 @@ Route/nav coverage checked: every `App.tsx` route has a `Sidebar.tsx` entry
 (except `/solutions/:id`, correctly reached only via drill-down) and vice versa
 — no dead links, no orphaned routes.
 
+**Follow-up same day, after Antigravity applied the above and ran
+`test:e2e:visual` locally (8/8 passed):** closing the 5-view snapshot gap
+surfaced a much bigger bug than the earlier design-token pass caught.
+`text-content-primary0` — not a real class — was used **310 times across 94
+files**, all traced to the `b92c2a9` cosmic-slate script. Every occurrence
+silently rendered with no color styling (Tailwind drops unknown classes),
+breaking the muted/secondary text hierarchy across nearly the whole app for 4
+days. The reason `8/8 passed` didn't catch it: the baselines were captured
+*after* the bug was introduced, so they encoded it as correct. Fixed
+(296 sites → `content-muted`, 1 → `content-primary`, both traced from the
+original commit's diff rather than guessed) — full detail and the general
+lesson about trusting "0 diffs" in `docs/architecture/ui-ux-100-checklist.md`
+§0. Visual-snapshot coverage is now 13/13 nav views, but **every baseline
+(old and new) needs to be regenerated and visually sanity-checked locally**
+before being trusted again.
+
 **Not done — needs a browser-capable environment:** Playwright e2e / visual
 regression (`visual.spec.ts` snapshots) could not run in this sandbox
 (`cdn.playwright.dev` not in egress allowlist, confirmed via direct install

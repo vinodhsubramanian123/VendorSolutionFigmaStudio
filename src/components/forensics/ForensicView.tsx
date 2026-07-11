@@ -100,7 +100,7 @@ export function ForensicView(props: ForensicViewProps) {
               Discovered Sourcing Anomalies ({openIssues.length})
             </span>
             {lastScanCount !== null && (
-              <span className="text-[10px] text-content-primary0 font-mono">
+              <span className="text-[10px] text-content-muted font-mono">
                 Last diagnosis sweep scan matching: {lastScanCount} rules
               </span>
             )}

@@ -289,7 +289,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="w-8 h-8 text-brand-indigo animate-spin" />
-        <p className="text-xs text-content-primary0 font-mono">Loading builder mock data...</p>
+        <p className="text-xs text-content-muted font-mono">Loading builder mock data...</p>
       </div>
     );
   }
@@ -322,7 +322,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
             </div>
             <div>
               <h1 className="text-sm font-semibold text-content-primary">Mission Builder</h1>
-              <p className="text-[10px] text-content-primary0 mt-0.5">
+              <p className="text-[10px] text-content-muted mt-0.5">
                 Intake raw excel Sheets of multi-tab Bills of Quantities and compile them into distinct parallel UCIDs.
               </p>
             </div>
@@ -330,7 +330,7 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-                step >= 1 ? 'bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-content-primary0 border border-white/5'
+                step >= 1 ? 'bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-content-muted border border-white/5'
               }`}>
                 {step > 1 || isIngested ? <Check className="w-3.5 h-3.5" /> : '1'}
               </div>
@@ -339,11 +339,11 @@ export const SolutionBuilder = React.memo(function SolutionBuilder({
             <div className="w-6 h-px bg-white/10" />
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
-                step === SolutionBuilderStep.WORKSPACE ? 'bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-content-primary0 border border-white/5'
+                step === SolutionBuilderStep.WORKSPACE ? 'bg-brand-indigo text-content-primary shadow-lg shadow-indigo-500/20' : 'bg-surface-elevated text-content-muted border border-white/5'
               }`}>
                 2
               </div>
-              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.WORKSPACE ? 'text-brand-indigo font-bold' : 'text-content-primary0'}`}>UCID Assignment Map</span>
+              <span className={`font-semibold tracking-tight ${step === SolutionBuilderStep.WORKSPACE ? 'text-brand-indigo font-bold' : 'text-content-muted'}`}>UCID Assignment Map</span>
             </div>
           </div>
         </div>

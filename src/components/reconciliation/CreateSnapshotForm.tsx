@@ -45,7 +45,7 @@ export function CreateSnapshotForm({
           <button
             type="button"
             onClick={() => setIsCreateOpen(false)}
-            className="text-content-primary0 hover:text-content-primary font-mono text-[10px] uppercase cursor-pointer"
+            className="text-content-muted hover:text-content-primary font-mono text-[10px] uppercase cursor-pointer"
           >
             Cancel
           </button>

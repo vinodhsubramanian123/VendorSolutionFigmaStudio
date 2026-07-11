@@ -79,7 +79,7 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
         className="rounded-lg p-3 font-mono text-[10px] bg-surface-card text-left h-48 overflow-hidden"
       >
         {filteredEvents.length === 0 ? (
-          <div className="text-content-primary0 text-center py-4 italic select-none">
+          <div className="text-content-muted text-center py-4 italic select-none">
             No events match the selected filter.
           </div>
         ) : (
@@ -96,7 +96,7 @@ export function UCIDEventLedger({ ucid, onClear }: UCIDEventLedgerProps) {
                   transition={{ duration: 0.2 }}
                   className="flex gap-3 items-start border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0 mb-1.5 font-mono text-[10px]"
                 >
-                  <span className="text-content-primary0 shrink-0 select-none font-semibold">{ev.timestamp}</span>
+                  <span className="text-content-muted shrink-0 select-none font-semibold">{ev.timestamp}</span>
                   <span
                     className={`px-1 rounded font-bold shrink-0 text-[8px] uppercase select-none ${
                       ev.level === "ok"

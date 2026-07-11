@@ -28,7 +28,7 @@ export function SourcingStrategyPanel({
         <Sparkles className="w-3.5 h-3.5 text-brand-indigo animate-pulse" />{" "}
         Sourcing Simulation & Portfolio Optimization
       </h4>
-      <p className="text-[11px] text-content-primary0 leading-relaxed">
+      <p className="text-[11px] text-content-muted leading-relaxed">
         Reconcile commercial margins by toggling collective sourcing profiles.
         Choose **Best-of-Breed Blend** for pure bottom-dollar optimization, or
         force single-vendor homogeneity to model volume concessions.
@@ -45,7 +45,7 @@ export function SourcingStrategyPanel({
           </div>
           <div className="pt-2 border-t border-white/5 space-y-2">
             <div className="flex justify-between items-center text-[10.5px]">
-              <span className="text-content-primary0">Projected Sum:</span>
+              <span className="text-content-muted">Projected Sum:</span>
               <span className="font-mono font-bold text-status-success">${bestBreedTotal.toLocaleString()}</span>
             </div>
             <button type="button" disabled={isLocked} onClick={onApplyBestOfBreed}
@@ -65,7 +65,7 @@ export function SourcingStrategyPanel({
           </div>
           <div className="pt-2 border-t border-white/5 space-y-2">
             <div className="flex justify-between items-center text-[10.5px]">
-              <span className="text-content-primary0">Projected Sum:</span>
+              <span className="text-content-muted">Projected Sum:</span>
               <span className="font-mono font-bold text-content-primary">${hpeTotal.toLocaleString()}</span>
             </div>
             <button type="button" disabled={isLocked} onClick={() => onApplySingleVendor("HPE")}
@@ -85,7 +85,7 @@ export function SourcingStrategyPanel({
           </div>
           <div className="pt-2 border-t border-white/5 space-y-2">
             <div className="flex justify-between items-center text-[10.5px]">
-              <span className="text-content-primary0">Projected Sum:</span>
+              <span className="text-content-muted">Projected Sum:</span>
               <span className="font-mono font-bold text-content-primary">${dellTotal.toLocaleString()}</span>
             </div>
             <button type="button" disabled={isLocked} onClick={() => onApplySingleVendor("Dell")}
@@ -134,19 +134,19 @@ function CampaignReconciliationMatrixRow({ u, getVariant }: { u: UCID, getVarian
       <td className="p-3">
         <div className="space-y-0.5">
           <p className="font-bold text-content-primary leading-none flex items-center gap-1.5">
-            <span className="text-[8.5px] text-content-primary0 font-mono tracking-wider">{u.displayId}</span>
+            <span className="text-[8.5px] text-content-muted font-mono tracking-wider">{u.displayId}</span>
             <span className="truncate max-w-[150px] font-sans text-[10px]">
               {formatUcidDisplayName(u.name)}
             </span>
           </p>
-          <p className="text-[8.5px] text-content-primary0 font-mono">Ref: {u.projectRef}</p>
+          <p className="text-[8.5px] text-content-muted font-mono">Ref: {u.projectRef}</p>
         </div>
       </td>
       <td className="p-3 font-semibold">
         {currentSelected ? (
           <StatusBadge status={currentSelected.vendor} variant={currentSelected.vendor === "HPE" ? "success" : "info"} size="sm" />
         ) : (
-          <span className="text-content-primary0 italic">Unassigned</span>
+          <span className="text-content-muted italic">Unassigned</span>
         )}
       </td>
       <td className="p-3 text-right font-mono font-bold text-[10px] text-content-primary">${(currentSelected?.totalPrice ?? 0).toLocaleString()}</td>
@@ -182,7 +182,7 @@ export function CampaignReconciliationMatrix({ campaignUcids, completedPipes }: 
         <div className="overflow-x-auto">
           <table className="w-full text-left font-sans text-[10px] border-collapse min-w-[620px]">
             <thead>
-              <tr className="border-b border-white/5 bg-white/5 font-mono text-[8.5px] text-content-primary0 uppercase tracking-widest">
+              <tr className="border-b border-white/5 bg-white/5 font-mono text-[8.5px] text-content-muted uppercase tracking-widest">
                 <th className="p-3 font-semibold">Sheet / Workspace Ref</th>
                 <th className="p-3 font-semibold">Winner Vendor</th>
                 <th className="p-3 font-semibold text-right">Selected Cost</th>
@@ -252,7 +252,7 @@ export function CampaignCertificationPanel({
             </div>
           </div>
 
-          <div className="p-3 rounded-lg bg-surface-canvas/35 font-mono text-[8px] text-content-primary0 leading-relaxed border border-white/5 space-y-1">
+          <div className="p-3 rounded-lg bg-surface-canvas/35 font-mono text-[8px] text-content-muted leading-relaxed border border-white/5 space-y-1">
             <p className="text-content-secondary uppercase font-black text-[8.5px] tracking-wider mb-1 flex items-center gap-1">
               <import_lucide.Radio className="w-3.5 h-3.5 text-brand-indigo shrink-0 animate-pulse" />
               SECURE TRANSACTION AGREEMENT SIGN-OFF PROTOCOL
@@ -320,7 +320,7 @@ export function CampaignCertificationPanel({
             </button>
           </div>
 
-          <p className="text-[8.5px] text-content-primary0 italic leading-none">
+          <p className="text-[8.5px] text-content-muted italic leading-none">
             * Note: Signing seals the campaign structures in the active
             session and freezes equivalent hardware selections.
           </p>

@@ -83,7 +83,7 @@ export function CleansingHeader({
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase font-mono transition cursor-pointer border ${
                 filterStatus === s
                   ? "bg-brand-indigo/15 border-brand-indigo/40 text-indigo-300"
-                  : "bg-white/5 border-white/8 text-content-primary0 hover:text-content-secondary"
+                  : "bg-white/5 border-white/8 text-content-muted hover:text-content-secondary"
               }`}
             >
               {cfg && <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />}
@@ -91,7 +91,7 @@ export function CleansingHeader({
             </button>
           );
         })}
-        <div className="ml-auto flex items-center gap-3 text-[10px] text-content-primary0">
+        <div className="ml-auto flex items-center gap-3 text-[10px] text-content-muted">
           <span className="font-mono">Coverage</span>
           <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
             <motion.div

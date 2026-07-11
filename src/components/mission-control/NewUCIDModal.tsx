@@ -97,7 +97,7 @@ export function NewUCIDModal({ onClose, onCreate }: NewUCIDModalProps) {
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="text-content-primary0 hover:text-content-primary cursor-pointer"
+            className="text-content-muted hover:text-content-primary cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

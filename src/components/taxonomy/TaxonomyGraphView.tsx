@@ -161,7 +161,7 @@ export function TaxonomyGraphView() {
               <GitFork className="w-12 h-12 text-content-muted" />
               <div className="text-center">
                 <span className="block text-sm font-bold text-content-secondary">No Config Selected</span>
-                <span className="text-[10px] text-content-primary0 max-w-xs mt-1 inline-block">Please select a Solution and a corresponding configuration context to map taxonomy rules.</span>
+                <span className="text-[10px] text-content-muted max-w-xs mt-1 inline-block">Please select a Solution and a corresponding configuration context to map taxonomy rules.</span>
               </div>
             </div>
           ) : isLoading ? (

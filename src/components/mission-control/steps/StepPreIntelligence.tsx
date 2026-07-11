@@ -77,7 +77,7 @@ function IntelligenceBanner({
         <p className="text-[11px] font-bold text-indigo-300">
           🧠 Catalog Intelligence Active — {appliedRulesCount} rule{appliedRulesCount !== 1 ? "s" : ""} will be applied
         </p>
-        <div className="flex items-center gap-3 mt-0.5 text-[10px] text-content-primary0">
+        <div className="flex items-center gap-3 mt-0.5 text-[10px] text-content-muted">
           {substitutionRulesCount > 0 && (
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-violet" />
@@ -134,7 +134,7 @@ function CompletedState({
           <p className="text-xs text-content-primary font-bold">
             Intelligence Scan Synthesized
           </p>
-          <p className="text-[10px] text-content-primary0">
+          <p className="text-[10px] text-content-muted">
             Alternative design models compiled ({submissions.map((vs) => `${vs.vendor} Alternative`).join(" & ") || "No vendor designs"}).
           </p>
         </div>

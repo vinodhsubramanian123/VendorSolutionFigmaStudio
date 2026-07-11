@@ -210,13 +210,13 @@ export function OrphanWorkshopPanel({
 
             <button type="button"
               onClick={() => setSelectedOrphanToMap(null)}
-              className="w-full text-center text-[9px] font-mono text-content-primary0 hover:text-content-secondary border-0 bg-transparent cursor-pointer"
+              className="w-full text-center text-[9px] font-mono text-content-muted hover:text-content-secondary border-0 bg-transparent cursor-pointer"
             >
               Cancel Action
             </button>
           </div>
         ) : (
-          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-primary0 flex flex-col items-center justify-center min-h-[140px] gap-2">
+          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-muted flex flex-col items-center justify-center min-h-[140px] gap-2">
             <HelpCircle className="w-8 h-8 text-content-muted" />
             <p>Click "Auto-Map SKU" on any orphan node in the graph canvas to configure categorization boundaries.</p>
           </div>
@@ -224,7 +224,7 @@ export function OrphanWorkshopPanel({
       </div>
 
       <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin pr-1 pt-2 border-t border-white/5">
-        <span className="text-[9px] font-mono text-content-primary0 font-bold uppercase block tracking-wider mb-1">
+        <span className="text-[9px] font-mono text-content-muted font-bold uppercase block tracking-wider mb-1">
           Active Orphans ({unmappedIds.length})
         </span>
         <AnimatePresence mode="popLayout">
@@ -241,7 +241,7 @@ export function OrphanWorkshopPanel({
               >
                 <div className="min-w-0 pr-2">
                   <span className="font-mono text-rose-300 font-semibold block truncate">{oId}</span>
-                  <span className="text-content-primary0 text-[8.5px] block truncate">{sRef?.name || "Unstructured name"}</span>
+                  <span className="text-content-muted text-[8.5px] block truncate">{sRef?.name || "Unstructured name"}</span>
                 </div>
                 <button type="button"
                   onClick={() => setSelectedOrphanToMap(oId)}
@@ -333,7 +333,7 @@ export function PathOrchestratorPanel({
             )}
           </div>
         ) : (
-          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-primary0 flex flex-col items-center justify-center min-h-[140px] gap-2">
+          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-muted flex flex-col items-center justify-center min-h-[140px] gap-2">
             <Layers className="w-8 h-8 text-content-muted" />
             <p>Click on any primary Category Hub node in the canvas to calculate alternative fulfillment paths.</p>
           </div>

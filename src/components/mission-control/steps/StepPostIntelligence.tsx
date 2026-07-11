@@ -69,7 +69,7 @@ export function StepPostIntelligence({
               key={warn.id}
               className={`p-3.5 rounded-lg border transition-all duration-300 text-left ${
                 isOverridden
-                  ? "border-status-success/25 bg-status-success/5 text-content-primary0"
+                  ? "border-status-success/25 bg-status-success/5 text-content-primary"
                   : "border-status-warning/20 bg-status-warning/5 text-content-primary"
               }`}
             >

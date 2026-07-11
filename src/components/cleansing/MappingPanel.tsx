@@ -37,7 +37,7 @@ export function MappingPanel({
           <Eye className="w-5 h-5 text-status-success/40" />
         </div>
         <div>
-          <p className="text-sm text-content-primary0 font-medium">Select an entry</p>
+          <p className="text-sm text-content-muted font-medium">Select an entry</p>
           <p className="text-[11px] text-content-muted mt-0.5">
             Click any BOQ line to open the mapping panel
           </p>
@@ -59,7 +59,7 @@ export function MappingPanel({
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-[9px] text-content-primary0 font-mono uppercase tracking-wider">Mapping Panel</p>
+          <p className="text-[9px] text-content-muted font-mono uppercase tracking-wider">Mapping Panel</p>
           <p className="text-[11px] font-bold text-content-primary mt-0.5 leading-relaxed">
             "{selectedEntry.rawValue}"
           </p>
@@ -67,7 +67,7 @@ export function MappingPanel({
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase border ${statusCfg.color} ${statusCfg.bg} ${statusCfg.border}`}>
               {statusCfg.label}
             </span>
-            <span className="text-[9px] text-content-primary0 font-mono">{selectedEntry.confidence}% confidence</span>
+            <span className="text-[9px] text-content-muted font-mono">{selectedEntry.confidence}% confidence</span>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -80,7 +80,7 @@ export function MappingPanel({
           </button>
           <button type="button"
             onClick={() => setSelectedEntryId(null)}
-            className="p-1.5 rounded hover:bg-white/5 text-content-primary0 hover:text-content-secondary transition cursor-pointer"
+            className="p-1.5 rounded hover:bg-white/5 text-content-muted hover:text-content-secondary transition cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -90,7 +90,7 @@ export function MappingPanel({
       {/* Current mapping */}
       {selectedEntry.matchedPartNumber && (
         <div className="p-2.5 rounded-lg bg-surface-canvas/25 border border-white/5">
-          <p className="text-[9px] text-content-primary0 font-mono uppercase mb-1.5">Current Mapping</p>
+          <p className="text-[9px] text-content-muted font-mono uppercase mb-1.5">Current Mapping</p>
           <div className="flex items-center gap-2">
             <Link2 className="w-3.5 h-3.5 text-status-success shrink-0" />
             <div>
@@ -104,7 +104,7 @@ export function MappingPanel({
 
       {/* Catalog search */}
       <div>
-        <p className="text-[9px] text-content-primary0 font-mono uppercase tracking-wider mb-2">Override / Remap</p>
+        <p className="text-[9px] text-content-muted font-mono uppercase tracking-wider mb-2">Override / Remap</p>
         <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg border border-white/8 bg-surface-canvas/20 mb-2">
           <Search className="w-3 h-3 text-content-muted shrink-0" />
           <input
@@ -125,7 +125,7 @@ export function MappingPanel({
             >
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold text-indigo-200 font-mono">{sku.partNumber}</p>
-                <p className="text-[9px] text-content-primary0 truncate">{sku.name}</p>
+                <p className="text-[9px] text-content-muted truncate">{sku.name}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[8px] text-content-muted">{sku.vendor}</span>
                   <span className="text-[8px] text-status-success font-mono">${sku.price.toLocaleString()}</span>

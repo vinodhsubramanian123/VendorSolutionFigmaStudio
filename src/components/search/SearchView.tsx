@@ -146,14 +146,14 @@ export function SearchView({
               <Sparkles className="w-4 h-4 text-brand-indigo" />
               Cognitive Sourcing Knowledge Explorer
             </h1>
-            <p className="text-[10px] text-content-primary0">
+            <p className="text-[10px] text-content-muted">
               Query unified cross-entity schemas covering Active Workflows, Sourced Parts, and Vendor partner API registries.
             </p>
           </div>
 
           <div className="flex gap-2 max-w-2xl w-full z-10">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-primary0" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
               <input
                 id="view-search-input"
                 type="text"
@@ -174,7 +174,7 @@ export function SearchView({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-1 z-10">
-            <span className="text-[10px] text-content-primary0 font-medium">Suggestions:</span>
+            <span className="text-[10px] text-content-muted font-medium">Suggestions:</span>
             {suggestions.map((sug, idx) => (
               <button type="button"
                 key={idx}
@@ -197,7 +197,7 @@ export function SearchView({
             className="flex flex-col gap-2.5"
             id="search-column-workflows"
           >
-            <span className="text-[10px] tracking-widest text-content-primary0 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
+            <span className="text-[10px] tracking-widest text-content-muted font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Target className="w-3.5 h-3.5 text-status-warning" /> Workflows (
               {matchedMissions.length})
             </span>
@@ -222,7 +222,7 @@ export function SearchView({
                   <p className="text-content-primary font-bold mt-1.5 leading-tight">
                     {highlightText(m.name, query)}
                   </p>
-                  <p className="text-content-primary0 text-[10px] mt-1 font-mono">
+                  <p className="text-content-muted text-[10px] mt-1 font-mono">
                     Ref: {highlightText(m.projectRef, query)}
                   </p>
                 </button>
@@ -240,7 +240,7 @@ export function SearchView({
             className="flex flex-col gap-2.5"
             id="search-column-vendors"
           >
-            <span className="text-[10px] tracking-widest text-content-primary0 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
+            <span className="text-[10px] tracking-widest text-content-muted font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Globe className="w-3.5 h-3.5 text-brand-indigo" /> Connected APIs (
               {matchedVendors.length})
             </span>
@@ -265,7 +265,7 @@ export function SearchView({
                   <p className="text-content-secondary font-medium mt-1">
                     {highlightText(v.name, query)}
                   </p>
-                  <div className="flex gap-2 text-[10px] text-content-primary0 font-mono mt-2">
+                  <div className="flex gap-2 text-[10px] text-content-muted font-mono mt-2">
                     <span>API Vitality: {v.apiHealth}%</span>
                     <span>·</span>
                     <span>Mappable Items: {v.catalogItems}</span>
@@ -285,7 +285,7 @@ export function SearchView({
             className="flex flex-col gap-2.5"
             id="search-column-parts"
           >
-            <span className="text-[10px] tracking-widest text-content-primary0 font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
+            <span className="text-[10px] tracking-widest text-content-muted font-bold uppercase flex items-center gap-1.5 px-1 shrink-0">
               <Database className="w-3.5 h-3.5 text-status-success" /> Sourced Parts
               ({matchedSkus.length})
             </span>
@@ -310,7 +310,7 @@ export function SearchView({
                   <p className="text-content-primary font-bold mt-1.5 truncate leading-tight">
                     {highlightText(s.name, query)}
                   </p>
-                  <div className="flex justify-between items-center text-[10px] font-mono text-content-primary0 mt-2">
+                  <div className="flex justify-between items-center text-[10px] font-mono text-content-muted mt-2">
                     <span className="capitalize">
                       {highlightText(s.type, query)}
                     </span>
@@ -333,7 +333,7 @@ export function SearchView({
           className="p-8 rounded-xl border border-dashed border-surface-elevated flex flex-col items-center justify-center gap-2"
           id="search-empty-state"
         >
-          <p className="text-content-primary0 font-bold uppercase">
+          <p className="text-content-muted font-bold uppercase">
             No matched hardware records
           </p>
           <p className="text-[10px] text-content-muted text-center">

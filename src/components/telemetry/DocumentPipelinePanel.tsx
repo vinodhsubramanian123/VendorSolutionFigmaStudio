@@ -125,7 +125,7 @@ export function DocumentPipelinePanel() {
         ].map((stat) => (
           <div key={stat.label} className="rounded-xl border border-white/5 bg-surface-canvas/20 p-3 text-center">
             <p className={`text-2xl font-bold font-mono ${stat.color}`}>{stat.value}</p>
-            <p className="text-[9px] text-content-primary0 uppercase tracking-wider mt-1">{stat.label}</p>
+            <p className="text-[9px] text-content-muted uppercase tracking-wider mt-1">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -156,13 +156,13 @@ export function DocumentPipelinePanel() {
         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
           isDragging ? "bg-brand-indigo/20 border border-brand-indigo/40" : "bg-white/5 border border-white/10"
         }`}>
-          <Upload className={`w-6 h-6 ${isDragging ? "text-brand-indigo" : "text-content-primary0"}`} />
+          <Upload className={`w-6 h-6 ${isDragging ? "text-brand-indigo" : "text-content-muted"}`} />
         </div>
         <div className="text-center">
           <p className="text-sm font-bold text-content-primary">
             {isDragging ? "Drop to queue for processing" : "Drop files or click to upload"}
           </p>
-          <p className="text-[11px] text-content-primary0 mt-1">
+          <p className="text-[11px] text-content-muted mt-1">
             PDF · Excel · CSV · TXT · DOCX — multiple files processed in parallel
           </p>
           <p className="text-[10px] text-brand-indigo mt-1 font-mono">
@@ -222,7 +222,7 @@ export function DocumentPipelinePanel() {
                           <span className="text-[9px] text-status-warning font-mono">{job.extractedCount} rules</span>
                         )}
                       </div>
-                      <p className="text-[9px] text-content-primary0 mt-0.5">
+                      <p className="text-[9px] text-content-muted mt-0.5">
                         {formatBytes(job.fileSize)} · {new Date(job.uploadedAt).toLocaleTimeString()}
                       </p>
                     </div>
@@ -230,7 +230,7 @@ export function DocumentPipelinePanel() {
                       {(job.status === "processing" || job.status === "extracting") && (
                         <Loader2 className="w-3.5 h-3.5 text-brand-indigo animate-spin" />
                       )}
-                      <span className="text-[10px] text-content-primary0 font-mono w-8 text-right">{job.progress}%</span>
+                      <span className="text-[10px] text-content-muted font-mono w-8 text-right">{job.progress}%</span>
                       <button type="button"
                         onClick={(e) => { e.stopPropagation(); handleClearJob(job.id); }}
                         aria-label={`Remove ${job.filename}`}

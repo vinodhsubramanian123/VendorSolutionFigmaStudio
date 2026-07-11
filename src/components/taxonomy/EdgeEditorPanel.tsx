@@ -84,7 +84,7 @@ export function EdgeEditorPanel({
                 onChange={e => setEdgeWeight(Number(e.target.value))}
                 className="w-full bg-surface-canvas/60 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 text-content-primary font-mono"
               />
-              <p className="text-[8px] text-content-primary0 font-mono mt-1">1.0 = Absolute Requirement | 0.5 = Moderate Substitute</p>
+              <p className="text-[8px] text-content-muted font-mono mt-1">1.0 = Absolute Requirement | 0.5 = Moderate Substitute</p>
             </div>
             <button type="button"
               onClick={handleUpdateEdge}
@@ -111,13 +111,13 @@ export function EdgeEditorPanel({
             </button>
             <button type="button" 
               onClick={() => setSelectedEdgeId && setSelectedEdgeId(null)}
-              className="w-full text-center text-[9px] font-mono text-content-primary0 hover:text-content-secondary border-0 bg-transparent cursor-pointer mt-1"
+              className="w-full text-center text-[9px] font-mono text-content-muted hover:text-content-secondary border-0 bg-transparent cursor-pointer mt-1"
             >
               Clear Selection
             </button>
           </div>
         ) : (
-          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-primary0 flex flex-col items-center justify-center min-h-[140px] gap-2">
+          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-muted flex flex-col items-center justify-center min-h-[140px] gap-2">
             <HelpCircle className="w-8 h-8 text-content-muted" />
             <p>Click on any relationship edge in the graph canvas to modify its properties.</p>
             <button type="button"

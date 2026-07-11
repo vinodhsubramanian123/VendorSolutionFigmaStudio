@@ -87,14 +87,14 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
                       <div className="text-sm text-content-secondary truncate max-w-[200px]" title={item.name}>{item.name}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-content-primary0">Remaining</div>
+                      <div className="text-xs text-content-muted">Remaining</div>
                       <div className="text-lg font-mono font-bold text-content-primary">{remaining}</div>
                     </div>
                   </div>
                   
                   {/* Slider */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-content-primary0">0</span>
+                    <span className="text-xs text-content-muted">0</span>
                     <input 
                       type="range"
                       min="0"
@@ -103,7 +103,7 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
                       onChange={e => handleSliderChange(item.partNumber, parseInt(e.target.value, 10))}
                       className="flex-1 accent-indigo-500"
                     />
-                    <span className="text-xs text-content-primary0">{item.quantity}</span>
+                    <span className="text-xs text-content-muted">{item.quantity}</span>
                   </div>
                 </div>
               );
@@ -136,7 +136,7 @@ export function SplitConfigWizard({ isOpen, onClose, sourceConfig, onConfirmSpli
             
             {!isAnythingMoved && (
               <div className="flex-1 flex items-center justify-center border-2 border-dashed border-white/5 rounded-lg">
-                <span className="text-content-primary0 text-sm">Use the sliders to move quantities here</span>
+                <span className="text-content-muted text-sm">Use the sliders to move quantities here</span>
               </div>
             )}
           </div>

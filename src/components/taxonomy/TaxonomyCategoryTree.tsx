@@ -40,7 +40,7 @@ export function TaxonomyCategoryTree({
               <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider block font-mono">
                 {cat.label.replace(" Subsystem", "")}
               </span>
-              <span className="text-[8px] text-content-primary0 font-mono mt-0.5 block uppercase">
+              <span className="text-[8px] text-content-muted font-mono mt-0.5 block uppercase">
                 {mappedSkus.length} Configured Parts
               </span>
             </div>
@@ -73,7 +73,7 @@ export function TaxonomyCategoryTree({
                         </span>
                       )}
                     </div>
-                    <p className="text-[9px] text-content-primary0 mt-1 truncate max-w-[160px]">{child.sublabel}</p>
+                    <p className="text-[9px] text-content-muted mt-1 truncate max-w-[160px]">{child.sublabel}</p>
 
                     <AnimatePresence>
                       {expandedNode === child.id && (

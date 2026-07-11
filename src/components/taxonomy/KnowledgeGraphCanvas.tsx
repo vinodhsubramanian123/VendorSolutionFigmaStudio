@@ -34,7 +34,7 @@ const CatalogPartNode = ({ data }: { data: GraphNode }) => {
       </div>
       <div className="flex flex-col">
         <span className="text-sm font-bold text-content-primary">{data.label}</span>
-        {data.data?.partNumber && <div className="text-[9px] text-content-primary0 font-mono mt-1">PN: {data.data.partNumber}</div>}
+        {data.data?.partNumber && <div className="text-[9px] text-content-muted font-mono mt-1">PN: {data.data.partNumber}</div>}
         {data.data?.price && <div className="text-[10px] text-status-success font-bold mt-1">${data.data.price.toLocaleString()}</div>}
       </div>
       <Handle type="source" position={Position.Bottom} className={`w-3 h-3 ${data.data?.isPathActive ? 'bg-status-success' : 'bg-brand-indigo'} border-2 border-black`} />

@@ -58,7 +58,7 @@ function ExecutionModeStrategy({
   return (
     <div className="space-y-2 border-t border-white/5 pt-3 mt-1">
       <div className="flex items-center justify-between">
-        <label htmlFor={`exec-mode-${container.id}`} className="text-content-primary0 font-bold uppercase block text-[9.5px]">
+        <label htmlFor={`exec-mode-${container.id}`} className="text-content-muted font-bold uppercase block text-[9.5px]">
           Mapping Execution Strategy
         </label>
         <select
@@ -77,7 +77,7 @@ function ExecutionModeStrategy({
         <div className="space-y-2 mt-2">
           {container.uploadedBOMFiles && container.uploadedBOMFiles.length > 0 && (
             <div className="flex flex-col gap-1 mb-2">
-              <span className="text-[9px] text-content-primary0 uppercase font-bold">Mapped BOM Files:</span>
+              <span className="text-[9px] text-content-muted uppercase font-bold">Mapped BOM Files:</span>
               {container.uploadedBOMFiles.map((file, idx) => (
                 <div key={idx} className="text-[10px] text-indigo-300 bg-brand-indigo/10 px-2 py-1 rounded border border-brand-indigo/20 truncate">
                   📄 {file}
@@ -105,7 +105,7 @@ function ExecutionModeStrategy({
                   ? 'Add Another Partial BOM Spreadsheet'
                   : 'Drop Vendor BOM Spreadsheet Here'}
               </span>
-              <span className="block text-[9.5px] text-content-primary0">
+              <span className="block text-[9.5px] text-content-muted">
                 Click to browse files to append to this UCID...
               </span>
             </label>
@@ -188,7 +188,7 @@ function UcidContainerCard({
             className={`p-1.5 rounded border transition cursor-pointer ${
               container.locked
                 ? "bg-status-success/10 border-status-success/20 text-status-success font-bold"
-                : "bg-surface-canvas/20 border-white/5 text-content-primary0 hover:text-content-primary"
+                : "bg-surface-canvas/20 border-white/5 text-content-muted hover:text-content-primary"
             }`}
             title={container.locked ? "Unlock Sourcing Container" : "Lock Sourcing Container"}
           >
@@ -204,11 +204,11 @@ function UcidContainerCard({
 
       {/* Assigned equipment layout */}
       <div className="space-y-2">
-        <label className="text-content-primary0 font-bold uppercase block text-[9.5px]">
+        <label className="text-content-muted font-bold uppercase block text-[9.5px]">
           Assigned Equipment Sheets ({assignedConfigs.length})
         </label>
         {assignedConfigs.length === 0 ? (
-          <p className="text-[11px] text-content-primary0 italic p-3 bg-surface-canvas/10 rounded-lg text-center font-medium">
+          <p className="text-[11px] text-content-muted italic p-3 bg-surface-canvas/10 rounded-lg text-center font-medium">
             No configurations mapped yet. Change selections in Config Library dropdown.
           </p>
         ) : (
@@ -236,7 +236,7 @@ function UcidContainerCard({
 
       {/* Editable reasoning label */}
       <div className="space-y-1.5">
-        <label htmlFor={`reasoning-${container.id}`} className="text-content-primary0 font-bold uppercase block text-[9.5px]">
+        <label htmlFor={`reasoning-${container.id}`} className="text-content-muted font-bold uppercase block text-[9.5px]">
           Sourcing Reasoning Label
         </label>
         <textarea
@@ -273,7 +273,7 @@ function UcidContainerCard({
               Power load checked
             </span>
           </div>
-          <p className="text-[9.5px] text-content-primary0 leading-normal">
+          <p className="text-[9.5px] text-content-muted leading-normal">
             {isPowerExceeded ? "Warning: High peak thermal envelopes" : "Nominal symmetry load margins."}
           </p>
         </div>

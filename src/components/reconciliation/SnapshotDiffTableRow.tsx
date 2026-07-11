@@ -32,7 +32,7 @@ export function SnapshotDiffTableRow({ it }: { it: DiffItem }) {
         {it.changeType === "removed" ? "—" : it.bQty}
         {renderQtyDrift(it.changeType, it.qtyDrift)}
       </td>
-      <td className="py-3 px-2 text-right font-mono text-content-primary0">
+      <td className="py-3 px-2 text-right font-mono text-content-muted">
         {it.changeType === "added" ? "—" : `$${it.aPrice}`}
       </td>
       <td className="py-3 px-2 text-right font-mono text-content-primary">
@@ -71,7 +71,7 @@ function getChangeStyles(changeType: string) {
   return {
     rowClass: "",
     statusLabel: "No Change",
-    labelClass: "text-content-primary0 bg-white/2"
+    labelClass: "text-content-muted bg-white/2"
   };
 }
 
@@ -100,5 +100,5 @@ function renderUnitDrift(changeType: string, unitDrift: number) {
 function getTotalDriftStyle(totalDrift: number) {
   if (totalDrift > 0) return "text-rose-500";
   if (totalDrift < 0) return "text-status-success animate-pulse";
-  return "text-content-primary0";
+  return "text-content-muted";
 }

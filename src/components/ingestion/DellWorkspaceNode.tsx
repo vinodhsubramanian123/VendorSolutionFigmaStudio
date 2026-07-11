@@ -29,7 +29,7 @@ export function DellWorkspaceNode({
             <p className="text-xs font-mono font-bold text-content-primary">
               {manualBOMStatus === "pending" ? "$0" : manualBOMStatus === "partial" ? "$196,200" : "$392,400"}
             </p>
-            <p className="text-[9px] font-mono text-content-primary0">reconciled price</p>
+            <p className="text-[9px] font-mono text-content-muted">reconciled price</p>
           </div>
         </div>
         <div className="p-3 rounded bg-surface-canvas/10 border border-white/[0.03] space-y-2 text-left font-mono">
@@ -42,7 +42,7 @@ export function DellWorkspaceNode({
                   <span className="text-content-secondary">Slot {idx + 1}: {slot}</span>
                   {isSynced
                     ? <span className="text-status-success font-bold uppercase text-[8px]">Synced</span>
-                    : <span className="text-content-primary0 uppercase text-[8px]">Awaiting file</span>
+                    : <span className="text-content-muted uppercase text-[8px]">Awaiting file</span>
                   }
                 </div>
               );
@@ -74,7 +74,7 @@ export function DellWorkspaceNode({
         </div>
         {manualUploadedFiles.length > 0 && (
           <div className="p-2.5 rounded bg-surface-canvas/30 border border-white/5 space-y-1 text-left select-text">
-            <p className="text-[8px] text-content-primary0 uppercase font-mono block">Ingested Source Documents:</p>
+            <p className="text-[8px] text-content-muted uppercase font-mono block">Ingested Source Documents:</p>
             {manualUploadedFiles.map((f: string, i: number) => (
               <p key={i} className="text-[9px] text-content-secondary font-mono truncate">📄 {f}</p>
             ))}

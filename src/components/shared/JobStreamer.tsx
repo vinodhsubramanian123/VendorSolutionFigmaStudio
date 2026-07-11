@@ -71,7 +71,7 @@ export function JobStreamer({ jobId, context, onSuccess, onError }: JobStreamerP
             <span className="text-[9px] font-bold text-status-success uppercase tracking-widest font-mono bg-status-success/10 px-1.5 py-0.5 rounded border border-status-success/20">
               WSS SECURE TUNNEL
             </span>
-            <span className="text-[8.5px] text-content-primary0 font-mono">
+            <span className="text-[8.5px] text-content-muted font-mono">
               ~{randomLatency}ms
             </span>
           </div>

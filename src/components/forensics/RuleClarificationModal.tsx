@@ -39,7 +39,7 @@ export function RuleClarificationModal({
           </div>
 
           <div className="space-y-2">
-            <div className="text-[10px] font-bold text-content-primary0 uppercase">Apply this intelligence to:</div>
+            <div className="text-[10px] font-bold text-content-muted uppercase">Apply this intelligence to:</div>
             <div className="space-y-2">
               <label htmlFor="scope-global" aria-label="Global Portfolio - Apply across all vendors and models globally (High Blast Radius)" className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${scope === "Global" ? "bg-brand-indigo/10 border-brand-indigo/50" : "bg-surface-canvas/20 border-white/5 hover:bg-white/5"}`}>
                 <input id="scope-global" type="radio" checked={scope === "Global"} onChange={() => setScope("Global")} className="mt-1" />

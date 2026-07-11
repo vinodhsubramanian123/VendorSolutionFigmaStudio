@@ -67,7 +67,7 @@ export function StepVendorProvisioning({
         <div className="p-6 rounded-xl border border-dashed border-white/10 bg-surface-card text-center space-y-2">
           <Server className="w-8 h-8 text-content-muted mx-auto" />
           <p className="text-xs text-content-secondary">No active vendor designs prepared.</p>
-          <p className="text-[10px] text-content-primary0">Go back to Intake/Intelligence steps to scan and build proposals.</p>
+          <p className="text-[10px] text-content-muted">Go back to Intake/Intelligence steps to scan and build proposals.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -87,14 +87,14 @@ export function StepVendorProvisioning({
                 <div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={`${sub.vendor} Quote Gateway`} variant="success" />
-                    <span className="text-[10px] text-content-primary0 font-mono">
+                    <span className="text-[10px] text-content-muted font-mono">
                       Ref: {sub.vendor.toLowerCase()}-q-{sub.id.substring(0, 5)}
                     </span>
                   </div>
                   <p className="text-[11px] text-content-primary font-medium mt-1">
                     Status: MATCHED VIP VOLUME CONTRACT DISCOUNT (-{mockDiscount} applied)
                   </p>
-                  <div className="flex gap-3 text-[10px] text-content-primary0 mt-1">
+                  <div className="flex gap-3 text-[10px] text-content-muted mt-1">
                     <span>
                       Total Bid Price: <strong className="text-status-success font-mono">${sub.totalPrice.toLocaleString()}</strong>
                     </span>

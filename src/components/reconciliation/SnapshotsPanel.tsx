@@ -94,7 +94,7 @@ export function SnapshotsPanel({
                     <h2 className="text-sm font-black text-content-primary font-mono uppercase tracking-wider">
                       Historical Snapshots
                     </h2>
-                    <p className="text-[10px] text-content-primary0 font-medium">
+                    <p className="text-[10px] text-content-muted font-medium">
                       {activeUCID?.displayId || "No UCID Selected"}
                     </p>
                   </div>
@@ -145,7 +145,7 @@ export function SnapshotsPanel({
                       <span>Compare selected snapshot to <strong>Current Live State</strong></span>
                     </label>
 
-                    <div className="text-[9.5px] text-content-primary0">
+                    <div className="text-[9.5px] text-content-muted">
                       {compareAgainstCurrent
                         ? "Select exactly 1 snapshot from the register list below to compare against active changes."
                         : "Select exactly 2 historical snapshot records below to run version-to-version diffing."}
@@ -173,13 +173,13 @@ export function SnapshotsPanel({
                         : selectedForCompare.length !== 2
                     }
                     onClick={() => setIsDiffModalOpen(true)}
-                    className="w-full py-2.5 rounded-lg bg-brand-indigo disabled:bg-surface-elevated disabled:text-content-primary0 text-content-primary font-extrabold uppercase text-[10.5px] tracking-wider transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shadow-lg shadow-indigo-500/10"
+                    className="w-full py-2.5 rounded-lg bg-brand-indigo disabled:bg-surface-elevated disabled:text-content-muted text-content-primary font-extrabold uppercase text-[10.5px] tracking-wider transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 shadow-lg shadow-indigo-500/10"
                   >
                     <GitCompare className="w-4 h-4" />
                     <span>Run Visual Sourcing Diff</span>
                   </button>
 
-                  <div className="text-[9px] text-center text-content-primary0 leading-normal">
+                  <div className="text-[9px] text-center text-content-muted leading-normal">
                     {compareAgainstCurrent
                       ? "Compare 1 selected snapshot baseline to the unsaved live configurations."
                       : "Pick exactly 2 snapshot items above from the history list to activate comparison."}

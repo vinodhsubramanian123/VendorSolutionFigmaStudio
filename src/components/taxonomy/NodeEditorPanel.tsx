@@ -46,7 +46,7 @@ export function NodeEditorPanel({
               <div>
                 <span className="text-[9px] font-mono text-content-secondary uppercase block">Selected Node</span>
                 <strong className="text-indigo-300 font-mono text-xs">{selectedNode.label}</strong>
-                <span className="text-[8px] text-content-primary0 block">ID: {selectedNode.id}</span>
+                <span className="text-[8px] text-content-muted block">ID: {selectedNode.id}</span>
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-white/5">
@@ -88,14 +88,14 @@ export function NodeEditorPanel({
 
               <button type="button" 
                 onClick={() => setSelectedNodeId && setSelectedNodeId(null)}
-                className="w-full text-center text-[9px] font-mono text-content-primary0 hover:text-content-secondary border-0 bg-transparent cursor-pointer mt-1"
+                className="w-full text-center text-[9px] font-mono text-content-muted hover:text-content-secondary border-0 bg-transparent cursor-pointer mt-1"
               >
                 Clear Selection
               </button>
             </div>
           );
         })() : (
-          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-primary0 flex flex-col items-center justify-center min-h-[140px] gap-2">
+          <div className="p-4 border border-dashed border-white/10 rounded-lg text-center text-[10px] text-content-muted flex flex-col items-center justify-center min-h-[140px] gap-2">
             <HelpCircle className="w-8 h-8 text-content-muted" />
             <p>Click on any node in the graph canvas to modify its properties.</p>
             <button type="button"

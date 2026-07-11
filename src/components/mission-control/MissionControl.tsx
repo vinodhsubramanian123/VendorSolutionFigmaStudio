@@ -269,7 +269,7 @@ export const MissionControl = React.memo(function MissionControl({
                         >
                           {selected.priority} Priority
                         </span>
-                        <span className="text-xs text-content-primary0">
+                        <span className="text-xs text-content-muted">
                           Project Ref:{" "}
                           <span className="font-mono text-content-secondary">
                             {selected.projectRef}
@@ -281,7 +281,7 @@ export const MissionControl = React.memo(function MissionControl({
                       </h2>
                     </div>
                     <div className="flex items-center gap-2 self-start md:self-auto">
-                      <span className="text-xs text-content-primary0 font-mono flex items-center gap-1">
+                      <span className="text-xs text-content-muted font-mono flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" /> Ingested {new Date(selected.createdAt).toLocaleDateString()}
                       </span>
                     </div>

@@ -222,7 +222,7 @@ export function RefineRuleOverlay({
                     Intricate Remedy Options (Select Required SKUs)
                   </span>
                   <div className="flex items-center gap-2 text-[10px]">
-                    <span className="text-content-primary0">Combination Rule:</span>
+                    <span className="text-content-muted">Combination Rule:</span>
                     <select
                       value={combinationOperator}
                       onChange={(e) => handleOperatorChange(e.target.value as "AND" | "OR")}

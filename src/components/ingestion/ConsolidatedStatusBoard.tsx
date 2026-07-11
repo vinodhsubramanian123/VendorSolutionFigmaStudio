@@ -144,7 +144,7 @@ export function ConsolidatedStatusBoard({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-[10px]">
           <thead>
-            <tr className="border-b border-white/5 text-content-primary0 font-mono">
+            <tr className="border-b border-white/5 text-content-muted font-mono">
               <th className="pb-2 text-left">NODE ID</th>
               <th className="pb-2">CHANNEL TYPE</th>
               <th className="pb-2">SYNC STATUS</th>

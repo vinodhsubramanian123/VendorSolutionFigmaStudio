@@ -55,7 +55,7 @@ export function ConfigSheetCard({
           <h4 className="font-bold text-content-primary text-xs mt-1">
             {cfg.name}
           </h4>
-          <p className="text-[10px] text-content-primary0 mt-0.5">
+          <p className="text-[10px] text-content-muted mt-0.5">
             {cfg.items[0]?.name?.split(' ')[0] || "Vendor"} · Just now
           </p>
         </div>
@@ -64,7 +64,7 @@ export function ConfigSheetCard({
         <span className="font-extrabold text-content-primary text-xs font-mono">
           ${cfg.totalPrice.toLocaleString()}
         </span>
-        <p className="text-[9.5px] text-content-primary0 mt-0.5 font-bold">
+        <p className="text-[9.5px] text-content-muted mt-0.5 font-bold">
           {cfg.items.length} items
         </p>
       </div>
@@ -82,7 +82,7 @@ export function ConfigSheetCard({
           style={{ width: `${100 - matchPercentage}%` }}
         />
       </div>
-      <div className="flex justify-between items-center text-[9px] text-content-primary0 font-mono text-left">
+      <div className="flex justify-between items-center text-[9px] text-content-muted font-mono text-left">
         <span>● {matchedItems} Match</span>
         <span>● 0 Spec!=</span>
         <span>● 0 Add</span>

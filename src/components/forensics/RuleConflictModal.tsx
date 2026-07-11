@@ -56,15 +56,15 @@ export function RuleConflictModal({ conflict, existingRule, onResolve, onCancel 
                   )}
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] text-content-primary0 font-mono">Target SKU</p>
+                  <p className="text-[10px] text-content-muted font-mono">Target SKU</p>
                   <p className="text-sm font-bold text-content-primary font-mono">{conflict.partNumber}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] text-content-primary0 font-mono">Mapped Output</p>
+                  <p className="text-[10px] text-content-muted font-mono">Mapped Output</p>
                   <p className="text-sm font-bold text-brand-indigo font-mono">{conflict.existingMappedOutput}</p>
                 </div>
                 <div className="space-y-1 pt-2 border-t border-white/5">
-                  <p className="text-[10px] text-content-primary0 font-mono">Rule Label</p>
+                  <p className="text-[10px] text-content-muted font-mono">Rule Label</p>
                   <p className="text-xs text-content-secondary">{existingRule.label}</p>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export function RuleConflictModal({ conflict, existingRule, onResolve, onCancel 
             </div>
 
             <div className="bg-surface-canvas/40 border border-white/5 rounded-lg p-3 flex gap-3 text-xs text-content-secondary leading-snug">
-              <ShieldAlert className="w-4 h-4 text-content-primary0 shrink-0 mt-0.5" />
+              <ShieldAlert className="w-4 h-4 text-content-muted shrink-0 mt-0.5" />
               <p>Overwriting this rule will flush the intelligence cache and apply the new manual override globally to all active UCIDs.</p>
             </div>
           </div>

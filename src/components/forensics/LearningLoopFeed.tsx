@@ -96,7 +96,7 @@ export function LearningLoopFeed({
                 LIVE
               </span>
             </div>
-            <p className="text-[11px] text-content-primary0 mt-0.5">
+            <p className="text-[11px] text-content-muted mt-0.5">
               Auto-heal events that trained the catalog intelligence database
             </p>
           </div>
@@ -105,21 +105,21 @@ export function LearningLoopFeed({
         {/* Aggregate stats */}
         <div className="flex items-center gap-4 shrink-0">
           <div className="text-right">
-            <p className="text-[10px] text-content-primary0 font-mono uppercase tracking-wider">Active Rules</p>
+            <p className="text-[10px] text-content-muted font-mono uppercase tracking-wider">Active Rules</p>
             <p className="text-lg font-bold text-brand-indigo font-mono leading-none">
               {activeRuleCount}
             </p>
           </div>
           <div className="w-px h-8 bg-white/5" />
           <div className="text-right">
-            <p className="text-[10px] text-content-primary0 font-mono uppercase tracking-wider">Prevented</p>
+            <p className="text-[10px] text-content-muted font-mono uppercase tracking-wider">Prevented</p>
             <p className="text-lg font-bold text-status-success font-mono leading-none">
               {totalPrevented}
             </p>
           </div>
           <div className="w-px h-8 bg-white/5" />
           <div className="text-right">
-            <p className="text-[10px] text-content-primary0 font-mono uppercase tracking-wider">Avg Confidence</p>
+            <p className="text-[10px] text-content-muted font-mono uppercase tracking-wider">Avg Confidence</p>
             <p className="text-lg font-bold text-content-primary font-mono leading-none">
               {avgConfidence}%
             </p>
@@ -199,7 +199,7 @@ export function LearningLoopFeed({
                           </p>
 
                           {/* Metrics row */}
-                          <div className="flex items-center gap-4 text-[10px] text-content-primary0">
+                          <div className="flex items-center gap-4 text-[10px] text-content-muted">
                             <span className="flex items-center gap-1">
                               <Shield className="w-3 h-3 text-status-success" />
                               <span className="text-status-success font-bold font-mono">
@@ -236,7 +236,7 @@ export function LearningLoopFeed({
 
                         {/* Right: timestamp + action */}
                         <div className="flex flex-col items-end gap-2 shrink-0">
-                          <span className="flex items-center gap-1 text-[9px] text-content-primary0 font-mono">
+                          <span className="flex items-center gap-1 text-[9px] text-content-muted font-mono">
                             <Clock className="w-3 h-3" />
                             {timeAgo}
                           </span>

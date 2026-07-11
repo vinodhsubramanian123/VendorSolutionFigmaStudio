@@ -67,7 +67,7 @@ export function ForensicSidebar({
           >
             {displayScore}
           </motion.span>
-          <span className="text-xs text-content-primary0 font-mono">/ 100</span>
+          <span className="text-xs text-content-muted font-mono">/ 100</span>
         </div>
         <div className="w-full h-1.5 bg-surface-card rounded-full overflow-hidden">
           <motion.div
@@ -80,7 +80,7 @@ export function ForensicSidebar({
             transition={{ duration: 0.9, ease: "easeOut", delay: 0.1 }}
           />
         </div>
-        <p className="text-[10px] text-content-primary0">
+        <p className="text-[10px] text-content-muted">
           Each unresolved open compliance exception reduces your aggregate score.
         </p>
       </motion.div>
@@ -115,14 +115,14 @@ export function ForensicSidebar({
                     <CheckCircle className="w-3 h-3 text-status-success shrink-0" />{" "}
                     {issue.title}
                   </p>
-                  <p className="text-content-primary0 mt-1 pl-4 leading-normal">
+                  <p className="text-content-muted mt-1 pl-4 leading-normal">
                     {issue.desc}
                   </p>
                 </motion.div>
               ))
             ) : (
               <motion.p
-                className="text-center text-[10px] text-content-primary0 p-3 italic"
+                className="text-center text-[10px] text-content-muted p-3 italic"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >

@@ -59,7 +59,7 @@ export function SnapshotManager({
           <span className="text-[10.5px] font-mono text-content-secondary tracking-wider font-bold uppercase">
             Versioning Audit Log ({snapshotsList.length})
           </span>
-          <span className="text-[9.5px] text-content-primary0 font-mono">
+          <span className="text-[9.5px] text-content-muted font-mono">
             {activeUCID?.displayId || "No UCID"} • Baseline Ledger
           </span>
         </div>
@@ -104,9 +104,9 @@ export function SnapshotManager({
       <div className="space-y-2.5">
         {snapshotsList.length === 0 ? (
           <div className="h-48 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-surface-canvas/10 text-center p-6 select-none">
-            <Layers className="w-8 h-8 text-content-primary0/30 mb-2 animate-pulse" />
+            <Layers className="w-8 h-8 text-content-muted/30 mb-2 animate-pulse" />
             <span className="text-content-secondary font-bold text-xs">No Snapshots Captured</span>
-            <p className="text-[10px] text-content-primary0 mt-1 leading-normal max-w-[240px]">
+            <p className="text-[10px] text-content-muted mt-1 leading-normal max-w-[240px]">
               Lock post-reconciliation quote structures or tap "Capture Snapshot" above to register baseline files in CRM.
             </p>
           </div>

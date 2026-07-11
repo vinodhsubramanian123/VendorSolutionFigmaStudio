@@ -11,6 +11,34 @@ Legend: ✅ done · 🟡 partial (some coverage, gaps remain) · 🔴 not starte
 
 ---
 
+## ⚠️ §0 — Read this before trusting any "8/8 passed" visual result
+
+On 2026-07-10, `npm run test:e2e:visual` was run locally and reported 8/8
+passing with zero diffs. That result was **not a clean bill of health** — it
+was masking a real bug. A follow-up code-level pass found `text-content-primary0`
+(not a real class — only `content-primary`/`content-secondary`/`content-muted`
+exist) used **310 times across 94 files**, all traced to a single commit
+(`b92c2a9`, the cosmic-slate script, 2026-07-06). Tailwind silently drops
+unknown classes, so every one of those 310 sites — overwhelmingly de-emphasized
+text (captions, labels, footnotes) — rendered with zero color styling instead
+of the intended muted tone, for 4 days, invisibly.
+
+**Why 8/8 passing didn't catch it:** the 8 existing baseline snapshots were
+captured on 2026-07-08, *after* the bug was already in the code. The baseline
+itself encoded the broken rendering as "correct." Comparing broken-against-broken
+correctly finds no diff. This is fixed now (`282d65d`) — 296 sites → `content-muted`
+(the confirmed-majority original shade), 1 site → `content-primary` (individually
+traced with certainty), and the 13 new/updated tests in `64e81a4` bring nav-view
+coverage to 13/13 — but **the lesson generalizes**: a passing visual-regression
+suite is only as trustworthy as its baselines. A "0 diffs" result should prompt
+"were these baselines ever visually sanity-checked by a human?", not just "did
+the number match." Treat every *first* baseline-establishing run
+(`--update-snapshots`) as a thing that needs eyeballing, not just accepting.
+
+---
+
+
+
 ## 1. Design system consistency
 
 | Item | Status | Detail |
@@ -22,7 +50,7 @@ Legend: ✅ done · 🟡 partial (some coverage, gaps remain) · 🔴 not starte
 | Border-radius consistency | 🔴 | Not audited. |
 | Shadow/elevation consistency | 🔴 | Not audited. |
 | Motion/animation consistency (framer-motion) | 🔴 | Not audited. Also: does anything respect `prefers-reduced-motion`? Not checked. |
-| Color contrast (WCAG AA) on small/muted text | 🔴 | The 9–10.5px muted-color badges and labels used throughout are exactly the pattern most likely to fail contrast ratios. Not measured. |
+| Color contrast (WCAG AA) on small/muted text | 🔴 | Not measured. More relevant now than before: the `content-primary0` fix (§0) means muted text actually renders with a real, dim color for the first time — worth checking `--color-content-muted` (`#5d7899`) against `--color-surface-*` backgrounds at the 9–10.5px sizes used everywhere, since it was never actually visible enough to evaluate until this session's fix. |
 
 ## 2. Accessibility (a11y)
 
@@ -55,7 +83,7 @@ Legend: ✅ done · 🟡 partial (some coverage, gaps remain) · 🔴 not starte
 
 | Item | Status | Detail |
 |---|---|---|
-| Visual regression snapshots | 🟡 | **8 of 13 nav views covered**: Dashboard, Catalog, Mission Control, Forensic, Reconciliation, Taxonomy Graph, Vendor Portal, Ingestion Hub. **Missing: Cleansing Workshop, Solution Configurator, Solutions Portfolio (new), Search, Telemetry.** |
+| Visual regression snapshots | 🟡→🔴 **see warning below** | 8 of 13 views had snapshots; 5 new tests added 2026-07-10 for Cleansing Workshop, Solution Configurator, Solutions Portfolio, Search, Telemetry — bringing coverage to 13/13. **But all 8 existing baselines are now known-stale** (see §0 below) and the 5 new ones have no baseline yet. None of the 13 can be trusted as ground truth until regenerated locally and visually confirmed. |
 | Cross-browser E2E coverage | 🔴 | `playwright.config.ts` only defines a `chromium` project — no Firefox/WebKit. Fine if the target audience is Chrome-only; otherwise a real gap. |
 | Responsive breakpoint coverage | 🟡 | `responsive.spec.ts` checks 375/768/1024/1280px, but focused on sidebar/table containment — not per-view. |
 | Automated a11y test coverage | 🔴 | See §2 — effectively 1–2 components out of dozens. |
@@ -105,13 +133,16 @@ session; the 🔒 items above cannot.
 
 ## Suggested order of attack
 
-1. Close the visual-snapshot gap (5 missing views) — cheap, high-value, turns
-   "eyeball it" into an automated regression gate going forward.
-2. Expand automated `axe` coverage to at least one render per nav-level view.
-3. Sweep for the optimistic-UI-mismatch bug class across all "edit and save"
+1. ✅ **Done 2026-07-10.** Closed the visual-snapshot gap (5 missing views) —
+   and in the process found item §0 above, which turned out to be the
+   highest-value find of the whole audit so far. This is exactly why #1 was
+   ranked first: closing test-coverage gaps surfaces real bugs, cheaply.
+2. Regenerate all 13 baselines locally, **visually confirm each one** (don't
+   just accept "test passed"), commit them.
+3. Expand automated `axe` coverage to at least one render per nav-level view.
+4. Sweep for the optimistic-UI-mismatch bug class across all "edit and save"
    components (catalog was one instance; check cleansing, forensics, taxonomy).
-4. Typography/spacing/contrast pass — likely a single token-mapping exercise
-   like the color one, once actual violations are identified visually.
-5. Everything else in this list, prioritized by whatever Vinodh's manual
-   click-through surfaces as actually broken — no point auditing content
-   quality or animation consistency before the pixel-level gaps are known.
+5. Typography/spacing/contrast pass — now more meaningful than before, since
+   muted text is actually rendering with a real color for the first time.
+6. Everything else in this list, prioritized by whatever Vinodh's manual
+   click-through surfaces as actually broken.

@@ -82,7 +82,7 @@ export function SolutionConfigCard({
 
       <div className="space-y-2 mt-1">
         {allItems.length === 0 ? (
-          <div className="text-[10px] text-content-primary0 italic py-4 text-center">
+          <div className="text-[10px] text-content-muted italic py-4 text-center">
             No items in this configuration.
           </div>
         ) : (
@@ -92,7 +92,7 @@ export function SolutionConfigCard({
               className="flex items-center justify-between p-2 rounded bg-surface-canvas/40 border border-white/5"
             >
               <div className="min-w-0 pr-2">
-                <p className="text-[10px] font-mono text-content-primary0 flex items-center gap-1 text-left">
+                <p className="text-[10px] font-mono text-content-muted flex items-center gap-1 text-left">
                   <span
                     className="w-1.5 h-1.5 rounded-sm"
                     style={{ backgroundColor: TYPE_COLORS[item.type] || tokens.colors.text.primary }} 
@@ -139,7 +139,7 @@ export function SolutionConfigCard({
                 <button
                   type="button"
                   onClick={() => handleDeleteItem(item.id)}
-                  className="p-1 hover:bg-status-error/10 text-content-primary0 hover:text-status-error rounded transition cursor-pointer"
+                  className="p-1 hover:bg-status-error/10 text-content-muted hover:text-status-error rounded transition cursor-pointer"
                   title="Remove item from this BOM"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -152,7 +152,7 @@ export function SolutionConfigCard({
 
       <div className="border-t pt-3 flex items-center justify-between border-brand-indigo/10">
         <div className="text-left">
-          <p className="text-[10px] text-content-primary0 leading-none">
+          <p className="text-[10px] text-content-muted leading-none">
             Architected Base Value
           </p>
           <span className="text-sm font-bold text-content-primary mt-1 inline-block">
@@ -160,7 +160,7 @@ export function SolutionConfigCard({
           </span>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-content-primary0 leading-none">
+          <p className="text-[10px] text-content-muted leading-none">
             Est. Lead Time
           </p>
           <span className="text-[11px] font-mono font-bold text-brand-indigo mt-1 inline-block">

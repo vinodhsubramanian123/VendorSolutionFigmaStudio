@@ -97,7 +97,7 @@ export function WebhookMonitor({ webhooks }: WebhookMonitorProps) {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-[9px] text-content-primary0">
+                    <div className="flex items-center gap-2 text-[9px] text-content-muted">
                       <span>{wh.source}</span>
                       <span>·</span>
                       <span className="font-mono">{new Date(wh.timestamp).toLocaleString()}</span>
