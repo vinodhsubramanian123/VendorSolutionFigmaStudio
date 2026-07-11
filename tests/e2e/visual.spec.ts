@@ -114,15 +114,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('reconciliation view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const reconNav = page.locator('#nav-reconciliation');
-    if (await reconNav.isVisible()) {
-      await reconNav.click();
-      await settleVisualView(page, 'BOM DRIFT RECONCILIATION');
-      await expect(page).toHaveScreenshot('reconciliation-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-reconciliation').click();
+    await settleVisualView(page, 'BOM DRIFT RECONCILIATION');
+    await expect(page).toHaveScreenshot('reconciliation-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -130,15 +127,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('taxonomy graph view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const taxonomyNav = page.locator('#nav-taxonomy-graph');
-    if (await taxonomyNav.isVisible()) {
-      await taxonomyNav.click();
-      await settleVisualView(page, 'Taxonomy Graph Editor');
-      await expect(page).toHaveScreenshot('taxonomy-graph-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-taxonomy-graph').click();
+    await settleVisualView(page, 'Taxonomy Graph Editor');
+    await expect(page).toHaveScreenshot('taxonomy-graph-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -146,15 +140,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('vendor portal view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const vendorNav = page.locator('#nav-vendor-portal');
-    if (await vendorNav.isVisible()) {
-      await vendorNav.click();
-      await settleVisualView(page, 'Vendor API Integrations & Health');
-      await expect(page).toHaveScreenshot('vendor-portal-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-vendor-portal').click();
+    await settleVisualView(page, 'Vendor API Integrations & Health');
+    await expect(page).toHaveScreenshot('vendor-portal-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -162,15 +153,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('ingestion hub view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const ingestionNav = page.locator('#nav-ingestion-hub');
-    if (await ingestionNav.isVisible()) {
-      await ingestionNav.click();
-      await settleVisualView(page, 'Run Backend API Ingest (Simulation Sandbox)');
-      await expect(page).toHaveScreenshot('ingestion-hub-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-ingestion-hub').click();
+    await settleVisualView(page, 'Run Backend API Ingest (Simulation Sandbox)');
+    await expect(page).toHaveScreenshot('ingestion-hub-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -178,15 +166,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('cleansing workshop view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const cleansingNav = page.locator('#nav-cleansing');
-    if (await cleansingNav.isVisible()) {
-      await cleansingNav.click();
-      await settleVisualView(page, 'Interactive Splicing Workshop');
-      await expect(page).toHaveScreenshot('cleansing-workshop-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-cleansing').click();
+    await settleVisualView(page, 'Interactive Splicing Workshop');
+    await expect(page).toHaveScreenshot('cleansing-workshop-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -194,15 +179,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('solution configurator view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const solutionBuilderNav = page.locator('#nav-solution-builder');
-    if (await solutionBuilderNav.isVisible()) {
-      await solutionBuilderNav.click();
-      await settleVisualView(page, 'Mission Builder', 15000);
-      await expect(page).toHaveScreenshot('solution-configurator-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-solution-builder').click();
+    await settleVisualView(page, 'Mission Builder', 15000);
+    await expect(page).toHaveScreenshot('solution-configurator-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -210,15 +192,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('solutions portfolio view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const solutionsNav = page.locator('#nav-solutions');
-    if (await solutionsNav.isVisible()) {
-      await solutionsNav.click();
-      await settleVisualView(page, 'Solution Portfolio');
-      await expect(page).toHaveScreenshot('solutions-portfolio-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-solutions').click();
+    await settleVisualView(page, 'Solution Portfolio');
+    await expect(page).toHaveScreenshot('solutions-portfolio-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -226,15 +205,12 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('search view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const searchNav = page.locator('#nav-search');
-    if (await searchNav.isVisible()) {
-      await searchNav.click();
-      await settleVisualView(page, 'Cognitive Sourcing Knowledge Explorer');
-      await expect(page).toHaveScreenshot('search-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-search').click();
+    await settleVisualView(page, 'Cognitive Sourcing Knowledge Explorer');
+    await expect(page).toHaveScreenshot('search-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -242,14 +218,11 @@ test.describe('04 - Visual Regression Tests', () => {
   // -------------------------------------------------------------------------
   test('telemetry view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
-    const telemetryNav = page.locator('#nav-telemetry');
-    if (await telemetryNav.isVisible()) {
-      await telemetryNav.click();
-      await settleVisualView(page, /System Telemetry/);
-      await expect(page).toHaveScreenshot('telemetry-default.png', {
-        fullPage: false,
-        animations: 'disabled',
-      });
-    }
+    await page.locator('#nav-telemetry').click();
+    await settleVisualView(page, /System Telemetry/);
+    await expect(page).toHaveScreenshot('telemetry-default.png', {
+      fullPage: false,
+      animations: 'disabled',
+    });
   });
 });
