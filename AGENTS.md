@@ -235,8 +235,8 @@ You must execute these exact commands in this order before finishing:
 *   **Rule**: Tests verifying UI mutability rollbacks against simulated API network failures must be implemented in the **Vitest integration suite** (e.g., `pessimistic.test.tsx`) utilizing `server.use(...)` to force specific endpoints into `500` error states. Do not attempt this in Playwright E2E tests if MSW is handling the data layer.
 
 ### 11.10 Heavy Global State Flakiness in E2E
-*   **Issue**: Tests that rapidly hydrate heavy global state (like overwriting `localStorage` immediately upon navigation in `solution-builder.spec.ts`) can time out when running under heavy parallelized loads.
-*   **Rule**: Always wrap global initialization flows or complex local storage hydrating E2E tests with an explicitly extended timeout (e.g., `test.setTimeout(90000)`) at the beginning of the test block to prevent intermittent worker exhaustion flakiness.
+*   **Issue**: Tests that rapidly hydrate heavy global state (like overwriting `localStorage` immediately upon navigation in `solution-builder.spec.ts` or `snapshot-integrity.spec.ts`) can time out when running under heavy parallelized loads. The global Vitest/Playwright CI run might report a failure due to state tearing, but running the specific test isolated (e.g., `npx playwright test tests/e2e/snapshot-integrity.spec.ts`) will pass perfectly.
+*   **Rule**: Always wrap global initialization flows or complex local storage hydrating E2E tests with an explicitly extended timeout (e.g., `test.setTimeout(90000)`) at the beginning of the test block to prevent intermittent worker exhaustion flakiness. Do not mistake isolated parallel flakiness for code regressions.
 
 ---
 
@@ -270,7 +270,8 @@ As of Phase 7 (Refactoring & Perfection), the following structural rules are com
 *   **Rule**: All interactive elements (`<button>`, custom `<div>` clickables, modals, and tabs) MUST include proper accessibility attributes.
 *   **Action**: 
     - Inject `aria-label` or `aria-labelledby` on all icon-only or custom buttons.
-    - Ensure keyboard navigation (`tabIndex={0}`) and `onKeyDown` listeners are implemented for custom `div` buttons.
+    - Prefer native `<button type="button">` tags over custom `<div onClick={...}>` elements to automatically inherit keyboard (`Enter`/`Space`) event listeners and satisfy `jsx-a11y/no-static-element-interactions`.
+    - Ensure keyboard navigation (`tabIndex={0}`) and `onKeyDown` listeners are implemented only if a custom `div` button is completely unavoidable.
     - Do not rely solely on color or layout to convey state changes to screen readers.
 
 ### 13.4 Taxonomy Graph CRUD Boundaries
