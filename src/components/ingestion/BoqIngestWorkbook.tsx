@@ -105,7 +105,7 @@ export function BoqIngestWorkbook({
             </div>
 
             {/* Selector for Presets */}
-            <div className="flex flex-col items-start sm:items-end gap-1 shrink-0 w-full sm:w-64">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0 w-full sm:w-auto">
               <span className="text-[10px] text-content-secondary font-mono">
                 Simulate Document Profile:
               </span>

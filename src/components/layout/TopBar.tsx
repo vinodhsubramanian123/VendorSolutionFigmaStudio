@@ -85,8 +85,8 @@ export function TopBar({
       }}
     >
       {/* View Title */}
-      <div className="flex flex-col min-w-0 mr-4 flex-1">
-        <h1 className="text-sm font-semibold text-content-primary tracking-tight truncate">
+      <div className="flex flex-col shrink-0 min-w-fit mr-4">
+        <h1 className="text-sm font-semibold text-content-primary tracking-tight whitespace-nowrap">
           {viewTitles[activeView] || "Procurement Workspace"}
         </h1>
       </div>

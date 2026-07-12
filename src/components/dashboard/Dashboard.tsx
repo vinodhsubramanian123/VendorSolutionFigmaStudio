@@ -176,7 +176,7 @@ export function Dashboard({
           opacity: { duration: 0.4, ease: "easeOut" },
           scale: { duration: 0.4, ease: "easeOut" },
         }}
-        className="rounded-xl p-4 flex items-center justify-between relative overflow-hidden animate-gradient"
+        className="rounded-xl p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 relative overflow-hidden animate-gradient"
         style={{
           background: "linear-gradient(270deg, rgba(74, 133, 253, 0.12) 0%, rgba(0,212,160,0.06) 50%, rgba(74, 133, 253,0.12) 100%)",
           backgroundSize: "200% 200%",
@@ -198,7 +198,7 @@ export function Dashboard({
             vendors live · {criticalIssues} critical issues awaiting review
           </p>
         </div>
-        <div className="flex items-center gap-2 relative z-10">
+        <div className="flex flex-wrap items-center gap-2 relative z-10">
           {criticalIssues > 0 && (
             <motion.button type="button"
               onClick={() => onNavigate("forensic")}

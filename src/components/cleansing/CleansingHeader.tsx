@@ -91,8 +91,8 @@ export function CleansingHeader({
             </button>
           );
         })}
-        <div className="ml-auto flex items-center gap-3 text-[10px] text-content-muted">
-          <span className="font-mono">Coverage</span>
+        <div className="ml-auto flex items-center gap-3 text-[10px] text-content-secondary">
+          <span className="font-mono uppercase font-bold tracking-wider">Coverage</span>
           <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-indigo-500"

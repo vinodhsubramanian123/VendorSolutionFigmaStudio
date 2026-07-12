@@ -102,11 +102,14 @@ export const CatalogTaxonomyTree = React.memo(function CatalogTaxonomyTree({ sel
     const hasChildren = node.children && node.children.length > 0;
 
     return (
-      <div key={node.id} className="select-none flex flex-col mt-0.5">
+      <div key={node.id} className="select-none flex flex-col mt-0.5 relative">
         <div 
-          className={`flex items-center py-1 px-1 rounded transition-colors ${isSelected ? 'bg-brand-indigo/20 text-indigo-300' : 'hover:bg-white/5 text-content-secondary'}`}
-          style={{ paddingLeft: `${depth * 12 + 4}px` }}
+          className={`flex items-center py-1 px-1 rounded transition-colors relative z-10 ${isSelected ? 'bg-brand-indigo/20 text-indigo-300' : 'hover:bg-white/5 text-content-secondary'}`}
+          style={{ paddingLeft: `${depth * 16 + 4}px` }}
         >
+          {depth > 0 && Array.from({ length: depth }).map((_, i) => (
+             <div key={i} className="absolute top-0 bottom-0 border-l border-white/10 -z-10" style={{ left: `${i * 16 + 12}px` }} />
+          ))}
           {hasChildren ? (
             <button
               type="button"

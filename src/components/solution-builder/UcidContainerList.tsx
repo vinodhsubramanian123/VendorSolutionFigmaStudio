@@ -156,8 +156,8 @@ function UcidContainerCard({
     >
       {/* Top title bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-brand-indigo animate-pulse" />
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-brand-indigo animate-pulse shrink-0" />
           <span className="font-mono text-brand-indigo font-bold tracking-wider">
             {container.displayId || container.id}
           </span>
@@ -177,7 +177,7 @@ function UcidContainerCard({
             value={container.name}
             onChange={(e) => updateContainerName(container.id, e.target.value)}
             placeholder="deployment name"
-            className="bg-transparent text-content-primary font-bold border-b border-transparent hover:border-white/20 focus:border-brand-indigo focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 w-44 px-1"
+            className="bg-transparent text-content-primary font-bold border-b border-transparent hover:border-white/20 focus:border-brand-indigo focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 flex-1 min-w-[12rem] px-1 truncate"
           />
         </div>
 
@@ -269,7 +269,7 @@ function UcidContainerCard({
 
         <div className="space-y-1 text-right sm:text-right flex flex-col justify-center">
           <div className="flex items-center justify-end gap-1.5 font-mono text-[10px]">
-            <span className={isPowerExceeded ? "text-status-error" : "text-status-success"}>
+            <span className={isPowerExceeded ? "text-status-warning" : "text-status-success"}>
               Power load checked
             </span>
           </div>

@@ -75,7 +75,7 @@ export function CleansingEntryList({
                       <span className="text-[11px] font-bold text-content-primary truncate max-w-[200px]" title={entry.rawValue}>
                         {entry.rawValue}
                       </span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase ${cfg.color} ${cfg.bg} ${cfg.border} border`}>
+                      <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded font-mono uppercase ${cfg.color} ${cfg.bg} ${cfg.border} border`}>
                         {cfg.label}
                       </span>
                       {entry.vendor && (

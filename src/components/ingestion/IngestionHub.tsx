@@ -113,7 +113,7 @@ export function IngestionHub({
             {/* Lifecycle Workflow Stepper */}
             <div className="flex mt-5 bg-surface-elevated rounded-lg border border-white/5 shrink-0 overflow-hidden relative">
               <div className="absolute inset-0 bg-brand-indigo/5" />
-              <div className="relative flex w-full">
+              <div className="relative flex w-full overflow-x-auto pb-1">
                 {stepperSteps.map((step, idx) => {
                   const isActive = logic.currentStepId === step.id;
                   const isPast =
@@ -124,7 +124,7 @@ export function IngestionHub({
                       key={step.id}
                       type="button"
                       onClick={() => logic.jumpToStep(step.id)}
-                      className={`flex-1 min-w-[120px] justify-center flex items-center px-4 py-2 border-r border-white/5 last:border-r-0 font-bold tracking-tight text-[10px] uppercase transition cursor-pointer gap-1.5 relative ${
+                      className={`flex-1 shrink min-w-fit justify-center flex items-center px-4 py-2 border-r border-white/5 last:border-r-0 font-bold tracking-tight text-[10px] uppercase transition cursor-pointer gap-1.5 relative whitespace-nowrap ${
                         isActive
                           ? "bg-sky-500 text-content-primary shadow-lg shadow-sky-500/20 font-black"
                           : isPast
@@ -140,7 +140,7 @@ export function IngestionHub({
                           className={`w-3.5 h-3.5 ${isActive ? "text-content-primary" : ""} shrink-0`}
                         />
                       )}
-                      <span className="truncate">{step.label}</span>
+                      <span className="">{step.label}</span>
                       {isActive && (
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20" />
                       )}
