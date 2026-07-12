@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, ArrowRight, Save, LayoutTemplate } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import type { Config } from "../../types";
 import { ModalBackdrop } from "../shared/ModalBackdrop";
 

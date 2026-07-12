@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 /**
  * The click-to-dismiss backdrop overlay behind a modal panel. Was

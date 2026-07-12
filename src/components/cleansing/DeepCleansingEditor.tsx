@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "motion/react";
 import { Layers, Plus, SplitSquareHorizontal, Save } from "lucide-react";
 import type { Config, BOMItem } from "../../types";
 import { useToast } from "../shared/ToastContext";

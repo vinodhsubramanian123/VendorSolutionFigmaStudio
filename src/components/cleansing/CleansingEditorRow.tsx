@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Edit2, Check, X, Trash2 } from "lucide-react";
 import type { BOMItem } from "../../types";
 

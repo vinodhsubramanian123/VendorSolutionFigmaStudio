@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { X, Search, Plus, HardDrive } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useCoreStore } from "../../store/coreStore";
 import { ModalBackdrop } from "../shared/ModalBackdrop";
 
