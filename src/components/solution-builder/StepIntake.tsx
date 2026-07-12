@@ -66,9 +66,9 @@ export function StepIntake({
             </div>
             <div>
               <StatusBadge status="Direct Solution Ingest" variant="info" />
-              <h3 className="text-sm font-semibold text-content-primary mt-1.5 font-sans">
+              <h2 className="text-sm font-semibold text-content-primary mt-1.5 font-sans">
                 Bill of Quantities (BOQ) Ingestion
-              </h3>
+              </h2>
               <p className="text-[11px] text-content-secondary mt-1 leading-relaxed">
                 Upload your customer hardware requirements sheet,
                 cross-vendor BOQ workbook, or raw equipment PARTS spec file.

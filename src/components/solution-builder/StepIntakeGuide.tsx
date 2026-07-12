@@ -15,9 +15,9 @@ export function StepIntakeGuide({
     <div className="space-y-4">
       {/* Pre-Condition Check */}
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-3.5">
-        <h4 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
+        <h3 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
           Pre-Condition Verification
-        </h4>
+        </h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 pb-2">
             <span className="text-content-secondary font-sans font-medium">
@@ -50,9 +50,9 @@ export function StepIntakeGuide({
 
       {/* Context Explainer */}
       <div className="bg-surface-elevated border border-white/5 rounded-xl p-5 space-y-4">
-        <h4 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
+        <h3 className="font-bold text-content-primary uppercase tracking-wider text-[10px]">
           What is Solution Sourcing?
-        </h4>
+        </h3>
         <p className="text-content-muted leading-relaxed text-[11px]">
           Instead of working with independent fragment spreadsheets, the
           platform compiles multi-vendor contracts under a single{" "}

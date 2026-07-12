@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { axe } from 'vitest-axe';
 import { VendorPortal } from '../VendorPortal';
 import { ToastProvider } from '../../shared/ToastContext';
 import { apiClient } from '../../../services/apiClient';
@@ -50,6 +51,24 @@ describe('VendorPortal Component', () => {
         expect(screen.getByText('Hewlett Packard Enterprise')).toBeInTheDocument();
         expect(screen.getByText('4,500')).toBeInTheDocument(); // Catalog items
     });
+  });
+
+  it('should have zero accessibility violations', async () => {
+    (apiClient.get as any).mockResolvedValueOnce(mockVendors);
+    useCoreStore.setState({ vendors: mockVendors });
+
+    const { container } = render(
+      <ToastProvider>
+        <VendorPortal />
+      </ToastProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Hewlett Packard Enterprise')).toBeInTheDocument();
+    });
+
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('handles API failure gracefully during sync trigger', async () => {

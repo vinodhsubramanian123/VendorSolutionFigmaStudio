@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { axe } from 'vitest-axe';
 import { SolutionBuilder } from '../SolutionBuilder';
 import { ToastProvider } from '../../shared/ToastContext';
 import { useCoreStore } from '../../../store/coreStore';
@@ -74,5 +75,20 @@ describe('SolutionBuilder Component', () => {
 
     // Should stay on intake parse Step 1
     expect(screen.getByText(/Drag & Drop or Upload Customer BOQ Spreadsheet/i)).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations on Step 1 (Intake)', async () => {
+    const { container } = render(
+      <ToastProvider>
+        <SolutionBuilder
+          onNavigate={vi.fn()}
+          setDeployedSolution={vi.fn()}
+          onSelectMission={vi.fn()}
+        />
+      </ToastProvider>
+    );
+    await screen.findByText(/Drag & Drop or Upload Customer BOQ Spreadsheet/i);
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 });

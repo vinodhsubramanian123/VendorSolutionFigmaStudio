@@ -145,14 +145,6 @@ export function DocumentPipelinePanel() {
             : "border-white/10 bg-surface-canvas/10 hover:border-brand-indigo/30 hover:bg-brand-indigo/5"
         }`}
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".pdf,.xlsx,.xls,.txt,.csv,.docx"
-          className="hidden"
-          onChange={handleFileChange}
-        />
         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
           isDragging ? "bg-brand-indigo/20 border border-brand-indigo/40" : "bg-white/5 border border-white/10"
         }`}>
@@ -173,6 +165,15 @@ export function DocumentPipelinePanel() {
           <div className="absolute inset-0 rounded-xl border-2 border-brand-indigo pointer-events-none animate-pulse" />
         )}
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        aria-label="Upload document files"
+        accept=".pdf,.xlsx,.xls,.txt,.csv,.docx"
+        className="hidden"
+        onChange={handleFileChange}
+      />
       {/* Job list */}
       {jobs.length > 0 && (
         <div className="space-y-2">

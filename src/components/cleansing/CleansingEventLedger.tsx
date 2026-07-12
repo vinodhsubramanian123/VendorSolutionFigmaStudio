@@ -27,7 +27,7 @@ export function CleansingEventLedger() {
     <div className="bg-surface-elevated border border-white/5 rounded-xl flex flex-col h-full overflow-hidden">
       <div className="flex items-center gap-2 p-3 border-b border-white/5 bg-surface-header shrink-0">
         <History className="w-4 h-4 text-brand-indigo" />
-        <h3 className="text-xs font-semibold text-content-primary">Cryptographic Event Ledger</h3>
+        <h2 className="text-xs font-semibold text-content-primary">Cryptographic Event Ledger</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {events.length === 0 ? (

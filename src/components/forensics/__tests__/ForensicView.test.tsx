@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterEach, afterAll } from 'vitest';
+import { axe } from 'vitest-axe';
 import { ForensicView } from '../ForensicView';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
@@ -144,6 +145,12 @@ describe('ForensicView', () => {
   it('renders successfully with issues', () => {
     renderComponent();
     expect(screen.getByText('Pricing Mismatch')).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations', async () => {
+    const { container } = renderComponent();
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('handles empty state when no ucids exist', () => {

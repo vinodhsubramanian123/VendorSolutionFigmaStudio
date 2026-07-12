@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { axe } from 'vitest-axe';
 import { CatalogManager } from '../CatalogManager';
 import { CatalogSKU } from '../../../types';
 import { ToastProvider } from '../../shared/ToastContext';
@@ -98,6 +99,13 @@ describe('CatalogManager Component', () => {
     expect(screen.getByText('Manufacturer Taxonomy')).toBeInTheDocument();
     expect(screen.getByText(/Central Sourcing Database/i)).toBeInTheDocument();
     expect(screen.getByText(/Taxonomy & Sourcing Cardinality Clarity Tool/i)).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations', async () => {
+    const { container } = render(<CatalogManagerTestContainer />, { wrapper: Wrapper });
+    await screen.findByText('Manufacturer Taxonomy');
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('filters SKUs via the search bar', () => {

@@ -65,9 +65,9 @@ export function SolutionManager() {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-lg font-semibold" style={{ color: tokens.colors.text.primary }}>
+                  <h2 className="text-lg font-semibold" style={{ color: tokens.colors.text.primary }}>
                     {sol.name}
-                  </h3>
+                  </h2>
                   <div className="text-sm mt-1 font-mono" style={{ color: tokens.colors.text.tertiary }}>
                     {sol.displayId}
                   </div>

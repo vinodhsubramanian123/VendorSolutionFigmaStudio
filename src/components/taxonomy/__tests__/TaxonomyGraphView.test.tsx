@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { axe } from 'vitest-axe';
 import { TaxonomyGraphView } from '../TaxonomyGraphView';
 import type { CoreState } from '../../../store/coreStore';
 import { useCoreStore } from '../../../store/coreStore';
@@ -62,6 +63,15 @@ describe('TaxonomyGraphView', () => {
     render(<TaxonomyGraphView />);
     expect(screen.getByTestId('knowledge-graph-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('taxonomy-graph-sidebar')).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations in the outer shell', async () => {
+    // Note: KnowledgeGraphCanvas and TaxonomyGraphSidebar are mocked in this
+    // file, so this only covers TaxonomyGraphView's own layout/header markup,
+    // not the real graph canvas internals.
+    const { container } = render(<TaxonomyGraphView />);
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('handles loading state properly', () => {

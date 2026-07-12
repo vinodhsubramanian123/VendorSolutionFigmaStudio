@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { axe } from 'vitest-axe';
 import { SystemTelemetry } from '../SystemTelemetry';
 import { ToastProvider } from '../../shared/ToastContext';
 import { apiClient } from '../../../services/apiClient';
@@ -29,6 +30,19 @@ describe('SystemTelemetry Component', () => {
     // Verify default active tab is pipeline
     expect(screen.getByText('Document Pipeline')).toBeInTheDocument();
     expect(await screen.findByText(/Drop files or click to upload/i)).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations', async () => {
+    (apiClient.get as any).mockResolvedValue({ data: [] });
+
+    const { container } = render(
+      <ToastProvider>
+        <SystemTelemetry />
+      </ToastProvider>
+    );
+    await screen.findByText(/Drop files or click to upload/i);
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('switches to API Logs tab', async () => {

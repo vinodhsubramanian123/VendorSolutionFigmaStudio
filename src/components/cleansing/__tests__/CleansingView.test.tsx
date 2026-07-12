@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { axe } from 'vitest-axe';
 import { CleansingView } from '../CleansingView';
 import { ToastProvider } from '../../shared/ToastContext';
 import { apiClient } from '../../../services/apiClient';
@@ -34,6 +35,17 @@ describe('CleansingView Component', () => {
     
     // Check if the "All (12)" filter button is rendered, proving data generated
     expect(await screen.findByText(/All/i)).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations when data is loaded', async () => {
+    const { container } = render(
+      <ToastProvider>
+        <CleansingView />
+      </ToastProvider>
+    );
+    await screen.findAllByText(/Interactive Splicing/i);
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('re-syncs entries when catalogSkus changes, without discarding a quarantined entry', async () => {

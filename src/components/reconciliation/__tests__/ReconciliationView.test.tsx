@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { axe } from "vitest-axe";
 import { ReconciliationView } from "../ReconciliationView";
 import { ToastProvider } from "../../shared/ToastContext";
 import { describe, it, expect, vi } from "vitest";
@@ -106,6 +107,21 @@ describe("ReconciliationView", () => {
       </MemoryRouter>
     );
     expect(screen.getByText(/No configurations ready to compare yet/i)).toBeInTheDocument();
+  });
+
+  it("should have zero accessibility violations in the empty state", async () => {
+    const syncedUcids: UCID[] = [{ ...mockUcids[1], currentStep: "boq-intake" }];
+    vi.mocked(useCoreStore).mockImplementation((selector: any) => selector(createMockCoreState({ ucids: syncedUcids })));
+
+    const { container } = render(
+      <MemoryRouter>
+        <ToastProvider>
+          <ReconciliationView />
+        </ToastProvider>
+      </MemoryRouter>
+    );
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it("renders overview when there is drift", () => {

@@ -113,6 +113,7 @@ export function TaxonomyGraphView() {
             </h2>
             <div className="flex items-center gap-2 mt-2">
               <select
+                aria-label="Select solution"
                 className="bg-surface-elevated border border-white/10 text-content-primary text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
                 value={selectedSolutionId}
                 onChange={(e) => setSelectedSolutionId(e.target.value)}
@@ -124,6 +125,7 @@ export function TaxonomyGraphView() {
               </select>
               
               <select
+                aria-label="Select configuration"
                 className="bg-surface-elevated border border-white/10 text-content-primary text-xs rounded-md px-2 py-1 outline-none appearance-none cursor-pointer"
                 value={selectedUcidId}
                 onChange={(e) => setSelectedUcidId(e.target.value)}

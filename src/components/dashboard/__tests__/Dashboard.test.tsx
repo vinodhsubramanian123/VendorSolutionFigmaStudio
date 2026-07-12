@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { axe } from 'vitest-axe';
 import { Dashboard } from '../Dashboard';
 import { useCoreStore } from '../../../store/coreStore';
 import type { CoreState } from '../../../store/coreStore';
@@ -41,6 +42,12 @@ describe('Dashboard Component', () => {
   it('renders Procurement Intelligence Hub banner', () => {
     render(<Dashboard onNavigate={vi.fn()} />);
     expect(screen.getByText(/Procurement Intelligence Hub/i)).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations', async () => {
+    const { container } = render(<Dashboard onNavigate={vi.fn()} />);
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('shows empty pipeline message when no solutions exist', () => {

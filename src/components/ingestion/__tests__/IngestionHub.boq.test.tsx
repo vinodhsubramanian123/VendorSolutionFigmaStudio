@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { axe } from 'vitest-axe';
 import { IngestionHubTestWrapper, Wrapper } from './IngestionHub.setup';
 import { apiClient } from '../../../services/apiClient';
 import { useIngestionStore } from '../../../store/ingestionStore';
@@ -22,6 +23,15 @@ describe('IngestionHub Component Stateful Wrapper Tests', () => {
     render(<IngestionHubTestWrapper onNavigate={onNavigate} onSelectMission={onSelectMission} />, { wrapper: Wrapper });
     expect(screen.getByText('Centralized BOQ & BOM Ingestion Hub')).toBeInTheDocument();
     expect(screen.getByTestId('boq-workbook')).toBeInTheDocument();
+  });
+
+  it('should have zero accessibility violations in the outer shell', async () => {
+    // Note: BoqIngestWorkbook and other step components are mocked in this
+    // file (see IngestionHub.setup.tsx), so this covers IngestionHub's own
+    // header/stepper/layout markup, not the real workbook UI internals.
+    const { container } = render(<IngestionHubTestWrapper onNavigate={onNavigate} onSelectMission={onSelectMission} />, { wrapper: Wrapper });
+    const results = await axe(container);
+    expect(results.violations).toEqual([]);
   });
 
   it('navigates via stepper and resets workflow', () => {

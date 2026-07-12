@@ -73,11 +73,9 @@ export function StepIntakeDropzone({
         </div>
       ) : (
         <div
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter") triggerPicker(); }}
-          className="flex flex-col items-center text-center gap-2 cursor-pointer w-full"
+          role="presentation"
           onClick={triggerPicker}
+          className="flex flex-col items-center text-center gap-2 cursor-pointer w-full"
         >
           <UploadCloud className="w-10 h-10 text-brand-indigo" />
           <p className="font-semibold text-content-primary">
@@ -97,6 +95,7 @@ export function StepIntakeDropzone({
           <input
             id="boq-file-picker"
             type="file"
+            aria-label="Upload BOQ spreadsheet"
             accept=".xlsx,.csv,.xls"
             className="hidden"
             onChange={handleFileChange}
