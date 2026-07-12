@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { tokens } from "../../styles/tokens";
 import { motion } from "motion/react";
 import { useCoreStore } from "../../store/coreStore";
+import { getSolutionName } from "../mission-control/missionControlUtils";
 import {
   LayoutDashboard,
   Target,
@@ -11,6 +12,8 @@ import {
   ShieldAlert,
   Menu,
   ChevronLeft,
+  ChevronDown,
+  ChevronRight,
   Network,
   Atom,
   Cable,
@@ -109,10 +112,26 @@ export function Sidebar({
   const forensicIssues = useCoreStore((s) => s.forensicIssues);
   const solutions = useCoreStore((s) => s.solutions);
 
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (group: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+  };
+
   const navigate = useNavigate();
   const location = useLocation();
   const activePath = location.pathname;
   const activeUCIDs = useMemo(() => ucids.filter((u) => u.currentStep !== "snapshot"), [ucids]);
+  const groupedActiveUCIDs = useMemo(() => {
+    const groups: Record<string, import("../../types").UCID[]> = {};
+    activeUCIDs.forEach((u) => {
+      const groupName = getSolutionName(u, solutions);
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+      groups[groupName].push(u);
+    });
+    return groups;
+  }, [activeUCIDs, solutions]);
   const activeSolutions = useMemo(() => solutions.filter((s) => s.status !== "completed"), [solutions]);
   const openIssues = useMemo(() => forensicIssues.filter(
     (f) => f.status !== "resolved",
@@ -272,45 +291,74 @@ export function Sidebar({
               Live Tracks ({activeUCIDs.length})
             </span>
           </div>
-          <div className="space-y-1 overflow-y-auto flex-1 pr-1 scrollbar-thin">
-            {activeUCIDs.map((ucid) => {
-              const isActive =
-                activeMissionId === ucid.id && activePath.startsWith("/mission-control");
+          <div className="space-y-3 overflow-y-auto flex-1 pr-1 scrollbar-thin">
+            {Object.entries(groupedActiveUCIDs).map(([solutionGroup, groupItems]) => {
+              const isCollapsed = collapsedGroups[solutionGroup];
               return (
-                <button type="button"
-                  id={`side-track-${ucid.id}`}
-                  key={ucid.id}
-                  onClick={() => onSelectMission(ucid.id)}
-                  className="w-full text-left p-2 rounded-lg transition-colors cursor-pointer group flex flex-col"
-                  style={{
-                    backgroundColor: isActive
-                      ? "rgba(255,155,54,0.08)"
-                      : "rgba(74, 133, 253,0.02)",
-                    border: `1px solid ${isActive ? "rgba(255,155,54,0.25)" : "rgba(74, 133, 253,0.05)"}`,
-                  }}
+              <div key={solutionGroup} className="space-y-1">
+                {/* Solution Group Header */}
+                <button 
+                  type="button"
+                  className="w-full flex items-center gap-1.5 px-1 py-0.5 rounded text-[9px] font-bold font-mono text-indigo-300 uppercase tracking-wider select-none bg-brand-indigo/5 border border-brand-indigo/10 cursor-pointer hover:bg-brand-indigo/10 transition-colors text-left"
+                  title={solutionGroup}
+                  onClick={() => toggleGroup(solutionGroup)}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-medium text-brand-indigo">
-                      {ucid.displayId}
-                    </span>
-                    <span className="text-[9px] text-status-warning font-medium">
-                      {{
-                        "boq-intake": "Intake",
-                        "pre-intelligence": "Pre-Intel",
-                        "solution-design": "Sol Design",
-                        "vendor-provisioning": "Vendor API",
-                        "post-intelligence": "Forensics",
-                        "comparison": "Comparison",
-                        "snapshot": "✓ Locked",
-                      }[ucid.currentStep] || "Configuring"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-content-secondary truncate mt-0.5 font-normal group-hover:text-content-primary transition-colors">
-                    {ucid.name.split("—")[1]?.trim() ?? ucid.name}
+                  {isCollapsed ? (
+                    <ChevronRight className="w-3 h-3 text-brand-indigo shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 text-brand-indigo shrink-0" />
+                  )}
+                  <span className="truncate">{solutionGroup}</span>
+                  <span className="ml-auto bg-brand-indigo/10 px-1 rounded text-content-secondary shrink-0">
+                    {groupItems.length}
                   </span>
                 </button>
-              );
-            })}
+                
+                {/* Nested UCIDs */}
+                {!isCollapsed && (
+                  <div className="pl-2 space-y-1 border-l border-white/5 ml-1.5">
+                    {groupItems.map((ucid) => {
+                      const isActive =
+                        activeMissionId === ucid.id && activePath.startsWith("/mission-control");
+                      return (
+                        <button type="button"
+                          id={`side-track-${ucid.id}`}
+                          key={ucid.id}
+                          onClick={() => onSelectMission(ucid.id)}
+                          className="w-full text-left p-2 rounded-lg transition-colors cursor-pointer group flex flex-col"
+                          style={{
+                            backgroundColor: isActive
+                              ? "rgba(255,155,54,0.08)"
+                              : "rgba(74, 133, 253,0.02)",
+                            border: `1px solid ${isActive ? "rgba(255,155,54,0.25)" : "rgba(74, 133, 253,0.05)"}`,
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-medium text-brand-indigo">
+                              {ucid.displayId}
+                            </span>
+                            <span className="text-[9px] text-status-warning font-medium">
+                              {{
+                                "boq-intake": "Intake",
+                                "pre-intelligence": "Pre-Intel",
+                                "solution-design": "Sol Design",
+                                "vendor-provisioning": "Vendor API",
+                                "post-intelligence": "Forensics",
+                                "comparison": "Comparison",
+                                "snapshot": "✓ Locked",
+                              }[ucid.currentStep] || "Configuring"}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-content-secondary truncate mt-0.5 font-normal group-hover:text-content-primary transition-colors">
+                            {ucid.name.split("—")[1]?.trim() ?? ucid.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )})}
           </div>
         </div>
       )}
