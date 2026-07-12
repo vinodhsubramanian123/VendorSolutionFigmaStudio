@@ -72,7 +72,7 @@ the number match." Treat every *first* baseline-establishing run
 | Loading states present where data is fetched | 🟡 | 49 files reference `isLoading`/`Skeleton`/`animate-pulse` — broad coverage exists, but not verified 1:1 against every async call site. |
 | Empty states (zero-data) are meaningful, not blank | 🔴 | Not audited per-view. `ReconciliationEmpty.tsx` exists as a named pattern — worth checking every list/table view has an equivalent. |
 | Error states are user-facing and recoverable | 🟡 | 25 files use the toast system; `ErrorBoundary` wraps every route. Not verified that every failure path actually surfaces a toast vs. silently failing. |
-| Optimistic-UI vs. persisted-state mismatches | 🟡 | This exact bug class was found and fixed once (`CatalogManager` price rollback, see `data-architecture-plan.md` #9). Not swept for other components doing local optimistic updates. |
+| Optimistic-UI vs. persisted-state mismatches | ✅ **Swept 2026-07-11, clean** | This exact bug class was found and fixed once (`CatalogManager` price rollback, Phase 3a) and once more independently (`CleansingView`, already fixed with a documented merge-on-render pattern before this session). A full sweep of Cleansing/Forensics/Taxonomy plus a codebase-wide grep for the bug's structural fingerprint (a `useState`/`useMemo` initializer reading a mock generator once, or a module-level mutable stub disconnected from `coreStore`) found no remaining instance. Taxonomy Graph's real UI was already migrated off the disconnected mock API in an earlier "Phase 4"; Forensics reads `forensicIssues` straight from `coreStore` with no local duplication anywhere. Nothing to fix — recorded here so this ground isn't re-investigated later. |
 | Confirmation on destructive actions (delete, overwrite) | 🔴 | Not audited. |
 | Multi-step wizard state persistence (Mission Control, 7 steps) | 🔴 | Does navigating back/forward through the wizard preserve entered data? Not verified. |
 | Deep-linking correctness | 🟡 | `deeplink.spec.ts` exists and passes; covers some but not necessarily every route+state combination. |
@@ -142,9 +142,14 @@ session; the 🔒 items above cannot.
    nav-level views (up from 2). Caught and fixed 6 real accessibility bugs
    in the process — this is exactly why #1 and #2 were ranked first:
    closing test-coverage gaps surfaces real bugs, cheaply, every time.
-3. Sweep for the optimistic-UI-mismatch bug class across all "edit and save"
-   components (catalog was one instance; check cleansing, forensics, taxonomy).
-4. Typography/spacing/contrast pass — now more meaningful than before, since
-   muted text is actually rendering with a real color for the first time.
+3. ✅ **Swept 2026-07-11, clean.** Checked Cleansing/Forensics/Taxonomy plus a
+   codebase-wide grep for the optimistic-UI-mismatch bug's structural
+   fingerprint. No remaining instance found — both prior occurrences
+   (Catalog, Cleansing) were already fixed. Nothing to patch this round.
+4. **Typography/spacing/contrast pass — next up, needs Vinodh.** Now more
+   meaningful than before, since muted text is actually rendering with a
+   real color for the first time. This is the first item on the list that
+   genuinely can't be done code-side — needs eyes on the regenerated
+   snapshots or a live click-through to identify what's actually off.
 5. Everything else in this list, prioritized by whatever Vinodh's manual
    click-through surfaces as actually broken.
