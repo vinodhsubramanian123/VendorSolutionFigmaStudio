@@ -1,184 +1,47 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UCID, Vendor, CatalogSKU, ForensicIssue, SourcingRule, LearningEvent, SolutionProject, SolutionStatus, VendorAssignment, UCIDExecutionMode, UCIDAutomationState, UCIDManualUploadState } from '../types';
-import {
-  UCIDS as INITIAL_UCIDS,
-  VENDORS as INITIAL_VENDORS,
-  CATALOG_SKUS as INITIAL_SKUS,
-  FORENSIC_ISSUES as INITIAL_ISSUES,
-  SOLUTIONS as INITIAL_SOLUTIONS,
-} from "../lib/mockData";
-import { INITIAL_RULES } from "../mocks/sourcingMocks";
-import { deriveSolutionStatus } from "../utils/solutionUtils";
+import type { CoreState } from './types';
+import { createSolutionsSlice } from './slices/solutionsSlice';
+import { createUcidsSlice } from './slices/ucidsSlice';
+import { createUiSlice } from './slices/uiSlice';
+import { createVendorsSlice } from './slices/vendorsSlice';
+import { createCatalogSlice } from './slices/catalogSlice';
+import { createForensicSlice } from './slices/forensicSlice';
+import { createTelemetrySlice } from './slices/telemetrySlice';
 
-export interface CoreState {
-  solutions: SolutionProject[];
-  activeSolutionId: string | null;
+export type { CoreState };
 
-  addSolution: (sol: SolutionProject) => void;
-  updateSolutionStatus: (id: string, status: SolutionStatus) => void;
-  updateSolutionFields: (id: string, fields: Partial<Pick<SolutionProject, 'name' | 'customerName' | 'projectRef' | 'status'>>) => void;
-  deleteSolution: (id: string) => void;
-  addUcidToSolution: (solutionId: string, ucidId: string) => void;
-  setActiveSolution: (id: string | null) => void;
-  setActiveUcidInSolution: (solutionId: string, ucidId: string | null) => void;
-  addVendorAssignment: (solutionId: string, assignment: VendorAssignment) => void;
-  
-  setUcidExecutionMode: (ucidId: string, mode: UCIDExecutionMode) => void;
-  updateAutomationState: (ucidId: string, state: Partial<UCIDAutomationState>) => void;
-  updateManualUploadState: (ucidId: string, state: Partial<UCIDManualUploadState>) => void;
-
-  collapsed: boolean;
-  setCollapsed: (val: boolean | ((prev: boolean) => boolean)) => void;
-  
-  activeMissionId: string | undefined;
-  setActiveMissionId: (id: string | undefined | ((prev: string | undefined) => string | undefined)) => void;
-
-  ucids: UCID[];
-  setUcids: (val: UCID[] | ((prev: UCID[]) => UCID[])) => void;
-
-  vendors: Vendor[];
-  setVendors: (val: Vendor[] | ((prev: Vendor[]) => Vendor[])) => void;
-
-  catalogSkus: CatalogSKU[];
-  setCatalogSkus: (val: CatalogSKU[] | ((prev: CatalogSKU[]) => CatalogSKU[])) => void;
-
-  forensicIssues: ForensicIssue[];
-  setForensicIssues: (val: ForensicIssue[] | ((prev: ForensicIssue[]) => ForensicIssue[])) => void;
-
-  sourcingRules: SourcingRule[];
-  setSourcingRules: (val: SourcingRule[] | ((prev: SourcingRule[]) => SourcingRule[])) => void;
-
-  learningEvents: LearningEvent[];
-  setLearningEvents: (val: LearningEvent[] | ((prev: LearningEvent[]) => LearningEvent[])) => void;
-}
-
+/**
+ * Single combined store. Was previously a flat ~200-line monolith defining
+ * all 7 business domains (solutions, ucids, vendors, catalogSkus,
+ * forensicIssues, sourcingRules, learningEvents) plus UI chrome state in one
+ * file (see code_quality_analysis.md Area 16: "Zustand Store Monolith").
+ *
+ * This now composes domain-specific slices via Zustand's slice pattern
+ * (see docs/architecture/gap-remediation-plan.md, Area 16, and
+ * https://zustand.docs.pmnd.rs/guides/slices-pattern). The public API is
+ * unchanged on purpose: `useCoreStore` and `CoreState` still expose the
+ * exact same flat shape, so none of the 40+ consumer components/hooks or
+ * tests needed to change. What changed is only where each domain's state
+ * and setters are *defined* — each slice file owns one domain, and
+ * cross-domain orchestration (e.g. setUcids syncing solution status) stays
+ * explicit and visible in the slice that initiates it.
+ *
+ * The slice interfaces and the combined CoreState type live in ./types.ts
+ * rather than here, to avoid a circular import: each slice creator needs
+ * `StateCreator<CoreState, ...>`, and this file needs every slice creator —
+ * if CoreState lived in this file, that would be a cycle.
+ */
 export const useCoreStore = create<CoreState>()(
   persist(
-    (set) => ({
-      solutions: INITIAL_SOLUTIONS as SolutionProject[],
-      activeSolutionId: null,
-
-      addSolution: (sol) =>
-        set((state) => ({ solutions: [...state.solutions, sol] })),
-
-      updateSolutionStatus: (id, status) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.id === id ? { ...s, status } : s
-          ),
-        })),
-
-      updateSolutionFields: (id, fields) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.id === id ? { ...s, ...fields } : s
-          ),
-        })),
-
-      deleteSolution: (id) =>
-        set((state) => ({
-          solutions: state.solutions.filter((s) => s.id !== id),
-          // Clear activeSolutionId if the deleted solution was active
-          activeSolutionId: state.activeSolutionId === id ? null : state.activeSolutionId,
-        })),
-
-      addUcidToSolution: (solutionId, ucidId) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.id === solutionId
-              ? { ...s, ucidIds: [...s.ucidIds, ucidId] }
-              : s
-          ),
-        })),
-
-      setActiveSolution: (id) => set({ activeSolutionId: id }),
-
-      setActiveUcidInSolution: (solutionId, ucidId) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.id === solutionId ? { ...s, activeUcidId: ucidId } : s
-          ),
-        })),
-
-      addVendorAssignment: (solutionId, assignment) =>
-        set((state) => ({
-          solutions: state.solutions.map((s) =>
-            s.id === solutionId 
-              ? { ...s, vendorAssignments: [...s.vendorAssignments, assignment] }
-              : s
-          ),
-        })),
-
-      setUcidExecutionMode: (ucidId, mode) =>
-        set((state) => ({
-          ucids: state.ucids.map((u) =>
-            u.id === ucidId ? { ...u, executionMode: mode } : u
-          )
-        })),
-
-      updateAutomationState: (ucidId, partialState) =>
-        set((state) => ({
-          ucids: state.ucids.map((u) => {
-            if (u.id !== ucidId) return u;
-            const current = u.automationState || {
-              jobId: '', vendorPortalName: '', portalUrl: '', status: 'idle',
-              queuedAt: null, startedAt: null, completedAt: null, errorMessage: null,
-              screenshotRef: null, outputFileRef: null, retryCount: 0
-            };
-            return { ...u, automationState: { ...current, ...partialState } };
-          })
-        })),
-
-      updateManualUploadState: (ucidId, partialState) =>
-        set((state) => ({
-          ucids: state.ucids.map((u) => {
-            if (u.id !== ucidId) return u;
-            const current = u.manualUploadState || {
-              status: 'awaiting-upload', uploadedAt: null, fileNames: [],
-              uploadedBy: null, rejectionReason: null, outputFileRefs: [], processedAt: null
-            };
-            return { ...u, manualUploadState: { ...current, ...partialState } as UCIDManualUploadState };
-          })
-        })),
-
-      collapsed: false,
-      setCollapsed: (val) => set((state) => ({ collapsed: typeof val === 'function' ? val(state.collapsed) : val })),
-
-      activeMissionId: "u1",
-      setActiveMissionId: (id) => set((state) => ({ activeMissionId: typeof id === 'function' ? id(state.activeMissionId) : id })),
-
-      ucids: INITIAL_UCIDS as UCID[],
-      setUcids: (val) => set((state) => {
-        const nextUcids = typeof val === 'function' ? val(state.ucids) : val;
-        
-        // Auto-sync solution statuses whenever UCIDs change (Phase 11)
-        const nextSolutions = state.solutions.map(sol => {
-            const nextStatus = deriveSolutionStatus(sol, nextUcids);
-            if (sol.status !== nextStatus) return { ...sol, status: nextStatus };
-            return sol;
-        });
-
-        return { 
-           ucids: nextUcids,
-           solutions: nextSolutions 
-        };
-      }),
-
-      vendors: INITIAL_VENDORS as Vendor[],
-      setVendors: (val) => set((state) => ({ vendors: typeof val === 'function' ? val(state.vendors) : val })),
-
-      catalogSkus: INITIAL_SKUS as CatalogSKU[],
-      setCatalogSkus: (val) => set((state) => ({ catalogSkus: typeof val === 'function' ? val(state.catalogSkus) : val })),
-
-      forensicIssues: INITIAL_ISSUES as ForensicIssue[],
-      setForensicIssues: (val) => set((state) => ({ forensicIssues: typeof val === 'function' ? val(state.forensicIssues) : val })),
-
-      sourcingRules: INITIAL_RULES as SourcingRule[],
-      setSourcingRules: (val) => set((state) => ({ sourcingRules: typeof val === 'function' ? val(state.sourcingRules) : val })),
-
-      learningEvents: [],
-      setLearningEvents: (val) => set((state) => ({ learningEvents: typeof val === 'function' ? val(state.learningEvents) : val })),
+    (...a) => ({
+      ...createSolutionsSlice(...a),
+      ...createUcidsSlice(...a),
+      ...createUiSlice(...a),
+      ...createVendorsSlice(...a),
+      ...createCatalogSlice(...a),
+      ...createForensicSlice(...a),
+      ...createTelemetrySlice(...a),
     }),
     {
       name: 'vsip-core-storage',

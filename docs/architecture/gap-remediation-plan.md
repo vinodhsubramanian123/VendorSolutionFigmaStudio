@@ -15,9 +15,9 @@
 |---|---|---|---|---|
 | 4 | Dead adapter code | 🟢 Low | `vendorAdapter.ts` + `IVendorPortalAdapter.ts` had 0 consumers repo-wide (confirmed via grep before deletion) | ✅ Done |
 | 13 | Motion import split | 🟠 Medium | 5 files on `framer-motion`, 76 on `motion/react` | ✅ Done |
-| 17 | API boundary Zod bypass | 🔴 Critical | `apiClient.ts` L17 still `return data as T` — blind cast confirmed | ⬜ Not started |
-| 16 | Zustand store monolith | 🔴 Critical | `coreStore.ts` is 196 lines, single store — 7 domains confirmed co-located | ⬜ Not started |
-| 2 | Unsafe `any` typing | 🔴 Critical | 11 non-test `: any`/`as any` hits in `src/`; `server.ts` alone has 11 more (L23,32,89,240,272,308,326,350,364,613 confirmed at matching line numbers) | ⬜ Not started |
+| 17 | API boundary Zod bypass | 🔴 Critical | `apiClient.parseResponse()` now throws a descriptive Error on schema mismatch instead of warn-and-cast. Surfaced and fixed a real latent contract violation in `VendorIngestionDesk.test.tsx`'s MSW fixture in the process. Broader "optional schema param on get/post/put/delete" plumbing (doc's stated recommendation) not yet done — most call sites still don't validate at all; only the ones that already called `parseResponse` explicitly benefit so far. | 🔶 In progress |
+| 16 | Zustand store monolith | 🔴 Critical | Decomposed into 7 domain slice files (`src/store/slices/`) + a shared `types.ts` composed via Zustand's slice pattern. Public `useCoreStore`/`CoreState` API unchanged — zero consumer or test churn. | ✅ Done |
+| 2 | Unsafe `any` typing | 🔴 Critical | Non-server slice done: `missionControlUtils.ts`, `bomRepairUtils.ts`, `useBomConversion.ts` now properly typed. `server.ts`'s 11 `any` sites deliberately deferred to Iteration 2 (server dedup/decomposition) to avoid double-diffing. | 🔶 In progress |
 | 1 | Reconciliation logic duplication | 🔴 Critical | Confirmed: markup/hybrid/SKU/memory-symmetry checks live in both `server.ts` and `reconciliationMath.ts` | ⬜ Not started |
 | 6 | server.ts monolith | 🟡 High | Confirmed 692 lines, `any`-saturated (see Area 2) | ⬜ Not started |
 | 7 | Prop drilling residue | 🟡 High | Not re-verified this session | ⬜ Not started |
