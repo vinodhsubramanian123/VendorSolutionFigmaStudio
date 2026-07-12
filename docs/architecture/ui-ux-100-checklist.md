@@ -57,8 +57,8 @@ the number match." Treat every *first* baseline-establishing run
 | Item | Status | Detail |
 |---|---|---|
 | ESLint `jsx-a11y/*` rules | ✅ | 0 warnings across all of `src/` |
-| Keyboard reachability of custom click targets | 🟡 | Fixed the one found in `AnnotationCell.tsx` this session. Not exhaustively swept — ESLint only catches the rules it's configured for (`no-static-element-interactions`, `click-events-have-key-events`); it won't catch things like an interactive element with `tabIndex={-1}` or a focus trap that isn't actually a `<div onClick>`. |
-| Automated `axe` violation tests | 🟡 | Only 8 `axe()` calls total, covering `StatusBadge` + a handful of components in `a11yAndPerformance.test.tsx` and `CatalogHeader` in `a11y.test.tsx`. **13 nav-level views are not covered at all.** |
+| Keyboard reachability of custom click targets | 🟡 | Fixed in `AnnotationCell.tsx` (session 1) and, this session, the redundant/broken pattern in `StepIntakeDropzone.tsx` was resolved by removing a redundant interactive role rather than adding keyboard handling to it — the real native button already covers it. Not exhaustively swept beyond what the 13 new axe tests happened to render. |
+| Automated `axe` violation tests | ✅ **Done 2026-07-11** | All 13 nav-level views now have a zero-violations axe test, up from 2 (Mission Control + the sub-component CatalogHeader). Not coverage theater: 6 of 12 new tests failed on first run and caught real bugs — an unlabeled icon-only button, two unlabeled `<select>`s, two separate nested-interactive violations (native file inputs nested inside `role="button"` divs), and 3 heading-order skips. All fixed, not just made to pass. Known limitation: 3 of the 13 (Reconciliation, Taxonomy Graph, Ingestion Hub) mock out their heaviest sub-components per those files' existing test conventions, so those axe tests cover the outer shell only — flagged inline in each test. |
 | Focus-visible states on all interactive elements | 🔴 | Not audited. Spot-checked a few (`focus-visible:ring-2` present in header buttons) but not systematic. |
 | Modal focus trap (focus stays inside while open) | 🔴 | `useEscapeKey`/`ModalBackdrop` handle Escape-to-close and click-outside, but focus-trap (Tab cycling only within the modal) wasn't verified. |
 | Form label association (`jsx-a11y/label-has-associated-control`) | ✅ | Lint-enforced, 0 warnings — but only 3 files use `react-hook-form`; worth confirming plain `<input>` usages elsewhere also have associated labels. |
@@ -137,9 +137,11 @@ session; the 🔒 items above cannot.
    views covered, root cause of the 3-view no-op found and fixed
    (`isVisible()` guards silently swallowing test assertions — removed),
    the 310-site invalid-class bug found and fixed, baselines regenerated
-   and visually confirmed. This is exactly why #1 was ranked first:
-   closing test-coverage gaps surfaces real bugs, cheaply.
-2. Expand automated `axe` coverage to at least one render per nav-level view.
+   and visually confirmed.
+2. ✅ **Done 2026-07-11.** Expanded automated `axe` coverage to all 13
+   nav-level views (up from 2). Caught and fixed 6 real accessibility bugs
+   in the process — this is exactly why #1 and #2 were ranked first:
+   closing test-coverage gaps surfaces real bugs, cheaply, every time.
 3. Sweep for the optimistic-UI-mismatch bug class across all "edit and save"
    components (catalog was one instance; check cleansing, forensics, taxonomy).
 4. Typography/spacing/contrast pass — now more meaningful than before, since
