@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useIngestionStore } from "../../store/ingestionStore";
 import { recalculateRepairedSolutions } from "../../utils/bomRepairUtils";
 import { apiClient } from "../../services/apiClient";
-import type { UCID, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
+import type { UCID, Solution, ConstraintCheckResponse, ReconciliationResponse } from "../../types";
 import { ConstraintCheckResponseSchema, ReconciliationResponseSchema } from "../../types/zodSchemas";
 
 // Extracts a human-readable message from a thrown API error, which can
@@ -222,7 +222,7 @@ export function useBomConversion(
   };
 }
 
-function repairSolutions(solutions: any[]) {
+function repairSolutions(solutions: Solution[]): Solution[] {
   return recalculateRepairedSolutions(solutions);
 }
 

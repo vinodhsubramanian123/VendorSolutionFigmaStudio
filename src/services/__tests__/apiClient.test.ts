@@ -16,15 +16,13 @@ describe('ApiClient & ApiMock Services', () => {
   });
 
   describe('ApiClient', () => {
-    it('parseResponse logs warning on zod contract validation failure but returns data', () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it('parseResponse throws with a descriptive message on zod contract validation failure, instead of silently casting invalid data', () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const schema = z.object({ id: z.string() });
-      
-      const result = apiClient.parseResponse(schema, { invalid: 'data' });
-      
-      expect(consoleWarnSpy).toHaveBeenCalled();
-      expect(result).toEqual({ invalid: 'data' });
-      consoleWarnSpy.mockRestore();
+
+      expect(() => apiClient.parseResponse(schema, { invalid: 'data' })).toThrow(/API contract violation/);
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
     });
 
     it('parseResponse returns parsed data on success', () => {

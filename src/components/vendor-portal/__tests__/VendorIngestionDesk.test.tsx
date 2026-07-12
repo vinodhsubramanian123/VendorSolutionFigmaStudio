@@ -7,12 +7,21 @@ import { http, HttpResponse } from 'msw';
 import type { UCID, Vendor } from '../../../types';
 
 const server = setupServer(
+  // This fixture used to omit taskId/status/executionTimeMs/crawledItemsExtracted
+  // and logTrail's timestamp/level, silently violating PlaywrightRunResponseSchema.
+  // It only "worked" because apiClient.parseResponse() used to warn-and-cast on a
+  // schema mismatch instead of throwing (see apiClient.ts). Now that it throws,
+  // the fixture has to actually satisfy the contract it claims to.
   http.post('*/api/agents/run', () => {
     return HttpResponse.json({
       success: true,
       data: {
+        taskId: 'task-test-1',
+        status: 'success',
+        executionTimeMs: 1200,
+        crawledItemsExtracted: 1,
         logTrail: [
-          { message: 'Test success log' }
+          { timestamp: new Date().toISOString(), level: 'info', message: 'Test success log' }
         ]
       }
     });

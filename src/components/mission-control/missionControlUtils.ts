@@ -1,6 +1,6 @@
-import type { UCID, UCIDStep } from "../../types";
+import type { UCID, UCIDStep, SolutionProject } from "../../types";
 
-export function getSolutionName(u: UCID, solutions: any[]): string {
+export function getSolutionName(u: UCID, solutions: SolutionProject[]): string {
   const solution = solutions.find((s) => s.id === u.solutionId);
   if (solution) {
     return solution.name;

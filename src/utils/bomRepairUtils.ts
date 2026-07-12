@@ -1,4 +1,4 @@
-import { BOMItem } from "../types";
+import { BOMItem, Solution, VendorSubmission, Config } from "../types";
 import { ActiveSourcingRules } from "../config/sourcingRules";
 
 export function repairBomItem(it: BOMItem, vendor?: string): BOMItem {
@@ -27,16 +27,16 @@ export function repairBomItem(it: BOMItem, vendor?: string): BOMItem {
   return it;
 }
 
-export function recalculateRepairedSolutions(solutions: any[]) {
+export function recalculateRepairedSolutions(solutions: Solution[]): Solution[] {
   return solutions.map((sol) => {
-    const repairedSubmissions =
-      sol.vendorSubmissions?.map((vs: any) => {
-        const repairedConfigs =
-          vs.configs?.map((c: any) => {
-            const repairedItems =
-              c.items?.map((it: any) => repairBomItem(it, vs.vendor)) || [];
+    const repairedSubmissions: VendorSubmission[] =
+      sol.vendorSubmissions?.map((vs) => {
+        const repairedConfigs: Config[] =
+          vs.configs?.map((c) => {
+            const repairedItems: BOMItem[] =
+              c.items?.map((it) => repairBomItem(it, vs.vendor)) || [];
             const newConfigSum = repairedItems.reduce(
-              (acc: number, curr: any) => acc + curr.unitPrice * curr.quantity,
+              (acc, curr) => acc + curr.unitPrice * curr.quantity,
               0,
             );
             return {
@@ -46,7 +46,7 @@ export function recalculateRepairedSolutions(solutions: any[]) {
               savings: Math.max(0, c.originalPrice - newConfigSum),
             };
           }) || [];
-        const newVsSum = repairedConfigs.reduce((acc: number, c: any) => acc + c.totalPrice, 0);
+        const newVsSum = repairedConfigs.reduce((acc, c) => acc + c.totalPrice, 0);
         return {
           ...vs,
           configs: repairedConfigs,

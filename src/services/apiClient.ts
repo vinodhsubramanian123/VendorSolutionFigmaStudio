@@ -10,11 +10,24 @@ import { ApiResponse, ApiErrorResponse, GraphPath } from "../types";
  */
 
 class ApiClient {
+  /**
+   * Validates `data` against `schema` and returns the parsed, type-safe
+   * result. Throws on mismatch rather than silently casting invalid data to
+   * T — a "warn and cast" fallback here would let a backend/MSW payload
+   * drift past the boundary undetected, corrupting UI state or crashing
+   * later during render/math with no diagnostic trail back to the actual
+   * contract violation. Callers are expected to already be inside a
+   * try/catch that surfaces the error to the user (see useBomConversion.ts,
+   * VendorIngestionDesk.tsx).
+   */
   parseResponse<T>(schema: z.ZodType<T>, data: unknown): T {
     const parsed = schema.safeParse(data);
     if (!parsed.success) {
-      console.warn("Zod API Contract Violation:", parsed.error.format());
-      return data as T;
+      const detail = parsed.error.issues
+        .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+        .join("; ");
+      console.error("Zod API Contract Violation:", parsed.error.format());
+      throw new Error(`API contract violation: response did not match expected schema (${detail})`);
     }
     return parsed.data;
   }
