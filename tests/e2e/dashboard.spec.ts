@@ -36,6 +36,11 @@ test.describe('01 - Dashboard E2E', () => {
     await expect(toggleBtn).toBeVisible();
 
     await toggleBtn.click();
+    // Sidebar.tsx applies `transition-all duration-300` to the width change.
+    // Reading boundingBox() immediately after click() can capture a
+    // mid-transition width, making this assertion flaky. Wait past the
+    // 300ms CSS transition before measuring.
+    await page.waitForTimeout(400);
     const sidebarBoxCollapsed = await sidebar.boundingBox();
     // Collapsing should actually change the sidebar's width
     expect(sidebarBoxCollapsed?.width).not.toBe(sidebarBoxExpanded?.width);
@@ -43,6 +48,7 @@ test.describe('01 - Dashboard E2E', () => {
     await expect(page.locator('body')).toBeVisible();
 
     await toggleBtn.click();
+    await page.waitForTimeout(400);
     const sidebarBoxRestored = await sidebar.boundingBox();
     // Expanding again should restore the original width
     expect(sidebarBoxRestored?.width).toBe(sidebarBoxExpanded?.width);
