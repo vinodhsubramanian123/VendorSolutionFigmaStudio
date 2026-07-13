@@ -22,3 +22,7 @@ debug*.png
 # One-off scripts (should live in a scripts/ dir if needed)
 remove-unused-imports.cjs
 report/
+
+# Local test outputs
+playwright-output.txt
+test-results*.json
