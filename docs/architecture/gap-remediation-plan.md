@@ -8,30 +8,55 @@
 
 ## Session handoff (read this first in a new thread)
 
-As of this session, **5 patches are staged but NOT YET applied to the real
-repo** — Vinodh is batching them with Antigravity at the end of this thread.
-A new Claude session should assume the patches below are either (a) already
-applied, in which case `git log` will show these commits and this section is
-stale — verify against `git log --oneline` before trusting it, or (b) not yet
-applied, in which case ask Vinodh whether Antigravity has run them yet before
-starting new work, since building on top of unapplied patches will produce
-patches that don't apply cleanly.
+**Patch `0007-area19-pessimistic-e2e.patch` is staged but NOT YET applied to
+the real repo** — Vinodh needs to run it through Antigravity (it needs a real
+browser to execute `npm run test:e2e`, which this sandbox doesn't have).
+Verify against `git log --oneline` before trusting this section — if it's
+stale, these commits will already be on `main`.
 
-Patches produced this session (in order, all verified via fresh-clone `git am`
-+ full audit battery together, not just individually):
+What it does: Area 19 (pessimistic E2E tests) — see the row below for full
+detail. Everything except live Playwright execution has already been
+verified (fresh-clone `git am`, tsc, eslint on both `src`+`server` and
+`tests/e2e` separately, dependency-cruiser, jscpd, check-size, vitest —
+569/569 unit/component tests passing). **The E2E suite itself has not been
+run against this patch** — that's the one thing only Antigravity can do here.
+Two follow-ups need Antigravity's judgment specifically, flagged inline in
+the test files with comments:
+1. `multi-ucid-isolation.spec.ts` — a real navigation bug was found (test
+   looks for a "Select" button on the Reconciliation page; the actual
+   component, `StepComparison.tsx`, only renders inside the Mission Control
+   step wizard) and documented rather than blind-fixed. Needs a rewrite of
+   the navigation, not just an unwrap.
+2. `learning-loop.spec.ts`'s last test — one guard was deliberately left in
+   place pending confirmation of mock-data UCID step ordering.
+
+Patches produced prior to this session (in order, all verified via
+fresh-clone `git am` + full audit battery, and now confirmed committed on
+`main` via `git log`):
 1. Areas 4 & 13 (dead vendor adapter code, motion import unification)
 2. This plan doc's initial version
 3. Areas 17 & 2-partial (Zod boundary validation now throws; non-server `any` erased)
 4. Area 16 (Zustand store → slice pattern decomposition)
 5. Areas 1 & 6 (server.ts monolith → route modules; reconciliation + taxonomy
    logic dedup against client utils)
+6. Pipeline fixes: reverted a UI/MSW cross-boundary import (jscpd boundary
+   violation), bumped Playwright timeouts to 15s for MSW-simulated latency,
+   restored/regenerated 13 visual baselines.
 
-**Iteration 1 (Foundation) and Iteration 2 (Server Architecture) are both
-complete.** Next up per the sequencing below: **Iteration 3 — Areas 18
-(deferred, see its row) and 19 (pessimistic E2E tests)**.
+**Iterations 1 and 2 are complete. Iteration 3 (Area 19) is now patched,
+pending Antigravity's live-browser run.** Area 18 remains deliberately
+deferred (see its row) — small mock datasets don't justify the regression
+risk of virtualizing yet.
 
-Areas 18 was investigated this session and deliberately deferred (see its
-row below for why) rather than actioned — that's not the same as "not started."
+Also discovered this session, not yet in scope of any patch: `tests/e2e` is
+not covered by `npm run lint` (same class of gap Area 6 found for
+`server.ts`/`server/` before that got expanded). Pre-existing findings if it
+were added: 4 `sonarjs/slow-regex` files, 1 `no-undef` file (`memlab.scenario.js`
+needs Node globals in its ESLint env), 1 `prefer-const`, 1 unused-variable
+warning. None introduced by this session's patch — confirmed via before/after
+diff of a standalone `npx eslint tests/e2e` run. Worth a small follow-up patch
+if Vinodh wants `tests/e2e` held to the same zero-tolerance bar as `src`/`server`.
+
 
 
 
@@ -55,7 +80,7 @@ row below for why) rather than actioned — that's not the same as "not started.
 | 12 | Inline style proliferation | 🟡 High | Confirmed 150 `style={{` occurrences in `src/components/` | ⬜ Not started |
 | 14 | onNavigate prop threading | 🟡 High | Not re-verified this session | ⬜ Not started |
 | 18 | List virtualization bypass | 🟡 High | Investigated this session: only `CatalogCardsList.tsx` and `UCIDEventLedger.tsx` use `react-virtuoso`; ~7 other list-heavy components don't (`WebhookMonitor`, `ApiLogsTable`, `SystemTelemetry`, `DocumentPipelinePanel`, `MappingPanel`, `UcidPipelineCard`, `VendorStatusBoard`). But current mock datasets are tiny (single digits to ~30 records per domain, per `src/lib/mockData/*.ts`) — virtualizing now adds real complexity (fixed-row-height constraints, drag/filter/selection interactions that I can't visually verify without Playwright, which I don't have access to in this sandbox) for zero present-day benefit. Deliberately deferred, not skipped: revisit once real backend data volume is known, or do it as prep work immediately before backend integration lands, whichever comes first. If tackling this blind (no Playwright), do one component at a time with a visual-regression baseline recapture per component rather than batching. | ⬜ Deferred (reasoned) |
-| 19 | Pessimistic E2E deficiencies | 🟡 High | Not re-verified this session | ⬜ Not started |
+| 19 | Pessimistic E2E deficiencies | 🟡 High | Confirmed and patched (patch 0007, pending Antigravity's live-browser run): 27 `if (await el.isVisible())` silent-skip guards across 15 spec files, same anti-pattern already eradicated from the visual-regression suite. Severity varied — `master-lifecycle.spec.ts` Phase 5 could pass without ever proving the auto-heal→learning-loop chain works (three nested optional steps culminating in `if (learnedRule) {...assertions...}`); `hybrid-ingestion.spec.ts` had a stale locator (`Process Raw`) matching nothing in `src/`, masked by the guard for who knows how long; `dashboard.spec.ts`'s sidebar test had zero `expect()` calls at all. One deeper bug found and documented rather than blind-fixed: `multi-ucid-isolation.spec.ts` targets the wrong page entirely for its core assertion (needs a rewrite, not an unwrap — see inline comment). | 🔶 In progress (code patched, e2e execution pending) |
 | 8 | Triple-source design tokens | 🔴 Critical | Not re-verified this session | ⬜ Not started |
 | 10 | Cosmic Slate raw primitives | 🔴 Critical | Confirmed 29 files still using raw `gray-`/`sky-` Tailwind classes | ⬜ Not started |
 | 3 | Inconsistent error handling | 🟡 High | Not re-verified this session | ⬜ Not started |
