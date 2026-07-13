@@ -28,33 +28,33 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
     await page.getByRole('button', { name: /UCID-2026-/ }).first().click();
     // Simulate HPE EOL BOQ preset via the step simulator
     const hpeBtn = page.locator('button').filter({ hasText: '6130 Legacy CPU' }).first();
-    if (await hpeBtn.isVisible()) {
-      await hpeBtn.click();
-    }
+    await expect(hpeBtn).toBeVisible({ timeout: 5000 });
+    await hpeBtn.click();
 
     // Navigate to Forensics
     await page.locator('#nav-forensic').click();
-    // Try to find and click Auto-Heal
+    // Find and click Auto-Heal — this is the scenario the test is named for,
+    // so it must not be optional.
     const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
-    if (await healBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await healBtn.click();
-      // Verify toast or success indicator appears
-      const successIndicators = [
-        page.getByText('replaced', { exact: false }),
-        page.getByText('catalog replacement rule', { exact: false }),
-        page.getByText('Auto-Learned', { exact: false }),
-      ];
+    await expect(healBtn).toBeVisible({ timeout: 5000 });
+    await healBtn.click();
 
-      let found = false;
-      for (const indicator of successIndicators) {
-        if (await indicator.isVisible({ timeout: 2000 }).catch(() => false)) {
-          found = true;
-          break;
-        }
+    // Verify toast or success indicator appears
+    const successIndicators = [
+      page.getByText('replaced', { exact: false }),
+      page.getByText('catalog replacement rule', { exact: false }),
+      page.getByText('Auto-Learned', { exact: false }),
+    ];
+
+    let found = false;
+    for (const indicator of successIndicators) {
+      if (await indicator.isVisible({ timeout: 2000 }).catch(() => false)) {
+        found = true;
+        break;
       }
-      // At least one success indicator should appear
-      expect(found).toBeTruthy();
     }
+    // At least one success indicator should appear
+    expect(found).toBeTruthy();
   });
 
   test('should display SourcingRulesVault with auto-learned badges', async ({ page }) => {
@@ -80,13 +80,17 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
     const preIntelStep = page.getByText('Run Vendor', { exact: false });
     const intelBanner = page.getByText('Catalog Intelligence Active', { exact: false });
 
-    // If on pre-intelligence step and rules exist, banner should show
+    // NOTE (Area 19 follow-up): this guard is left in place deliberately —
+    // whether the *first* UCID button lands on the pre-intelligence step
+    // depends on mock data ordering this test doesn't control, and this repo
+    // has no live-browser access to verify that ordering. Needs a real
+    // Playwright run to confirm before tightening further.
     if (await preIntelStep.isVisible({ timeout: 1000 }).catch(() => false)) {
-      // The banner only shows if appliedRulesCount > 0
-      // After sourcing rules exist, it should appear
-      const bannerVisible = await intelBanner.isVisible({ timeout: 1000 }).catch(() => false);
-      // Banner may or may not show depending on state, but component should render without errors
       await expect(page.getByText('Cross-examine raw input lines')).toBeVisible();
+      // The banner only shows if appliedRulesCount > 0. Previously this was
+      // computed and silently discarded — assert it for real now.
+      const bannerVisible = await intelBanner.isVisible({ timeout: 1000 }).catch(() => false);
+      expect(bannerVisible).toBeTruthy();
     }
   });
 });

@@ -45,8 +45,10 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
     await expect(page.getByText('Historical Snapshots', { exact: false }).first()).toBeVisible({ timeout: 8000 });
     // Look for any existing locked snapshot
     const lockBtn = page.locator('button[title="Unlock Snapshot"], button[title="Lock Snapshot"], button[title="Immutability Locked. Click to unlock"], button[title="Unsecured Draft. Click to lock baseline"]').first();
-    if (await lockBtn.isVisible({ timeout: 3000 })) {
-      await lockBtn.click();
-    }
+    await expect(lockBtn).toBeVisible({ timeout: 5000 });
+    const titleBefore = await lockBtn.getAttribute('title');
+    await lockBtn.click();
+    // The lock state must actually flip, not just accept the click
+    await expect(lockBtn).not.toHaveAttribute('title', titleBefore ?? '');
   });
 });

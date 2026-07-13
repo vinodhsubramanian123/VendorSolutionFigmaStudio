@@ -139,42 +139,35 @@ test.describe('11 - Master E2E Lifecycle', () => {
 
       // Trigger compliance scan
       const scanBtn = page.getByTestId('btn-execute-scan').first();
-      if (await scanBtn.isVisible()) {
-        await scanBtn.click();
-         // Wait for scan to complete
-      }
+      await expect(scanBtn).toBeVisible({ timeout: 5000 });
+      await scanBtn.click();
 
       // Find Auto-Heal button for the Mock EOL issue
       const autoHealBtn = page.getByTestId('btn-auto-align').first();
-      if (await autoHealBtn.isVisible()) {
-        await autoHealBtn.click();
-        // Confirm the Clarification Modal
-        const lockBtn = page.getByTestId('btn-lock-intelligence-rule');
-        if (await lockBtn.isVisible()) {
-          await lockBtn.click();
-        }
-      }
+      await expect(autoHealBtn).toBeVisible({ timeout: 5000 });
+      await autoHealBtn.click();
+      // Confirm the Clarification Modal
+      const lockBtn = page.getByTestId('btn-lock-intelligence-rule');
+      await expect(lockBtn).toBeVisible({ timeout: 5000 });
+      await lockBtn.click();
       await expect(page.getByText('Obsolete HPE Intel Xeon', { exact: false }).first()).toBeVisible();
 
       // [STATE ASSERTION] Phase 5 Auto-Heal & Learn Chain
+      // Previously gated behind `if (learnedRule)`, which let this whole
+      // block — the test's actual point — silently no-op if any step above
+      // failed to produce a learned rule. Now unconditional: if the chain
+      // didn't run, this must fail loudly instead of passing green.
       const issues = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"forensicIssues":[]}}').state.forensicIssues);
       const sourcingRules = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"sourcingRules":[]}}').state.sourcingRules);
       const learnedRule = sourcingRules.find((r: any) => r.isAutoLearned);
-      
-      if (learnedRule) {
-        const healed = issues.find((i: any) => i.id === learnedRule.sourceIssueId);
-        console.log("DEBUG TEST: healed:", healed);
-        console.log("DEBUG TEST: issues length:", issues.length);
-        console.log("DEBUG TEST: issues:", JSON.stringify(issues, null, 2));
-        expect(learnedRule).toBeDefined();
-        expect(learnedRule.status).toBe('active');
-        expect(healed?.status).toBe('resolved');
-        
-        await assertSourcingRulesIntegrity(page);
-        if (healed) {
-          await assertForensicIssuesIntegrity(page);
-        }
-      }
+      expect(learnedRule).toBeDefined();
+
+      const healed = issues.find((i: any) => i.id === learnedRule.sourceIssueId);
+      expect(learnedRule.status).toBe('active');
+      expect(healed?.status).toBe('resolved');
+
+      await assertSourcingRulesIntegrity(page);
+      await assertForensicIssuesIntegrity(page);
     });
 
     // ==========================================
@@ -199,10 +192,9 @@ test.describe('11 - Master E2E Lifecycle', () => {
 
       // Test Locking the Snapshot
       const lockBtn = page.locator('button[title="Unsecured Draft. Click to lock baseline"]').first();
-      if (await lockBtn.isVisible()) {
-        await lockBtn.click();
-        await expect(page.locator('button[title="Immutability Locked. Click to unlock"]').first()).toBeVisible();
-      }
+      await expect(lockBtn).toBeVisible({ timeout: 5000 });
+      await lockBtn.click();
+      await expect(page.locator('button[title="Immutability Locked. Click to unlock"]').first()).toBeVisible();
 
       await expect(page.getByText('locked & archived in CRM register', { exact: false }).first()).toBeVisible();
 

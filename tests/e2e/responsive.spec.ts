@@ -42,14 +42,16 @@ test.describe('05 - Responsive Breakpoint Tests', () => {
     // The sidebar navigation should be collapsed or hidden at mobile widths
     // It should not occupy full width, leaving no space for main content
     const sidebar = page.locator('#nav-mission-control, nav, aside').first();
-    if (await sidebar.isVisible()) {
+    const isVisible = await sidebar.isVisible();
+    // The test name promises one of two outcomes: hidden, or collapsed to a
+    // narrow icon rail. If visible, that width claim must actually be checked
+    // instead of silently passing when boundingBox() comes back empty.
+    if (isVisible) {
       const sidebarBox = await sidebar.boundingBox();
-      if (sidebarBox) {
-        // The sidebar width should be a small fraction of the total viewport at mobile
-        // (collapsed icon-only mode or hidden)
-        expect(sidebarBox.width).toBeLessThan(200);
-      }
+      expect(sidebarBox).not.toBeNull();
+      expect(sidebarBox!.width).toBeLessThan(200);
     }
+    // If not visible, "hides on mobile" is satisfied — nothing further to assert.
   });
 
   test('[md - 768px] Navigation links are accessible at tablet breakpoint', async ({ page }) => {
@@ -85,30 +87,27 @@ test.describe('05 - Responsive Breakpoint Tests', () => {
     await page.goto('/');
     // Navigate to forensics
     const forensicNav = page.locator('#nav-forensic');
-    if (await forensicNav.isVisible()) {
-      await forensicNav.click();
-      // The page should render without crashes
-      await expect(page.locator('body')).toBeVisible();
-    }
+    await expect(forensicNav).toBeVisible({ timeout: 5000 });
+    await forensicNav.click();
+    // The page should render without crashes
+    await expect(page.locator('body')).toBeVisible();
   });
 
   test('[md - 768px] Ingestion Hub stepper renders correctly at tablet', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/');
     const ingestionNav = page.locator('#nav-ingestion-hub');
-    if (await ingestionNav.isVisible()) {
-      await ingestionNav.click();
-      await expect(page.locator('body')).toBeVisible();
-    }
+    await expect(ingestionNav).toBeVisible({ timeout: 5000 });
+    await ingestionNav.click();
+    await expect(page.locator('body')).toBeVisible();
   });
 
   test('[lg - 1024px] Reconciliation view renders drift table at standard width', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/');
     const reconciliationNav = page.locator('#nav-reconciliation');
-    if (await reconciliationNav.isVisible()) {
-      await reconciliationNav.click();
-      await expect(page.locator('body')).toBeVisible();
-    }
+    await expect(reconciliationNav).toBeVisible({ timeout: 5000 });
+    await reconciliationNav.click();
+    await expect(page.locator('body')).toBeVisible();
   });
 });

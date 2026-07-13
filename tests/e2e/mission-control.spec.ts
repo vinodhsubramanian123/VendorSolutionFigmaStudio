@@ -9,16 +9,15 @@ test.describe('05 - Mission Control E2E', () => {
 
   test('should verify horizontal scrolling exists on dense worksheets', async ({ page }) => {
     const wsBtn = page.getByText('Worksheet Data', { exact: false }).first();
-    if (await wsBtn.isVisible()) {
-        await wsBtn.click();
-        // Verify a table exists and contains real data rows, not just an empty layout
-        const table = page.locator('table').first();
-        await expect(table).toBeVisible();
-        const rows = table.locator('tr');
-        await expect(async () => {
-          expect(await rows.count()).toBeGreaterThan(1);
-        }).toPass();
-    }
+    await expect(wsBtn).toBeVisible({ timeout: 5000 });
+    await wsBtn.click();
+    // Verify a table exists and contains real data rows, not just an empty layout
+    const table = page.locator('table').first();
+    await expect(table).toBeVisible();
+    const rows = table.locator('tr');
+    await expect(async () => {
+      expect(await rows.count()).toBeGreaterThan(1);
+    }).toPass();
   });
 
   test('should execute Campaign Lock and trigger CSV export', async ({ page }) => {

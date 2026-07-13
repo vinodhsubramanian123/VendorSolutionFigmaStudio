@@ -11,12 +11,14 @@ test.describe('13 - Hybrid Ingestion Modes E2E', () => {
     // Click manual BOM tab if exists, else it's the main workspace
     await expect(page.getByText('File Intake', { exact: false }).first()).toBeVisible();
     
-    // Instead of file upload, click the mock upload button or simulate
-    // Assuming there's a button "Simulate BOQ Ingestion" or "Process Raw"
-    const uploadBtn = page.getByRole('button', { name: /Process Raw/i }).first();
-    if (await uploadBtn.isVisible()) {
-      await uploadBtn.click();
-    }
+    // The demonstration ingest trigger has a stable id (button label has changed
+    // names before — locate by id, not text, to avoid this test silently
+    // no-op'ing again on the next rename).
+    const uploadBtn = page.locator('#run-ingest-btn');
+    await expect(uploadBtn).toBeVisible({ timeout: 5000 });
+    await uploadBtn.click();
+    // A successful simulated ingest should surface the split-into-UCIDs action
+    await expect(page.getByText('Split Configs into Active UCIDs', { exact: false }).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('should allow vendor playwright scraper sync', async ({ page }) => {
@@ -24,8 +26,8 @@ test.describe('13 - Hybrid Ingestion Modes E2E', () => {
     await page.locator('#nav-vendor-portal').click();
     // Click Sync All Endpoints
     const syncBtn = page.getByRole('button', { name: /SYNC ALL ENDPOINTS/i });
-    if (await syncBtn.isVisible()) {
-      await syncBtn.click();
-    }
+    await expect(syncBtn).toBeVisible({ timeout: 5000 });
+    await syncBtn.click();
+    await expect(page.getByText('All Direct APIS polled with latest contract pricing metrics.', { exact: false })).toBeVisible({ timeout: 10000 });
   });
 });

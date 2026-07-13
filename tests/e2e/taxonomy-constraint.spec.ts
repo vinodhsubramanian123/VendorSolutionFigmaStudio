@@ -46,16 +46,15 @@ test.describe('16 - Taxonomy Graph Constraint & Orphan Fix E2E', () => {
     
     // Get first map button from the list
     const mapBtn = page.locator('button', { hasText: 'Map' }).first();
-    if (await mapBtn.isVisible()) {
-      await mapBtn.click();
-      // Verify the alignment desk displays form for the active SKU
-      await expect(page.getByText('Aligning Part').first()).toBeVisible();
+    await expect(mapBtn).toBeVisible({ timeout: 5000 });
+    await mapBtn.click();
+    // Verify the alignment desk displays form for the active SKU
+    await expect(page.getByText('Aligning Part').first()).toBeVisible();
 
-      // Choose subsystem
-      const subsystemSelect = page.locator('select#target-subsystem').first();
-      await subsystemSelect.selectOption({ index: 1 });
-      // Verify success notification
-      await expect(page.getByText('mapped', { exact: false })).toBeVisible();
-    }
+    // Choose subsystem
+    const subsystemSelect = page.locator('select#target-subsystem').first();
+    await subsystemSelect.selectOption({ index: 1 });
+    // Verify success notification
+    await expect(page.getByText('mapped', { exact: false })).toBeVisible();
   });
 });

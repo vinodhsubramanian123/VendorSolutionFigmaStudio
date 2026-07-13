@@ -14,15 +14,11 @@ test.describe('08 - Forensic Scan E2E', () => {
 
   test('should click Heal Threat on EOL Risk and flip status', async ({ page }) => {
     const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
-    if (await healBtn.isVisible()) {
-      await healBtn.click();
-      // Wait for an optimistic UI change (like a success badge or row fading)
-      // We expect a toast to appear or the heal button to disappear.
-      await expect(page.getByText('Auto-Heal Threat', { exact: false })).toHaveCount(await page.getByText('Auto-Heal Threat', { exact: false }).count()); 
-      // The row should be updated to a success state or the issue removed.
-      // E.g. we can check for Toast text
-      await expect(page.getByText('replaced & catalog replacement rule')).toBeVisible({ timeout: 2000 });
-    }
+    await expect(healBtn).toBeVisible({ timeout: 5000 });
+    await healBtn.click();
+    // The row should be updated to a success state or the issue removed.
+    // E.g. we can check for Toast text
+    await expect(page.getByText('replaced & catalog replacement rule')).toBeVisible({ timeout: 5000 });
   });
 
   test('should navigate to Sourcing Rules Vault', async ({ page }) => {

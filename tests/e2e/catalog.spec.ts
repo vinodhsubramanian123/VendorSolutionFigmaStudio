@@ -14,9 +14,8 @@ test.describe('06 - Catalog Manager E2E', () => {
     test.setTimeout(60000);
     // Taxonomy tree should be visible - click HPE branch
     const hpeNode = page.getByText('HPE', { exact: true }).first();
-    if (await hpeNode.isVisible({ timeout: 3000 })) {
-      await hpeNode.click();
-    }
+    await expect(hpeNode).toBeVisible({ timeout: 3000 });
+    await hpeNode.click();
     // Cards grid should still be visible
     await expect(page.locator('.group\\/card').first()).toBeVisible({ timeout: 5000 });
     

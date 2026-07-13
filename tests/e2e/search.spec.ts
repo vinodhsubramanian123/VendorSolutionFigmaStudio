@@ -12,8 +12,6 @@ test.describe('04 - Search E2E', () => {
     await input.fill('HPE');
     // Should render a search result
     const searchCard = page.locator('div.group\\/result').first();
-    if (await searchCard.isVisible()) {
-      await expect(searchCard).toBeVisible();
-    }
+    await expect(searchCard).toBeVisible({ timeout: 5000 });
   });
 });

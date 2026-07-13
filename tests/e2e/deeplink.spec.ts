@@ -59,22 +59,20 @@ test.describe('12 - Deep Link Routing E2E', () => {
   test('clicking Forensic nav item loads Sourcing Intelligence view', async ({ page }) => {
     await page.goto('/');
     const forensicNav = page.locator('#nav-forensic');
-    if (await forensicNav.isVisible()) {
-      await forensicNav.click();
-      const forensicContent = page.getByText(/Sourcing Intelligence|Learning Loop|Forensic/i).first();
-      await expect(forensicContent).toBeVisible();
-    }
+    await expect(forensicNav).toBeVisible({ timeout: 5000 });
+    await forensicNav.click();
+    const forensicContent = page.getByText(/Sourcing Intelligence|Learning Loop|Forensic/i).first();
+    await expect(forensicContent).toBeVisible();
   });
 
   test('navigating directly to Ingestion Hub via nav link loads the correct view', async ({ page }) => {
     await page.goto('/');
     const ingestionNav = page.locator('#nav-ingestion-hub');
-    if (await ingestionNav.isVisible()) {
-      await ingestionNav.click();
-      // Ingestion Hub content should show
-      const ingestionContent = page.getByText(/Ingestion|BOQ|BOM|Upload/i).first();
-      await expect(ingestionContent).toBeVisible();
-    }
+    await expect(ingestionNav).toBeVisible({ timeout: 5000 });
+    await ingestionNav.click();
+    // Ingestion Hub content should show
+    const ingestionContent = page.getByText(/Ingestion|BOQ|BOM|Upload/i).first();
+    await expect(ingestionContent).toBeVisible();
   });
 
   test('deep link to a specific UCID via /mission-control/:id loads the UCID context', async ({ page }) => {
@@ -83,11 +81,10 @@ test.describe('12 - Deep Link Routing E2E', () => {
     await page.locator('#nav-mission-control').click();
     // Try to click on the first UCID button if available
     const ucidButton = page.locator('div[role="button"]').filter({ hasText: 'UCID-2026-' }).first();
-    if (await ucidButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await ucidButton.click();
-      // A UCID-specific panel or detail view should appear
-      await expect(page.locator('body')).toBeVisible();
-    }
+    await expect(ucidButton).toBeVisible({ timeout: 5000 });
+    await ucidButton.click();
+    // A UCID-specific panel or detail view should appear
+    await expect(page.locator('body')).toBeVisible();
   });
 
   test('direct URL /forensic?issueId=iss-1 loads ForensicView without crashing', async ({ page }) => {
@@ -107,10 +104,9 @@ test.describe('12 - Deep Link Routing E2E', () => {
     await page.goto('/');
     // Click the "View All" link on Active Issues panel if present
     const viewAllLink = page.getByRole('button', { name: /View All/i }).first();
-    if (await viewAllLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await viewAllLink.click();
-      await expect(page.getByText(/Sourcing Intelligence|Forensic|Anomalies/i).first()).toBeVisible({ timeout: 10000 });
-      expect(page.url()).toContain('/forensic');
-    }
+    await expect(viewAllLink).toBeVisible({ timeout: 5000 });
+    await viewAllLink.click();
+    await expect(page.getByText(/Sourcing Intelligence|Forensic|Anomalies/i).first()).toBeVisible({ timeout: 10000 });
+    expect(page.url()).toContain('/forensic');
   });
 });

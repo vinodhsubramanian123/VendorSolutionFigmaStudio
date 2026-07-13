@@ -33,11 +33,10 @@ test.describe('25 - Cleansing Lifecycle E2E', () => {
     await searchInput.fill('HPE');
     // The suggested mapping should appear
     const mapBtn = page.getByRole('button', { name: /Map Entry/i }).first();
-    if (await mapBtn.isVisible()) {
-      await mapBtn.click();
-      // Should show a success toast mapping 
-      await expect(page.getByText('Mapped to', { exact: false }).first()).toBeVisible({ timeout: 5000 });
-    }
+    await expect(mapBtn).toBeVisible({ timeout: 5000 });
+    await mapBtn.click();
+    // Should show a success toast mapping
+    await expect(page.getByText('Mapped to', { exact: false }).first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should toggle to Deep Cleanse Editor and verify interactions', async ({ page }) => {
@@ -50,10 +49,9 @@ test.describe('25 - Cleansing Lifecycle E2E', () => {
 
     // 3. Mark for removal
     const trashButtons = page.locator('button[title="Mark for Removal"]');
-    if (await trashButtons.count() > 0) {
-      await trashButtons.first().click();
-      await expect(page.getByText('Marked P6730-B21 for removal').first()).toBeVisible();
-    }
+    await expect(trashButtons.first()).toBeVisible({ timeout: 5000 });
+    await trashButtons.first().click();
+    await expect(page.getByText('Marked P6730-B21 for removal').first()).toBeVisible();
 
     // 4. Open Split Wizard
     await page.getByRole('button', { name: /Split Config/i }).click();
@@ -65,14 +63,13 @@ test.describe('25 - Cleansing Lifecycle E2E', () => {
     
     // Simulate moving items (Playwright range input interaction)
     const sliders = page.locator('input[type="range"]');
-    if (await sliders.count() > 0) {
-      // Just check the confirm button is initially disabled
-      const confirmBtn = page.getByRole('button', { name: /Confirm Split/i });
-      await expect(confirmBtn).toBeDisabled();
-      
-      // We can't easily drag sliders reliably in all environments, but we can verify the UI exists
-      await page.getByRole('button', { name: /Cancel/i }).click();
-    }
+    await expect(sliders.first()).toBeVisible({ timeout: 5000 });
+    // Just check the confirm button is initially disabled
+    const confirmBtn = page.getByRole('button', { name: /Confirm Split/i });
+    await expect(confirmBtn).toBeDisabled();
+
+    // We can't easily drag sliders reliably in all environments, but we can verify the UI exists
+    await page.getByRole('button', { name: /Cancel/i }).click();
 
     // 6. Test Batch Commit
     const commitBtn = page.getByRole('button', { name: /Commit Cleansed BOQ/i });

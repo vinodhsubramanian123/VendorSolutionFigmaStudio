@@ -20,17 +20,16 @@ test.describe('26 - Taxonomy Graph Sync E2E', () => {
     await expect(activeOrphansList).toBeVisible();
 
     const mapButton = page.locator('button:has-text("Map")').first();
-    if (await mapButton.isVisible()) {
-      await mapButton.click();
-      // Verify the target subsystem select appears
-      const selectTarget = page.getByRole('combobox').first();
-      await expect(selectTarget).toBeVisible();
+    await expect(mapButton).toBeVisible({ timeout: 5000 });
+    await mapButton.click();
+    // Verify the target subsystem select appears
+    const selectTarget = page.getByRole('combobox').first();
+    await expect(selectTarget).toBeVisible();
 
-      // Check the path orchestrator tab
-      const pathTab = page.getByLabel('Paths Tab').first();
-      await pathTab.click();
-      const pathHelp = page.getByText(/Click on any primary Category Hub node/i).first();
-      await expect(pathHelp).toBeVisible();
-    }
+    // Check the path orchestrator tab
+    const pathTab = page.getByLabel('Paths Tab').first();
+    await pathTab.click();
+    const pathHelp = page.getByText(/Click on any primary Category Hub node/i).first();
+    await expect(pathHelp).toBeVisible();
   });
 });
