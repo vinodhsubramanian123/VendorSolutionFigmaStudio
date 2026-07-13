@@ -1,6 +1,11 @@
 # VSIP Gap Remediation Plan
 
-> Source: `code_quality_analysis.md` (19-area multi-model sweep, delivered 2026-07-12).
+> Source: `docs/architecture/code_quality_analysis.md` (19-area multi-model sweep,
+> delivered 2026-07-12). This file was cited but never actually committed to the
+> repo until this session — a prior thread had to reconstruct Area 19's scope
+> from context instead of reading it, and got it wrong (see Area 19's row).
+> **Read the source doc directly for any area whose scope is unclear** rather
+> than trusting a summary of it, including summaries in this file.
 > This doc tracks verified current-state counts (checked against a fresh clone at
 > commit `626a090` before work started) and sequences remediation. Update the
 > status column as each area lands; do not re-derive from scratch in future
@@ -80,7 +85,8 @@ if Vinodh wants `tests/e2e` held to the same zero-tolerance bar as `src`/`server
 | 12 | Inline style proliferation | 🟡 High | Confirmed 150 `style={{` occurrences in `src/components/` | ⬜ Not started |
 | 14 | onNavigate prop threading | 🟡 High | Not re-verified this session | ⬜ Not started |
 | 18 | List virtualization bypass | 🟡 High | Investigated this session: only `CatalogCardsList.tsx` and `UCIDEventLedger.tsx` use `react-virtuoso`; ~7 other list-heavy components don't (`WebhookMonitor`, `ApiLogsTable`, `SystemTelemetry`, `DocumentPipelinePanel`, `MappingPanel`, `UcidPipelineCard`, `VendorStatusBoard`). But current mock datasets are tiny (single digits to ~30 records per domain, per `src/lib/mockData/*.ts`) — virtualizing now adds real complexity (fixed-row-height constraints, drag/filter/selection interactions that I can't visually verify without Playwright, which I don't have access to in this sandbox) for zero present-day benefit. Deliberately deferred, not skipped: revisit once real backend data volume is known, or do it as prep work immediately before backend integration lands, whichever comes first. If tackling this blind (no Playwright), do one component at a time with a visual-regression baseline recapture per component rather than batching. | ⬜ Deferred (reasoned) |
-| 19 | Pessimistic E2E deficiencies | 🟡 High | Confirmed and patched (patch 0007, pending Antigravity's live-browser run): 27 `if (await el.isVisible())` silent-skip guards across 15 spec files, same anti-pattern already eradicated from the visual-regression suite. Severity varied — `master-lifecycle.spec.ts` Phase 5 could pass without ever proving the auto-heal→learning-loop chain works (three nested optional steps culminating in `if (learnedRule) {...assertions...}`); `hybrid-ingestion.spec.ts` had a stale locator (`Process Raw`) matching nothing in `src/`, masked by the guard for who knows how long; `dashboard.spec.ts`'s sidebar test had zero `expect()` calls at all. One deeper bug found and documented rather than blind-fixed: `multi-ucid-isolation.spec.ts` targets the wrong page entirely for its core assertion (needs a rewrite, not an unwrap — see inline comment). | 🔶 In progress (code patched, e2e execution pending) |
+| 19 | Pessimistic E2E deficiencies | 🟡 High | **CORRECTED this session** — the original scope (now in `docs/architecture/code_quality_analysis.md`, finally committed to the repo) is about **failure-path testing**: no assertions for backend 500s/timeouts/validation rejections, MSW mocks disconnected from the real backend letting tests pass against "ghost APIs", and no verification that optimistic UI mutations roll back correctly on a failed save. The doc's own recommendation is dedicated Vitest+MSW integration tests using `.use(http.post(..., () => new HttpResponse(null, {status:500})))` to inject failures and assert error boundaries/toasts/rollback. **Not started.** (See below for what *was* done under this label by mistake.) | ⬜ Not started |
+| — | *(mislabeled as Area 19 last session — real finding, just wrong number)* | — | `patch 0007` fixes 27 `if (await el.isVisible())` silent-skip guards across 15 E2E spec files — a genuine test-quality bug (tests passing without exercising their own stated purpose), but it's happy-path E2E hygiene, not the pessimistic/failure-path testing Area 19 actually asks for. `code_quality_analysis.md` wasn't committed to the repo when that work was scoped in an earlier thread, so "pessimistic" got reinterpreted from context instead of read from source. The patch is still good, verified work and worth applying — just needs to be tracked as its own item, not counted toward closing Area 19. | 🔶 Patch ready, pending Antigravity's e2e run (see handoff above) |
 | 8 | Triple-source design tokens | 🔴 Critical | Not re-verified this session | ⬜ Not started |
 | 10 | Cosmic Slate raw primitives | 🔴 Critical | Confirmed 29 files still using raw `gray-`/`sky-` Tailwind classes | ⬜ Not started |
 | 3 | Inconsistent error handling | 🟡 High | Not re-verified this session | ⬜ Not started |
@@ -91,7 +97,7 @@ if Vinodh wants `tests/e2e` held to the same zero-tolerance bar as `src`/`server
 
 1. **Iteration 1 — Foundation (Types & State):** Areas 17 (Zod enforcement), 16 (Zustand decompose), 2 (`any` erasure)
 2. **Iteration 2 — Architecture (Server):** Areas 1 (server/client dedup), 6 (server decomposition)
-3. **Iteration 3 — Performance & Stability:** Areas 18 (virtualization), 19 (pessimistic tests)
+3. **Iteration 3 — Performance & Stability:** Areas 18 (virtualization, deferred), 19 (pessimistic tests — real Area 19 not started; see its row)
 4. **Iteration 4 — Design System (Tokens):** Areas 8 (token unification), 13 ✅, 4 ✅
 5. **Iteration 5 — UI Enforcement (CSS):** Areas 9 (type scale), 10 (Tailwind violations), 12 (inline styles)
 6. **Iteration 6 — Component Library:** Areas 11 (shared primitives adoption), 15 (accessibility)
