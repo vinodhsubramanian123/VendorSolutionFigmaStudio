@@ -13,12 +13,7 @@ test.describe('09 - Solution Builder E2E (State Logic Check)', () => {
     await page.reload();
     // Wait for state to settle
     await expect(page.getByText('Mission Builder')).toBeVisible({ timeout: 15000 });
-    await page.screenshot({ path: 'debug.png', fullPage: true });
-    
-    // Debug: print DOM
-    const html = await page.evaluate(() => document.body.innerHTML);
-    console.log("DOM SNAPSHOT:", html);
-    
+
     // Validate we are at Step 1 because no data was ingested
     const proceedBtn = page.getByRole('button', { name: /Proceed to Assignment Map/i });
     await expect(proceedBtn).toBeVisible({ timeout: 15000 });
