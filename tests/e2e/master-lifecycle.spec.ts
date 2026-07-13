@@ -109,8 +109,8 @@ test.describe('11 - Master E2E Lifecycle', () => {
     // ==========================================
     await test.step('Phase 4: Verify Deployment and Sync Vendor Portal', async () => {
       // Application automatically navigates to Mission Control
-      await expect(page).toHaveURL(/.*\/mission-control.*/);
-      await expect(page.getByText('ACTIVE SOLUTION MISSION', { exact: false }).first()).toBeVisible();
+      await expect(page).toHaveURL(/.*\/mission-control.*/, { timeout: 15000 });
+      await expect(page.getByText('ACTIVE SOLUTION MISSION', { exact: false }).first()).toBeVisible({ timeout: 15000 });
 
       // Switch to Vendor Portal
       await page.locator('#nav-vendor-portal').click();

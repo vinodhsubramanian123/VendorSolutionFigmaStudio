@@ -490,3 +490,24 @@ These learnings are concrete operational rules, not aspirational guidelines.
     shared utility call, all previously required local imports (types, sub-utilities) become
     unused. Always clean them up immediately — ESLint's `sonarjs/unused-import` rule will
     catch any stragglers and cause lint failures if not addressed in the same commit.
+
+---
+
+## 17. Iteration 1 & 2 Remediation Learnings (Post-Mortem)
+
+### 17.1 Zod Boundary Strictness (apiClient)
+*   **Issue**: `apiClient.ts` previously caught schema validation errors, logged a warning, and blindly returned the unvalidated payload as `any/T`. This masked critical API contract drift and disabled pessimistic UI recovery testing.
+*   **Rule**: API response parsers MUST explicitly `throw new Error()` on Zod validation failures. Never swallow schema mismatches. The UI must catch these errors and trigger user-facing recovery flows (e.g., Toast notifications).
+
+### 17.2 Zustand Monolith Decomposition
+*   **Issue**: `coreStore.ts` operated as a single "God Object" managing 7 disjointed domains. This triggered massive re-renders across the app when localized state (like a UI panel toggle) updated.
+*   **Rule**: Never build monolithic state creators. State stores must be decomposed into logical domain slices (e.g., `catalogSlice`, `uiSlice`, `telemetrySlice`) and composed together at the store root. Maintain a flat public API (`useCoreStore`) for consumers while isolating internal update logic.
+
+### 17.3 API Route Decomposition
+*   **Issue**: `server.ts` became an unmanageable 700-line monolith housing all Express routes, leading to duplicated reconciliation logic.
+*   **Rule**: Backend API routes must be modularized into domain-specific files under `src/server/routes/`. The main `server.ts` should only orchestrate middleware and router mounts.
+
+### 17.4 jscpd Constraint & MSW Boundary
+*   **Learning**: `jscpd` pipeline checks will fail on intentional cross-boundary code duplication (such as duplicating mock generator logic between `mockData.ts` and MSW handlers per Section 16.6).
+*   **Rule**: When maintaining intentional MSW/UI isolation requires duplicating logic, explicitly wrap the MSW clone in `// jscpd:ignore-start` and `// jscpd:ignore-end` comments to bypass the linter without creating illegal cross-boundary module imports.
+

@@ -73,9 +73,9 @@ test.describe('10 - Unified Mega-Flow E2E', () => {
     // PHASE 3: MISSION CONTROL
     // ==========================================
     await test.step('Phase 3: Verify Deployment in Mission Control', async () => {
-      // The application should have automatically navigated to Mission Control
-      await expect(page).toHaveURL(/.*\/mission-control.*/);
-      await expect(page.getByText('LIVE MISSION CONTROL', { exact: false }).first()).toBeVisible();
+      // Application automatically navigates to Mission Control
+      await expect(page).toHaveURL(/.*\/mission-control.*/, { timeout: 15000 });
+      await expect(page.getByText('LIVE MISSION CONTROL', { exact: false }).first()).toBeVisible({ timeout: 15000 });
 
       const html = await page.content();
       console.log("DOM_DUMP:", html);

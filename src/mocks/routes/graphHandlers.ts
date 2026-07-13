@@ -92,6 +92,7 @@ export const graphHandlers = [
     // backend lookup would return. Both computation sites must stay in sync
     // (see AGENTS.md §16.6). Static CATALOG_SKUS import is permitted by
     // §13.6 (never-mutated reference constant).
+    // jscpd:ignore-start
     const computeEntry = (r: (typeof CLEANSING_SEED_ROWS)[0], idx: number): CleansingEntry => {
       const catalogMatch = CATALOG_SKUS.find(
         (sku: CatalogSKU) => sku.partNumber === r.part && sku.vendor === r.vendor
@@ -127,6 +128,7 @@ export const graphHandlers = [
         flagReason: status === 'quarantined' ? 'No SKU pattern detected — manual mapping required' : undefined,
       };
     };
+    // jscpd:ignore-end
 
     const entries = raws.map(computeEntry);
     return HttpResponse.json(wrapSuccess(entries));

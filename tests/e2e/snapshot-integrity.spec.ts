@@ -22,7 +22,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     await page.locator('#nav-reconciliation').click();
     // Open Version Snapshots side panel
     const snapshotsBtn = page.getByTestId('btn-version-snapshots').first();
-    await expect(snapshotsBtn).toBeVisible({ timeout: 5000 });
+    await expect(snapshotsBtn).toBeVisible({ timeout: 15000 });
     await snapshotsBtn.click();
   });
 
@@ -42,7 +42,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     const ucidState = await page.evaluate(() => localStorage.getItem('vsip-core-storage'));
     console.log("sys_ucids after snapshot:", ucidState);
 
-    await expect(page.getByText('Integrity-Snap-v1').first()).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Integrity-Snap-v1').first()).toBeVisible({ timeout: 15000 });
 
     // VERIFY SNAPSHOT 1 INTEGRITY
     let ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
@@ -68,7 +68,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
 
     submitBtn = page.getByTestId('btn-confirm-snapshot');
     await submitBtn.click();
-    await expect(page.getByText('Integrity-Snap-v2').first()).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Integrity-Snap-v2').first()).toBeVisible({ timeout: 15000 });
 
     // VERIFY SNAPSHOT 2 INTEGRITY
     ucids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);

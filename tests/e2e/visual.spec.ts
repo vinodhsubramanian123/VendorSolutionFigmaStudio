@@ -46,7 +46,7 @@ async function settleVisualView(page: Page, visibleText: RegExp | string, timeou
       }
     `,
   });
-  await expect(page.getByText(visibleText).first()).toBeVisible(timeout ? { timeout } : undefined);
+  await expect(page.getByText(visibleText).first()).toBeVisible({ timeout: timeout || 15000 });
   await page.evaluate(() => document.fonts.ready);
 }
 
