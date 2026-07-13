@@ -193,15 +193,26 @@ test.describe('11 - Master E2E Lifecycle', () => {
       // Assert the new snapshot was added to the history list
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
 
-      // Test Locking the Snapshot (toggle from "Unsecured Draft" to "Locked")
+      // Test the Lock/Unlock toggle.
+      // buildSnapshot() sets `locked: nextVersion === 1` — the first
+      // snapshot ever captured for a UCID is auto-locked as an immutable
+      // baseline. This is this UCID's first snapshot (v1) in the lifecycle
+      // run, so it starts Locked, not Unlocked. Exercise both directions
+      // of the toggle and end on Locked, matching the state assertion
+      // below (expect(snap?.locked).toBe(true)).
       const lockBtn = page.getByTestId('btn-toggle-snapshot-lock').last();
       await expect(lockBtn).toBeVisible({ timeout: 5000 });
-      // Confirm it currently shows "Unlocked" before the click
-      await expect(lockBtn).toContainText('Unlocked');
+      // v1 snapshots are auto-locked at creation
+      await expect(lockBtn).toContainText('Locked', { timeout: 5000 });
+
+      // Toggle to Unlocked
       await lockBtn.click();
-      // After toggle, the lock-specific toast fires
+      await expect(page.getByText('now UNLOCKED', { exact: false }).first()).toBeVisible();
+      await expect(lockBtn).toContainText('Unlocked', { timeout: 5000 });
+
+      // Toggle back to Locked
+      await lockBtn.click();
       await expect(page.getByText('fully LOCKED', { exact: false }).first()).toBeVisible();
-      // The button now renders the locked-state branch with "Locked" text
       await expect(lockBtn).toContainText('Locked', { timeout: 5000 });
 
       // [STATE ASSERTION] Phase 6 Lock status
