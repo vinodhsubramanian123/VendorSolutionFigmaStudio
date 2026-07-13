@@ -18,6 +18,7 @@ test.describe('23 - Snapshot Integrity & Version Control E2E', () => {
     const deployBtn = page.getByText('Deploy Solutions to Live Mission Control');
     await deployBtn.waitFor({ state: 'visible', timeout: 15000 });
     await deployBtn.click();
+    await page.waitForURL(/.*\/mission-control.*/, { timeout: 15000 });
     // Navigate to reconciliation
     await page.locator('#nav-reconciliation').click();
     // Open Version Snapshots side panel

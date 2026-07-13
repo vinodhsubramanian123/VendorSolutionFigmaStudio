@@ -238,6 +238,14 @@ You must execute these exact commands in this order before finishing:
 *   **Issue**: Tests that rapidly hydrate heavy global state (like overwriting `localStorage` immediately upon navigation in `solution-builder.spec.ts` or `snapshot-integrity.spec.ts`) can time out when running under heavy parallelized loads. The global Vitest/Playwright CI run might report a failure due to state tearing, but running the specific test isolated (e.g., `npx playwright test tests/e2e/snapshot-integrity.spec.ts`) will pass perfectly.
 *   **Rule**: Always wrap global initialization flows or complex local storage hydrating E2E tests with an explicitly extended timeout (e.g., `test.setTimeout(90000)`) at the beginning of the test block to prevent intermittent worker exhaustion flakiness. Do not mistake isolated parallel flakiness for code regressions.
 
+### 11.11 Playwright Parallelism & Shared Express Backend
+*   **Issue**: In this specific project, Playwright's `webServer` spins up a single Node `Express` process (`tsx server.ts`) which is shared across all Playwright workers. While Playwright normally isolates `localStorage` and `sessionStorage` per context, it does *not* isolate the shared in-memory state of the Express server (e.g. variables in `boq.ts` or `reconciliation.ts`). If `fullyParallel: true` or `workers: > 1` is configured, concurrent tests will mutate the same Express backend endpoints simultaneously, leading to cross-test state pollution (e.g. `snapshot-integrity.spec.ts` deploying while another test tries to read the BOM).
+*   **Rule**: `playwright.config.ts` must maintain `workers: 1` to strictly enforce sequential test execution. Do not revert this to parallel thinking it is an "overly cautious" config. It is an architectural necessity until the backend becomes truly stateless per-request.
+
+### 11.12 Visual Regression Instability with Virtuoso
+*   **Issue**: Visual regression tests (`toHaveScreenshot`) can fail with "Failed to take two consecutive stable screenshots" when dealing with virtualized lists like `react-virtuoso`. Even after injecting `animation-duration: 0s`, Virtuoso's `ResizeObserver` can trigger sub-pixel layout reflows that cause Playwright to perceive the page as unstable, failing the screenshot capture without any actual visual differences.
+*   **Rule**: When writing visual regression tests for views containing virtualized lists, always wait for a `requestAnimationFrame` flush and add a small timeout (e.g. `await page.waitForTimeout(100)`) after `document.fonts.ready` to allow `ResizeObserver` callbacks to settle before taking the screenshot. Do not blindly update snapshots when seeing this error.
+
 ---
 
 ## 12. Backend Delegation Rules (Phase 5 Offloading)

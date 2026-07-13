@@ -48,6 +48,9 @@ async function settleVisualView(page: Page, visibleText: RegExp | string, timeou
   });
   await expect(page.getByText(visibleText).first()).toBeVisible({ timeout: timeout || 15000 });
   await page.evaluate(() => document.fonts.ready);
+  // Stabilize virtualized lists (e.g. Virtuoso) by flushing animation frames and giving ResizeObserver a beat to settle
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+  await page.waitForTimeout(100);
 }
 
 test.describe('04 - Visual Regression Tests', () => {
@@ -128,7 +131,7 @@ test.describe('04 - Visual Regression Tests', () => {
   test('taxonomy graph view matches approved baseline snapshot', async ({ page }) => {
     await page.goto('/');
     await page.locator('#nav-taxonomy-graph').click();
-    await settleVisualView(page, 'Taxonomy Graph Editor');
+    await settleVisualView(page, 'Filter Orphans');
     await expect(page).toHaveScreenshot('taxonomy-graph-default.png', {
       fullPage: false,
       animations: 'disabled',
