@@ -30,7 +30,7 @@ export function StepComparison({
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {ucid.solutions[0]?.vendorSubmissions?.map((sol, solIdx) => {
-        const activeId = ucid.solutions[0]?.selectedVendorSubmissionId ?? ucid.solutions[0]?.vendorSubmissions?.[0]?.id;
+          const activeId = ucid.solutions[0]?.selectedVendorSubmissionId;
           const isActiveChoice = sol.id === activeId;
           return (
             <div

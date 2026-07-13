@@ -25,6 +25,9 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
     const deployBtn = page.getByTestId('btn-deploy-solutions');
     await expect(deployBtn).toBeVisible({ timeout: 5000 });
     await deployBtn.click();
+    // Crucial Wait: The UI must finish state mutations and navigate to Mission Control.
+    // Wait for Mission Control's Ledger to ensure we are fully loaded on the next page.
+    await expect(page.getByText('Live Verification Event Ledger', { exact: false }).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('completing a step on one UCID must not alter sibling UCIDs and must save selectedVendorSubmissionId', async ({ page }) => {
@@ -36,17 +39,21 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
     expect(ucid1).toBeDefined();
     expect(ucid2).toBeDefined();
 
-    // 2. Select UCID 1 in Mission Control
-    await page.locator('#nav-mission-control').click();
+    // 2. We are already in Mission Control because deployBtn navigated here automatically.
+    // Ensure the container is fully loaded.
+    
     // 3. Move UCID 1 to Comparison Phase
     // Navigate inside Mission Control to the Comparison step
-    const winnerStepBtn = page.getByText('COST RECONCILIATION', { exact: false }).first();
+    const winnerStepBtn = page.getByRole('button', { name: /Winner|COST RECONCILIATION/i }).first();
     await expect(winnerStepBtn).toBeVisible({ timeout: 5000 });
     await winnerStepBtn.click();
     
-    const selectHpeBtn = page.locator('button', { hasText: 'Select' }).first();
+    const selectHpeBtn = page.getByRole('button', { name: /Select Sourcing Winner/i }).first();
     await expect(selectHpeBtn).toBeVisible({ timeout: 5000 });
     await selectHpeBtn.click();
+    
+    // Wait for the badge to appear, confirming mutation
+    await expect(page.getByText('Active Choice', { exact: true })).toBeVisible({ timeout: 5000 });
 
     // 4. Assert mutations
     const updatedUcids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);

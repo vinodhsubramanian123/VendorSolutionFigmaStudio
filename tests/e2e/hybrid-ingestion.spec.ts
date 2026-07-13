@@ -4,10 +4,15 @@ import { test, expect } from '@playwright/test';
 test.describe('13 - Hybrid Ingestion Modes E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.locator('#nav-ingestion-hub').click();
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.reload();
   });
 
   test('should allow manual BOM workbook upload and simulate processing', async ({ page }) => {
+    await page.locator('#nav-ingestion-hub').click();
     // Click manual BOM tab if exists, else it's the main workspace
     await expect(page.getByText('File Intake', { exact: false }).first()).toBeVisible();
     
@@ -25,7 +30,8 @@ test.describe('13 - Hybrid Ingestion Modes E2E', () => {
     // Navigate to vendor portal to sync
     await page.locator('#nav-vendor-portal').click();
     // Click Sync All Endpoints
-    const syncBtn = page.getByRole('button', { name: /SYNC ALL ENDPOINTS/i });
+    const syncBtn = page.getByRole('button', { name: /Synchronize all supplier endpoints/i });
+    await page.screenshot({ path: 'debug1.png' });
     await expect(syncBtn).toBeVisible({ timeout: 5000 });
     await syncBtn.click();
     await expect(page.getByText('All Direct APIS polled with latest contract pricing metrics.', { exact: false })).toBeVisible({ timeout: 10000 });
