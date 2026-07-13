@@ -62,6 +62,7 @@ export function SnapshotListItem({
               {/* MUTABLE / IMMUTABLE LOCK SWITCH TRIGGER */}
               <button
                 type="button"
+                data-testid="btn-toggle-snapshot-lock"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();

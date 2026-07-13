@@ -33,6 +33,12 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
 
     // Navigate to Forensics
     await page.locator('#nav-forensic').click();
+
+    // Trigger compliance scan so the threat is generated
+    const scanBtn = page.getByTestId('btn-execute-scan').first();
+    await expect(scanBtn).toBeVisible({ timeout: 5000 });
+    await scanBtn.click();
+
     // Find and click Auto-Heal — this is the scenario the test is named for,
     // so it must not be optional.
     const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();

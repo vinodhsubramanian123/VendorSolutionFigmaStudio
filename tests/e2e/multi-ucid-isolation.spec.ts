@@ -39,23 +39,14 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
     // 2. Select UCID 1 in Mission Control
     await page.locator('#nav-mission-control').click();
     // 3. Move UCID 1 to Comparison Phase
-    //
-    // KNOWN BUG (found during Area 19 remediation, not fixed here — needs a
-    // live Playwright run to get right, not a guess): this navigates to the
-    // Reconciliation page and looks for a "Select" button there, but the
-    // vendor-selection UI (StepComparison.tsx, which is what actually writes
-    // `selectedVendorSubmissionId`) only renders inside the Mission Control
-    // step wizard, not on the Reconciliation page. The `if (isVisible)` guard
-    // below was masking this: the locator can structurally never match on
-    // this page, so the click — and the disabled assertion after it — have
-    // likely never exercised the real code path. Needs a rewrite that drives
-    // the UCID's currentStep to "comparison" inside Mission Control before
-    // looking for the select button.
-    await page.locator('#nav-reconciliation').click();
+    // Navigate inside Mission Control to the Comparison step
+    const winnerStepBtn = page.getByText('COST RECONCILIATION', { exact: false }).first();
+    await expect(winnerStepBtn).toBeVisible({ timeout: 5000 });
+    await winnerStepBtn.click();
+    
     const selectHpeBtn = page.locator('button', { hasText: 'Select' }).first();
-    if (await selectHpeBtn.isVisible()) {
-      await selectHpeBtn.click();
-    }
+    await expect(selectHpeBtn).toBeVisible({ timeout: 5000 });
+    await selectHpeBtn.click();
 
     // 4. Assert mutations
     const updatedUcids = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);
@@ -73,8 +64,7 @@ test.describe('24 - Multi-UCID Isolation & Vendor Selection E2E', () => {
     // disabled here until the navigation bug above is fixed, since asserting
     // against a button we can never reach would just fail for the wrong reason.
     if (u1After.solutions && u1After.solutions.length > 0) {
-      // expect(u1After.solutions[0].selectedVendorSubmissionId).toBeDefined();
-      // NOTE(Area 19): re-enable once the navigation bug documented above is fixed.
+      expect(u1After.solutions[0].selectedVendorSubmissionId).toBeDefined();
     }
   });
 });

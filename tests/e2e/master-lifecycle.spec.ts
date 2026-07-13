@@ -191,7 +191,7 @@ test.describe('11 - Master E2E Lifecycle', () => {
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
 
       // Test Locking the Snapshot
-      const lockBtn = page.locator('button[title="Unsecured Draft. Click to lock baseline"]').first();
+      const lockBtn = page.getByTestId('btn-toggle-snapshot-lock').first();
       await expect(lockBtn).toBeVisible({ timeout: 5000 });
       await lockBtn.click();
       await expect(page.locator('button[title="Immutability Locked. Click to unlock"]').first()).toBeVisible();
