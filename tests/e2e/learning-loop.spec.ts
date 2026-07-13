@@ -24,8 +24,10 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
   test('should trigger Auto-Heal on EOL issue and verify learning event appears', async ({ page }) => {
     // First ensure we have an EOL issue - load HPE preset via Mission Control
     await page.locator('#nav-mission-control').click();
-    // Select first UCID
-    await page.getByRole('button', { name: /UCID-2026-/ }).first().click();
+    // Create fresh intake UCID
+    await page.getByRole('button', { name: /Direct Ingest/i }).click();
+    await page.getByLabel(/Workspace Title/i).fill('E2E Learning Loop Test');
+    await page.getByRole('button', { name: /Initialize Parallel Workflow/i }).click();
     // Simulate HPE EOL BOQ preset via the step simulator
     const hpeBtn = page.locator('button').filter({ hasText: '6130 Legacy CPU' }).first();
     await expect(hpeBtn).toBeVisible({ timeout: 5000 });
@@ -41,26 +43,17 @@ test.describe('15 - Learning Loop Intelligence E2E', () => {
 
     // Find and click Auto-Heal — this is the scenario the test is named for,
     // so it must not be optional.
-    const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
+    const healBtn = page.getByTestId('btn-auto-align').first();
     await expect(healBtn).toBeVisible({ timeout: 5000 });
     await healBtn.click();
 
-    // Verify toast or success indicator appears
-    const successIndicators = [
-      page.getByText('replaced', { exact: false }),
-      page.getByText('catalog replacement rule', { exact: false }),
-      page.getByText('Auto-Learned', { exact: false }),
-    ];
+    const lockBtn = page.getByTestId('btn-lock-intelligence-rule').first();
+    await expect(lockBtn).toBeVisible({ timeout: 5000 });
+    await lockBtn.click();
 
-    let found = false;
-    for (const indicator of successIndicators) {
-      if (await indicator.isVisible({ timeout: 2000 }).catch(() => false)) {
-        found = true;
-        break;
-      }
-    }
-    // At least one success indicator should appear
-    expect(found).toBeTruthy();
+    // Verify toast or success indicator appears
+    const successIndicator = page.getByTestId('toast-success').first();
+    await expect(successIndicator).toBeVisible({ timeout: 8000 });
   });
 
   test('should display SourcingRulesVault with auto-learned badges', async ({ page }) => {

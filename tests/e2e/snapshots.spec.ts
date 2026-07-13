@@ -43,6 +43,15 @@ test.describe('11 - Snapshot CRUD Lifecycle E2E', () => {
 
   test('should lock and unlock a snapshot', async ({ page }) => {
     await expect(page.getByText('Historical Snapshots', { exact: false }).first()).toBeVisible({ timeout: 8000 });
+    
+    // Create a snapshot first to ensure there's something to lock
+    await page.locator('button', { hasText: 'Capture Snapshot' }).first().click();
+    const labelInput = page.getByPlaceholder(/e.g. Snapshot v1.0/i);
+    await labelInput.clear();
+    await labelInput.fill('Snapshot-To-Lock');
+    await page.locator('form button[type="submit"]').last().click();
+    await expect(page.getByText('Snapshot-To-Lock').first()).toBeVisible({ timeout: 8000 });
+
     // Look for any existing locked snapshot
     const lockBtn = page.getByTestId('btn-toggle-snapshot-lock').first();
     await expect(lockBtn).toBeVisible({ timeout: 5000 });

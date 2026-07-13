@@ -65,6 +65,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               className="pointer-events-auto w-full"
             >
               <div
+                data-testid={`toast-${t.type}`}
                 className={`p-3.5 rounded-xl border flex items-start gap-3 shadow-2xl ${
                   t.type === "success"
                     ? "border-status-success/20 text-status-success"

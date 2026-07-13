@@ -52,9 +52,11 @@ Testing UI rollbacks upon API network failures (e.g. HTTP 500) within Playwright
   await page.reload();
   ```
 
-## 8. Ephemeral Assertions vs Layout Assertions on Navigation
-- **Issue**: Tests that trigger an action which displays a success toast *and immediately navigates away* will often miss the toast assertion because `await expect(page.getByText('Success')).toBeVisible()` will fail if the navigation destroys the layout context faster than Playwright's polling.
-- **Rule**: When an action navigates the user, assert on the stable presence of the *destination page's primary heading or layout element* (e.g. `await expect(page.getByText('Live Ledger')).toBeVisible()`) rather than the ephemeral toast.
+## 8. Ephemeral Toast Assertions & Notification Testing
+- **Issue (Navigation Drift)**: Tests that trigger an action which displays a success toast *and immediately navigates away* will often miss the toast assertion because `await expect(page.getByText('Success')).toBeVisible()` will fail if the navigation destroys the layout context faster than Playwright's polling.
+- **Rule (Navigation)**: When an action navigates the user, assert on the stable presence of the *destination page's primary heading or layout element* (e.g. `await expect(page.getByText('Live Ledger')).toBeVisible()`) rather than the ephemeral toast.
+- **Issue (Text Content Drift)**: Asserting on the exact text of a toast message makes tests extremely brittle. If the backend mock (e.g. `graphHandlers.ts`) changes the success string, the frontend test breaks even if the logic is perfect.
+- **Rule (Data-TestId)**: Never assert on the exact hardcoded text of a success or error toast. Instead, toasts must implement a strict test ID (e.g., `data-testid="toast-success"`). Tests must verify the presence of the toast type: `await expect(page.getByTestId('toast-success').first()).toBeVisible()`.
 
 ## 9. Strict Mode & Accessible Name Matching
 - **Issue**: `page.getByRole('button', { name: /SYNC ALL ENDPOINTS/i })` will fail if the element's actual rendered text is "SYNC ALL ENDPOINTS" but its `aria-label` or accessible name (like `title`) evaluates to "Synchronize all supplier endpoints".

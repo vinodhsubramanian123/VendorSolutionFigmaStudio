@@ -13,12 +13,17 @@ test.describe('08 - Forensic Scan E2E', () => {
   });
 
   test('should click Heal Threat on EOL Risk and flip status', async ({ page }) => {
-    const healBtn = page.getByText('Auto-Heal Threat', { exact: false }).first();
+    const healBtn = page.getByTestId('btn-auto-align').first();
     await expect(healBtn).toBeVisible({ timeout: 5000 });
     await healBtn.click();
+    
+    const lockBtn = page.getByTestId('btn-lock-intelligence-rule').first();
+    await expect(lockBtn).toBeVisible({ timeout: 5000 });
+    await lockBtn.click();
+
     // The row should be updated to a success state or the issue removed.
     // E.g. we can check for Toast text
-    await expect(page.getByText('replaced & catalog replacement rule')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('toast-success').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should navigate to Sourcing Rules Vault', async ({ page }) => {
