@@ -6,6 +6,35 @@
 > status column as each area lands; do not re-derive from scratch in future
 > sessions — read this file first.
 
+## Session handoff (read this first in a new thread)
+
+As of this session, **5 patches are staged but NOT YET applied to the real
+repo** — Vinodh is batching them with Antigravity at the end of this thread.
+A new Claude session should assume the patches below are either (a) already
+applied, in which case `git log` will show these commits and this section is
+stale — verify against `git log --oneline` before trusting it, or (b) not yet
+applied, in which case ask Vinodh whether Antigravity has run them yet before
+starting new work, since building on top of unapplied patches will produce
+patches that don't apply cleanly.
+
+Patches produced this session (in order, all verified via fresh-clone `git am`
++ full audit battery together, not just individually):
+1. Areas 4 & 13 (dead vendor adapter code, motion import unification)
+2. This plan doc's initial version
+3. Areas 17 & 2-partial (Zod boundary validation now throws; non-server `any` erased)
+4. Area 16 (Zustand store → slice pattern decomposition)
+5. Areas 1 & 6 (server.ts monolith → route modules; reconciliation + taxonomy
+   logic dedup against client utils)
+
+**Iteration 1 (Foundation) and Iteration 2 (Server Architecture) are both
+complete.** Next up per the sequencing below: **Iteration 3 — Areas 18
+(deferred, see its row) and 19 (pessimistic E2E tests)**.
+
+Areas 18 was investigated this session and deliberately deferred (see its
+row below for why) rather than actioned — that's not the same as "not started."
+
+
+
 ## Status legend
 ✅ Done · 🔶 In progress · ⬜ Not started
 
@@ -25,7 +54,7 @@
 | 11 | Shared component bypass | 🟡 High | Confirmed: 103 files use raw `<button>`, only 2 files import shared `<Button>`; `<Table>` still unconfirmed this pass | ⬜ Not started |
 | 12 | Inline style proliferation | 🟡 High | Confirmed 150 `style={{` occurrences in `src/components/` | ⬜ Not started |
 | 14 | onNavigate prop threading | 🟡 High | Not re-verified this session | ⬜ Not started |
-| 18 | List virtualization bypass | 🟡 High | Confirmed: only `CatalogCardsList.tsx` and `UCIDEventLedger.tsx` use `react-virtuoso` | ⬜ Not started |
+| 18 | List virtualization bypass | 🟡 High | Investigated this session: only `CatalogCardsList.tsx` and `UCIDEventLedger.tsx` use `react-virtuoso`; ~7 other list-heavy components don't (`WebhookMonitor`, `ApiLogsTable`, `SystemTelemetry`, `DocumentPipelinePanel`, `MappingPanel`, `UcidPipelineCard`, `VendorStatusBoard`). But current mock datasets are tiny (single digits to ~30 records per domain, per `src/lib/mockData/*.ts`) — virtualizing now adds real complexity (fixed-row-height constraints, drag/filter/selection interactions that I can't visually verify without Playwright, which I don't have access to in this sandbox) for zero present-day benefit. Deliberately deferred, not skipped: revisit once real backend data volume is known, or do it as prep work immediately before backend integration lands, whichever comes first. If tackling this blind (no Playwright), do one component at a time with a visual-regression baseline recapture per component rather than batching. | ⬜ Deferred (reasoned) |
 | 19 | Pessimistic E2E deficiencies | 🟡 High | Not re-verified this session | ⬜ Not started |
 | 8 | Triple-source design tokens | 🔴 Critical | Not re-verified this session | ⬜ Not started |
 | 10 | Cosmic Slate raw primitives | 🔴 Critical | Confirmed 29 files still using raw `gray-`/`sky-` Tailwind classes | ⬜ Not started |
