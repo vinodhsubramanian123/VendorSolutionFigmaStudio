@@ -15,20 +15,26 @@ function walkDir(dir, callback) {
 
 let failed = false;
 
-['src', 'tests'].forEach(dir => {
+function checkFile(filePath) {
+  if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n').length;
+    if (lines > 400) {
+      console.error(`\nERROR: File exceeds 400 lines (${lines} lines): ${filePath}`);
+      failed = true;
+    }
+  }
+}
+
+['src', 'tests', 'server'].forEach(dir => {
   if (fs.existsSync(dir)) {
-    walkDir(dir, function(filePath) {
-      if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
-        const content = fs.readFileSync(filePath, 'utf-8');
-        const lines = content.split('\n').length;
-        if (lines > 400) {
-          console.error(`\nERROR: File exceeds 400 lines (${lines} lines): ${filePath}`);
-          failed = true;
-        }
-      }
-    });
+    walkDir(dir, checkFile);
   }
 });
+
+if (fs.existsSync('server.ts')) {
+  checkFile('server.ts');
+}
 
 if (failed) {
   process.exit(1);

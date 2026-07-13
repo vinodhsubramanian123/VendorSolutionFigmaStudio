@@ -22,6 +22,7 @@ export function calculateReconciliation(solutions: SolutionInput[]) {
   let highestScoreId = solutions[0].id;
   let totalSavings = 0;
   let minCost = Infinity;
+  let discrepancyCount = 0;
 
   const computedMatrix = solutions.map((sol) => {
     const computedContractCost = sol.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -41,13 +42,16 @@ export function calculateReconciliation(solutions: SolutionInput[]) {
       if (ActiveSourcingRules.legacySKUs.includes(item.partNumber)) {
         compliance -= 22;
         worstLeadTime = Math.max(worstLeadTime, 45);
+        discrepancyCount++;
       }
-      if (item.partNumber === "400-BPSB") {
+      if (item.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU) {
         worstLeadTime = Math.max(worstLeadTime, 12);
+        discrepancyCount++;
       }
-      if (item.type === "Memory" && item.quantity % 8 !== 0) {
+      if (item.type === "Memory" && item.quantity % ActiveSourcingRules.thresholds.ciscoMemorySymmetryDivisor !== 0) {
         compliance -= 18;
         worstLeadTime = Math.max(worstLeadTime, 8);
+        discrepancyCount++;
       }
     });
 
@@ -71,6 +75,7 @@ export function calculateReconciliation(solutions: SolutionInput[]) {
     highestComplianceId: highestScoreId,
     totalSavingsUSD: Math.round(totalSavings),
     optimumHybridAlternativeTotal: Math.round(minCost * 0.95),
-    matrix: computedMatrix
+    matrix: computedMatrix,
+    discrepancyCount
   };
 }
