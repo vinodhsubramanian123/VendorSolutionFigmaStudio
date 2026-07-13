@@ -102,9 +102,9 @@ test.describe('12 - Deep Link Routing E2E', () => {
   test('Dashboard "View All Open Anomalies" link navigates to /forensic', async ({ page }) => {
     // Category 15 — Dashboard → Forensic navigation (no issueId)
     await page.goto('/');
-    // Click the "View All" link on Active Issues panel if present
-    const viewAllLink = page.getByRole('button', { name: /View All/i }).first();
-    await expect(viewAllLink).toBeVisible({ timeout: 5000 });
+    // Click the "Run Forensic Scan & Auto-Heal" link on Active Issues panel if present
+    const viewAllLink = page.locator('button', { hasText: /Run Forensic Scan/i }).first();
+    await expect(viewAllLink).toBeVisible({ timeout: 10000 });
     await viewAllLink.click();
     await expect(page.getByText(/Sourcing Intelligence|Forensic|Anomalies/i).first()).toBeVisible({ timeout: 10000 });
     expect(page.url()).toContain('/forensic');

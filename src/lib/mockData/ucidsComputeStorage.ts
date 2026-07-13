@@ -56,11 +56,19 @@ export const mockUcidsComputeStorage: UCID[] = [
                   },
                   {
                     id: "bi-2",
-                    partNumber: "P40424-B21",
+                    partNumber: "815100-B21",
                     name: "Intel Xeon Gold 6430 32-Core 2.1GHz CPU",
                     type: "Processor",
                     quantity: 48,
-                    unitPrice: 2150,
+                    unitPrice: 1950,
+                  },
+                  {
+                    id: "bi-orphan",
+                    partNumber: "ORPHAN-UNKNOWN-01",
+                    name: "Unknown Legacy Controller",
+                    type: "Storage",
+                    quantity: 4,
+                    unitPrice: 200,
                   },
                   {
                     id: "bi-3",
@@ -136,7 +144,7 @@ export const mockUcidsComputeStorage: UCID[] = [
                     name: "Dell 3.84TB NVMe SSD SFF",
                     type: "Drive",
                     quantity: 96,
-                    unitPrice: 1190,
+                    unitPrice: 1590,
                   },
                   {
                     id: "bi-10",

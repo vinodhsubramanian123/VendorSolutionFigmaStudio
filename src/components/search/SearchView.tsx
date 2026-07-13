@@ -207,7 +207,7 @@ export function SearchView({
                   key={m.id}
                   id={`search-mission-${m.id}`}
                   onClick={() => onSelectMission(m.id)}
-                  className="w-full p-3 rounded-lg border text-left cursor-pointer transition-all hover:bg-white/5 block"
+                  className="w-full p-3 rounded-lg border text-left cursor-pointer transition-all hover:bg-white/5 block group/result"
                   style={{
                     backgroundColor: "var(--color-surface-elevated)",
                     borderColor: "rgba(74, 133, 253,0.06)",
@@ -250,7 +250,7 @@ export function SearchView({
                   key={v.id}
                   id={`search-vendor-${v.id}`}
                   onClick={() => onNavigate("vendor-portal")}
-                  className="w-full p-3 rounded-lg border text-left cursor-pointer transition-all hover:bg-white/5 block animate-fadeIn"
+                  className="w-full p-3 rounded-lg border text-left cursor-pointer transition-all hover:bg-white/5 block animate-fadeIn group/result"
                   style={{
                     backgroundColor: "var(--color-surface-elevated)",
                     borderColor: "rgba(74, 133, 253,0.06)",
@@ -295,7 +295,7 @@ export function SearchView({
                   key={s.id}
                   id={`search-sku-${s.id}`}
                   onClick={() => onNavigate("catalog")}
-                  className="w-full p-3 rounded-lg border text-left cursor-pointer transition-all hover:bg-white/5 block"
+                  className="w-full p-3 rounded-lg border text-left cursor-pointer transition-all hover:bg-white/5 block group/result"
                   style={{
                     backgroundColor: "var(--color-surface-elevated)",
                     borderColor: "rgba(74, 133, 253,0.06)",

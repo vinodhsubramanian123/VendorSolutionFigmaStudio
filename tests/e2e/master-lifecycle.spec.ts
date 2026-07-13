@@ -187,16 +187,22 @@ test.describe('11 - Master E2E Lifecycle', () => {
       const confirmBtn = page.getByTestId('btn-confirm-snapshot').first();
       await expect(confirmBtn).toBeVisible();
       await confirmBtn.click();
+      // The "locked & archived" toast fires immediately on snapshot creation
+      await expect(page.getByText('locked & archived in CRM register', { exact: false }).first()).toBeVisible();
+
       // Assert the new snapshot was added to the history list
       await expect(page.getByText('Snapshot v', { exact: false }).first()).toBeVisible();
 
-      // Test Locking the Snapshot
-      const lockBtn = page.getByTestId('btn-toggle-snapshot-lock').first();
+      // Test Locking the Snapshot (toggle from "Unsecured Draft" to "Locked")
+      const lockBtn = page.getByTestId('btn-toggle-snapshot-lock').last();
       await expect(lockBtn).toBeVisible({ timeout: 5000 });
+      // Confirm it currently shows "Unlocked" before the click
+      await expect(lockBtn).toContainText('Unlocked');
       await lockBtn.click();
-      await expect(page.locator('button[title="Immutability Locked. Click to unlock"]').first()).toBeVisible();
-
-      await expect(page.getByText('locked & archived in CRM register', { exact: false }).first()).toBeVisible();
+      // After toggle, the lock-specific toast fires
+      await expect(page.getByText('fully LOCKED', { exact: false }).first()).toBeVisible();
+      // The button now renders the locked-state branch with "Locked" text
+      await expect(lockBtn).toContainText('Locked', { timeout: 5000 });
 
       // [STATE ASSERTION] Phase 6 Lock status
       const ucidsPhase6 = await page.evaluate(() => JSON.parse(localStorage.getItem('vsip-core-storage') || '{"state":{"ucids":[]}}').state.ucids);

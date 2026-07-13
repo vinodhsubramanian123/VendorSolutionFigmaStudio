@@ -5,10 +5,11 @@ test.describe('05 - Mission Control E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.locator('#nav-mission-control').click();
+    await expect(page.locator('button', { hasText: /UCID Worksheet Pipeline Tracker/i }).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('should verify horizontal scrolling exists on dense worksheets', async ({ page }) => {
-    const wsBtn = page.getByText('Worksheet Data', { exact: false }).first();
+    const wsBtn = page.locator('button', { hasText: 'Campaign Consolidation Hub' }).first();
     await expect(wsBtn).toBeVisible({ timeout: 5000 });
     await wsBtn.click();
     // Verify a table exists and contains real data rows, not just an empty layout

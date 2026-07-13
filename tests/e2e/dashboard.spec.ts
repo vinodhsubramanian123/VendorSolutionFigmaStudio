@@ -6,6 +6,7 @@ test.describe('01 - Dashboard E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('text=Dashboard').first()).toBeVisible();
+    await expect(page.locator('text=Connected Vendors').first()).toBeVisible({ timeout: 15000 });
   });
 
   test('should render high-level stat cards correctly', async ({ page }) => {
@@ -18,7 +19,7 @@ test.describe('01 - Dashboard E2E', () => {
 
   test('should navigate to Forensic Scan when clicking Resolve Critical', async ({ page }) => {
     // Click action button on anomalous contracts
-    const viewMissingBtn = page.getByText('Resolve', { exact: false }).first();
+    const viewMissingBtn = page.locator('button[aria-label="Resolve Critical Issues"]').first();
     await expect(viewMissingBtn).toBeVisible({ timeout: 10000 });
     await viewMissingBtn.click();
     // Assert we navigated to forensic scan

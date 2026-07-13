@@ -5,11 +5,18 @@ import { ActiveSourcingRules } from "../config/sourcingRules";
 export function useForensicSync() {
   const ucids = useCoreStore((s) => s.ucids);
   const vendors = useCoreStore((s) => s.vendors);
+  const sourcingRules = useCoreStore((s) => s.sourcingRules);
   const setForensicIssues = useCoreStore((s) => s.setForensicIssues);
 
   useEffect(() => {
+    // Check if Auto-Learned Rules exist to bypass the open status
+    const hasEolRule = sourcingRules.some(r => r.isAutoLearned && r.ruleType === "substitution" && ActiveSourcingRules.legacySKUs.includes(r.partNumber));
+    const hasPriceRule = sourcingRules.some(r => r.isAutoLearned && r.ruleType === "price_cap" && r.partNumber === ActiveSourcingRules.thresholds.dellOverchargeSKU);
+    const hasCiscoRule = sourcingRules.some(r => r.isAutoLearned && r.ruleType === "symmetry" && r.partNumber === "Memory");
+    const hasApiRule = sourcingRules.some(r => r.isAutoLearned && r.ruleType === "api_gateway" && r.partNumber === "Juniper API");
+
     // EOL Risk
-    const globalHasEol = ucids.some((u) =>
+    const globalHasEol = !hasEolRule && ucids.some((u) =>
       u.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
           vs.configs?.some((c) =>
@@ -19,7 +26,7 @@ export function useForensicSync() {
       )
     );
     // Price Variance
-    const globalHasPriceRisk = ucids.some((u) =>
+    const globalHasPriceRisk = !hasPriceRule && ucids.some((u) =>
       u.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
           vs.configs?.some((c) =>
@@ -30,7 +37,7 @@ export function useForensicSync() {
     );
 
     // Cisco Memory Symmetry
-    const globalHasCiscoRisk = ucids.some((u) =>
+    const globalHasCiscoRisk = !hasCiscoRule && ucids.some((u) =>
       u.solutions?.some((sol) =>
         sol.vendorSubmissions?.some((vs) =>
           vs.vendor === "Cisco" &&
@@ -42,7 +49,7 @@ export function useForensicSync() {
     );
     
     // Juniper API state
-    const globalHasJuniperIssue = vendors.some((v) => v.shortName === "Juniper" && v.status === "error");
+    const globalHasJuniperIssue = !hasApiRule && vendors.some((v) => v.shortName === "Juniper" && v.status === "error");
 
     setForensicIssues((prev) => {
       let changed = false;
@@ -65,5 +72,5 @@ export function useForensicSync() {
       return changed ? next : prev;
     });
 
-  }, [ucids, vendors, setForensicIssues]);
+  }, [ucids, vendors, sourcingRules, setForensicIssues]);
 }

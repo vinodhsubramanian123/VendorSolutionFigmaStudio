@@ -11,7 +11,7 @@ test.describe('04 - Search E2E', () => {
     const input = page.locator('input[placeholder="Type here to search parts, manufacturers, process IDs..."]');
     await input.fill('HPE');
     // Should render a search result
-    const searchCard = page.locator('div.group\\/result').first();
+    const searchCard = page.locator('button.group\\/result').first();
     await expect(searchCard).toBeVisible({ timeout: 5000 });
   });
 });

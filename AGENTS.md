@@ -519,3 +519,45 @@ These learnings are concrete operational rules, not aspirational guidelines.
 *   **Learning**: `jscpd` pipeline checks will fail on intentional cross-boundary code duplication (such as duplicating mock generator logic between `mockData.ts` and MSW handlers per Section 16.6).
 *   **Rule**: When maintaining intentional MSW/UI isolation requires duplicating logic, explicitly wrap the MSW clone in `// jscpd:ignore-start` and `// jscpd:ignore-end` comments to bypass the linter without creating illegal cross-boundary module imports.
 
+
+---
+
+## 18. E2E Test Correctness & MSW Body Contract Learnings
+
+### 18.1 MSW POST Handler Must Mirror Real Server Body Convention Exactly
+*   **Issue**: `useSnapshotManagerLogic.ts` sends `{ snapshot: createdSnapshot }` to `POST /api/ucids/:id/snapshots`, matching the real server which destructures `const { snapshot } = req.body`. But the MSW handler was doing `addSnapshot(body as Snapshot)` — passing the entire `{ snapshot: {...} }` wrapper as the Snapshot, silently persisting garbage data in the mock server state.
+*   **Why it was silent**: The optimistic `setUcids` runs synchronously before the API call, so the UI renders correctly even when server-side persistence is broken. Tests only checked UI state, not the MSW-received payload.
+*   **Rule**: Every MSW POST/PATCH/PUT handler **must** mirror the exact body structure that the real `server/routes/*.ts` route expects. Before writing a handler, read the real route to see how it destructures `req.body`. Never cast `body as SomeType` blindly — always extract the field the real server expects (e.g., `const snapshot = body.snapshot ?? body`).
+*   **Verification pattern**: After writing or changing an MSW handler, add a comment citing the real server's destructure: `// mirrors: const { snapshot } = req.body in server/routes/snapshots.ts`.
+
+### 18.2 Playwright Toast Assertions Must Be Placed Immediately After the Triggering Action
+*   **Issue**: Phase 6 of `master-lifecycle.spec.ts` asserted `getByText('locked & archived in CRM register')` AFTER clicking the lock toggle. But that toast is emitted by `handleCreateSnapshot` (on confirm click), not by `handleToggleLock`. By the time the lock click happened, the toast had already auto-dismissed.
+*   **Why it's flaky**: Toast dismiss timing is environment-dependent. In fast machines with MSW delays disabled (`NODE_ENV=test`), the toast may still be visible when the lock click fires — making the test intermittently pass, masking the root cause.
+*   **Rule**: Always place `await expect(page.getByText('...toast text...')).toBeVisible()` **immediately after the action that triggers it**, before any subsequent clicks. Trace the exact source method that emits the toast, confirm which user action calls it, and place the assertion directly after that action's click. Never assert a toast fired by Action A immediately after Action B.
+*   **Verification pattern**: `grep -rn "toast message text" src/` to identify which method emits it, then verify the test places the assertion directly after the UI action that calls that method.
+
+### 18.3 useForensicSync Race Condition — Auto-Learned Rules Must Gate Risk Re-Evaluation
+*   **Issue**: `useForensicSync.ts` re-evaluated BOM risk on every UCID/vendor state change. When auto-heal replaced EOL SKU `815100-B21` with `P40424-B21` and marked `iss-1` as `resolved`, the sync hook ran again (triggered by `setUcids`) and could flip the issue back to `open` on the next render cycle since the EOL SKU was no longer in the BOM.
+*   **Root Cause**: The hook depends on `ucids` which auto-heal mutates. The `setUcids` re-render triggered the hook, creating a race: "status = resolved" (from auto-heal) vs. the hook's re-evaluation of the same BOM data.
+*   **Fix**: Before scanning for risk, check if an `isAutoLearned` sourcing rule already covers each issue. If it does, short-circuit the risk check to `false`:
+    ```typescript
+    const hasEolRule = sourcingRules.some(r => r.isAutoLearned && r.ruleType === 'substitution' && legacySKUs.includes(r.partNumber));
+    const globalHasEol = !hasEolRule && ucids.some(...);
+    ```
+*   **Rule**: Any hook that re-evaluates forensic issues from raw BOM data MUST first check for auto-learned sourcing rule overrides before concluding an issue is still open. A confirmed human-approved rule always takes precedence over a heuristic BOM scan.
+
+### 18.4 Surgical Selector Swap Anti-Pattern — `.first()` → `.last()` Is Never the Complete Fix
+*   **Issue**: When Phase 6 failed because `.first()` matched a pre-existing mock snapshot instead of the newly created one, the fix was to swap to `.last()`. This was **necessary but not sufficient**. Adjacent assertions in the same `test.step` were not re-evaluated — the following assertion checked a toast that had already dismissed because it was emitted by the create action, not the lock action.
+*   **Rule**: When changing a Playwright selector (`.first()` → `.last()`, adding a filter, changing role), **always re-read every assertion in the same `test.step` block** and verify each remains logically connected to the correct UI state and action. A selector swap can silently invalidate adjacent assertions.
+*   **Verification pattern**: For each `await expect(...)` after the changed selector, ask: "Which source method fires this? Was it called before or after the point of my selector change?" Reorder or rewrite assertions to match the true execution order.
+
+### 18.5 Always Confirm HTML Element Type Before Writing a CSS Selector in E2E Tests
+*   **Issue**: `search.spec.ts` used `div.group\/result` but search result cards in `SearchView.tsx` are `<button type="button">` elements. The test failed not because the class was missing but because the element tag was wrong.
+*   **Rule**: Before writing any CSS element+class selector in Playwright, grep the source component to confirm the HTML element type and exact class string. Prefer `data-testid` attributes to avoid fragile CSS selector dependency entirely.
+*   **Verification pattern**: `grep -n "class-name-here" src/components/.../ComponentName.tsx` and inspect the element tag at that line before writing the selector.
+
+### 18.6 Never Assert on HTML `title` Attribute for State-Change Verification in Playwright
+*   **Issue**: Asserting `page.locator('button[title="Immutability Locked. Click to unlock"]').toBeVisible()` failed even after the React state updated `snap.locked = true`. The `button[title]` attribute is set by React as an HTML attribute, but Playwright's CSS attribute selector (`[title="..."]`) requires the browser's DOM to reflect it. Inside fixed/z-indexed slide-in drawers rendered via `AnimatePresence`, this attribute query was unreliable.
+*   **Root Cause**: The `title` attribute is an HTML tooltip mechanism — it's not part of the visual render tree React uses to determine what's "visible". The test was using `[title="..."]` as a proxy for "the state changed", but the visual representation (button text) is far more reliable.
+*   **Rule**: Never assert state changes using HTML `title` attribute selectors in Playwright E2E tests. Instead, assert on the **rendered visible text** inside the element. If `snap.locked` renders `<span>Locked</span>`, use `await expect(locator).toContainText('Locked')`. The rendered text is the authoritative signal that React has re-rendered with the new state.
+*   **Verification pattern**: Open the source component, find the conditional render branch that reflects the new state, and assert on its visible text content or `data-testid`. Never use `title`, `aria-label`, or other non-rendered attributes as the primary state-change signal.

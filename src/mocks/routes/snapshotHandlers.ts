@@ -13,8 +13,11 @@ export const snapshotHandlers = [
   // POST /api/ucids/:ucid/snapshots
   http.post('/api/ucids/:ucid/snapshots', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(600);
-    const body = await request.json();
-    const data = await MockSnapshotApi.addSnapshot(body as Snapshot);
+    const body = await request.json() as { snapshot?: Snapshot };
+    // Real server.ts destructures `const { snapshot } = req.body`
+    // so we mirror that exact convention here for contract parity.
+    const snapshot = body.snapshot ?? (body as unknown as Snapshot);
+    const data = await MockSnapshotApi.addSnapshot(snapshot);
     return HttpResponse.json(wrapSuccess(data));
   }),
   // PATCH /api/ucids/:ucid/snapshots/:snapshotId/lock

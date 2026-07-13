@@ -32,7 +32,7 @@ test.describe('25 - Cleansing Lifecycle E2E', () => {
 
     await searchInput.fill('HPE');
     // The suggested mapping should appear
-    const mapBtn = page.getByRole('button', { name: /Map Entry/i }).first();
+    const mapBtn = page.getByTestId('catalog-suggestion').first();
     await expect(mapBtn).toBeVisible({ timeout: 5000 });
     await mapBtn.click();
     // Should show a success toast mapping
