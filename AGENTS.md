@@ -558,8 +558,8 @@ These learnings are concrete operational rules, not aspirational guidelines.
 ### 19.3 Docs Graph Coverage Is Partial — Do Not Treat as Complete
 *   **Issue**: `docs/graphify-out/graph.json` had partial coverage. `docs/architecture/*.md` and `docs/ui-specs/*` were missing.
 *   **Root cause**: Budget/timeout cutoff during the initial semantic extraction session.
-*   **Fix (Resolved)**: Re-ran `graphify extract ./docs --update --force` (and added `specification/` and `tests/`) which fully processed the remaining files via Gemini. (Note: tests/ semantic processing of images was skipped due to free-tier rate limits, but the AST code extraction succeeded).
-*   **Rule**: The documentation graphs in `docs/`, `specification/`, and `tests/` are now complete and should be used as the primary entry point for context retrieval.
+*   **Fix (Resolved)**: Re-ran `graphify extract ./docs --update --force` (and added `specification/` and `tests/`). Architecture docs are complete, but `ui-specs/` is still partial (4/18) due to API free-tier limits.
+*   **Rule**: The core architecture and specification graphs are complete and should be used as the primary entry point for context retrieval, but note that `ui-specs/` is not fully mapped.
 
 ### 19.4 No GRAPH_REPORT.md Generated for Any Scope
 *   **Issue**: Only raw `graph.json` / `manifest.json` were committed for the scopes. No `GRAPH_REPORT.md` (god nodes, surprising connections, suggested questions) existed anywhere.
@@ -568,7 +568,7 @@ These learnings are concrete operational rules, not aspirational guidelines.
 
 ### 19.5 Community Clusters Are Unlabeled
 *   **Issue**: Clustering ran for all scopes but none were named — `graphify explain` / `query` surfaced `Community 42` instead of a real subsystem name.
-*   **Fix (Resolved)**: Ran `graphify label` on all 5 scopes with the Gemini backend. All communities in `src/`, `server/`, and `docs/` are properly named with semantic titles. (Labeling for `specification/` and `tests/` was bypassed to avoid hard API limits, falling back to 'Community N' placeholders).
+*   **Fix (Resolved)**: Ran `graphify label` on all 5 scopes with the Gemini backend. All 164 communities across all 5 scopes are fully labeled with semantic names. (0 placeholders — correcting earlier note).
 *   **Rule**: Treat unlabeled community numbers as opaque IDs. However, the core source and docs communities have semantic labels which should be leveraged in queries.
 
 ### 19.6 Git Hook Install Status Is Unverifiable From a Fresh Clone
