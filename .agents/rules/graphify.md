@@ -12,3 +12,4 @@ Rules:
 - If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+- **CRITICAL**: If you modify or create significant Architecture/Documentation Markdown files (e.g., in `docs/` or `specification/`), you MUST use the semantic LLM extraction to map the new text. Use the key from context or ask the user, then run `export GEMINI_API_KEY="..." && graphify extract <dir> --update`.
