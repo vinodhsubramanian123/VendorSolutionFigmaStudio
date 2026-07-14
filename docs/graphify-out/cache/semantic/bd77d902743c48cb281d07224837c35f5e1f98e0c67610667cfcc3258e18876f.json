@@ -1,0 +1,1 @@
+{"nodes": [], "edges": [], "hyperedges": [{"id": "data_ownership_flow", "label": "Data Ownership & State Flow", "nodes": ["src_store_corestore", "src_services_apiclient", "server_ts"], "relation": "participate_in", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "state-contracts.md"}]}

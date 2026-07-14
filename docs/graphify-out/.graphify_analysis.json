@@ -1,0 +1,97 @@
+{
+  "communities": {
+    "0": [
+      "api_contracts_api_error_response",
+      "api_contracts_api_response",
+      "server_ts",
+      "src_components_shared_jobstreamer",
+      "src_services_apiclient"
+    ],
+    "1": [
+      "derive_graph_from_config",
+      "src_components_catalog_catalogmanager",
+      "src_components_taxonomy_taxonomygraphview",
+      "src_hooks_usecataloggraphdata",
+      "src_store_corestore"
+    ],
+    "2": [
+      "api_forensics_align",
+      "api_taxonomy_rules",
+      "src_components_forensics_forensicview"
+    ],
+    "3": [
+      "api_ingest",
+      "src_components_ingestion_ingestionhub"
+    ],
+    "4": [
+      "api_ucids_snapshots",
+      "src_components_mission_control_missioncontrol"
+    ],
+    "5": [
+      "api_contracts_paginated_data"
+    ],
+    "6": [
+      "src_components_reconciliation_reconciliationview"
+    ],
+    "7": [
+      "src_components_solution_builder_solutionbuilder"
+    ]
+  },
+  "cohesion": {
+    "0": 0.4,
+    "1": 0.4,
+    "2": 0.6666666666666666,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 1.0,
+    "6": 1.0,
+    "7": 1.0
+  },
+  "gods": [
+    {
+      "id": "derive_graph_from_config",
+      "label": "deriveGraphFromConfig",
+      "degree": 2
+    },
+    {
+      "id": "api_contracts_api_response",
+      "label": "ApiResponse<T>",
+      "degree": 1
+    },
+    {
+      "id": "api_contracts_api_error_response",
+      "label": "ApiErrorResponse",
+      "degree": 1
+    },
+    {
+      "id": "api_ingest",
+      "label": "POST /api/ingest",
+      "degree": 1
+    },
+    {
+      "id": "api_forensics_align",
+      "label": "POST /api/forensics/align",
+      "degree": 1
+    },
+    {
+      "id": "api_taxonomy_rules",
+      "label": "POST /api/taxonomy/rules",
+      "degree": 1
+    },
+    {
+      "id": "api_ucids_snapshots",
+      "label": "/api/ucids/:ucid/snapshots",
+      "degree": 1
+    },
+    {
+      "id": "api_contracts_paginated_data",
+      "label": "PaginatedData<T>",
+      "degree": 0
+    }
+  ],
+  "surprises": [],
+  "tokens": {
+    "input": 62711,
+    "output": 2411
+  }
+}
