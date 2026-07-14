@@ -26,3 +26,7 @@ report/
 # Local test outputs
 playwright-output.txt
 test-results*.json
+
+# Graphify
+**/graphify-out/cost.json
+graphify-out/cost.json

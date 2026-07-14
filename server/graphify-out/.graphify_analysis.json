@@ -1,0 +1,118 @@
+{
+  "communities": {
+    "0": [
+      "logger",
+      "logger_logger",
+      "logger_logsdir",
+      "routes_snapshots",
+      "routes_snapshots_snapshotsrouter",
+      "routes_vendorportal",
+      "routes_vendorportal_vendorportalrouter"
+    ],
+    "1": [
+      "routes_jobs",
+      "routes_jobs_jobsrouter",
+      "routes_jobs_jobstore",
+      "routes_jobs_mockjob"
+    ],
+    "2": [
+      "middleware_validatebody",
+      "routes_portfolio",
+      "routes_portfolio_portfoliorouter"
+    ],
+    "3": [
+      "middleware_validatebody_validatebody",
+      "routes_reconciliation",
+      "routes_reconciliation_reconciliationrouter"
+    ],
+    "4": [
+      "routes_boq",
+      "routes_boq_boqrouter",
+      "routes_boq_mockingestsolution"
+    ],
+    "5": [
+      "routes_agents",
+      "routes_agents_agentsrouter"
+    ],
+    "6": [
+      "routes_health",
+      "routes_health_healthrouter"
+    ],
+    "7": [
+      "routes_taxonomy",
+      "routes_taxonomy_taxonomyrouter"
+    ],
+    "8": [
+      "routes_webhooks",
+      "routes_webhooks_webhookrouter"
+    ]
+  },
+  "cohesion": {
+    "0": 0.38095238095238093,
+    "1": 0.5,
+    "2": 0.6666666666666666,
+    "3": 0.6666666666666666,
+    "4": 0.6666666666666666,
+    "5": 1.0,
+    "6": 1.0,
+    "7": 1.0,
+    "8": 1.0
+  },
+  "gods": [
+    {
+      "id": "middleware_validatebody_validatebody",
+      "label": "validateBody()",
+      "degree": 8
+    },
+    {
+      "id": "logger_logger",
+      "label": "logger",
+      "degree": 3
+    },
+    {
+      "id": "logger_logsdir",
+      "label": "logsDir",
+      "degree": 1
+    },
+    {
+      "id": "routes_agents_agentsrouter",
+      "label": "agentsRouter",
+      "degree": 1
+    },
+    {
+      "id": "routes_boq_boqrouter",
+      "label": "boqRouter",
+      "degree": 1
+    },
+    {
+      "id": "routes_boq_mockingestsolution",
+      "label": "MockIngestSolution",
+      "degree": 1
+    },
+    {
+      "id": "routes_health_healthrouter",
+      "label": "healthRouter",
+      "degree": 1
+    },
+    {
+      "id": "routes_jobs_jobsrouter",
+      "label": "jobsRouter",
+      "degree": 1
+    },
+    {
+      "id": "routes_jobs_mockjob",
+      "label": "MockJob",
+      "degree": 1
+    },
+    {
+      "id": "routes_jobs_jobstore",
+      "label": "jobStore",
+      "degree": 1
+    }
+  ],
+  "surprises": [],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}
