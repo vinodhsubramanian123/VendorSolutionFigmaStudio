@@ -30,3 +30,7 @@ test-results*.json
 # Graphify
 **/graphify-out/cost.json
 graphify-out/cost.json
+
+# IDE / Editor configs
+.obsidian/
+.idea/
