@@ -96,8 +96,7 @@
       "contributor": null,
       "community": 4,
       "norm_label": "usecataloggraphdata.ts",
-      "id": "src_hooks_usecataloggraphdata",
-      "community_name": "deriveGraphFromConfig"
+      "id": "src_hooks_usecataloggraphdata"
     },
     {
       "label": "TaxonomyGraphView.tsx",
@@ -110,8 +109,7 @@
       "contributor": null,
       "community": 4,
       "norm_label": "taxonomygraphview.tsx",
-      "id": "src_components_taxonomy_taxonomygraphview",
-      "community_name": "deriveGraphFromConfig"
+      "id": "src_components_taxonomy_taxonomygraphview"
     },
     {
       "label": "CatalogManager.tsx",
@@ -124,8 +122,7 @@
       "contributor": null,
       "community": 1,
       "norm_label": "catalogmanager.tsx",
-      "id": "src_components_catalog_catalogmanager",
-      "community_name": "Data Architecture and State"
+      "id": "src_components_catalog_catalogmanager"
     },
     {
       "label": "ForensicView.tsx",
@@ -138,8 +135,7 @@
       "contributor": null,
       "community": 3,
       "norm_label": "forensicview.tsx",
-      "id": "src_components_forensics_forensicview",
-      "community_name": "ForensicView.tsx"
+      "id": "src_components_forensics_forensicview"
     },
     {
       "label": "MissionControl.tsx",
@@ -152,8 +148,7 @@
       "contributor": null,
       "community": 6,
       "norm_label": "missioncontrol.tsx",
-      "id": "src_components_mission_control_missioncontrol",
-      "community_name": "/api/ucids/:ucid/snapshots"
+      "id": "src_components_mission_control_missioncontrol"
     },
     {
       "label": "IngestionHub.tsx",
@@ -166,8 +161,7 @@
       "contributor": null,
       "community": 5,
       "norm_label": "ingestionhub.tsx",
-      "id": "src_components_ingestion_ingestionhub",
-      "community_name": "POST /api/ingest"
+      "id": "src_components_ingestion_ingestionhub"
     },
     {
       "label": "ReconciliationView.tsx",
@@ -180,8 +174,7 @@
       "contributor": null,
       "community": 11,
       "norm_label": "reconciliationview.tsx",
-      "id": "src_components_reconciliation_reconciliationview",
-      "community_name": "ReconciliationView.tsx"
+      "id": "src_components_reconciliation_reconciliationview"
     },
     {
       "label": "SolutionBuilder.tsx",
@@ -194,8 +187,7 @@
       "contributor": null,
       "community": 12,
       "norm_label": "solutionbuilder.tsx",
-      "id": "src_components_solution_builder_solutionbuilder",
-      "community_name": "SolutionBuilder.tsx"
+      "id": "src_components_solution_builder_solutionbuilder"
     },
     {
       "label": "JobStreamer.tsx",
@@ -208,8 +200,7 @@
       "contributor": null,
       "community": 0,
       "norm_label": "jobstreamer.tsx",
-      "id": "src_components_shared_jobstreamer",
-      "community_name": "API Infrastructure and Routing"
+      "id": "src_components_shared_jobstreamer"
     },
     {
       "label": "deriveGraphFromConfig",
@@ -222,8 +213,7 @@
       "contributor": null,
       "community": 4,
       "norm_label": "derivegraphfromconfig",
-      "id": "derive_graph_from_config",
-      "community_name": "deriveGraphFromConfig"
+      "id": "derive_graph_from_config"
     },
     {
       "label": "ApiResponse<T>",
@@ -234,10 +224,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 0,
-      "norm_label": "apiresponse<t>",
       "id": "api_contracts_api_response",
-      "community_name": "API Infrastructure and Routing"
+      "community": 0,
+      "norm_label": "apiresponse<t>"
     },
     {
       "label": "ApiErrorResponse",
@@ -248,10 +237,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 0,
-      "norm_label": "apierrorresponse",
       "id": "api_contracts_api_error_response",
-      "community_name": "API Infrastructure and Routing"
+      "community": 0,
+      "norm_label": "apierrorresponse"
     },
     {
       "label": "PaginatedData<T>",
@@ -262,10 +250,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 9,
-      "norm_label": "paginateddata<t>",
       "id": "api_contracts_paginated_data",
-      "community_name": "PaginatedData<T>"
+      "community": 9,
+      "norm_label": "paginateddata<t>"
     },
     {
       "label": "POST /api/ingest",
@@ -276,10 +263,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
-      "norm_label": "post /api/ingest",
       "id": "api_ingest",
-      "community_name": "POST /api/ingest"
+      "community": 5,
+      "norm_label": "post /api/ingest"
     },
     {
       "label": "POST /api/forensics/align",
@@ -290,10 +276,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
-      "norm_label": "post /api/forensics/align",
       "id": "api_forensics_align",
-      "community_name": "ForensicView.tsx"
+      "community": 3,
+      "norm_label": "post /api/forensics/align"
     },
     {
       "label": "POST /api/taxonomy/rules",
@@ -304,10 +289,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
-      "norm_label": "post /api/taxonomy/rules",
       "id": "api_taxonomy_rules",
-      "community_name": "ForensicView.tsx"
+      "community": 3,
+      "norm_label": "post /api/taxonomy/rules"
     },
     {
       "label": "/api/ucids/:ucid/snapshots",
@@ -318,181 +302,161 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
-      "norm_label": "/api/ucids/:ucid/snapshots",
       "id": "api_ucids_snapshots",
-      "community_name": "/api/ucids/:ucid/snapshots"
+      "community": 6,
+      "norm_label": "/api/ucids/:ucid/snapshots"
     },
     {
       "label": "Agent Skills & Architecture Index",
       "file_type": "document",
       "source_file": "AGENT_INDEX.md",
-      "community": 1,
-      "norm_label": "agent skills & architecture index",
       "id": "agent_index",
-      "community_name": "Data Architecture and State"
+      "community": 1,
+      "norm_label": "agent skills & architecture index"
     },
     {
       "label": "Phase Learnings & Post-Mortems",
       "file_type": "document",
       "source_file": "phase-learnings.md",
-      "community": 10,
-      "norm_label": "phase learnings & post-mortems",
       "id": "phase_learnings",
-      "community_name": "Phase Learnings & Post-Mortems"
+      "community": 10,
+      "norm_label": "phase learnings & post-mortems"
     },
     {
       "label": "Architecture & Test Registry",
       "file_type": "document",
       "source_file": "test-registry.md",
-      "community": 13,
-      "norm_label": "architecture & test registry",
       "id": "test_registry",
-      "community_name": "Architecture & Test Registry"
+      "community": 13,
+      "norm_label": "architecture & test registry"
     },
     {
       "label": "UI/UX Component Specifications Registry",
       "file_type": "document",
       "source_file": "ui-component-registry.md",
-      "community": 2,
-      "norm_label": "ui/ux component specifications registry",
       "id": "ui_component_registry",
-      "community_name": "UI Component Skill Registry"
+      "community": 2,
+      "norm_label": "ui/ux component specifications registry"
     },
     {
       "label": "UI States",
       "file_type": "document",
       "source_file": "ui-states.md",
-      "community": 14,
-      "norm_label": "ui states",
       "id": "ui_states",
-      "community_name": "UI States"
+      "community": 14,
+      "norm_label": "ui states"
     },
     {
       "label": "Backend Route Inventory",
       "file_type": "document",
       "source_file": "architecture/backend-route-inventory.md",
-      "community": 0,
-      "norm_label": "backend route inventory",
       "id": "architecture_backend_route_inventory",
-      "community_name": "API Infrastructure and Routing"
+      "community": 0,
+      "norm_label": "backend route inventory"
     },
     {
       "label": "Code Smell & Quality Gap Analysis",
       "file_type": "document",
       "source_file": "architecture/code_quality_analysis.md",
-      "community": 7,
-      "norm_label": "code smell & quality gap analysis",
       "id": "architecture_code_quality_analysis",
-      "community_name": "Code Smell & Quality Gap Analysis"
+      "community": 7,
+      "norm_label": "code smell & quality gap analysis"
     },
     {
       "label": "Data Architecture Consolidation Plan",
       "file_type": "document",
       "source_file": "architecture/data-architecture-plan.md",
-      "community": 1,
-      "norm_label": "data architecture consolidation plan",
       "id": "architecture_data_architecture_plan",
-      "community_name": "Data Architecture and State"
+      "community": 1,
+      "norm_label": "data architecture consolidation plan"
     },
     {
       "label": "Data Ownership Hierarchy",
       "file_type": "document",
       "source_file": "architecture/data-ownership.md",
-      "community": 1,
-      "norm_label": "data ownership hierarchy",
       "id": "architecture_data_ownership",
-      "community_name": "Data Architecture and State"
+      "community": 1,
+      "norm_label": "data ownership hierarchy"
     },
     {
       "label": "VSIP Gap Remediation Plan",
       "file_type": "document",
       "source_file": "architecture/gap-remediation-plan.md",
-      "community": 7,
-      "norm_label": "vsip gap remediation plan",
       "id": "architecture_gap_remediation_plan",
-      "community_name": "Code Smell & Quality Gap Analysis"
+      "community": 7,
+      "norm_label": "vsip gap remediation plan"
     },
     {
       "label": "UI/UX 100/100 Verification Checklist",
       "file_type": "document",
       "source_file": "architecture/ui-ux-100-checklist.md",
-      "community": 8,
-      "norm_label": "ui/ux 100/100 verification checklist",
       "id": "architecture_ui_ux_100_checklist",
-      "community_name": "UI/UX 100/100 Verification Checklist"
+      "community": 8,
+      "norm_label": "ui/ux 100/100 verification checklist"
     },
     {
       "label": "UI/UX Audit: Enforcing Cosmic Slate",
       "file_type": "document",
       "source_file": "architecture/ui-ux-audit.md",
-      "community": 8,
-      "norm_label": "ui/ux audit: enforcing cosmic slate",
       "id": "architecture_ui_ux_audit",
-      "community_name": "UI/UX 100/100 Verification Checklist"
+      "community": 8,
+      "norm_label": "ui/ux audit: enforcing cosmic slate"
     },
     {
       "label": "Zustand Core Store",
       "file_type": "code",
       "source_file": "src/store/coreStore.ts",
-      "community": 1,
-      "norm_label": "zustand core store",
       "id": "src_store_corestore",
-      "community_name": "Data Architecture and State"
+      "community": 1,
+      "norm_label": "zustand core store"
     },
     {
       "label": "API Client",
       "file_type": "code",
       "source_file": "src/services/apiClient.ts",
-      "community": 0,
-      "norm_label": "api client",
       "id": "src_services_apiclient",
-      "community_name": "API Infrastructure and Routing"
+      "community": 0,
+      "norm_label": "api client"
     },
     {
       "label": "Express Server",
       "file_type": "code",
       "source_file": "server.ts",
-      "community": 0,
-      "norm_label": "express server",
       "id": "server",
-      "community_name": "API Infrastructure and Routing"
+      "community": 0,
+      "norm_label": "express server"
     },
     {
       "label": "Dashboard Skills",
       "file_type": "document",
       "source_file": "ui-specs/dashboard-skills.md",
-      "community": 2,
-      "norm_label": "dashboard skills",
       "id": "ui_specs_dashboard_skills",
-      "community_name": "UI Component Skill Registry"
+      "community": 2,
+      "norm_label": "dashboard skills"
     },
     {
       "label": "Mission Control Skills",
       "file_type": "document",
       "source_file": "ui-specs/mission-control-skills.md",
-      "community": 2,
-      "norm_label": "mission control skills",
       "id": "ui_specs_mission_control_skills",
-      "community_name": "UI Component Skill Registry"
+      "community": 2,
+      "norm_label": "mission control skills"
     },
     {
       "label": "Taxonomy Graph Skills",
       "file_type": "document",
       "source_file": "ui-specs/taxonomy-graph-skills.md",
-      "community": 2,
-      "norm_label": "taxonomy graph skills",
       "id": "ui_specs_taxonomy_graph_skills",
-      "community_name": "UI Component Skill Registry"
+      "community": 2,
+      "norm_label": "taxonomy graph skills"
     },
     {
       "label": "Campaign Hub Skills",
       "file_type": "document",
       "source_file": "ui-specs/campaign-hub-skills.md",
-      "community": 2,
-      "norm_label": "campaign hub skills",
       "id": "ui_specs_campaign_hub_skills",
-      "community_name": "UI Component Skill Registry"
+      "community": 2,
+      "norm_label": "campaign hub skills"
     }
   ],
   "links": [

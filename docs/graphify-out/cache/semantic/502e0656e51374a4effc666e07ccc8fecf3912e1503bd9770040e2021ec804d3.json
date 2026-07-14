@@ -1,0 +1,1 @@
+{"nodes": [{"id": "data_ownership", "label": "Data Ownership Hierarchy", "file_type": "document", "source_file": "architecture/data-ownership.md"}], "edges": [{"source": "data_ownership", "target": "store_corestore", "relation": "conceptually_related_to", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "architecture/data-ownership.md"}], "hyperedges": []}

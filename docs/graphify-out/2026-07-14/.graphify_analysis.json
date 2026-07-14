@@ -146,7 +146,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "implements",
-      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `ApiResponse<T>` unexpectedly reaches hub `API Client`"
+      "why": "crosses file types (doc \u2194 code); connects across different repos/directories; peripheral node `ApiResponse<T>` unexpectedly reaches hub `API Client`"
     },
     {
       "source": "API Client",
@@ -157,7 +157,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "implements",
-      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `ApiErrorResponse` unexpectedly reaches hub `API Client`"
+      "why": "crosses file types (doc \u2194 code); connects across different repos/directories; peripheral node `ApiErrorResponse` unexpectedly reaches hub `API Client`"
     },
     {
       "source": "Backend Route Inventory",
@@ -168,7 +168,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "references",
-      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `Backend Route Inventory` unexpectedly reaches hub `API Client`"
+      "why": "crosses file types (doc \u2194 code); connects across different repos/directories; peripheral node `Backend Route Inventory` unexpectedly reaches hub `API Client`"
     },
     {
       "source": "Data Architecture Consolidation Plan",
@@ -179,7 +179,7 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "conceptually_related_to",
-      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `Data Architecture Consolidation Plan` unexpectedly reaches hub `Zustand Core Store`"
+      "why": "crosses file types (doc \u2194 code); connects across different repos/directories; peripheral node `Data Architecture Consolidation Plan` unexpectedly reaches hub `Zustand Core Store`"
     },
     {
       "source": "Data Ownership Hierarchy",
@@ -190,29 +190,11 @@
       ],
       "confidence": "EXTRACTED",
       "relation": "conceptually_related_to",
-      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `Data Ownership Hierarchy` unexpectedly reaches hub `Zustand Core Store`"
+      "why": "crosses file types (doc \u2194 code); connects across different repos/directories; peripheral node `Data Ownership Hierarchy` unexpectedly reaches hub `Zustand Core Store`"
     }
   ],
-  "questions": [
-    {
-      "type": "bridge_node",
-      "question": "Why does `Zustand Core Store` connect `Data Architecture and State` to `ForensicView.tsx`, `deriveGraphFromConfig`?",
-      "why": "High betweenness centrality (0.241) - this node is a cross-community bridge."
-    },
-    {
-      "type": "bridge_node",
-      "question": "Why does `API Client` connect `API Infrastructure and Routing` to `ForensicView.tsx`?",
-      "why": "High betweenness centrality (0.150) - this node is a cross-community bridge."
-    },
-    {
-      "type": "bridge_node",
-      "question": "Why does `Agent Skills & Architecture Index` connect `Data Architecture and State` to `UI Component Skill Registry`?",
-      "why": "High betweenness centrality (0.135) - this node is a cross-community bridge."
-    },
-    {
-      "type": "isolated_nodes",
-      "question": "What connects `ApiResponse<T>`, `ApiErrorResponse`, `PaginatedData<T>` to the rest of the system?",
-      "why": "19 weakly-connected nodes found - possible documentation gaps or missing edges."
-    }
-  ]
+  "tokens": {
+    "input": 59346,
+    "output": 1470
+  }
 }

@@ -1,0 +1,262 @@
+{
+  "e2e/catalog.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "658569e785b799091b4fbc7e9fd7e9d2",
+    "semantic_hash": "658569e785b799091b4fbc7e9fd7e9d2"
+  },
+  "e2e/cleansing-lifecycle.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "6e96318e4ee4666bef63c26bf5722430",
+    "semantic_hash": "6e96318e4ee4666bef63c26bf5722430"
+  },
+  "e2e/cleansing.spec.ts": {
+    "mtime": 1783615125.1498287,
+    "ast_hash": "50287868947aed68e44b44638bd1c4a9",
+    "semantic_hash": "50287868947aed68e44b44638bd1c4a9"
+  },
+  "e2e/dashboard.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "7cc266aa7540fa79423d9404a9e4b790",
+    "semantic_hash": "7cc266aa7540fa79423d9404a9e4b790"
+  },
+  "e2e/deeplink.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "0bd07b591664cfd00b341bb3d86ca45e",
+    "semantic_hash": "0bd07b591664cfd00b341bb3d86ca45e"
+  },
+  "e2e/forensic.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "5517729f43b058675dac15aeb834d6bf",
+    "semantic_hash": "5517729f43b058675dac15aeb834d6bf"
+  },
+  "e2e/gap-validation.spec.ts": {
+    "mtime": 1783615125.1498287,
+    "ast_hash": "4fa428e2afbbc63d387a1c64dc274581",
+    "semantic_hash": "4fa428e2afbbc63d387a1c64dc274581"
+  },
+  "e2e/hybrid-ingestion.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "766e4086982df3f294215bc802edecb2",
+    "semantic_hash": "766e4086982df3f294215bc802edecb2"
+  },
+  "e2e/ingestion.spec.ts": {
+    "mtime": 1783615125.1498287,
+    "ast_hash": "531a143365d82ac0ee706beb13064174",
+    "semantic_hash": "531a143365d82ac0ee706beb13064174"
+  },
+  "e2e/learning-loop.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "55c9aa1815d36d060103eac96fdd3e07",
+    "semantic_hash": "55c9aa1815d36d060103eac96fdd3e07"
+  },
+  "e2e/master-lifecycle.spec.ts": {
+    "mtime": 1784028044.7792032,
+    "ast_hash": "13ad0af179544eab479f974c63bba2ef",
+    "semantic_hash": "13ad0af179544eab479f974c63bba2ef"
+  },
+  "e2e/memlab.scenario.js": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "c1fe5e0b8991ff82fe05350c65705956",
+    "semantic_hash": "c1fe5e0b8991ff82fe05350c65705956"
+  },
+  "e2e/mission-control.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "8d0d7c954cfff5b09af8815cae9c6f68",
+    "semantic_hash": "8d0d7c954cfff5b09af8815cae9c6f68"
+  },
+  "e2e/multi-ucid-isolation.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "f0fde366197aa72b8aa9c6f9f2e5dde3",
+    "semantic_hash": "f0fde366197aa72b8aa9c6f9f2e5dde3"
+  },
+  "e2e/navigation.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "158dc8370cf94b8c2ae3021d6343aa39",
+    "semantic_hash": "158dc8370cf94b8c2ae3021d6343aa39"
+  },
+  "e2e/persistence.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "0493be1b6bdaab60d265a3eebe38f383",
+    "semantic_hash": "0493be1b6bdaab60d265a3eebe38f383"
+  },
+  "e2e/reconciliation.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "f11303e47a67d727ab5126e433368c67",
+    "semantic_hash": "f11303e47a67d727ab5126e433368c67"
+  },
+  "e2e/responsive.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "2ace93fb94dd25a11c315ee01a94ac44",
+    "semantic_hash": "2ace93fb94dd25a11c315ee01a94ac44"
+  },
+  "e2e/search.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "cff72956d19ed8f4b5640be2d0f6a82f",
+    "semantic_hash": "cff72956d19ed8f4b5640be2d0f6a82f"
+  },
+  "e2e/snapshot-integrity.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "6360470fe630915f760ae87875a70b0c",
+    "semantic_hash": "6360470fe630915f760ae87875a70b0c"
+  },
+  "e2e/snapshots.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "350b66c33dabcb66bc6b8cfa3402862b",
+    "semantic_hash": "350b66c33dabcb66bc6b8cfa3402862b"
+  },
+  "e2e/solution-builder.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "7d0e46d47dd7b3a7728e64888d9bcf89",
+    "semantic_hash": "7d0e46d47dd7b3a7728e64888d9bcf89"
+  },
+  "e2e/taxonomy-constraint.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "c681468f1aad37d6aa2b419ebcfb5e22",
+    "semantic_hash": "c681468f1aad37d6aa2b419ebcfb5e22"
+  },
+  "e2e/taxonomy-drag-drop.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "13ff2ed0e555e7d5af39242b99ffa224",
+    "semantic_hash": "13ff2ed0e555e7d5af39242b99ffa224"
+  },
+  "e2e/taxonomy-graph.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "0cdef561f1de090a2ac50189ad889adb",
+    "semantic_hash": "0cdef561f1de090a2ac50189ad889adb"
+  },
+  "e2e/telemetry.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "fe7a26520266bca2a492298db61fd2fe",
+    "semantic_hash": "fe7a26520266bca2a492298db61fd2fe"
+  },
+  "e2e/unified-workflow.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "3087c2412262884fb7fc8553db94634f",
+    "semantic_hash": "3087c2412262884fb7fc8553db94634f"
+  },
+  "e2e/vendor-portal-clic.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "7cc9db4abbcea11627c124d4252fa2c1",
+    "semantic_hash": "7cc9db4abbcea11627c124d4252fa2c1"
+  },
+  "e2e/vendor-portal.spec.ts": {
+    "mtime": 1783615125.1538281,
+    "ast_hash": "2fdfdec065531b56b68a7b5f097b7b0f",
+    "semantic_hash": "2fdfdec065531b56b68a7b5f097b7b0f"
+  },
+  "e2e/visual.spec.ts": {
+    "mtime": 1784028044.7832026,
+    "ast_hash": "eb9fedee79404fe85df5b867a3ae9ee2",
+    "semantic_hash": "eb9fedee79404fe85df5b867a3ae9ee2"
+  },
+  "integration/a11yAndPerformance.test.tsx": {
+    "mtime": 1783615125.1698258,
+    "ast_hash": "bc179b15a53a2f2064f77a07aa7d1bb1",
+    "semantic_hash": "bc179b15a53a2f2064f77a07aa7d1bb1"
+  },
+  "integration/cleansing-mapping.test.tsx": {
+    "mtime": 1783615125.1698258,
+    "ast_hash": "78c5ad10e17ff200e0e0ed656688279c",
+    "semantic_hash": "78c5ad10e17ff200e0e0ed656688279c"
+  },
+  "integration/cross-component-sync.test.tsx": {
+    "mtime": 1783615125.1698258,
+    "ast_hash": "45c6342370147685aafad95439cf2ddb",
+    "semantic_hash": "45c6342370147685aafad95439cf2ddb"
+  },
+  "integration/data-persistence-gate.test.tsx": {
+    "mtime": 1783615125.1698258,
+    "ast_hash": "a583c827d4b58eddafc9bbe055a75fb7",
+    "semantic_hash": "a583c827d4b58eddafc9bbe055a75fb7"
+  },
+  "integration/forensics-auto-heal-chain.test.tsx": {
+    "mtime": 1783674594.7398884,
+    "ast_hash": "bbea6e7642e433a9ea7626eaaf7988fa",
+    "semantic_hash": "bbea6e7642e433a9ea7626eaaf7988fa"
+  },
+  "integration/ingestion-workflow.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "8eeb4b60a90774d719773fbe1e5a393c",
+    "semantic_hash": "8eeb4b60a90774d719773fbe1e5a393c"
+  },
+  "integration/lifecycle.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "b3eaacea997deb2f699d2371a0d8a61f",
+    "semantic_hash": "b3eaacea997deb2f699d2371a0d8a61f"
+  },
+  "integration/resilience.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "5ff2d5a99d2a38a9e30d6c8a5042bd42",
+    "semantic_hash": "5ff2d5a99d2a38a9e30d6c8a5042bd42"
+  },
+  "integration/solution-builder-state.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "e929baa83d34b253ca20116c7c29f518",
+    "semantic_hash": "e929baa83d34b253ca20116c7c29f518"
+  },
+  "integration/solutionLifecycle.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "de951c6f546d3070b3ad9998db33a859",
+    "semantic_hash": "de951c6f546d3070b3ad9998db33a859"
+  },
+  "integration/taxonomy-graph-sync.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "ecb6f8be333d841ec37334654036798f",
+    "semantic_hash": "ecb6f8be333d841ec37334654036798f"
+  },
+  "integration/unsavedChangesGuard.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "4e11ce122262be4d709863381dda1872",
+    "semantic_hash": "4e11ce122262be4d709863381dda1872"
+  },
+  "unit/GraphContracts.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "937e268488362c87b7001b727a9dac6a",
+    "semantic_hash": "937e268488362c87b7001b727a9dac6a"
+  },
+  "unit/agentsCompliance.test.tsx": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "10a570773b01ba03708d965702ae4b5f",
+    "semantic_hash": "10a570773b01ba03708d965702ae4b5f"
+  },
+  "unit/contracts.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "57da42bacb23c95608679d06e4f5886b",
+    "semantic_hash": "57da42bacb23c95608679d06e4f5886b"
+  },
+  "unit/logger.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "cc38ab128073fc5639219543f622f64f",
+    "semantic_hash": "cc38ab128073fc5639219543f622f64f"
+  },
+  "unit/multiVendorBOQ.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "7b80d0f4b097df5477a7f300802ddd06",
+    "semantic_hash": "7b80d0f4b097df5477a7f300802ddd06"
+  },
+  "unit/propertyBased.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "9f7b72cf50ef2b99c5b77c0d39e35051",
+    "semantic_hash": "9f7b72cf50ef2b99c5b77c0d39e35051"
+  },
+  "unit/reconciliationMath.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "e5997586ebcb574999530ebef67d806c",
+    "semantic_hash": "e5997586ebcb574999530ebef67d806c"
+  },
+  "unit/taxonomyConstraints.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "3ae7816880f801913e3749e45f1e8fca",
+    "semantic_hash": "3ae7816880f801913e3749e45f1e8fca"
+  },
+  "unit/zodSchemaIntegration.test.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "c99cd4eb3eba0549935eb5b85fde3c97",
+    "semantic_hash": "c99cd4eb3eba0549935eb5b85fde3c97"
+  },
+  "utils/assertPayload.ts": {
+    "mtime": 1783615125.173825,
+    "ast_hash": "1aa8dc6a28964de619c26d8c296391f4",
+    "semantic_hash": "1aa8dc6a28964de619c26d8c296391f4"
+  }
+}

@@ -9,9 +9,10 @@
       "source_file": "logger.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "logger",
       "community": 0,
-      "norm_label": "logger.ts"
+      "norm_label": "logger.ts",
+      "id": "logger",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "logsDir",
@@ -19,9 +20,10 @@
       "source_file": "logger.ts",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "logger_logsdir",
       "community": 0,
-      "norm_label": "logsdir"
+      "norm_label": "logsdir",
+      "id": "logger_logsdir",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "logger",
@@ -29,9 +31,10 @@
       "source_file": "logger.ts",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "logger_logger",
       "community": 0,
-      "norm_label": "logger"
+      "norm_label": "logger",
+      "id": "logger_logger",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "validateBody.ts",
@@ -39,9 +42,10 @@
       "source_file": "middleware/validateBody.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "middleware_validatebody",
       "community": 2,
-      "norm_label": "validatebody.ts"
+      "norm_label": "validatebody.ts",
+      "id": "middleware_validatebody",
+      "community_name": "validateBody.ts"
     },
     {
       "label": "validateBody()",
@@ -49,9 +53,10 @@
       "source_file": "middleware/validateBody.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "middleware_validatebody_validatebody",
       "community": 3,
-      "norm_label": "validatebody()"
+      "norm_label": "validatebody()",
+      "id": "middleware_validatebody_validatebody",
+      "community_name": "validateBody"
     },
     {
       "label": "agents.ts",
@@ -59,9 +64,10 @@
       "source_file": "routes/agents.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_agents",
       "community": 5,
-      "norm_label": "agents.ts"
+      "norm_label": "agents.ts",
+      "id": "routes_agents",
+      "community_name": "agents.ts"
     },
     {
       "label": "agentsRouter",
@@ -69,9 +75,10 @@
       "source_file": "routes/agents.ts",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "routes_agents_agentsrouter",
       "community": 5,
-      "norm_label": "agentsrouter"
+      "norm_label": "agentsrouter",
+      "id": "routes_agents_agentsrouter",
+      "community_name": "agents.ts"
     },
     {
       "label": "boq.ts",
@@ -79,9 +86,10 @@
       "source_file": "routes/boq.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_boq",
       "community": 4,
-      "norm_label": "boq.ts"
+      "norm_label": "boq.ts",
+      "id": "routes_boq",
+      "community_name": "boq.ts"
     },
     {
       "label": "boqRouter",
@@ -89,9 +97,10 @@
       "source_file": "routes/boq.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "routes_boq_boqrouter",
       "community": 4,
-      "norm_label": "boqrouter"
+      "norm_label": "boqrouter",
+      "id": "routes_boq_boqrouter",
+      "community_name": "boq.ts"
     },
     {
       "label": "MockIngestSolution",
@@ -99,9 +108,10 @@
       "source_file": "routes/boq.ts",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "routes_boq_mockingestsolution",
       "community": 4,
-      "norm_label": "mockingestsolution"
+      "norm_label": "mockingestsolution",
+      "id": "routes_boq_mockingestsolution",
+      "community_name": "boq.ts"
     },
     {
       "label": "health.ts",
@@ -109,9 +119,10 @@
       "source_file": "routes/health.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_health",
       "community": 6,
-      "norm_label": "health.ts"
+      "norm_label": "health.ts",
+      "id": "routes_health",
+      "community_name": "health.ts"
     },
     {
       "label": "healthRouter",
@@ -119,9 +130,10 @@
       "source_file": "routes/health.ts",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "routes_health_healthrouter",
       "community": 6,
-      "norm_label": "healthrouter"
+      "norm_label": "healthrouter",
+      "id": "routes_health_healthrouter",
+      "community_name": "health.ts"
     },
     {
       "label": "jobs.ts",
@@ -129,9 +141,10 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_jobs",
       "community": 1,
-      "norm_label": "jobs.ts"
+      "norm_label": "jobs.ts",
+      "id": "routes_jobs",
+      "community_name": "Job Management"
     },
     {
       "label": "jobsRouter",
@@ -139,9 +152,10 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "routes_jobs_jobsrouter",
       "community": 1,
-      "norm_label": "jobsrouter"
+      "norm_label": "jobsrouter",
+      "id": "routes_jobs_jobsrouter",
+      "community_name": "Job Management"
     },
     {
       "label": "MockJob",
@@ -149,9 +163,10 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "routes_jobs_mockjob",
       "community": 1,
-      "norm_label": "mockjob"
+      "norm_label": "mockjob",
+      "id": "routes_jobs_mockjob",
+      "community_name": "Job Management"
     },
     {
       "label": "jobStore",
@@ -159,9 +174,10 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "routes_jobs_jobstore",
       "community": 1,
-      "norm_label": "jobstore"
+      "norm_label": "jobstore",
+      "id": "routes_jobs_jobstore",
+      "community_name": "Job Management"
     },
     {
       "label": "portfolio.ts",
@@ -169,9 +185,10 @@
       "source_file": "routes/portfolio.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_portfolio",
       "community": 2,
-      "norm_label": "portfolio.ts"
+      "norm_label": "portfolio.ts",
+      "id": "routes_portfolio",
+      "community_name": "validateBody.ts"
     },
     {
       "label": "portfolioRouter",
@@ -179,9 +196,10 @@
       "source_file": "routes/portfolio.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "routes_portfolio_portfoliorouter",
       "community": 2,
-      "norm_label": "portfoliorouter"
+      "norm_label": "portfoliorouter",
+      "id": "routes_portfolio_portfoliorouter",
+      "community_name": "validateBody.ts"
     },
     {
       "label": "reconciliation.ts",
@@ -189,9 +207,10 @@
       "source_file": "routes/reconciliation.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_reconciliation",
       "community": 3,
-      "norm_label": "reconciliation.ts"
+      "norm_label": "reconciliation.ts",
+      "id": "routes_reconciliation",
+      "community_name": "validateBody"
     },
     {
       "label": "reconciliationRouter",
@@ -199,9 +218,10 @@
       "source_file": "routes/reconciliation.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "routes_reconciliation_reconciliationrouter",
       "community": 3,
-      "norm_label": "reconciliationrouter"
+      "norm_label": "reconciliationrouter",
+      "id": "routes_reconciliation_reconciliationrouter",
+      "community_name": "validateBody"
     },
     {
       "label": "snapshots.ts",
@@ -209,9 +229,10 @@
       "source_file": "routes/snapshots.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_snapshots",
       "community": 0,
-      "norm_label": "snapshots.ts"
+      "norm_label": "snapshots.ts",
+      "id": "routes_snapshots",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "snapshotsRouter",
@@ -219,9 +240,10 @@
       "source_file": "routes/snapshots.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "routes_snapshots_snapshotsrouter",
       "community": 0,
-      "norm_label": "snapshotsrouter"
+      "norm_label": "snapshotsrouter",
+      "id": "routes_snapshots_snapshotsrouter",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "taxonomy.ts",
@@ -229,9 +251,10 @@
       "source_file": "routes/taxonomy.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_taxonomy",
       "community": 7,
-      "norm_label": "taxonomy.ts"
+      "norm_label": "taxonomy.ts",
+      "id": "routes_taxonomy",
+      "community_name": "taxonomy.ts"
     },
     {
       "label": "taxonomyRouter",
@@ -239,9 +262,10 @@
       "source_file": "routes/taxonomy.ts",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "routes_taxonomy_taxonomyrouter",
       "community": 7,
-      "norm_label": "taxonomyrouter"
+      "norm_label": "taxonomyrouter",
+      "id": "routes_taxonomy_taxonomyrouter",
+      "community_name": "taxonomy.ts"
     },
     {
       "label": "vendorPortal.ts",
@@ -249,9 +273,10 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_vendorportal",
       "community": 0,
-      "norm_label": "vendorportal.ts"
+      "norm_label": "vendorportal.ts",
+      "id": "routes_vendorportal",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "vendorPortalRouter",
@@ -259,9 +284,10 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "routes_vendorportal_vendorportalrouter",
       "community": 0,
-      "norm_label": "vendorportalrouter"
+      "norm_label": "vendorportalrouter",
+      "id": "routes_vendorportal_vendorportalrouter",
+      "community_name": "Logging and Vendor Portal"
     },
     {
       "label": "webhooks.ts",
@@ -269,9 +295,10 @@
       "source_file": "routes/webhooks.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_webhooks",
       "community": 8,
-      "norm_label": "webhooks.ts"
+      "norm_label": "webhooks.ts",
+      "id": "routes_webhooks",
+      "community_name": "webhooks.ts"
     },
     {
       "label": "webhookRouter",
@@ -279,9 +306,10 @@
       "source_file": "routes/webhooks.ts",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "routes_webhooks_webhookrouter",
       "community": 8,
-      "norm_label": "webhookrouter"
+      "norm_label": "webhookrouter",
+      "id": "routes_webhooks_webhookrouter",
+      "community_name": "webhooks.ts"
     }
   ],
   "links": [
@@ -291,9 +319,9 @@
       "source_file": "logger.ts",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "logger",
-      "target": "logger_logger",
-      "confidence_score": 1.0
+      "target": "logger_logger"
     },
     {
       "relation": "contains",
@@ -301,9 +329,9 @@
       "source_file": "logger.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "logger",
-      "target": "logger_logsdir",
-      "confidence_score": 1.0
+      "target": "logger_logsdir"
     },
     {
       "relation": "imports_from",
@@ -312,9 +340,9 @@
       "source_file": "routes/snapshots.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_snapshots",
-      "target": "logger",
-      "confidence_score": 1.0
+      "target": "logger"
     },
     {
       "relation": "imports_from",
@@ -323,9 +351,9 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_vendorportal",
-      "target": "logger",
-      "confidence_score": 1.0
+      "target": "logger"
     },
     {
       "relation": "imports",
@@ -334,9 +362,9 @@
       "source_file": "routes/snapshots.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_snapshots",
-      "target": "logger_logger",
-      "confidence_score": 1.0
+      "target": "logger_logger"
     },
     {
       "relation": "imports",
@@ -345,9 +373,9 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_vendorportal",
-      "target": "logger_logger",
-      "confidence_score": 1.0
+      "target": "logger_logger"
     },
     {
       "relation": "contains",
@@ -355,9 +383,9 @@
       "source_file": "middleware/validateBody.ts",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "middleware_validatebody",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports_from",
@@ -366,9 +394,9 @@
       "source_file": "routes/agents.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_agents",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports_from",
@@ -377,9 +405,9 @@
       "source_file": "routes/boq.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_boq",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports_from",
@@ -388,9 +416,9 @@
       "source_file": "routes/portfolio.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_portfolio",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports_from",
@@ -399,9 +427,9 @@
       "source_file": "routes/reconciliation.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_reconciliation",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports_from",
@@ -410,9 +438,9 @@
       "source_file": "routes/taxonomy.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_taxonomy",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports_from",
@@ -421,9 +449,9 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_vendorportal",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports_from",
@@ -432,9 +460,9 @@
       "source_file": "routes/webhooks.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_webhooks",
-      "target": "middleware_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody"
     },
     {
       "relation": "imports",
@@ -443,9 +471,9 @@
       "source_file": "routes/agents.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_agents",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports",
@@ -454,9 +482,9 @@
       "source_file": "routes/boq.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_boq",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports",
@@ -465,9 +493,9 @@
       "source_file": "routes/portfolio.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_portfolio",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports",
@@ -476,9 +504,9 @@
       "source_file": "routes/reconciliation.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_reconciliation",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports",
@@ -487,9 +515,9 @@
       "source_file": "routes/taxonomy.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_taxonomy",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports",
@@ -498,9 +526,9 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_vendorportal",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "imports",
@@ -509,9 +537,9 @@
       "source_file": "routes/webhooks.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_webhooks",
-      "target": "middleware_validatebody_validatebody",
-      "confidence_score": 1.0
+      "target": "middleware_validatebody_validatebody"
     },
     {
       "relation": "contains",
@@ -519,9 +547,9 @@
       "source_file": "routes/agents.ts",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_agents",
-      "target": "routes_agents_agentsrouter",
-      "confidence_score": 1.0
+      "target": "routes_agents_agentsrouter"
     },
     {
       "relation": "contains",
@@ -529,9 +557,9 @@
       "source_file": "routes/boq.ts",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_boq",
-      "target": "routes_boq_boqrouter",
-      "confidence_score": 1.0
+      "target": "routes_boq_boqrouter"
     },
     {
       "relation": "contains",
@@ -539,9 +567,9 @@
       "source_file": "routes/boq.ts",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_boq",
-      "target": "routes_boq_mockingestsolution",
-      "confidence_score": 1.0
+      "target": "routes_boq_mockingestsolution"
     },
     {
       "relation": "contains",
@@ -549,9 +577,9 @@
       "source_file": "routes/health.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_health",
-      "target": "routes_health_healthrouter",
-      "confidence_score": 1.0
+      "target": "routes_health_healthrouter"
     },
     {
       "relation": "contains",
@@ -559,9 +587,9 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_jobs",
-      "target": "routes_jobs_jobsrouter",
-      "confidence_score": 1.0
+      "target": "routes_jobs_jobsrouter"
     },
     {
       "relation": "contains",
@@ -569,9 +597,9 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_jobs",
-      "target": "routes_jobs_jobstore",
-      "confidence_score": 1.0
+      "target": "routes_jobs_jobstore"
     },
     {
       "relation": "contains",
@@ -579,9 +607,9 @@
       "source_file": "routes/jobs.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_jobs",
-      "target": "routes_jobs_mockjob",
-      "confidence_score": 1.0
+      "target": "routes_jobs_mockjob"
     },
     {
       "relation": "contains",
@@ -589,9 +617,9 @@
       "source_file": "routes/portfolio.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_portfolio",
-      "target": "routes_portfolio_portfoliorouter",
-      "confidence_score": 1.0
+      "target": "routes_portfolio_portfoliorouter"
     },
     {
       "relation": "contains",
@@ -599,9 +627,9 @@
       "source_file": "routes/reconciliation.ts",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_reconciliation",
-      "target": "routes_reconciliation_reconciliationrouter",
-      "confidence_score": 1.0
+      "target": "routes_reconciliation_reconciliationrouter"
     },
     {
       "relation": "contains",
@@ -609,9 +637,9 @@
       "source_file": "routes/snapshots.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_snapshots",
-      "target": "routes_snapshots_snapshotsrouter",
-      "confidence_score": 1.0
+      "target": "routes_snapshots_snapshotsrouter"
     },
     {
       "relation": "contains",
@@ -619,9 +647,9 @@
       "source_file": "routes/taxonomy.ts",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_taxonomy",
-      "target": "routes_taxonomy_taxonomyrouter",
-      "confidence_score": 1.0
+      "target": "routes_taxonomy_taxonomyrouter"
     },
     {
       "relation": "contains",
@@ -629,9 +657,9 @@
       "source_file": "routes/vendorPortal.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_vendorportal",
-      "target": "routes_vendorportal_vendorportalrouter",
-      "confidence_score": 1.0
+      "target": "routes_vendorportal_vendorportalrouter"
     },
     {
       "relation": "contains",
@@ -639,11 +667,11 @@
       "source_file": "routes/webhooks.ts",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_webhooks",
-      "target": "routes_webhooks_webhookrouter",
-      "confidence_score": 1.0
+      "target": "routes_webhooks_webhookrouter"
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a450026a0aafc5de218d59ee4d59c68d98313e3d"
+  "built_at_commit": "3436cdcc6d3c6caae6a8910325b1ae8dfe2c8864"
 }

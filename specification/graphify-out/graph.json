@@ -1,0 +1,312 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {
+    "hyperedges": [
+      {
+        "id": "core_operational_modules",
+        "label": "Core Operational Modules",
+        "nodes": [
+          "src_components_dashboard_dashboard",
+          "src_components_solution_builder_solutionbuilder",
+          "src_components_ingestion_ingestionhub",
+          "src_components_mission_control_missioncontrol",
+          "src_components_forensics_forensicview",
+          "src_components_cleansing_cleansingview",
+          "src_components_taxonomy_taxonomygraphview",
+          "src_components_catalog_catalogmanager",
+          "src_components_vendor_portal_vendorportal",
+          "src_components_telemetry_systemtelemetry"
+        ],
+        "relation": "participate_in",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "PRD.md"
+      },
+      {
+        "id": "ucid_lifecycle_stages",
+        "label": "UCID Lifecycle Stages",
+        "nodes": [
+          "src_components_ingestion_ingestionhub",
+          "src_components_solution_builder_solutionbuilder",
+          "src_components_vendor_portal_vendorportal",
+          "src_components_forensics_forensicview",
+          "src_components_mission_control_missioncontrol"
+        ],
+        "relation": "form",
+        "confidence": "INFERRED",
+        "confidence_score": 0.85,
+        "source_file": "PRD.md"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "label": "Vendor Solution Intelligence & Procurement Integrity Platform",
+      "file_type": "document",
+      "source_file": "PRD.md",
+      "community": 1,
+      "norm_label": "vendor solution intelligence & procurement integrity platform",
+      "id": "prd_platform",
+      "community_name": "Vendor Solution Intelligence & Procurement Integrity Platform"
+    },
+    {
+      "label": "Cosmic Slate Theme",
+      "file_type": "concept",
+      "source_file": "PRD.md",
+      "community": 1,
+      "norm_label": "cosmic slate theme",
+      "id": "prd_cosmic_slate",
+      "community_name": "Vendor Solution Intelligence & Procurement Integrity Platform"
+    },
+    {
+      "label": "Overview Dashboard",
+      "file_type": "code",
+      "source_file": "src/components/dashboard/Dashboard.tsx",
+      "community": 8,
+      "norm_label": "overview dashboard",
+      "id": "src_components_dashboard_dashboard",
+      "community_name": "Overview Dashboard"
+    },
+    {
+      "label": "Solution Builder",
+      "file_type": "code",
+      "source_file": "src/components/solution-builder/SolutionBuilder.tsx",
+      "community": 11,
+      "norm_label": "solution builder",
+      "id": "src_components_solution_builder_solutionbuilder",
+      "community_name": "Solution Builder"
+    },
+    {
+      "label": "Ingestion Hub",
+      "file_type": "code",
+      "source_file": "src/components/ingestion/IngestionHub.tsx",
+      "community": 0,
+      "norm_label": "ingestion hub",
+      "id": "src_components_ingestion_ingestionhub",
+      "community_name": "Ingestion Hub"
+    },
+    {
+      "label": "Mission Control",
+      "file_type": "code",
+      "source_file": "src/components/mission-control/MissionControl.tsx",
+      "community": 0,
+      "norm_label": "mission control",
+      "id": "src_components_mission_control_missioncontrol",
+      "community_name": "Ingestion Hub"
+    },
+    {
+      "label": "Forensic View",
+      "file_type": "code",
+      "source_file": "src/components/forensics/ForensicView.tsx",
+      "community": 9,
+      "norm_label": "forensic view",
+      "id": "src_components_forensics_forensicview",
+      "community_name": "Forensic View"
+    },
+    {
+      "label": "Cleansing View",
+      "file_type": "code",
+      "source_file": "src/components/cleansing/CleansingView.tsx",
+      "community": 7,
+      "norm_label": "cleansing view",
+      "id": "src_components_cleansing_cleansingview",
+      "community_name": "Cleansing View"
+    },
+    {
+      "label": "Taxonomy Graph View",
+      "file_type": "code",
+      "source_file": "src/components/taxonomy/TaxonomyGraphView.tsx",
+      "community": 4,
+      "norm_label": "taxonomy graph view",
+      "id": "src_components_taxonomy_taxonomygraphview",
+      "community_name": "/api/taxonomy/check-constraints"
+    },
+    {
+      "label": "Catalog Manager",
+      "file_type": "code",
+      "source_file": "src/components/catalog/CatalogManager.tsx",
+      "community": 6,
+      "norm_label": "catalog manager",
+      "id": "src_components_catalog_catalogmanager",
+      "community_name": "Catalog Manager"
+    },
+    {
+      "label": "Vendor Portal",
+      "file_type": "code",
+      "source_file": "src/components/vendor-portal/VendorPortal.tsx",
+      "community": 2,
+      "norm_label": "vendor portal",
+      "id": "src_components_vendor_portal_vendorportal",
+      "community_name": "/api/agents/run"
+    },
+    {
+      "label": "System Telemetry",
+      "file_type": "code",
+      "source_file": "src/components/telemetry/SystemTelemetry.tsx",
+      "community": 3,
+      "norm_label": "system telemetry",
+      "id": "src_components_telemetry_systemtelemetry",
+      "community_name": "/api/integrations/dispatch"
+    },
+    {
+      "label": "Data Persistence Gate",
+      "file_type": "code",
+      "source_file": "src/components/shared/DataPersistenceGate.tsx",
+      "community": 10,
+      "norm_label": "data persistence gate",
+      "id": "src_components_shared_datapersistencegate",
+      "community_name": "Data Persistence Gate"
+    },
+    {
+      "label": "/api/boq/ingest",
+      "file_type": "code",
+      "source_file": "PRD.md",
+      "community": 0,
+      "norm_label": "/api/boq/ingest",
+      "id": "api_boq_ingest",
+      "community_name": "Ingestion Hub"
+    },
+    {
+      "label": "/api/agents/run",
+      "file_type": "code",
+      "source_file": "PRD.md",
+      "community": 2,
+      "norm_label": "/api/agents/run",
+      "id": "api_agents_run",
+      "community_name": "/api/agents/run"
+    },
+    {
+      "label": "/api/taxonomy/check-constraints",
+      "file_type": "code",
+      "source_file": "PRD.md",
+      "community": 4,
+      "norm_label": "/api/taxonomy/check-constraints",
+      "id": "api_taxonomy_check_constraints",
+      "community_name": "/api/taxonomy/check-constraints"
+    },
+    {
+      "label": "/api/reconciliation/compare",
+      "file_type": "code",
+      "source_file": "PRD.md",
+      "community": 5,
+      "norm_label": "/api/reconciliation/compare",
+      "id": "api_reconciliation_compare",
+      "community_name": "/api/reconciliation/compare"
+    },
+    {
+      "label": "/api/integrations/dispatch",
+      "file_type": "code",
+      "source_file": "PRD.md",
+      "community": 3,
+      "norm_label": "/api/integrations/dispatch",
+      "id": "api_integrations_dispatch",
+      "community_name": "/api/integrations/dispatch"
+    },
+    {
+      "label": "VSIP UI Testing Specification",
+      "file_type": "document",
+      "source_file": "VSIP_UI_Testing_Specification.md",
+      "community": 1,
+      "norm_label": "vsip ui testing specification",
+      "id": "testing_spec",
+      "community_name": "Vendor Solution Intelligence & Procurement Integrity Platform"
+    }
+  ],
+  "links": [
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PRD.md",
+      "source": "prd_platform",
+      "target": "prd_cosmic_slate"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "VSIP_UI_Testing_Specification.md",
+      "source": "testing_spec",
+      "target": "prd_platform"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "REVIEW_CONTEXT.md",
+      "source": "src_components_ingestion_ingestionhub",
+      "target": "api_boq_ingest"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "PRD.md",
+      "source": "src_components_mission_control_missioncontrol",
+      "target": "src_components_ingestion_ingestionhub"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "REVIEW_CONTEXT.md",
+      "source": "src_components_taxonomy_taxonomygraphview",
+      "target": "api_taxonomy_check_constraints"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "REVIEW_CONTEXT.md",
+      "source": "src_components_vendor_portal_vendorportal",
+      "target": "api_agents_run"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "REVIEW_CONTEXT.md",
+      "source": "src_components_telemetry_systemtelemetry",
+      "target": "api_integrations_dispatch"
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "core_operational_modules",
+      "label": "Core Operational Modules",
+      "nodes": [
+        "src_components_dashboard_dashboard",
+        "src_components_solution_builder_solutionbuilder",
+        "src_components_ingestion_ingestionhub",
+        "src_components_mission_control_missioncontrol",
+        "src_components_forensics_forensicview",
+        "src_components_cleansing_cleansingview",
+        "src_components_taxonomy_taxonomygraphview",
+        "src_components_catalog_catalogmanager",
+        "src_components_vendor_portal_vendorportal",
+        "src_components_telemetry_systemtelemetry"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "PRD.md"
+    },
+    {
+      "id": "ucid_lifecycle_stages",
+      "label": "UCID Lifecycle Stages",
+      "nodes": [
+        "src_components_ingestion_ingestionhub",
+        "src_components_solution_builder_solutionbuilder",
+        "src_components_vendor_portal_vendorportal",
+        "src_components_forensics_forensicview",
+        "src_components_mission_control_missioncontrol"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "PRD.md"
+    }
+  ],
+  "built_at_commit": "3436cdcc6d3c6caae6a8910325b1ae8dfe2c8864"
+}
