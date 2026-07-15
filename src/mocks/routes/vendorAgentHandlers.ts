@@ -36,30 +36,7 @@ export const vendorAgentHandlers = [
       timestamp,
     }));
   }),
-  // POST /api/agents/run
-  http.post('/api/agents/run', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    const b = (await request.json()) as { agentName?: string };
-    if (b?.agentName === "AribaScraper") {
-      return HttpResponse.json({
-        success: false,
-        error: {
-          code: 'SERVER_ERROR',
-          message: "CCW Authentication Session Expired. Rotating credentials required."
-        }
-      }, { status: 500 });
-    }
-    return HttpResponse.json(wrapSuccess({
-      taskId: "task-playwright-1",
-      status: "success",
-      executionTimeMs: 1200,
-      crawledItemsExtracted: 3,
-      logTrail: [
-        { timestamp: new Date().toISOString(), level: "info", message: "Agent started..." },
-        { timestamp: new Date().toISOString(), level: "info", message: "Logged in successfully." }
-      ]
-    }));
-  }),
+
   // POST /api/agents/parse-advice-file
   http.post('/api/agents/parse-advice-file', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(1200);
@@ -99,32 +76,7 @@ export const vendorAgentHandlers = [
       label: body.message || ""
     }));
   }),
-  // POST /api/taxonomy/check-constraints
-  http.post('/api/taxonomy/check-constraints', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({
-      isCompliant: true,
-      socketMatch: {
-        status: "compatible",
-        chassisSocket: "LGA-4677",
-        cpuSocket: "LGA-4677",
-        description: "Socket match verified successfully."
-      },
-      powerLimitTest: {
-        passed: true,
-        estimatedTdpWatts: 270,
-        maxSupportedWatts: 350,
-        marginWatts: 80
-      },
-      memoryBalanceCheck: {
-        passed: true,
-        quantity: 16,
-        optimalLayoutSymmetry: 8,
-        recommendsCorrection: false,
-        message: "Memory layout is perfectly balanced (16 modules across 8 channels)."
-      }
-    }));
-  }),
+
   // POST /api/taxonomy/map
   http.post('/api/taxonomy/map', async ({ request }) => {
     if (process.env.NODE_ENV !== 'test') await delay(800);
@@ -178,21 +130,5 @@ export const vendorAgentHandlers = [
     if (process.env.NODE_ENV !== 'test') await delay(1000);
     return HttpResponse.json(wrapSuccess({ success: true, ref: 'doc-12345' }));
   }),
-  // Cryptographic Dispatch Webhook
-  http.post('/api/integrations/dispatch', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({
-      dispatchId: `disp-${crypto.randomUUID()}`,
-      status: 'delivered',
-      cryptographicSignature: 'sha256:mock_hash_signature',
-      auditLog: [
-        {
-          attemptNumber: 1,
-          timestamp: new Date().toISOString(),
-          httpStatusCode: 200,
-          responseBody: '{"success": true}'
-        }
-      ]
-    }));
-  }),
+
 ];

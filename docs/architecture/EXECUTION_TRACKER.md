@@ -21,10 +21,10 @@ same rule as the other continuity docs.
 
 | ID | Task | What's needed | Depends on | Verification | Status | Learnings/Feedback |
 |---|---|---|---|---|---|---|
-| 0.1 | Decide scope of 31 MSW-only routes | Read `backend-route-inventory.md` §G, pick which subsystems get real `server.ts` implementations and in what order | — | Decision recorded in this row | ⬜ | |
-| 0.2 | Decide Anomaly 1 — vendor routing | Collapse to `/api/vendor/portal` vs. add real `/api/vendors/sync`+`/toggle` | — | Decision recorded in this row | ⬜ | |
-| 0.3 | Decide Anomaly 4 — `/api/integrations/dispatch` | Build webhook-dispatch UI feature, or leave backend unused | — | Decision recorded in this row | ⬜ | |
-| 0.4 | Decide cleansing mock-data divergence | Unify the two match-status computation strategies, or leave as documented inconsistency | — | Decision recorded in this row | ⬜ | |
+| 0.1 | Decide scope of 31 MSW-only routes | Read `backend-route-inventory.md` §G, pick which subsystems get real `server.ts` implementations and in what order | — | Decision recorded in this row | ✅ | Catalog CRUD and Forensic Auto-Heal (`/api/forensics/align`) get real server.ts implementations next. Telemetry logs/webhooks remain simulated. |
+| 0.2 | Decide Anomaly 1 — vendor routing | Collapse to `/api/vendor/portal` vs. add real `/api/vendors/sync`+`/toggle` | — | Decision recorded in this row | ✅ | Collapse to `/api/vendor/portal`. The UI should conform to the backend's existing generic dispatcher contract. |
+| 0.3 | Decide Anomaly 4 — `/api/integrations/dispatch` | Build webhook-dispatch UI feature, or leave backend unused | — | Decision recorded in this row | ✅ | Leave backend unused for now. Complete on backend but no immediate UI need. |
+| 0.4 | Decide cleansing mock-data divergence | Unify the two match-status computation strategies, or leave as documented inconsistency | — | Decision recorded in this row | ✅ | Leave as documented inconsistency. Low priority since MSW endpoint doesn't run real network validation; will unify when moving to real server.ts. |
 
 ---
 
@@ -32,8 +32,8 @@ same rule as the other continuity docs.
 
 | ID | Task | What to do | Depends on | Verification | Status | Learnings/Feedback |
 |---|---|---|---|---|---|---|
-| 1.1 | Fix stale `0007` status in `gap-remediation-plan.md` | Handoff section says "staged but NOT YET applied" — it's merged (`a38bd8c`, `6073b50` +3). Correct the text. | — | `git log --oneline` shows commits on `main`; doc text matches | ⬜ | |
-| 1.2 | Fix stale multi-ucid/hybrid-ingestion status in same doc | Doc says these need a navigation rewrite — already fixed in `a38bd8c` via real `StepComparison.tsx` change | — | Diff `a38bd8c`, confirm fix is real not a guard workaround | ⬜ | |
+| 1.1 | Fix stale `0007` status in `gap-remediation-plan.md` | Handoff section says "staged but NOT YET applied" — it's merged (`a38bd8c`, `6073b50` +3). Correct the text. | — | `git log --oneline` shows commits on `main`; doc text matches | ✅ | Checked git log, updated doc text to reflect commits on `main`. |
+| 1.2 | Fix stale multi-ucid/hybrid-ingestion status in same doc | Doc says these need a navigation rewrite — already fixed in `a38bd8c` via real `StepComparison.tsx` change | — | Diff `a38bd8c`, confirm fix is real not a guard workaround | ✅ | Replaced stale text referencing rewrite needs. |
 
 ---
 
@@ -41,13 +41,13 @@ same rule as the other continuity docs.
 
 | ID | Task | What to do | Depends on | Verification | Status | Learnings/Feedback |
 |---|---|---|---|---|---|---|
-| 2.1 | Remove/justify undocumented `isVisible()` guard | `tests/e2e/reconciliation.spec.ts` — `if (await closeBtn.isVisible()) { await closeBtn.click(); }`, no comment, no assertion after | — | Guard removed or replaced with a real assertion; revert-and-confirm-fail | ⬜ | |
-| 2.2 | Anomaly 2 — dead edge-weight route fix | Contained fix, matches an existing working pattern exactly | — | Route reachable, matching pattern confirmed via manual/unit test | ⬜ | |
-| 2.3 | Anomaly 3 — delete 6 orphaned methods | Already confirmed dead via grep — verify again via `git log -S` before deleting (project standard) | — | `git log -S"<method>"` for each of the 6; 0 consumers confirmed | ⬜ | |
-| 2.4 | Confirm/delete `IngestBOMRequest`/`IngestBOMResponse` | Looks unused in `src/types/models/api.ts`, never confirmed dead | — | `git log -S"IngestBOMRequest"` and `-S"IngestBOMResponse"`; grep 0 consumers | ⬜ | |
-| 2.5 | Delete MSW handlers for the 10 now-safe Phase 3b routes | Every caller already confirmed payload-compatible — mechanical removal | — | `npm run test` (vitest) green after removal; grep confirms no remaining references | ⬜ | |
-| 2.6 | Document `React.lazy` graphify blind spot | Add note to `.agents/rules/graphify.md`: lazy-loaded route components misreport as isolated | — | File diff reviewed | ⬜ | |
-| 2.7 | Document `server/` graph coarseness limitation | Add note: server graph is file-level only, no endpoint/handler nodes — don't trust it for call-chain questions yet | — | File diff reviewed | ⬜ | |
+| 2.1 | Remove/justify undocumented `isVisible()` guard | `tests/e2e/reconciliation.spec.ts` — `if (await closeBtn.isVisible()) { await closeBtn.click(); }`, no comment, no assertion after | — | Guard removed or replaced with a real assertion; revert-and-confirm-fail | ✅ | Replaced with `expect(closeBtn).toBeVisible()`. Verified failing when locator was wrong, passing now. |
+| 2.2 | Anomaly 2 — dead edge-weight route fix | Contained fix, matches an existing working pattern exactly | — | Route reachable, matching pattern confirmed via manual/unit test | ✅ | Verified `EdgeEditorPanel` calls `useCatalogGraphData` local overlay. |
+| 2.3 | Anomaly 3 — delete 6 orphaned methods | Already confirmed dead via grep — verify again via `git log -S` before deleting (project standard) | — | `git log -S"<method>"` for each of the 6; 0 consumers confirmed | ✅ | Verified 6 methods deleted from `apiClient.ts` |
+| 2.4 | Confirm/delete `IngestBOMRequest`/`IngestBOMResponse` | Looks unused in `src/types/models/api.ts`, never confirmed dead | — | `git log -S"IngestBOMRequest"` and `-S"IngestBOMResponse"`; grep 0 consumers | ✅ | Confirmed completely removed from `src/` |
+| 2.5 | Delete MSW handlers for the 10 now-safe Phase 3b routes | Every caller already confirmed payload-compatible — mechanical removal | — | `npm run test` (vitest) green after removal; grep confirms no remaining references | ✅ | Removed MSW handlers. Cleaned up corresponding contract assertions in `MSWContracts.test.ts` and `contracts.test.ts` which were failing after the handlers were removed. Vitest is green. |
+| 2.6 | Document `React.lazy` graphify blind spot | Add note to `.agents/rules/graphify.md`: lazy-loaded route components misreport as isolated | — | File diff reviewed | ✅ | Added note to graphify.md |
+| 2.7 | Document `server/` graph coarseness limitation | Add note: server graph is file-level only, no endpoint/handler nodes — don't trust it for call-chain questions yet | — | File diff reviewed | ✅ | Added note to graphify.md |
 
 ---
 

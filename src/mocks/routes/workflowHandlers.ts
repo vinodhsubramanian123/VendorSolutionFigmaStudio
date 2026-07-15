@@ -14,26 +14,7 @@ import { wrapSuccess} from './sharedState';
 const jobPollCounts = new Map<string, number>();
 
 export const workflowHandlers = [
-  http.get('/api/jobs/:id', async ({ params }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(150);
-    const jobId = params.id as string;
-    const pollCount = (jobPollCounts.get(jobId) || 0) + 1;
-    jobPollCounts.set(jobId, pollCount);
 
-    // First 3 polls report increasing progress; 4th+ reports completed.
-    // Real jobs would report genuine backend progress here instead.
-    const progressSteps = [25, 55, 80];
-    const isComplete = pollCount > progressSteps.length;
-    return HttpResponse.json(wrapSuccess({
-      job_id: jobId,
-      status: isComplete ? 'completed' : 'processing',
-      progress: isComplete ? 100 : progressSteps[pollCount - 1],
-      result: isComplete ? {
-        success: true,
-        reconciliationStatus: 'complete'
-      } : undefined
-    }));
-  }),
   // GET /api/catalog
   http.get('/api/catalog', async () => {
     if (process.env.NODE_ENV !== 'test') await delay(600);
@@ -73,46 +54,7 @@ export const workflowHandlers = [
     const res = await MockTaxonomyApi.getGraphForConfig(mockConfig, [], "HPE");
     return HttpResponse.json(wrapSuccess(res));
   }),
-  // POST /api/portfolio/orchestrate
-  http.post('/api/portfolio/orchestrate', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({
-      success: true,
-      transactionId: "job-portfolio-sync",
-      status: "orchestrating",
-      timestamp: new Date().toISOString()
-    }));
-  }),
-  // POST /api/jobs
-  http.post('/api/jobs', async ({ request }) => {
-    const body = (await request.json().catch(() => ({}))) as { context?: { executionMode?: string } };
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    
-    // Skip automated provisioning/intelligence steps if execution mode is manual
-    if (body?.context?.executionMode === 'manual') {
-      return HttpResponse.json(wrapSuccess({
-        status: "completed",
-        job_id: "job-skipped-manual-" + crypto.randomUUID(),
-        logTrail: [
-          "Manual mode detected.",
-          "Skipping automated API quoting...",
-          "Awaiting manual document upload."
-        ]
-      }));
-    }
 
-    return HttpResponse.json(wrapSuccess({
-      status: "completed",
-      job_id: "job-mock-ingest-" + crypto.randomUUID(),
-      logTrail: [
-        "Validating structural Bill of Materials nodes under profile...",
-        "Interrogating direct HPE REST quotation endpoints...",
-        "Comparing Dell Premier partner contract pricing databases...",
-        "Auditing Cisco unified socket bus configuration symmetry requirements...",
-        "Analyzing multi-sheet compliance rules validations..."
-      ]
-    }));
-  }),
   // POST /api/pipeline/step
   http.post('/api/pipeline/step', async ({ request }) => {
     const body = (await request.json()) as { step?: string };
@@ -139,98 +81,5 @@ export const workflowHandlers = [
       extractedCount
     }));
   }),
-  // POST /api/portfolio/upload-manual
-  http.post('/api/portfolio/upload-manual', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    const b = (await request.json()) as { configsMatchedCount?: number };
-    const isComplete = b?.configsMatchedCount === 4;
-    return HttpResponse.json(wrapSuccess({
-      success: true,
-      reconciliationStatus: isComplete ? "complete" : "partial",
-      reconciledPriceUSD: isComplete ? 244800 : 122400,
-      missingSlots: isComplete ? [] : ["config-slot-4"],
-      integrityScore: isComplete ? 100 : 75,
-      message: isComplete
-        ? "Manual partner upload fully reconciled against portfolio slots."
-        : "Manual partner upload accepted with unresolved configuration slots."
-    }));
-  }),
-  http.post('/api/boq/ingest', async ({ request }) => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    const body = (await request.json()) as { presetType?: string; fileName?: string };
-    const presetType = body?.presetType || "hpe-legacy";
-    const preset = BOQ_PRESETS[presetType] || BOQ_PRESETS["hpe-legacy"];
-    const ucidObj: UCID = {
-      id: crypto.randomUUID(),
-      displayId: "UCID-2026-9999",
-      name: "Auto-Ingested Sourcing Job",
-      priority: "high",
-      projectRef: "PRJ-NEW-BOQ",
-      createdAt: new Date().toISOString(),
-      currentStep: "boq-intake",
-      completedSteps: [],
-      rawBOM: preset.rawText || "Parsed mock payload",
-      solutionId: "sol-ylng-2026-001",
-      solutionDisplayId: "SOL-2026-001",
-      configIndex: 1,
-      configLabel: "API Config",
-      parallelGroup: null,
-      solutions: preset.sols,
-      events: [],
-      snapshots: []
-    };
-    return HttpResponse.json(wrapSuccess({ 
-      success: true,
-      message: "BOQ ingested successfully.",
-      sourceFile: body?.fileName || "mock-upload.xlsx",
-      ucid: ucidObj,
-      timestamp: new Date().toISOString(),
-      parsedSummary: {
-        vendorBrand: "Consolidated",
-        detectedChassis: "Multi-Node",
-        itemsCount: 12,
-        initialConfidenceScore: 92
-      },
-      rawText: preset.rawText,
-      solutions: preset.sols
-    }));
-  }),
-  // POST /api/reconciliation/compare
-  http.post('/api/reconciliation/compare', async () => {
-    if (process.env.NODE_ENV !== 'test') await delay(800);
-    return HttpResponse.json(wrapSuccess({
-      comparisonHash: "hash-" + crypto.randomUUID(),
-      calculatedAt: new Date().toISOString(),
-      metrics: {
-        cheapestSolutionId: "vs-u1-dell",
-        highestComplianceId: "vs-u1-hpe",
-        totalSavingsUSD: 16200,
-        optimumHybridAlternative: {
-          totalCost: 235000,
-          chassisVendor: "Dell",
-          componentsCount: 12
-        }
-      },
-      matrix: [
-        {
-          solutionId: "vs-u1-hpe",
-          vendor: "HPE",
-          baseCost: 261000,
-          negotiatedContractCost: 244800,
-          variancePercentage: 6.2,
-          leadTimeBottleneckDays: 14,
-          deliveryConfidenceRating: 98
-        },
-        {
-          solutionId: "vs-u1-dell",
-          vendor: "Dell",
-          baseCost: 255200,
-          negotiatedContractCost: 239630,
-          variancePercentage: 6.1,
-          leadTimeBottleneckDays: 12,
-          deliveryConfidenceRating: 96
-        }
-      ]
-    }));
-  }),
+
 ];

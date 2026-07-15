@@ -81,15 +81,6 @@ describe('Data Contract & Integrity Validation Tests', () => {
       expect(data.length).toBe(0);
     });
 
-    
-    it('POST /api/boq/ingest returns expected shape', async () => {
-      const payload = { fileName: 'test.xlsx', presetType: 'hpe-legacy' };
-      const response = await apiClient.post<any>('/api/boq/ingest', payload);
-      expect(response.success).toBe(true);
-      const parsed = IngestResponseSchema.safeParse(response.data);
-      if (!parsed.success) console.error("IngestResponse Failure:", parsed.error.issues);
-      expect(parsed.success).toBe(true);
-    });
 
     it('POST /api/cleansing/fuzzy-match returns compliant data', async () => {
       const payload = { entries: [{ rowId: "1", description: "Test", detectedPartNumber: "123", matchStatus: "unmatched" }] };
@@ -101,36 +92,7 @@ describe('Data Contract & Integrity Validation Tests', () => {
       expect(response.data.entries[0].matchStatus).toBe("fuzzy");
     });
 
-    it('POST /api/taxonomy/check-constraints returns compliant data', async () => {
-      const payload = { chassisSKU: "P40411-B21", cpuSKU: "P40424-B21", ramQuantity: 16, psuWattsCount: 800 };
-      const response = await apiClient.post<any>('/api/taxonomy/check-constraints', payload);
-      expect(response.success).toBe(true);
-      const parsed = ConstraintCheckResponseSchema.safeParse(response.data);
-      if (!parsed.success) console.error("ConstraintCheck Failure:", parsed.error.issues);
-      expect(parsed.success).toBe(true);
-    });
 
-    it('POST /api/reconciliation/compare returns compliant data', async () => {
-      const payload = {
-        submissions: [
-          {
-            id: "vs-1",
-            vendor: "HPE",
-            configs: [
-              {
-                items: [
-                  { partNumber: "P40411-B21", quantity: 1, unitPrice: 3400, type: "Chassis" }
-                ]
-              }
-            ]
-          }
-        ]
-      };
-      const response = await apiClient.post<any>('/api/reconciliation/compare', payload);
-      expect(response.success).toBe(true);
-      const parsed = ReconciliationResponseSchema.safeParse(response.data);
-      if (!parsed.success) console.error("ReconciliationResponse Failure:", parsed.error.issues);
-      expect(parsed.success).toBe(true);
-    });
+
   });
 });

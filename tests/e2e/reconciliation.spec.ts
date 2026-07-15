@@ -24,11 +24,8 @@ test.describe('03 - Reconciliation E2E', () => {
     const snapshotBtn = page.locator('button', { hasText: 'Version Snapshots' }).first();
     await snapshotBtn.click();
     // Panel should have close button
-    const closeBtn = page.locator('button[title="Close Panel"]').first();
-    if (await closeBtn.isVisible()) {
-      await closeBtn.click();
-    } else {
-      await page.keyboard.press('Escape');
-    }
+    const closeBtn = page.getByLabel('Close snapshots panel').first();
+    await expect(closeBtn).toBeVisible();
+    await closeBtn.click();
   });
 });
